@@ -18,9 +18,11 @@ window.addEventListener('load', function () {
 });
 
 function onLoadHandler() {
-  // let file = decodeURIComponent(location.hash.substring(1));
+  let file = decodeURIComponent(location.hash.substring(1));
   // http://localhost:63342/video-demux/index.html#http://localhost:63342/video-demux/assets/example.json
-  let file = "http://localhost:63342/video-demux/assets/example.json"
+  if (!file) {
+    file = "http://localhost:63342/video-demux/assets/example.json"
+  }
   if (file) {
     console.log("Loading example", file);
     for (let uri of file.split(',')) {
