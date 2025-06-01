@@ -1,0 +1,66 @@
+<html>
+<head>
+  <meta content="text/html;charset=utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <link rel="stylesheet" href="assets/css/reset.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <title>Web video editing</title>
+</head>
+
+<body>
+<div id="background" class="full">
+  An error has occured! Please reload this page and make sure JavaScript is enabled. If you still see this error
+  message, then JavaScript has not loaded.
+  <input type="file" id="filepicker" multiple accept="video/mp4,video/x-m4v,video/*,image/*,audio/*"/>
+</div>
+
+<div id="foreground" class="full">
+
+  <div id="cursor_preview">
+    <div></div>
+    <canvas></canvas>
+  </div>
+
+  <div id="canvas"></div>
+
+  <div id="layer_holder">
+    <div id="header">
+      <div onclick='upload()'>+ Media</div>
+      <div onclick='addText()'>+ Text</div>
+      <div onclick='updateSettings()'>Settings</div>
+      <div id="export">Export</div>
+    </div>
+    <div id="layers"></div>
+  </div>
+
+  <div id="timeline"></div>
+
+</div>
+
+<script type="text/javascript" src="assets/js/layer/frames.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-common.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-text.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-image.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-video.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-audio.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-view.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-loader.js"></script>
+<script type="text/javascript" src="assets/js/timeline/timeline.js"></script>
+<script type="text/javascript" src="assets/js/timeline/drag.js"></script>
+<script type="text/javascript" src="assets/js/timeline/preview.js"></script>
+<script type="text/javascript" src="assets/js/player/player.js"></script>
+<script type="text/javascript" src="assets/js/studio/pinch-handler.js"></script>
+<script type="text/javascript" src="assets/js/studio/video-export.js"></script>
+<script type="text/javascript" src="assets/js/studio/drag-handler.js"></script>
+<script type="text/javascript" src="assets/js/studio/studio.js"></script>
+<script type="text/javascript" src="assets/js/studio/settings.js"></script>
+<script type="text/javascript" src="assets/js/studio/controls.js"></script>
+<script type="text/javascript" src="assets/js/studio/utils.js"></script>
+<script type="text/javascript" src="assets/js/main.js"></script>
+</body>
+</html>
