@@ -19,7 +19,7 @@ class Timeline {
     this.timelineCanvas = document.createElement('canvas');
     this.timelineCtx = this.timelineCanvas.getContext('2d');
 
-    this.timelineHolder = document.getElementById('timeline');
+    this.timelineHolder = document.getElementById('timeline_content');
     this.timelineHolder.appendChild(this.timelineCanvas);
 
     // Configuration for timeline elements
@@ -93,10 +93,17 @@ class Timeline {
       this.scale = Math.max(1, this.scale * scale);
       this.resize();
       this.timelineHolder.scroll(Math.round(old_x + new_x), 0);
+      
+      // Update the zoom slider to match the current scale
+      if (this.zoomHandler) {
+        this.zoomHandler.updateSliderValue();
+      }
     }).bind(this)
 
     const pinch = new PinchHandler(this.timelineHolder, callback, this.studio);
     pinch.setupEventListeners();
+    
+    this.zoomHandler = new TimelineZoomHandler(this);
   }
 
   #addEventListeners() {

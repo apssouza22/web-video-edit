@@ -208,12 +208,24 @@ a:visited {
   bottom: 0;
   height: 20%;
   width: 100%;
-  overflow-x: scroll;
   scrollbar-width: none;
-  padding: none;
+  padding: 0;
 }
 
-#foreground #timeline canvas {
+#foreground #timeline_content {
+  position: relative;
+  background: rgb(43,47,51);
+  right: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  padding: 0;
+}
+
+#foreground #timeline_content canvas {
   position: absolute;
   bottom: 0;
   top: 0;
@@ -223,4 +235,87 @@ a:visited {
 #foreground #canvas canvas {
   width: 100%;
   height: 100%;
+}
+
+/* Timeline header styles */
+#timeline_header {
+  position: relative;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  background: rgb(37, 37, 40);
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(60, 60, 65, 0.8);
+}
+
+#controls_left, #controls_right {
+  display: flex;
+  align-items: center;
+}
+
+.timeline_header_item {
+  margin: 0 8px;
+  padding: 6px 12px;
+  background-color: rgb(53, 53, 58);
+  color: rgb(192, 200, 213);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'JupiterSans';
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.timeline_header_item:hover {
+  background-color: rgb(63, 63, 68);
+  color: rgb(220, 225, 235);
+}
+
+/* Zoom slider styles */
+#controls_right .timeline_header_item {
+  display: flex;
+  align-items: center;
+  width: 180px;
+  justify-content: space-between;
+}
+
+#timeline_zoom_slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgb(80, 80, 85);
+  outline: none;
+  margin-left: 8px;
+}
+
+#timeline_zoom_slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(169, 225, 250);
+  cursor: pointer;
+  border: 2px solid rgb(37, 37, 40);
+  transition: background 0.2s;
+}
+
+#timeline_zoom_slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(169, 225, 250);
+  cursor: pointer;
+  border: 2px solid rgb(37, 37, 40);
+  transition: background 0.2s;
+}
+
+#timeline_zoom_slider::-webkit-slider-thumb:hover {
+  background: rgb(139, 205, 240);
+}
+
+#timeline_zoom_slider::-moz-range-thumb:hover {
+  background: rgb(139, 205, 240);
 }
