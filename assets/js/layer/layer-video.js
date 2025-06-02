@@ -1,9 +1,8 @@
-
 class VideoLayer extends StandardLayer {
   constructor(file) {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);
-    
+
     // Empty VideoLayers (split() requires this)
     if (file._leave_empty) {
       return;
@@ -101,20 +100,26 @@ class VideoLayer extends StandardLayer {
     if (!this.ready) {
       return;
     }
-    
+
     // Check if we need to re-render this frame
     if (!this.shouldRender(currentTime, playing)) {
       this.drawScaled(this.ctx, ctxOut);
       return;
     }
-    
-    // If we need to re-render, proceed with normal rendering
+
     let index = this.framesCollection.getIndex(currentTime, this.start_time);
-    if (index < this.framesCollection.getLength()) {
-      const frame = this.framesCollection.frames[index];
-      this.ctx.putImageData(frame, 0, 0);
-      this.drawScaled(this.ctx, ctxOut);
-      this.updateRenderCache(currentTime, playing);
+    if (index < 0 || index >= this.framesCollection.getLength()) {
+      return;
     }
+    const frame = this.framesCollection.frames[index];
+
+    if (!(frame instanceof ImageData)) {
+      console.error("Invalid frame data at index", index, "for VideoLayer", this.name);
+      return;
+    }
+    this.ctx.putImageData(frame, 0, 0);
+    this.drawScaled(this.ctx, ctxOut);
+    this.updateRenderCache(currentTime, playing);
+
   }
 }
