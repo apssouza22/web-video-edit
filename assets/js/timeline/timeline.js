@@ -22,6 +22,13 @@ class Timeline {
     this.timelineHolder = document.getElementById('timeline');
     this.timelineHolder.appendChild(this.timelineCanvas);
 
+    // Configuration for time indicators
+    this.timeMarkerHeight = 20; // Height for the time markers at the top
+    this.timeMarkerSpacing = 60; // Pixels between time markers
+    this.layerHeight = 30; // Height per layer
+    this.minLayerSpacing = 10; // Minimum space between layers
+    this.contentPadding = 10; // Padding around content
+
     this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
     this.timeUpdateListener = null;
@@ -96,10 +103,21 @@ class Timeline {
   }
 
   /**
-   * Resize the timeline canvas based on the scale factor
+   * Resize the timeline canvas based on the scale factor and number of layers
    */
   resize() {
     this.timelineCanvas.style.width = this.timelineHolder.clientWidth * this.scale;
+    
+    // Calculate the required height based on layers
+    const layerCount = this.layers.length;
+    const requiredHeight = Math.max(
+      this.timelineHolder.clientHeight,
+      this.timeMarkerHeight + (layerCount * (this.layerHeight + this.minLayerSpacing)) + this.contentPadding
+    );
+    
+    this.timelineCanvas.style.height = requiredHeight + 'px';
+    
+    // Update canvas dimensions for proper rendering
     this.timelineCanvas.width = this.timelineCanvas.clientWidth * dpr;
     this.timelineCanvas.height = this.timelineCanvas.clientHeight * dpr;
     this.timelineCtx.scale(dpr, dpr);
@@ -194,6 +212,8 @@ class Timeline {
       this.#renderLayerTimeline(layer, verticalPosition, 3, selected);
       verticalPosition -= verticalPositionSpace;
     }
+
+    this.#renderTimeMarkers();
   }
 
 
@@ -204,6 +224,60 @@ class Timeline {
     this.timelineCtx.font = "10px sans-serif";
     this.timelineCtx.fillText(time.toFixed(2), x + 5, 10);
     this.timelineCtx.fillText(this.totalTime.toFixed(2), x + 5, 20);
+  }
+
+  /**
+   * Render time markers at the top of the timeline
+   * Shows second markers along the timeline
+   * @private
+   */
+  #renderTimeMarkers() {
+    // Fill the time marker area with a darker background
+    this.timelineCtx.fillStyle = 'rgb(30, 34, 38)';
+    this.timelineCtx.fillRect(0, 0, this.timelineCanvas.clientWidth, this.timeMarkerHeight);
+    
+    // Calculate marker interval based on total time
+    // Adjust spacing based on scale for better readability
+    const secondsInterval = this.calculateTimeIntervalForMarkers();
+    const pixelsPerSecond = this.timelineCanvas.clientWidth / this.totalTime * 1000;
+    
+    this.timelineCtx.fillStyle = 'rgb(150, 150, 150)';
+    this.timelineCtx.font = '10px sans-serif';
+    this.timelineCtx.textAlign = 'center';
+    
+    // Draw time markers
+    for (let time = 0; time <= this.totalTime; time += secondsInterval) {
+      const x = (time / this.totalTime) * this.timelineCanvas.clientWidth;
+      
+      // Draw marker line
+      this.timelineCtx.fillRect(x, 0, 1, this.timeMarkerHeight);
+      
+      // Draw time label (in seconds)
+      const seconds = time / 1000;
+      this.timelineCtx.fillText(seconds.toFixed(1) + 's', x, this.timeMarkerHeight - 5);
+    }
+    
+    this.timelineCtx.textAlign = 'left'; // Reset alignment for other text
+  }
+
+  /**
+   * Calculate a readable time interval for markers based on the current scale
+   * @returns {number} Time interval in milliseconds
+   * @private
+   */
+  calculateTimeIntervalForMarkers() {
+    const availableWidth = this.timelineCanvas.clientWidth;
+    const pixelsPerSecond = availableWidth / (this.totalTime / 1000);
+    
+    // Choose an interval that will space the markers nicely
+    if (pixelsPerSecond > 200) return 100; // 0.1 second intervals if zoomed way in
+    if (pixelsPerSecond > 100) return 250; // 0.25 second intervals
+    if (pixelsPerSecond > 50) return 500; // 0.5 second intervals
+    if (pixelsPerSecond > 25) return 1000; // 1 second intervals
+    if (pixelsPerSecond > 15) return 2000; // 2 second intervals
+    if (pixelsPerSecond > 5) return 5000; // 5 second intervals
+    
+    return 10000; // 10 second intervals when zoomed out
   }
 
   /**
