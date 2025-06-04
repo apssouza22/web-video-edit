@@ -4,7 +4,7 @@ class VideoStudio {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas');
 
-    this.player = new VideoPlayer(this)
+    this.player = new VideoPlayer()
     this.player.mount(this.mainSection);
 
     this.timeline = new Timeline(this);

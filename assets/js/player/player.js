@@ -3,8 +3,6 @@ class VideoPlayer {
   constructor() {
     this.playing = false;
     this.onend_callback = null;
-    this.width = 1280;
-    this.height = 720;
     this.total_time = 0;
     this.lastTImestampFrame = null;
     this.time = 0;
@@ -42,9 +40,10 @@ class VideoPlayer {
   }
 
   mount(holder) {
+    this.playerHolder = holder
     holder.appendChild(this.canvas);
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    this.canvas.width = holder.clientWidth;
+    this.canvas.height = holder.clientHeight
     this.ctx.scale(1, 1); // Reset scale to 1
     this.resize();
   }
