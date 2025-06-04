@@ -2,7 +2,7 @@ class VideoStudio {
 
   constructor() {
     this.update = null;
-    this.mainSection = document.getElementById('canvas');
+    this.mainSection = document.getElementById('video-canvas');
 
     this.player = new VideoPlayer(this)
     this.player.mount(this.mainSection);
