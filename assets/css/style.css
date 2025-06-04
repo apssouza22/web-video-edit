@@ -119,13 +119,38 @@ text-align: center;
   overflow: auto;
   padding: 10px;
   box-sizing: border-box;
+  border-right: #c0c8d5 solid 1px;
 }
 
 
 /* Video canvas takes up 50% width */
-#center-panel #video-canvas {
+#center-panel #video-canvas-panel {
   width: 60%;
   height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(43, 47, 51, 0.9);
+}
+
+#video-canvas {
+  position: relative;
+  width: 90%;
+  max-height: 90%;
+  aspect-ratio: 16/9;
+  background-color: #000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  margin: auto;
+}
+
+/* Video canvas content (videos, images, etc) */
+#video-canvas video, 
+#video-canvas img, 
+#video-canvas canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 #layer_holder {
