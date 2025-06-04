@@ -212,14 +212,19 @@ class Timeline {
     this.layers = layers;
     this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientWidth);
     this.#updateTotalTime(layers);
-    this.#renderCurrentTimeLine(this.playerTime);
+    
+    // Calculate the available height for layers (excluding the time marker height)
+    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height;
+    
+    this.#renderLineMarker(this.playerTime);
 
     if (this.isHover) {
-      this.#renderCurrentTimeLine(this.time);
+      this.#renderLineMarker(this.time);
       this.previewHandler.render(this.time, layers);
     }
 
-    let verticalPositionSpace = this.timelineCanvas.clientHeight / (layers.length + 1);
+    // Calculate vertical positions based on available height (below time marker)
+    let verticalPositionSpace = availableHeight / (layers.length + 1);
     let verticalPosition = this.timelineCanvas.clientHeight - verticalPositionSpace;
 
     for (let layer of layers) {
@@ -232,13 +237,15 @@ class Timeline {
   }
 
 
-  #renderCurrentTimeLine(time) {
+  #renderLineMarker(time) {
     let x = this.timelineCanvas.clientWidth * time / this.totalTime;
     this.timelineCtx.fillStyle = `rgb(192,200,213)`;
     this.timelineCtx.fillRect(x, 0, 2, this.timelineCanvas.clientHeight);
     this.timelineCtx.font = "10px sans-serif";
-    this.timelineCtx.fillText(time.toFixed(2), x + 5, 10);
-    this.timelineCtx.fillText(this.totalTime.toFixed(2), x + 5, 20);
+    
+    // Position the text in a way that doesn't overlap with the time marker
+    this.timelineCtx.fillText(time.toFixed(2), x + 5, this.timeMarker.height + 15);
+    this.timelineCtx.fillText(this.totalTime.toFixed(2), x + 5, this.timeMarker.height + 30);
   }
 
 
@@ -249,7 +256,9 @@ class Timeline {
    * @returns {boolean} - Whether a layer was selected
    */
   #selectLayer(ev) {
-    let verticalSpacing = this.timelineCanvas.clientHeight / (this.layers.length + 1);
+    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height;
+    
+    let verticalSpacing = availableHeight / (this.layers.length + 1);
     let verticalPosition = this.timelineCanvas.clientHeight;
 
     for (let layer of this.layers) {
