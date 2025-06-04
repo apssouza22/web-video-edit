@@ -11,6 +11,7 @@ class LayersSidebarView {
     this.layersHolder = document.getElementById('layers');
     this.selectedLayer = null;
     this.selectedLayerUpdateListener = null;
+    this.layerUpdateListener = null;
     /**
      * @type {StandardLayer[]}
      */
@@ -190,10 +191,26 @@ class LayersSidebarView {
     delete_option.style.float = "right";
     delete_option.addEventListener('click', () => {
       if (confirm("Delete layer \"" + layer.name + "\"?")) {
-        this.studio.remove(layer);
+        if (this.layerUpdateListener) {
+          this.layerUpdateListener('delete', layer, null);
+        } else {
+          // Fallback to old method if no new listener
+          this.studio.remove(layer);
+        }
       }
     });
     titleDiv.appendChild(delete_option);
+  }
+
+  /**
+   * Add a listener for layer updates
+   * @param {Function} listener - Function to call when layer updates occur
+   */
+  addLayerUpdateListener(listener) {
+    if (typeof listener !== 'function') {
+      throw new Error('Layer update listener must be a function');
+    }
+    this.layerUpdateListener = listener;
   }
 
   /**

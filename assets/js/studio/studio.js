@@ -35,15 +35,30 @@ class VideoStudio {
         this.player.setTime(newTime);
       }
     });
+  
     
-    // Set up the selected layer listener to keep Timeline's selectedLayer in sync
-    this.layersSidebarView.addSelectedLayerUpdateListener((newLayer, oldLayer) => {
-      this.timeline.setSelectedLayer(newLayer);
+    this.timeline.addLayerUpdateListener((action, layer, oldLayer) => {
+      if (action === 'select') {
+        this.layersSidebarView.setSelectedLayer(layer);
+      } else if (action === 'delete') {
+        this.remove(layer);
+      } else if (action === 'clone') {
+        console.log("Clone action not implemented yet");    
+      } else if (action === 'split') {
+        this.split();
+      }
     });
     
-    // Set up the Timeline's selected layer listener (for future use if needed)
-    this.timeline.addSelectedLayerUpdateListener((newLayer, oldLayer) => {
-      this.layersSidebarView.setSelectedLayer(newLayer);
+    this.layersSidebarView.addLayerUpdateListener((action, layer, oldLayer) => {
+      if (action === 'select') {
+        this.timeline.setSelectedLayer(layer);
+      } else if (action === 'delete') {
+        this.remove(layer);
+      } else if (action === 'clone') {
+        // Handle clone action (if implemented)
+      } else if (action === 'split') {
+        // Handle split action (if implemented)
+      }
     });
   }
 

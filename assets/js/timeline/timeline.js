@@ -36,7 +36,7 @@ class Timeline {
     this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
     this.timeUpdateListener = null;
-    this.selectedLayerUpdateListener = null;
+    this.layerUpdateListener = null;
 
     this.#addEventListeners();
     this.#setupPinchHandler();
@@ -55,14 +55,17 @@ class Timeline {
 
 
   /**
-   * Add a listener for changes to the selected layer
-   * @param {Function} listener - Function to call when selected layer changes
+   * Add a listener for layer updates
+   * @param {Function} listener - Function to call when layer updates occur
+   * @param {string} action - The action that occurred ('select', 'delete', 'clone', 'split')
+   * @param {StandardLayer} layer - The layer that was affected
+   * @param {StandardLayer|null} [oldLayer] - The previous layer (for 'select' action)
    */
-  addSelectedLayerUpdateListener(listener) {
+  addLayerUpdateListener(listener) {
     if (typeof listener !== 'function') {
-      throw new Error('Selected layer update listener must be a function');
+      throw new Error('Layer update listener must be a function');
     }
-    this.selectedLayerUpdateListener = listener;
+    this.layerUpdateListener = listener;
   }
 
   /**
@@ -72,8 +75,19 @@ class Timeline {
   setSelectedLayer(newSelectedLayer) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
-    if (oldSelectedLayer !== newSelectedLayer && this.selectedLayerUpdateListener) {
-      this.selectedLayerUpdateListener(newSelectedLayer, oldSelectedLayer);
+    if (oldSelectedLayer !== newSelectedLayer && this.layerUpdateListener) {
+      this.layerUpdateListener('select', newSelectedLayer, oldSelectedLayer);
+    }
+  }
+
+  /**
+   * Delete the currently selected layer and notify listeners
+   */
+  deleteSelectedLayer() {
+    if (this.selectedLayer && this.layerUpdateListener) {
+      const layerToDelete = this.selectedLayer;
+      this.selectedLayer = null;
+      this.layerUpdateListener('delete', layerToDelete, null);
     }
   }
 

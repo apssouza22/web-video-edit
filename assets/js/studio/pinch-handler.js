@@ -26,7 +26,7 @@ class PinchHandler {
     }
 
     /**
-     * Handles wheel events for non-Safari browsers
+     * Handles wheel events
      * 
      * @param {WheelEvent} e - The wheel event
      */
