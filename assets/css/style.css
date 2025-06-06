@@ -116,10 +116,67 @@ text-align: center;
   width: 40%;
   background: rgba(43, 47, 51, 0.9);
   color: rgb(192, 200, 213);
-  overflow: auto;
-  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 30px;
   box-sizing: border-box;
   border-right: #c0c8d5 solid 1px;
+  font-family: 'JupiterSans', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+#transcription .text-chunks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+}
+
+#transcription .text-chunks > .text-chunk {
+  position: relative;
+  padding: 2px 2px;
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1.4;
+  transition: background-color 0.2s ease;
+}
+
+#transcription .text-chunks > *:hover {
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+/* Close button styling */
+#transcription .text-chunk .close {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  background: rgba(220, 53, 69, 0.8);
+  color: white;
+  border-radius: 50%;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  font-size: 8px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  z-index: 10;
+}
+
+#transcription .text-chunk:hover .close {
+  display: flex;
+}
+
+#transcription .text-chunk .close:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: scale(1.1);
 }
 
 

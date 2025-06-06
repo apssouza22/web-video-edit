@@ -14,79 +14,98 @@
 </head>
 
 <body>
-  <div id="background" class="full">
-    An error has occured! Please reload this page and make sure JavaScript is enabled. If you still see this error
-    message, then JavaScript has not loaded.
-    <input type="file" id="filepicker" multiple accept="video/mp4,video/x-m4v,video/*,image/*,audio/*" />
+<div id="background" class="full">
+  An error has occured! Please reload this page and make sure JavaScript is enabled. If you still see this error
+  message, then JavaScript has not loaded.
+  <input type="file" id="filepicker" multiple accept="video/mp4,video/x-m4v,video/*,image/*,audio/*"/>
+</div>
+
+<div id="foreground" class="full">
+
+  <div id="cursor_preview">
+    <div></div>
+    <canvas></canvas>
   </div>
-
-  <div id="foreground" class="full">
-
-    <div id="cursor_preview">
-      <div></div>
-      <canvas></canvas>
+  <div id="center-panel">
+    <div id="transcription">
+      <div class="text-chunks">
+        <span class="text-chunk">
+          <span>Hello,</span>
+          <span class="close" style="font-size: 0.8em;">X</span>
+        </span>
+        <span class="text-chunk">
+          <span>Welcome</span>
+          <span class="close" style="font-size: 0.8em;">X</span>
+        </span>
+        <span class="text-chunk">
+          <span>to</span>
+          <span class="close" style="font-size: 0.8em;">X</span>
+        </span>
+        <span class="text-chunk">
+          <span>my course,</span>
+          <span class="close" style="font-size: 0.8em;">X</span>
+        </span>
+      </div>
     </div>
-    <div id="center-panel">
-      <div id="transcription"></div>
-      <div id="video-canvas-panel">
+    <div id="video-canvas-panel">
       <div id="video-canvas">
       </div>
-      </div>
     </div>
-
-    <div id="layer_holder">
-      <div id="header">
-        <div onclick='upload()'>+ Media</div>
-        <div onclick='addText()'>+ Text</div>
-        <div onclick='updateSettings()'>Settings</div>
-        <div id="export">Export</div>
-      </div>
-      <div id="layers"></div>
-    </div>
-
-    <div id="timeline">
-      <div id="timeline_header">
-        <div id="controls_left">
-          <div class="timeline_header_item">Delete</div>
-          <div class="timeline_header_item">Split</div>
-          <div class="timeline_header_item">Clone</div>
-        </div>
-        <div id="controls_right">
-          <div class="timeline_header_item">
-            <span>Zoom</span>
-            <input type="range" id="timeline_zoom_slider" min="1" max="5" step="0.1" value="1">
-          </div>
-        </div>
-      </div>
-      <div id="timeline_content"></div>
-    </div>
-
   </div>
 
-  <script type="text/javascript" src="assets/js/layer/frames.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-common.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-text.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-image.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-video.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-audio.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-view.js"></script>
-  <script type="text/javascript" src="assets/js/layer/layer-loader.js"></script>
-  <script type="text/javascript" src="assets/js/timeline/time-marker.js"></script>
-  <script type="text/javascript" src="assets/js/timeline/zoom.js"></script>
-  <script type="text/javascript" src="assets/js/timeline/timeline.js"></script>
-  <script type="text/javascript" src="assets/js/timeline/drag.js"></script>
-  <script type="text/javascript" src="assets/js/timeline/preview.js"></script>
-  <script type="text/javascript" src="assets/js/player/player.js"></script>
-  <script type="text/javascript" src="assets/js/studio/pinch-handler.js"></script>
-  <script type="text/javascript" src="assets/js/studio/media-recorder-exporter.js"></script>
-  <script type="text/javascript" src="assets/js/studio/web-codec-exporter.js"></script>
-  <script type="text/javascript" src="assets/js/studio/video-export.js"></script>
-  <script type="text/javascript" src="assets/js/studio/drag-handler.js"></script>
-  <script type="text/javascript" src="assets/js/studio/studio.js"></script>
-  <script type="text/javascript" src="assets/js/studio/settings.js"></script>
-  <script type="text/javascript" src="assets/js/studio/controls.js"></script>
-  <script type="text/javascript" src="assets/js/studio/utils.js"></script>
-  <script type="text/javascript" src="assets/js/main.js"></script>
+  <div id="layer_holder">
+    <div id="header">
+      <div onclick='upload()'>+ Media</div>
+      <div onclick='addText()'>+ Text</div>
+      <div onclick='updateSettings()'>Settings</div>
+      <div id="export">Export</div>
+    </div>
+    <div id="layers"></div>
+  </div>
+
+  <div id="timeline">
+    <div id="timeline_header">
+      <div id="controls_left">
+        <div class="timeline_header_item">Delete</div>
+        <div class="timeline_header_item">Split</div>
+        <div class="timeline_header_item">Clone</div>
+      </div>
+      <div id="controls_right">
+        <div class="timeline_header_item">
+          <span>Zoom</span>
+          <input type="range" id="timeline_zoom_slider" min="1" max="5" step="0.1" value="1">
+        </div>
+      </div>
+    </div>
+    <div id="timeline_content"></div>
+  </div>
+
+</div>
+
+<script type="text/javascript" src="assets/js/layer/frames.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-common.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-text.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-image.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-video.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-audio.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-view.js"></script>
+<script type="text/javascript" src="assets/js/layer/layer-loader.js"></script>
+<script type="text/javascript" src="assets/js/timeline/time-marker.js"></script>
+<script type="text/javascript" src="assets/js/timeline/zoom.js"></script>
+<script type="text/javascript" src="assets/js/timeline/timeline.js"></script>
+<script type="text/javascript" src="assets/js/timeline/drag.js"></script>
+<script type="text/javascript" src="assets/js/timeline/preview.js"></script>
+<script type="text/javascript" src="assets/js/player/player.js"></script>
+<script type="text/javascript" src="assets/js/studio/pinch-handler.js"></script>
+<script type="text/javascript" src="assets/js/studio/media-recorder-exporter.js"></script>
+<script type="text/javascript" src="assets/js/studio/web-codec-exporter.js"></script>
+<script type="text/javascript" src="assets/js/studio/video-export.js"></script>
+<script type="text/javascript" src="assets/js/studio/drag-handler.js"></script>
+<script type="text/javascript" src="assets/js/studio/studio.js"></script>
+<script type="text/javascript" src="assets/js/studio/settings.js"></script>
+<script type="text/javascript" src="assets/js/studio/controls.js"></script>
+<script type="text/javascript" src="assets/js/studio/utils.js"></script>
+<script type="text/javascript" src="assets/js/main.js"></script>
 </body>
 
 </html>
