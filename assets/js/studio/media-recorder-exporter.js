@@ -1,7 +1,11 @@
+import { AudioLayer } from '../layer/layer-audio.js';
+import { addElementToBackground } from '../layer/layer-common.js';
+import { getSupportedMimeTypes } from './utils.js';
+
 /**
  * Class for exporting video using MediaRecorder API
  */
-class MediaRecorderExporter {
+export class MediaRecorderExporter {
     /**
      * @param {VideoStudio} studio
      */
@@ -120,10 +124,6 @@ class MediaRecorderExporter {
      * @private
      */
     #getSupportedMimeTypes() {
-        // This is a placeholder for the getSupportedMimeTypes function
-        // We assume this function is defined elsewhere in the codebase
-        return typeof getSupportedMimeTypes === 'function' ? 
-               getSupportedMimeTypes() : 
-               ['video/webm', 'video/webm;codecs=vp9', 'video/mp4'];
+        return getSupportedMimeTypes();
     }
 }

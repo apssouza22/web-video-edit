@@ -1,7 +1,10 @@
+import { dpr } from '../constants.js';
+import { drawScaled } from './layer-common.js';
+
 /**
  * LayersSidebarView class responsible for managing the layer preview UI elements
  */
-class LayersSidebarView {
+export class LayersSidebarView {
   /**
    * Constructor for LayerManagementViewHandler
    * @param {VideoStudio} studio - The studio instance that will own the layers

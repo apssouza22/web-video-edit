@@ -2,14 +2,13 @@
 // This is currently not used - WIP
 // ##################################################
 
-
-
-
+import { FrameCollection } from '../layer/frames.js';
+import { fps } from '../constants.js';
 
 /**
  * Class that handles animation logic for moveable layers
  */
-class AnimationHandler {
+export class AnimationHandler {
     /**
      * @param {FrameCollection} framesCollection - The collection of frames to animate
      * @param {number} startTime - The start time of the animation

@@ -1,8 +1,10 @@
+import { FlexibleLayer } from '../layer/layer-common.js';
+
 /**
  * DragHandler class handles drag operations on moveable layers.
  * It provides unified handling for pointer events to enable dragging elements.
  */
-class DragItemHandler {
+export class DragItemHandler {
   /**
    * Creates a new DragHandler instance
    * 

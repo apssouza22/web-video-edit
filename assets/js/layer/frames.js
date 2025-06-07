@@ -1,4 +1,6 @@
-class FrameCollection {
+import { fps } from '../constants.js';
+
+export class FrameCollection {
     /**
      * @type {Array<Float32Array>}
      * @description frames = [x, y, scale, rotation, anchor]

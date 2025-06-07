@@ -1,4 +1,7 @@
-class StandardLayer {
+import { FrameCollection } from './frames.js';
+import { dpr, fps } from '../constants.js';
+
+export class StandardLayer {
   constructor(file) {
     this.name = file.name;
     this.id = this.name + "-" + crypto.randomUUID();
@@ -154,7 +157,7 @@ class StandardLayer {
 /**
  * Non-video layers that can be resized and have their total time adjusted.
  */
-class FlexibleLayer extends StandardLayer {
+export class FlexibleLayer extends StandardLayer {
   constructor(file) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;
@@ -199,7 +202,7 @@ class FlexibleLayer extends StandardLayer {
 
 }
 
-function drawScaled(ctxFrom, ctxOutTo, video = false) {
+export function drawScaled(ctxFrom, ctxOutTo, video = false) {
   const width = video ? ctxFrom.videoWidth : ctxFrom.canvas.clientWidth;
   const height = video ? ctxFrom.videoHeight : ctxFrom.canvas.clientHeight;
   const in_ratio = width / height;
@@ -232,7 +235,7 @@ function drawScaled(ctxFrom, ctxOutTo, video = false) {
  * Add an element to the background so it can be used but not shown in the main view.
  * @param elem
  */
-function addElementToBackground(elem) {
+export function addElementToBackground(elem) {
   let bg = document.getElementById('background');
   bg.appendChild(elem);
 }

@@ -1,4 +1,13 @@
-class VideoStudio {
+import { VideoPlayer } from '../player/player.js';
+import { Timeline } from '../timeline/timeline.js';
+import { LayersSidebarView } from '../layer/layer-view.js';
+import { LayerLoader } from '../layer/layer-loader.js';
+import { VideoExporter } from './video-export.js';
+import { StudioControls } from './controls.js';
+import { PinchHandler } from './pinch-handler.js';
+import { DragItemHandler } from './drag-handler.js';
+
+export class VideoStudio {
 
   constructor() {
     this.update = null;

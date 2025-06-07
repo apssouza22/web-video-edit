@@ -1,4 +1,6 @@
-class StudioControls {
+import { exportToJson } from './utils.js';
+
+export class StudioControls {
   constructor(studio) {
     this.studio = studio;
 
@@ -13,8 +15,8 @@ class StudioControls {
       console.log("dragging over..");
       e.preventDefault();
     });
-    window.addEventListener('resize', function () {
-      studio.resize();
+    window.addEventListener('resize', () => {
+      this.studio.resize();
     });
 
     window.addEventListener("touchmove", function (e) {
@@ -36,11 +38,11 @@ class StudioControls {
       let item = ev.dataTransfer.items[i];
       if (item.kind === 'file') {
         const file = item.getAsFile();
-        studio.layerLoader.addLayerFromFile(file);
+        this.studio.layerLoader.addLayerFromFile(file);
         return;
       }
       if (item.kind === 'string' && item.type === 'text/uri-list') {
-        item.getAsString(studio.layerLoader.loadLayerFromURI);
+        item.getAsString(this.studio.layerLoader.loadLayerFromURI);
       }
     }
   }

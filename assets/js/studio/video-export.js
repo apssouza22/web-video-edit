@@ -1,4 +1,8 @@
-class VideoExporter {
+import { exportToJson } from './utils.js';
+import { MediaRecorderExporter } from './media-recorder-exporter.js';
+import { WebCodecExporter } from './web-codec-exporter.js';
+
+export class VideoExporter {
 
     /**
      * 

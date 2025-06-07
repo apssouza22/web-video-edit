@@ -1,7 +1,14 @@
+import { LayersSidebarView } from './layer-view.js';
+import { AudioLayer } from './layer-audio.js';
+import { VideoLayer } from './layer-video.js';
+import { ImageLayer } from './layer-image.js';
+import { TextLayer } from './layer-text.js';
+import { ext_map } from '../studio/utils.js';
+
 /**
  * LayerLoader class responsible for loading layers from JSON data
  */
-class LayerLoader {
+export class LayerLoader {
     /**
      * Constructor for LayerLoader
      * @param {VideoStudio} player - The player instance that will own the layers

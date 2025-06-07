@@ -2,7 +2,7 @@
  * Class representing timeline time markers
  * Handles rendering of time markers on the timeline
  */
-class TimeMarker {
+export class TimeMarker {
   /**
    * Create a new TimeMarker instance
    * @param {Object} config - Configuration object

@@ -1,4 +1,7 @@
-class VideoPlayer {
+import { dpr } from '../constants.js';
+import { AudioLayer } from '../layer/layer-audio.js';
+
+export class VideoPlayer {
 
   constructor() {
     this.playing = false;

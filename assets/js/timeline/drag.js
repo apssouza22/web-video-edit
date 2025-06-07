@@ -1,8 +1,8 @@
-
+import { FlexibleLayer } from '../layer/layer-common.js';
 /**
  * Handles layer dragging and scrubbing in the timeline
  */
-class DragLayerHandler {
+export class DragLayerHandler {
 
   /**
    * @param {Timeline} timeline - The timeline instance

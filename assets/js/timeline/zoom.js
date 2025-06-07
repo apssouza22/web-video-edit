@@ -1,7 +1,7 @@
 /**
  * Class to handle timeline zoom functionality using a slider
  */
-class TimelineZoomHandler {
+export class TimelineZoomHandler {
   /**
    * Creates a new TimelineZoomHandler
    * 

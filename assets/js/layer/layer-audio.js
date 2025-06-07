@@ -1,6 +1,9 @@
 
 
-class AudioLayer extends StandardLayer {
+import { StandardLayer } from './layer-common.js';
+import { AudioContext } from '../constants.js';
+
+export class AudioLayer extends StandardLayer {
   constructor(file) {
     super(file);
     this.reader = new FileReader();

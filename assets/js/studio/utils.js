@@ -1,8 +1,10 @@
 
+import { TextLayer } from '../layer/layer-text.js';
+
 /**
  * File extension to MIME type mapping
  */
-const ext_map = {
+export const ext_map = {
   'mp4': 'video/mp4',
   'mpeg4': 'video/mp4',
   'mpeg': 'video/mpeg',
@@ -22,7 +24,7 @@ const ext_map = {
   'weba': 'audio/webm'
 };
 
-function popup(text) {
+export function popup(text) {
     const div = document.createElement('div');
     div.addEventListener('keydown', function (ev) {
         ev.stopPropagation();
@@ -40,7 +42,7 @@ function popup(text) {
 }
 
 
-function exportToJson() {
+export function exportToJson() {
     const date = new Date().getTime();
     
     const text = document.createElement('div');
@@ -48,7 +50,7 @@ function exportToJson() {
     preamble.textContent = "Click on the link below to download the json file:";
     const a = document.createElement('a');
     
-    const json = studio.dumpToJson();
+    const json = window.studio.dumpToJson();
     
     // Create a blob from the JSON content
     const blob = new Blob([json], {type: 'application/json'});
@@ -82,14 +84,14 @@ function exportToJson() {
     popup(text);
 }
 
-function addText() {
+export function addText() {
     let t = prompt("Enter text:");
     if (t) {
-        studio.layerLoader.insertLayer(new TextLayer(t));
+        window.studio.layerLoader.insertLayer(new TextLayer(t));
     }
 }
 
-function uploadSupportedType(files) {
+export function uploadSupportedType(files) {
     let badUserExtensions = [];
 
     for (let file of files) {
@@ -114,19 +116,19 @@ function uploadSupportedType(files) {
     return !badUserExtensions.length > 0;
 }
 
-function upload() {
+export function upload() {
     let filePicker = document.getElementById('filepicker');
     filePicker.addEventListener('input', function (e) {
         if (!uploadSupportedType(e.target.files)) { return }
         for (let file of e.target.files) {
-            studio.layerLoader.addLayerFromFile(file);
+            window.studio.layerLoader.addLayerFromFile(file);
         }
         filePicker.value = '';
     });
     filePicker.click();
 }
 
-function getSupportedMimeTypes() {
+export function getSupportedMimeTypes() {
     const VIDEO_TYPES = [
         "webm",
         "ogg",

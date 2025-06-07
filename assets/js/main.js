@@ -1,13 +1,17 @@
-const dpr = window.devicePixelRatio || 1;
-let fps = 24;
-let max_size = 4000 * 1e6 / 4; // 4GB max
-
-var AudioContext = window.AudioContext ||
-    window.webkitAudioContext ||
-    false;
+import { VideoStudio } from './studio/studio.js';
+import { dpr, fps, max_size, AudioContext } from './constants.js';
+import { upload, addText, popup } from './studio/utils.js';
+import { updateSettings } from './studio/settings.js';
 
 const studio = new VideoStudio();
 studio.init();
+
+// Expose global functions for HTML onclick handlers
+window.studio = studio;
+window.upload = upload;
+window.addText = addText;
+window.updateSettings = updateSettings;
+window.popup = popup;
 
 window.addEventListener('load', function () {
   let layerHolder = document.getElementById('layer_holder');

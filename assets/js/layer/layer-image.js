@@ -1,6 +1,8 @@
 
 
-class ImageLayer extends FlexibleLayer {
+import { FlexibleLayer } from './layer-common.js';
+
+export class ImageLayer extends FlexibleLayer {
   constructor(file) {
     super(file);
     // assume images are 10 seconds

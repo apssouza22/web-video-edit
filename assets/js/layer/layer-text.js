@@ -1,4 +1,6 @@
-class TextLayer extends FlexibleLayer {
+import { FlexibleLayer } from './layer-common.js';
+
+export class TextLayer extends FlexibleLayer {
   constructor(text) {
     let f = {
       name: text

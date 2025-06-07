@@ -1,7 +1,7 @@
 /**
  * Class to handle the preview display for the timeline
  */
-class PreviewHandler {
+export class PreviewHandler {
 
   constructor() {
     this.previewHolder = document.getElementById('cursor_preview');

@@ -1,7 +1,14 @@
+import { TimeMarker } from './time-marker.js';
+import { TimelineZoomHandler } from './zoom.js';
+import { PreviewHandler } from './preview.js';
+import { DragLayerHandler } from './drag.js';
+import { PinchHandler } from '../studio/pinch-handler.js';
+import { dpr } from '../constants.js';
+
 /**
  * Class responsible for rendering timeline layers with different visual styles
  */
-class TimelineLayerRender {
+export class TimelineLayerRender {
   /**
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
    * @param {number} totalTime - The total time duration of the timeline
@@ -212,7 +219,7 @@ class TimelineLayerRender {
 /**
  * Class representing a timeline for a video player
  */
-class Timeline {
+export class Timeline {
 
   /**
    *

@@ -1,4 +1,8 @@
-class VideoLayer extends StandardLayer {
+import { StandardLayer, addElementToBackground } from './layer-common.js';
+import { FrameCollection } from './frames.js';
+import { fps, max_size, dpr } from '../constants.js';
+
+export class VideoLayer extends StandardLayer {
   constructor(file) {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);

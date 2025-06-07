@@ -2,7 +2,7 @@
  * PinchHandler class handles pinch, zoom, and rotation gestures across browsers.
  * It provides unified handling for both Safari-specific gesture events and standard wheel events.
  */
-class PinchHandler {
+export class PinchHandler {
 
     /**
      * Creates a new PinchHandler instance
