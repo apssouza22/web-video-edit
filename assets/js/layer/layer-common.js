@@ -23,9 +23,6 @@ class StandardLayer {
     this.updateName(this.name);
   }
 
-  clear() {
-
-  }
 
   /**
    * Listens for the load event and calls the provided function when the layer is ready

@@ -37,7 +37,6 @@ class LayersSidebarView {
   #createLayerUIItem(layer) {
     let layerItemHolder = document.createElement('div');
     let thumb = document.createElement('canvas');
-    let title = document.createElement('div');
     layerItemHolder.classList.toggle('preview');
 
     layerItemHolder.setAttribute('draggable', true);
@@ -45,9 +44,13 @@ class LayersSidebarView {
     this.#setupClickEvents(layerItemHolder, layer);
 
     thumb.classList.toggle('preview_thumb');
-    title.classList.toggle('preview_title');
+    // Set 16:9 aspect ratio for the canvas
+    thumb.style.aspectRatio = '16 / 9';
+    thumb.style.width = '100%';
+    // Add title attribute for hover text
+    thumb.title = layer.name;
+    
     layerItemHolder.appendChild(thumb);
-    layerItemHolder.appendChild(title);
     this.layersHolder.prepend(layerItemHolder);
 
     return layerItemHolder;
@@ -140,9 +143,52 @@ class LayersSidebarView {
     const thumb_ctx = thumb_canvas.getContext('2d');
     thumb_ctx.scale(dpr, dpr);
     layer.thumb_ctx = thumb_ctx;
-    const titleDiv = this.#addDescription(layer, layerItemHolder);
-    this.#addDeleteButton(layer, titleDiv);
-    this.#updateLayerName(layer);
+    
+    // Add right-click context menu for layer operations
+    this.#setupContextMenu(layer, layerItemHolder);
+  }
+
+  /**
+   * Sets up context menu for layer operations (delete)
+   * @param {StandardLayer} layer - The layer to set up context menu for
+   * @param {HTMLElement} layerItemHolder - The layer's UI container
+   */
+  #setupContextMenu(layer, layerItemHolder) {
+    layerItemHolder.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      
+      const menu = document.createElement('div');
+      menu.className = 'layer-context-menu';
+      menu.style.left = e.pageX + 'px';
+      menu.style.top = e.pageY + 'px';
+
+      const deleteOption = document.createElement('div');
+      deleteOption.className = 'layer-context-menu-item delete';
+      deleteOption.textContent = 'Delete Layer';
+      deleteOption.addEventListener('click', () => {
+        if (confirm("Delete layer \"" + layer.name + "\"?")) {
+          if (this.layerUpdateListener) {
+            this.layerUpdateListener('delete', layer, null);
+          } else {
+            // Fallback to old method if no new listener
+            this.studio.remove(layer);
+          }
+        }
+        document.body.removeChild(menu);
+      });
+
+      menu.appendChild(deleteOption);
+      document.body.appendChild(menu);
+
+      // Remove menu when clicking elsewhere
+      const removeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+          document.body.removeChild(menu);
+          document.removeEventListener('click', removeMenu);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', removeMenu), 0);
+    });
   }
 
   /**
@@ -154,52 +200,8 @@ class LayersSidebarView {
       console.warn("Layer UI not found for layer:", layer.name);
       return;
     }
-    const layerItemHolder = this.layerItemsUI[layer.id].box;
-    layerItemHolder.querySelector(".description").textContent = "\"" + layer.name + "\"";
-  }
-
-  /**
-   * Adds the description element to the layer UI
-   * @param {StandardLayer} layer - The layer to add description for
-   * @param {HTMLElement} layerItemHolder - The layer's UI container
-   */
-  #addDescription(layer, layerItemHolder) {
-    const description = document.createElement('span');
-    description.classList.toggle('description');
-    description.addEventListener('click', (e) => {
-      const new_text = prompt("Enter new text:");
-      if (new_text) {
-        layer.name = new_text;
-        this.#updateLayerName(layer);
-      }
-    });
-
-    const titleDiv = layerItemHolder.querySelector('.preview_title');
-    titleDiv.appendChild(description);
-
-    return titleDiv;
-  }
-
-  /**
-   * Adds the delete button to the layer UI
-   * @param {StandardLayer} layer - The layer to add delete button for
-   * @param {HTMLElement} titleDiv - The layer's UI container
-   */
-  #addDeleteButton(layer, titleDiv) {
-    let delete_option = document.createElement('a');
-    delete_option.textContent = '[x]';
-    delete_option.style.float = "right";
-    delete_option.addEventListener('click', () => {
-      if (confirm("Delete layer \"" + layer.name + "\"?")) {
-        if (this.layerUpdateListener) {
-          this.layerUpdateListener('delete', layer, null);
-        } else {
-          // Fallback to old method if no new listener
-          this.studio.remove(layer);
-        }
-      }
-    });
-    titleDiv.appendChild(delete_option);
+    const canvas = this.layerItemsUI[layer.id].canvas;
+    canvas.title = layer.name;
   }
 
   /**
@@ -253,9 +255,16 @@ class LayersSidebarView {
     for (let layer of this.layers) {
       let ctxOut = this.layerItemsUI[layer.id].ctx;
       let canvas = this.layerItemsUI[layer.id].canvas;
+      
+      // Maintain 16:9 aspect ratio
+      const width = canvas.clientWidth;
+      const height = width * 9 / 16;
+      
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.height = height + 'px';
+      
       ctxOut.scale(dpr, dpr);
-      canvas.width = canvas.clientWidth * dpr;
-      canvas.height = canvas.clientHeight * dpr;
     }
   }
 }

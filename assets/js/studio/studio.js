@@ -172,7 +172,6 @@ class VideoStudio {
     nl.canvas.width = l.canvas.width;
     nl.canvas.height = l.canvas.height;
     this.layerLoader.insertLayer(nl);
-    nl.resize(); // fixup thumbnail
     nl.ready = true;
 
     l.start_time = l.start_time + nl.totalTimeInMilSeconds;
