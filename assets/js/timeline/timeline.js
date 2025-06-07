@@ -225,7 +225,7 @@ class Timeline {
     this.time = 0;
     this.playerTime = 0;
     this.layers = [];
-    this.scale = 1.0;
+    this.scale = 2.0;
     this.totalTime = 0;
     this.timelineCanvas = document.createElement('canvas');
     this.timelineCtx = this.timelineCanvas.getContext('2d');

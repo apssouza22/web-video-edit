@@ -37,7 +37,7 @@ class TimelineZoomHandler {
     const timelineHolder = this.timeline.timelineHolder;
     const currentCenterX = timelineHolder.scrollLeft + timelineHolder.clientWidth / 2;
     const oldWidth = timelineHolder.scrollWidth;
-    
+        
     // Apply the new zoom level
     this.timeline.scale = zoomLevel;
     this.timeline.resize();

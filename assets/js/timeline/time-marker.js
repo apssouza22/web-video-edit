@@ -48,14 +48,14 @@ class TimeMarker {
   calculateTimeInterval(availableWidth, totalTime) {
     const pixelsPerSecond = availableWidth / (totalTime / 1000);
     
-    // Choose an interval that will space the markers nicely
-    if (pixelsPerSecond > 200) return 100; // 0.1 second intervals if zoomed way in
-    if (pixelsPerSecond > 100) return 250; // 0.25 second intervals
-    if (pixelsPerSecond > 50) return 500; // 0.5 second intervals
-    if (pixelsPerSecond > 25) return 1000; // 1 second intervals
-    if (pixelsPerSecond > 15) return 2000; // 2 second intervals
-    if (pixelsPerSecond > 5) return 5000; // 5 second intervals
+    // Choose an interval that will space the markers nicely with minimum 1 second intervals
+    if (pixelsPerSecond > 60) return 1000; // 1 second intervals (minimum)
+    if (pixelsPerSecond > 30) return 2000; // 2 second intervals
+    if (pixelsPerSecond > 20) return 5000; // 5 second intervals
+    if (pixelsPerSecond > 10) return 10000; // 10 second intervals
+    if (pixelsPerSecond > 5) return 20000; // 20 second intervals
+    if (pixelsPerSecond > 2) return 30000; // 30 second intervals
     
-    return 10000; // 10 second intervals when zoomed out
+    return 60000; // 1 minute intervals when zoomed way out
   }
 }
