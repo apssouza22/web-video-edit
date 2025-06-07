@@ -1,3 +1,5 @@
+import { removeAudioInterval, getAudioLayers, updateAudioLayerBuffer } from './audio-utils.js';
+
 export class TranscriptionView {
   constructor() {
     this.transcriptionElement = document.getElementById('transcription');
@@ -104,13 +106,93 @@ export class TranscriptionView {
    */
   removeChunk(chunkElement, index) {
     if (chunkElement && chunkElement.parentNode) {
-      const startTime = chunkElement.getAttribute('data-start-time');
-      const endTime = chunkElement.getAttribute('data-end-time');
-      console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s`);
+      const startTime = parseFloat(chunkElement.getAttribute('data-start-time'));
+      const endTime = parseFloat(chunkElement.getAttribute('data-end-time'));
+      const removedDuration = endTime - startTime;
+      
+      console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s, duration=${removedDuration}s`);
+      
+      // Remove audio interval from all AudioLayers
+      this.removeAudioInterval(startTime, endTime);
+      
+      // Update timestamps of subsequent chunks
+      this.updateSubsequentTimestamps(startTime, removedDuration);
       
       chunkElement.remove();
       this.onChunkRemove(index);
     }
+  }
+
+  /**
+   * Removes audio interval from all AudioLayers in the studio
+   * @param {number} startTime - Start time in seconds
+   * @param {number} endTime - End time in seconds
+   */
+  removeAudioInterval(startTime, endTime) {
+    try {
+      const audioLayers = getAudioLayers();
+      
+      if (audioLayers.length === 0) {
+        console.log('No audio layers found to remove interval from');
+        return;
+      }
+      
+      console.log(`Found ${audioLayers.length} audio layer(s) to process`);
+      
+      audioLayers.forEach((audioLayer, index) => {
+        if (audioLayer.audioBuffer && audioLayer.playerAudioContext) {
+          console.log(`Processing audio layer ${index + 1}: "${audioLayer.name}"`);
+          
+          const newBuffer = removeAudioInterval(
+            audioLayer.audioBuffer, 
+            startTime, 
+            endTime, 
+            audioLayer.playerAudioContext
+          );
+          
+          if (newBuffer && newBuffer !== audioLayer.audioBuffer) {
+            updateAudioLayerBuffer(audioLayer, newBuffer);
+            console.log(`Successfully updated audio layer: "${audioLayer.name}"`);
+          } else {
+            console.log(`No changes made to audio layer: "${audioLayer.name}"`);
+          }
+        } else {
+          console.log(`Audio layer "${audioLayer.name}" missing audioBuffer or playerAudioContext`);
+        }
+      });
+      
+         } catch (error) {
+       console.error('Error removing audio interval:', error);
+     }
+   }
+
+  /**
+   * Updates timestamps of chunks that come after the removed interval
+   * @param {number} removedStartTime - Start time of the removed interval
+   * @param {number} removedDuration - Duration of the removed interval
+   */
+  updateSubsequentTimestamps(removedStartTime, removedDuration) {
+    const allChunks = this.getCurrentChunks();
+    let updatedCount = 0;
+    
+    allChunks.forEach(chunk => {
+      const chunkStartTime = parseFloat(chunk.getAttribute('data-start-time'));
+      const chunkEndTime = parseFloat(chunk.getAttribute('data-end-time'));
+      
+      // Update timestamps for chunks that start after the removed interval
+      if (chunkStartTime > removedStartTime) {
+        const newStartTime = chunkStartTime - removedDuration;
+        const newEndTime = chunkEndTime - removedDuration;
+        
+        chunk.setAttribute('data-start-time', newStartTime);
+        chunk.setAttribute('data-end-time', newEndTime);
+        updatedCount++;
+        
+        console.log(`Updated chunk: ${chunkStartTime}s-${chunkEndTime}s → ${newStartTime}s-${newEndTime}s`);
+      }
+    });
+    
+    console.log(`Updated timestamps for ${updatedCount} subsequent chunks`);
   }
 
   /**

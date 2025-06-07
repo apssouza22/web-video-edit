@@ -65,29 +65,29 @@ export class TranscriptionManager {
         {
           "text": " I",
           "timestamp": [
-            29.98,
-            29.98
+            1.98,
+            5.98
           ]
         },
         {
-          "text": " (speaking",
+          "text": " want to",
           "timestamp": [
-            42.46,
-            42.46
+            5.46,
+            10.46
           ]
         },
         {
-          "text": " in",
+          "text": " test",
           "timestamp": [
-            42.46,
-            42.46
+            10.46,
+            15.46
           ]
         },
         {
-          "text": " foreign",
+          "text": " this",
           "timestamp": [
-            42.46,
-            42.46
+            15.46,
+            20.46
           ]
         },
         {
