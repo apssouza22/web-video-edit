@@ -1,4 +1,215 @@
 /**
+ * Class responsible for rendering timeline layers with different visual styles
+ */
+class TimelineLayerRender {
+  /**
+   * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
+   * @param {number} totalTime - The total time duration of the timeline
+   * @param {number} canvasWidth - The width of the timeline canvas
+   */
+  constructor(ctx, totalTime, canvasWidth) {
+    this.ctx = ctx;
+    this.totalTime = totalTime;
+    this.canvasWidth = canvasWidth;
+  }
+
+  /**
+   * Update the timeline properties for rendering
+   * @param {number} totalTime - The total time duration
+   * @param {number} canvasWidth - The canvas width
+   */
+  updateProperties(totalTime, canvasWidth) {
+    this.totalTime = totalTime;
+    this.canvasWidth = canvasWidth;
+  }
+
+  /**
+   * Get the color scheme for a layer based on its type
+   * @param {StandardLayer} layer - The layer to get colors for
+   * @param {boolean} selected - Whether the layer is selected
+   * @returns {Object} - Object containing fillColor and strokeColor
+   */
+  getLayerColors(layer, selected) {
+    const layerType = layer.constructor.name;
+    let baseColor, selectedColor;
+    
+    switch (layerType) {
+      case 'AudioLayer':
+        baseColor = 'rgb(255, 165, 0)'; // Orange
+        selectedColor = 'rgb(255, 140, 0)';
+        break;
+      case 'VideoLayer':
+        baseColor = 'rgb(30, 144, 255)'; // Dodger Blue
+        selectedColor = 'rgb(0, 123, 255)';
+        break;
+      case 'ImageLayer':
+        baseColor = 'rgb(138, 43, 226)'; // Blue Violet
+        selectedColor = 'rgb(123, 28, 211)';
+        break;
+      default: // Text or other layers
+        baseColor = 'rgb(34, 197, 94)'; // Green
+        selectedColor = 'rgb(22, 163, 74)';
+    }
+    
+    return {
+      fillColor: selected ? selectedColor : baseColor,
+      strokeColor: selected ? 'rgb(255, 255, 255)' : 'rgb(100, 100, 100)'
+    };
+  }
+
+  /**
+   * Draw a symbol for the layer type
+   * @param {string} layerType - The type of the layer
+   * @param {number} x - X position for the symbol
+   * @param {number} y - Y position for the symbol
+   * @param {number} size - Size of the symbol
+   */
+  drawLayerSymbol(layerType, x, y, size) {
+    this.ctx.fillStyle = 'white';
+    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.lineWidth = 1;
+    
+    switch (layerType) {
+      case 'AudioLayer':
+        // Draw audio wave symbol
+        this.ctx.beginPath();
+        const waveWidth = size * 0.8;
+        const waveHeight = size * 0.4;
+        const waveX = x - waveWidth / 2;
+        const waveY = y;
+        
+        // Draw simplified audio wave
+        this.ctx.moveTo(waveX, waveY);
+        this.ctx.lineTo(waveX + waveWidth * 0.2, waveY - waveHeight);
+        this.ctx.lineTo(waveX + waveWidth * 0.4, waveY + waveHeight);
+        this.ctx.lineTo(waveX + waveWidth * 0.6, waveY - waveHeight * 0.5);
+        this.ctx.lineTo(waveX + waveWidth * 0.8, waveY + waveHeight * 0.7);
+        this.ctx.lineTo(waveX + waveWidth, waveY);
+        this.ctx.stroke();
+        break;
+        
+      case 'VideoLayer':
+        // Draw play button triangle
+        this.ctx.beginPath();
+        const triangleSize = size * 0.6;
+        this.ctx.moveTo(x - triangleSize / 3, y - triangleSize / 2);
+        this.ctx.lineTo(x - triangleSize / 3, y + triangleSize / 2);
+        this.ctx.lineTo(x + triangleSize / 2, y);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+        break;
+        
+      case 'ImageLayer':
+        // Draw image/picture symbol
+        const imgSize = size * 0.7;
+        const imgX = x - imgSize / 2;
+        const imgY = y - imgSize / 2;
+        
+        // Draw rectangle frame
+        this.ctx.fillRect(imgX, imgY, imgSize, imgSize);
+        this.ctx.strokeRect(imgX, imgY, imgSize, imgSize);
+        
+        // Draw small circle and line to represent a simple image
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.beginPath();
+        this.ctx.arc(imgX + imgSize * 0.3, imgY + imgSize * 0.3, imgSize * 0.1, 0, 2 * Math.PI);
+        this.ctx.fill();
+        
+        // Draw mountain-like shape
+        this.ctx.beginPath();
+        this.ctx.moveTo(imgX + imgSize * 0.1, imgY + imgSize * 0.8);
+        this.ctx.lineTo(imgX + imgSize * 0.4, imgY + imgSize * 0.5);
+        this.ctx.lineTo(imgX + imgSize * 0.7, imgY + imgSize * 0.6);
+        this.ctx.lineTo(imgX + imgSize * 0.9, imgY + imgSize * 0.8);
+        this.ctx.stroke();
+        break;
+        
+      default: // Text or other layers
+        // Draw "T" for text
+        const textSize = size * 0.6;
+        this.ctx.font = `bold ${textSize}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('T', x, y);
+        this.ctx.strokeText('T', x, y);
+    }
+  }
+
+  /**
+   * Render a single layer in the timeline
+   * @param {StandardLayer} layer - The layer to render
+   * @param {number} y_coord - The y coordinate to render at
+   * @param {number} height - The height of the layer track
+   * @param {boolean} selected - Whether the layer is selected
+   */
+  renderLayer(layer, y_coord, height, selected) {
+    let scale = this.canvasWidth / this.totalTime;
+    let start = scale * layer.start_time;
+    let length = scale * layer.totalTimeInMilSeconds;
+    
+    const colors = this.getLayerColors(layer, selected);
+    
+    // Draw the main layer track with rounded corners
+    this.ctx.fillStyle = colors.fillColor;
+    this.ctx.strokeStyle = colors.strokeColor;
+    this.ctx.lineWidth = selected ? 2 : 1;
+    
+    const radius = height * 0.2;
+    const trackY = y_coord - height / 2;
+    
+    // Draw rounded rectangle for the main track
+    this.ctx.beginPath();
+    this.ctx.roundRect(start, trackY, length, height, radius);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    // Draw resize handles at start and end
+    const handleWidth = 4;
+    const handleHeight = height * 1.2;
+    const handleY = y_coord - handleHeight / 2;
+    
+    this.ctx.fillStyle = selected ? 'rgb(255, 255, 255)' : colors.strokeColor;
+    
+    // Handles for resizing the layer
+    this.ctx.fillRect(start, handleY, handleWidth, handleHeight);
+    this.ctx.fillRect(start + length - handleWidth, handleY, handleWidth, handleHeight);
+    
+    // Draw layer type symbol if the layer is wide enough
+    if (length > height * 2) {
+      const symbolX = start + height;
+      const symbolY = y_coord;
+      const symbolSize = height * 0.6;
+      this.drawLayerSymbol(layer.constructor.name, symbolX, symbolY, symbolSize);
+    }
+    
+    // Draw layer name if there's enough space
+    if (length > height * 4) {
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = `${Math.min(10, height * 0.4)}px Arial`;
+      this.ctx.textAlign = 'left';
+      this.ctx.textBaseline = 'middle';
+      
+      const textX = start + height * 2;
+      const maxTextWidth = length - height * 3;
+      
+      // Truncate text if it's too long
+      let displayName = layer.name;
+      const textWidth = this.ctx.measureText(displayName).width;
+      if (textWidth > maxTextWidth) {
+        while (this.ctx.measureText(displayName + '...').width > maxTextWidth && displayName.length > 0) {
+          displayName = displayName.slice(0, -1);
+        }
+        displayName += '...';
+      }
+      
+      this.ctx.fillText(displayName, textX, y_coord);
+    }
+  }
+}
+
+/**
  * Class representing a timeline for a video player
  */
 class Timeline {
@@ -32,6 +243,13 @@ class Timeline {
       height: 20,
       spacing: 60
     });
+
+    // Initialize layer renderer
+    this.layerRenderer = new TimelineLayerRender(
+      this.timelineCtx, 
+      this.totalTime, 
+      this.timelineCanvas.clientWidth
+    );
 
     this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
@@ -213,6 +431,9 @@ class Timeline {
     this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientWidth);
     this.#updateTotalTime(layers);
     
+    // Update layer renderer properties
+    this.layerRenderer.updateProperties(this.totalTime, this.timelineCanvas.clientWidth);
+    
     // Calculate the available height for layers (excluding the time marker height)
     const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height;
     
@@ -229,7 +450,8 @@ class Timeline {
 
     for (let layer of layers) {
       let selected = this.selectedLayer === layer;
-      this.#renderLayerTimeline(layer, verticalPosition, 3, selected);
+      // Use the layer renderer to render each layer
+      this.layerRenderer.renderLayer(layer, verticalPosition, 20, selected);
       verticalPosition -= verticalPositionSpace;
     }
 
@@ -304,35 +526,6 @@ class Timeline {
         this.totalTime = layer.start_time + layer.totalTimeInMilSeconds;
       }
     }
-  }
-
-
-  /**
-   * Render a single layer in the timeline
-   * @param {StandardLayer} layer - The layer to render
-   * @param {number} y_coord - The y coordinate to render at
-   * @param {number} width - The width of the layer track
-   * @param {boolean} selected - Whether the layer is selected
-   */
-  #renderLayerTimeline(layer, y_coord, width, selected) {
-    let scale = this.timelineCanvas.clientWidth / this.totalTime;
-    let start = scale * layer.start_time;
-    let length = scale * layer.totalTimeInMilSeconds;
-
-    if (selected) {
-      this.timelineCtx.fillStyle = `rgb(59, 206, 43)`;
-    } else {
-      this.timelineCtx.fillStyle = `rgb(192, 200, 213)`;
-    }
-
-    // Draw the main layer track
-    this.timelineCtx.fillRect(start, y_coord - width / 2, length, width);
-
-    // Draw the start/end tabs
-    let end_width = width * 6;
-    let tab_width = 2;
-    this.timelineCtx.fillRect(start, y_coord - end_width / 2, tab_width, end_width);
-    this.timelineCtx.fillRect(start + length - tab_width / 2, y_coord - end_width / 2, tab_width, end_width);
   }
 }
 
