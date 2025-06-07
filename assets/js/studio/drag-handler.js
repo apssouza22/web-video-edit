@@ -22,9 +22,6 @@ class DragItemHandler {
     this.pointerdown = this.pointerdown.bind(this);
     this.pointermove = this.pointermove.bind(this);
     this.pointerup = this.pointerup.bind(this);
-
-    // Set up event listeners
-    this.setupEventListeners();
   }
 
   /**
@@ -53,9 +50,11 @@ class DragItemHandler {
    */
   pointerdown(e) {
     if (!this.studio.getSelectedLayer()) {
+      console.log('No layer selected');
       return;
     }
     if (!(this.studio.getSelectedLayer() instanceof FlexibleLayer)) {
+      console.log('Selected layer is not a FlexibleLayer');
       return;
     }
     e.preventDefault();

@@ -120,7 +120,7 @@ class LayersSidebarView {
 
     layer.start_time = this.studio.player.time;
 
-    layer.init(this.studio.player.width, this.studio.player.height, this.studio.player.audioContext);
+    layer.init(this.studio.player.width, null, this.studio.player.audioContext);
 
     this.#setupLayerUI(layer, layerItemHolder);
 

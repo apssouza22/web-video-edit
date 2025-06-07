@@ -201,6 +201,7 @@ class VideoStudio {
   loop(realtime) {
     // Process updates for selected layer
     if (this.getSelectedLayer() && this.update) {
+      console.log('Applying update to layer:', this.getSelectedLayer().name, 'Update:', this.update);
       this.getSelectedLayer().update(this.update, this.player.time);
       this.update = null;
     }

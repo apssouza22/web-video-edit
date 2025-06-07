@@ -13,8 +13,9 @@ class StandardLayer {
     this.width = 0;
     this.height = 0;
     this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-    this.loadUpdateListener = (progress, ctx) => { };
+    this.ctx = this.canvas.getContext('2d', {willReadFrequently: true});
+    this.loadUpdateListener = (progress, ctx) => {
+    };
     this.lastRenderedTime = -1; // Track last rendered time for caching
 
     this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false)
@@ -58,7 +59,7 @@ class StandardLayer {
     // It now includes caching logic to avoid redundant rendering
     console.log("render not implemented");
   }
-  
+
   /**
    * Checks if the layer needs to be rendered again based on time and playing state
    * @param {number} currentTime - The current time of the player
@@ -69,7 +70,7 @@ class StandardLayer {
     // Only re-render if time has changed
     return currentTime !== this.lastRenderedTime;
   }
-  
+
   /**
    * Updates the rendering cache information
    * @param {number} currentTime - The current time that was rendered
@@ -78,7 +79,7 @@ class StandardLayer {
   updateRenderCache(currentTime, playing) {
     this.lastRenderedTime = currentTime;
   }
-  
+
   /**
    * Resets the rendering cache, forcing a re-render on next frame
    * Call this method after operations that change the visual appearance
@@ -88,12 +89,10 @@ class StandardLayer {
     this.lastRenderedTime = -1;
   }
 
-
-  init(canvasWidth = 500, canvasHeight = 500) {
+  init(canvasWidth = 500, canvasHeight = null, audioContext=null) {
     this.canvas.width = canvasWidth;
-    this.canvas.height = canvasHeight;
+    this.canvas.height = canvasHeight == null ? (canvasWidth / 16) * 9 : canvasHeight // 16:9 aspect ratio
   }
-
 
   /**
    * Updates the frame at the specified reference time with the provided changes
@@ -139,7 +138,7 @@ class StandardLayer {
       }
       hasChanges = true;
     }
-    
+
     // Reset the render cache if any changes were made
     if (hasChanges) {
       this.resetRenderCache();
@@ -149,7 +148,6 @@ class StandardLayer {
   getFrame(ref_time) {
     return this.framesCollection.getFrame(ref_time, this.start_time)
   }
-
 
   drawScaled(ctxFrom, ctxOutTo, video = false) {
     drawScaled(ctxFrom, ctxOutTo, video);
@@ -176,8 +174,8 @@ class FlexibleLayer extends StandardLayer {
   }
 
   /**
-   * 
-   * @param {number} diff 
+   *
+   * @param {number} diff
    */
   adjustTotalTime(diff) {
     this.totalTimeInMilSeconds += diff;
@@ -197,8 +195,8 @@ class FlexibleLayer extends StandardLayer {
     }
     // Remove frames
     this.framesCollection.slice(
-      this.framesCollection.getLength() + numFrames + 1,
-      1 - numFrames
+        this.framesCollection.getLength() + numFrames + 1,
+        1 - numFrames
     );
   }
 
@@ -208,18 +206,23 @@ function drawScaled(ctxFrom, ctxOutTo, video = false) {
   const width = video ? ctxFrom.videoWidth : ctxFrom.canvas.clientWidth;
   const height = video ? ctxFrom.videoHeight : ctxFrom.canvas.clientHeight;
   const in_ratio = width / height;
-  const out_ratio = ctxOutTo.canvas.clientWidth / ctxOutTo.canvas.clientHeight;
+
+  // Use logical dimensions (buffer dimensions divided by device pixel ratio)
+  const outLogicalWidth = ctxOutTo.canvas.width / dpr;
+  const outLogicalHeight = ctxOutTo.canvas.height / dpr;
+  const out_ratio = outLogicalWidth / outLogicalHeight;
+
   let ratio = 1;
   let offset_width = 0;
   let offset_height = 0;
-  if (in_ratio > out_ratio) { // video is wider
+  if (in_ratio > out_ratio) { // input is wider
     // match width
-    ratio = ctxOutTo.canvas.clientWidth / width;
-    offset_height = (ctxOutTo.canvas.clientHeight - (ratio * height)) / 2;
-  } else { // out is wider
+    ratio = outLogicalWidth / width;
+    offset_height = (outLogicalHeight - (ratio * height)) / 2;
+  } else { // output is wider
     // match height
-    ratio = ctxOutTo.canvas.clientHeight / height;
-    offset_width = (ctxOutTo.canvas.clientWidth - (ratio * width)) / 2;
+    ratio = outLogicalHeight / height;
+    offset_width = (outLogicalWidth - (ratio * width)) / 2;
   }
   ctxOutTo.drawImage(
       (video ? ctxFrom : ctxFrom.canvas),

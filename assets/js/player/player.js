@@ -10,6 +10,8 @@ class VideoPlayer {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.audioContext = new AudioContext();
+    this.width = 0;
+    this.height = 0;
     /**
      * @type {StandardLayer[]} layers
      */
@@ -44,6 +46,8 @@ class VideoPlayer {
     holder.appendChild(this.canvas);
     this.canvas.width = holder.clientWidth;
     this.canvas.height = holder.clientHeight
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
     this.ctx.scale(1, 1); // Reset scale to 1
     this.resize();
   }
@@ -55,6 +59,8 @@ class VideoPlayer {
   resize() {
     this.canvas.width = this.canvas.clientWidth * dpr;
     this.canvas.height = this.canvas.clientHeight * dpr;
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
     this.ctx.scale(dpr, dpr);
   }
 
