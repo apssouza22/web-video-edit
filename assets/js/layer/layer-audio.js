@@ -11,8 +11,6 @@ export class AudioLayer extends StandardLayer {
     this.audioBuffer = null;
     this.source = null;
     this.playing = false;
-    this.last_time = 0;
-    this.last_ref_time = 0;
     this.playerAudioContext = null;
     this.audioStreamDestination = null;
     this.reader.addEventListener("load", this.#onAudioLoad.bind(this));
@@ -32,6 +30,15 @@ export class AudioLayer extends StandardLayer {
 
   #onAudioLoadSuccess(audioBuffer) {
     this.audioBuffer = audioBuffer;
+    window.worker.postMessage({
+      audio: getAudio(audioBuffer),
+      model: "Xenova/whisper-base",
+      multilingual: false,
+      quantized:false,
+      subtask:  "transcribe",
+      // language: "en",
+    });
+
     this.totalTimeInMilSeconds = this.audioBuffer.duration * 1000;
     if (this.totalTimeInMilSeconds === 0) {
       //TODO: On error
@@ -90,4 +97,24 @@ export class AudioLayer extends StandardLayer {
       this.started = true;
     }
   }
+}
+
+
+function getAudio(audioData){
+  let audio;
+  if (audioData.numberOfChannels === 2) {
+    const SCALING_FACTOR = Math.sqrt(2);
+
+    let left = audioData.getChannelData(0);
+    let right = audioData.getChannelData(1);
+
+    audio = new Float32Array(left.length);
+    for (let i = 0; i < audioData.length; ++i) {
+      audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
+    }
+  } else {
+    // If the audio is not stereo, we can just use the first channel:
+    audio = audioData.getChannelData(0);
+  }
+  return audio
 }

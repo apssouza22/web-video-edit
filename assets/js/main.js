@@ -47,7 +47,6 @@ function onLoadHandler() {
     popup(text);
     localStorage.setItem('_seen', 'true');
   }
+
 }
-
-
 

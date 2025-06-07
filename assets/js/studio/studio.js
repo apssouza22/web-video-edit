@@ -6,6 +6,7 @@ import { VideoExporter } from './video-export.js';
 import { StudioControls } from './controls.js';
 import { PinchHandler } from './pinch-handler.js';
 import { DragItemHandler } from './drag-handler.js';
+import {TranscriptionManager} from "../transcription/transcription.js";
 
 export class VideoStudio {
 
@@ -21,6 +22,7 @@ export class VideoStudio {
     this.layerLoader = new LayerLoader(this, this.layersSidebarView);
     this.videoExporter = new VideoExporter(this);
     this.controls = new StudioControls(this);
+    this.transcriptionManager = new TranscriptionManager();
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
