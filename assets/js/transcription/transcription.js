@@ -1,4 +1,4 @@
-export class TranscriptionManager{
+export class TranscriptionManager {
 
   constructor() {
     this.worker = new Worker(new URL("../worker.js", import.meta.url), {
@@ -274,6 +274,39 @@ export class TranscriptionManager{
       ]
     }
   }
+
+  startTranscription(audioBuffer) {
+    const data = this.getMockedData();
+    this.onTranscriptionComplete(data);
+
+    // this.worker.postMessage({
+    //   audio: getAudio(audioBuffer),
+    //   model: "Xenova/whisper-base",
+    //   multilingual: false,
+    //   quantized: false,
+    //   subtask: "transcribe",
+    //   // language: "en",
+    // });
+  }
+}
+
+function getAudio(audioData) {
+  let audio;
+  if (audioData.numberOfChannels === 2) {
+    const SCALING_FACTOR = Math.sqrt(2);
+
+    let left = audioData.getChannelData(0);
+    let right = audioData.getChannelData(1);
+
+    audio = new Float32Array(left.length);
+    for (let i = 0; i < audioData.length; ++i) {
+      audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
+    }
+  } else {
+    // If the audio is not stereo, we can just use the first channel:
+    audio = audioData.getChannelData(0);
+  }
+  return audio
 }
 
 

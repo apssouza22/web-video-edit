@@ -23,6 +23,8 @@ export class VideoStudio {
     this.videoExporter = new VideoExporter(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
+    //Temporary
+    this.transcriptionManager.startTranscription(null);
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
