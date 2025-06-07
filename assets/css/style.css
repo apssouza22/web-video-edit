@@ -179,6 +179,14 @@ text-align: center;
   transform: scale(1.1);
 }
 
+/* Highlighted chunk styling for current playback position */
+#transcription .text-chunk.highlighted {
+  background: rgba(169, 225, 250, 0.3);
+  color: #0b284b;
+  font-weight: bold;
+  border: 1px solid rgba(169, 225, 250, 0.6);
+}
+
 
 /* Video canvas takes up 50% width */
 #center-panel #video-canvas-panel {

@@ -1,9 +1,12 @@
+import { TranscriptionView } from './transcription-view.js';
+
 export class TranscriptionManager {
 
   constructor() {
     this.worker = new Worker(new URL("../worker.js", import.meta.url), {
       type: "module",
     });
+    this.transcriptionView = new TranscriptionView();
     this.addEventListener();
     window.worker = this.worker; // Expose worker globally for debugging
   }
@@ -48,6 +51,11 @@ export class TranscriptionManager {
 
   onTranscriptionComplete(data) {
     console.log("Transcription complete:", data);
+    
+    // Update the transcription view with the new data
+    if (this.transcriptionView) {
+      this.transcriptionView.updateTranscription(data);
+    }
   }
 
   getMockedData() {
@@ -287,6 +295,30 @@ export class TranscriptionManager {
     //   subtask: "transcribe",
     //   // language: "en",
     // });
+  }
+
+  /**
+   * Test method to demonstrate the TranscriptionView functionality
+   * Call this method from the browser console: transcriptionManager.testTranscriptionView()
+   */
+  testTranscriptionView() {
+    console.log("Testing TranscriptionView with mocked data...");
+    const mockedData = this.getMockedData();
+    this.onTranscriptionComplete(mockedData);
+    
+    // Demonstrate highlighting functionality after a short delay
+    setTimeout(() => {
+      console.log("Demonstrating chunk highlighting...");
+      if (this.transcriptionView) {
+        // Highlight chunk at index 5
+        this.transcriptionView.highlightChunk(5);
+        
+        // After 2 seconds, highlight based on time (140 seconds)
+        setTimeout(() => {
+          this.transcriptionView.highlightChunksByTime(140);
+        }, 2000);
+      }
+    }, 1000);
   }
 }
 

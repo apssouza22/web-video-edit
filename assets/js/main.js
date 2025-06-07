@@ -2,12 +2,17 @@ import { VideoStudio } from './studio/studio.js';
 import { dpr, fps, max_size, AudioContext } from './constants.js';
 import { upload, addText, popup } from './studio/utils.js';
 import { updateSettings } from './studio/settings.js';
+import { TranscriptionManager } from './transcription/transcription.js';
 
 const studio = new VideoStudio();
 studio.init();
 
+// Initialize transcription manager
+const transcriptionManager = new TranscriptionManager();
+
 // Expose global functions for HTML onclick handlers
 window.studio = studio;
+window.transcriptionManager = transcriptionManager;
 window.upload = upload;
 window.addText = addText;
 window.updateSettings = updateSettings;
