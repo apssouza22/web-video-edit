@@ -116,17 +116,7 @@ export function uploadSupportedType(files) {
     return !badUserExtensions.length > 0;
 }
 
-export function upload() {
-    let filePicker = document.getElementById('filepicker');
-    filePicker.addEventListener('input', function (e) {
-        if (!uploadSupportedType(e.target.files)) { return }
-        for (let file of e.target.files) {
-            window.studio.layerLoader.addLayerFromFile(file);
-        }
-        filePicker.value = '';
-    });
-    filePicker.click();
-}
+
 
 export function getSupportedMimeTypes() {
     const VIDEO_TYPES = [

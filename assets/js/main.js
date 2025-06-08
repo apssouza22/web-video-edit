@@ -1,6 +1,6 @@
 import { VideoStudio } from './studio/studio.js';
 import { dpr, fps, max_size, AudioContext } from './constants.js';
-import { upload, addText, popup } from './studio/utils.js';
+import { addText, popup } from './studio/utils.js';
 import { updateSettings } from './studio/settings.js';
 import { TranscriptionManager } from './transcription/transcription.js';
 
@@ -12,7 +12,6 @@ const transcriptionManager = new TranscriptionManager();
 // Expose global functions for HTML onclick handlers
 window.studio = studio;
 window.transcriptionManager = transcriptionManager;
-window.upload = upload;
 window.addText = addText;
 window.updateSettings = updateSettings;
 window.popup = popup;
@@ -34,7 +33,7 @@ function onLoadHandler() {
   if (file) {
     console.log("Loading example", file);
     for (let uri of file.split(',')) {
-      studio.layerLoader.loadLayerFromURI(uri);
+      studio.loadLayersFromJson(uri);
     }
     location.hash = "";
     return;

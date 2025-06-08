@@ -7,6 +7,7 @@ import { StudioControls } from './controls.js';
 import { PinchHandler } from './pinch-handler.js';
 import { DragItemHandler } from './drag-handler.js';
 import {TranscriptionManager} from "../transcription/transcription.js";
+import { uploadSupportedType } from './utils.js';
 
 export class VideoStudio {
 
@@ -224,6 +225,44 @@ export class VideoStudio {
     this.layersSidebarView.render(this.player.time);
 
     window.requestAnimationFrame(this.loop.bind(this));
+  }
+
+  upload() {
+    const layers = []
+    let filePicker = document.getElementById('filepicker');
+    filePicker.addEventListener('input', (e) => {
+        if (!uploadSupportedType(e.target.files)) { return }
+        for (let file of e.target.files) {
+            const l = this.layerLoader.addLayerFromFile(file);
+            layers.push(...l);
+        }
+        filePicker.value = '';
+
+
+        // layers.forEach(layer => {
+        //   layer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
+        //     if (progress < 100) {
+        //       this.layersSidebarView.updateLayerName(layer, progress + " %");
+        //     }
+        //   })
+        // })
+    });
+    filePicker.click();
+  }
+
+  async loadLayersFromJson(uri) {
+    if (!uri) {
+      return;
+    }
+    const extension = uri.split(/[#?]/)[0].split('.').pop().trim();
+
+    if (extension === 'json') {
+      let response = await fetch(uri);
+      let layers = await response.json();
+      await this.layerLoader.loadLayersFromJson(layers);
+      return
+    }
+    console.log("File is not a json file");
   }
 
 }
