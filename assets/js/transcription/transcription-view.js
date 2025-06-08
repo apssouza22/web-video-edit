@@ -1,4 +1,5 @@
 import { removeAudioInterval, getAudioLayers, updateAudioLayerBuffer } from './audio-utils.js';
+import { removeVideoInterval, getVideoLayers, updateStudioTotalTime } from './video-utils.js';
 
 export class TranscriptionView {
   constructor() {
@@ -115,6 +116,9 @@ export class TranscriptionView {
       // Remove audio interval from all AudioLayers
       this.removeAudioInterval(startTime, endTime);
       
+      // Remove video interval from all VideoLayers
+      this.removeVideoInterval(startTime, endTime);
+      
       // Update timestamps of subsequent chunks
       this.updateSubsequentTimestamps(startTime, removedDuration);
       
@@ -161,10 +165,55 @@ export class TranscriptionView {
         }
       });
       
-         } catch (error) {
-       console.error('Error removing audio interval:', error);
-     }
-   }
+    } catch (error) {
+      console.error('Error removing audio interval:', error);
+    }
+  }
+
+  /**
+   * Removes video interval from all VideoLayers in the studio
+   * @param {number} startTime - Start time in seconds
+   * @param {number} endTime - End time in seconds
+   */
+  removeVideoInterval(startTime, endTime) {
+    try {
+      const videoLayers = getVideoLayers();
+      
+      if (videoLayers.length === 0) {
+        console.log('No video layers found to remove interval from');
+        return;
+      }
+      
+      console.log(`Found ${videoLayers.length} video layer(s) to process`);
+      
+      let anyLayerModified = false;
+      
+      videoLayers.forEach((videoLayer, index) => {
+        if (videoLayer.framesCollection && videoLayer.ready) {
+          console.log(`Processing video layer ${index + 1}: "${videoLayer.name}"`);
+          
+          const success = removeVideoInterval(videoLayer, startTime, endTime);
+          
+          if (success) {
+            console.log(`Successfully updated video layer: "${videoLayer.name}"`);
+            anyLayerModified = true;
+          } else {
+            console.log(`No changes made to video layer: "${videoLayer.name}"`);
+          }
+        } else {
+          console.log(`Video layer "${videoLayer.name}" not ready or missing frames collection`);
+        }
+      });
+      
+      // Update studio total time if any layer was modified
+      if (anyLayerModified) {
+        updateStudioTotalTime();
+      }
+      
+    } catch (error) {
+      console.error('Error removing video interval:', error);
+    }
+  }
 
   /**
    * Updates timestamps of chunks that come after the removed interval
