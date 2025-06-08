@@ -69,7 +69,6 @@ async function transcribe(audio, model, multilingual, quantized, subtask, langua
 
 self.addEventListener("message", async (event) => {
     const message = event.data;
-    console.log(event);
     if (!message) {
         return;
     }

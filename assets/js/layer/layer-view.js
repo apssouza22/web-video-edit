@@ -250,7 +250,6 @@ export class LayersSidebarView {
   }
 
   updateLayerThumb(layer, ctx) {
-    console.log("Updating layer thumb for layer:", ctx);
     drawScaled(ctx, this.layerItemsUI[layer.id].ctx);
   }
 

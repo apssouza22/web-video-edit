@@ -50,12 +50,11 @@ export class LayerLoader {
       layer = this.insertLayer(new ImageLayer(file));
     }
     if (file.type.indexOf('audio') >= 0) {
-      console.log("Audio layer added:");
       layer = this.insertLayer(new AudioLayer(file));
     }
-    if (layer instanceof AudioLayer) {
-      console.log("Audio layer added:");
-    }
+    if (!layer)
+      return null;
+
     layer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
       if (progress < 100) {
         this.viewHandler.updateLayerName(layer, progress + " %");
@@ -71,7 +70,7 @@ export class LayerLoader {
    * Load a layer from a URI
    *
    * @param {string} uri
-   * @returns {Promise<layer>} Promise that resolves to the added layer
+   * @returns {Promise<Standardlayer>} Promise that resolves to the added layer
    */
   async loadLayerFromURI(uri) {
     if (!uri) {
@@ -80,7 +79,7 @@ export class LayerLoader {
     const extension = uri.split(/[#?]/)[0].split('.').pop().trim();
 
     if (!ext_map[extension]) {
-      if (extension == 'json') {
+      if (extension === 'json') {
         let response = await fetch(uri);
         let layers = await response.json();
         await this.loadLayersFromJson(layers);
