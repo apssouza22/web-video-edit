@@ -7,7 +7,6 @@ import { TranscriptionManager } from './transcription/transcription.js';
 const studio = new VideoStudio();
 studio.init();
 
-// Initialize transcription manager
 const transcriptionManager = new TranscriptionManager();
 
 // Expose global functions for HTML onclick handlers

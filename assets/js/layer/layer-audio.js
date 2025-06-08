@@ -7,7 +7,9 @@ export class AudioLayer extends StandardLayer {
   constructor(file) {
     super(file);
     this.reader = new FileReader();
-    this.audioCtx = new AudioContext();
+    this.audioCtx = new AudioContext({
+      sampleRate: 16000 // Whisper model requires this
+    });
     this.audioBuffer = null;
     this.source = null;
     this.playing = false;

@@ -26,7 +26,6 @@ class PipelineFactory {
 }
 
 async function transcribe(audio, model, multilingual, quantized, subtask, language) {
-    console.log("Transcribing with model:", audio);
     const isDistilWhisper = model.startsWith("distil-whisper/");
     let modelName = model;
     if (!isDistilWhisper && !multilingual) {
@@ -52,8 +51,8 @@ async function transcribe(audio, model, multilingual, quantized, subtask, langua
     let output = await transcriber(audio, {
         chunk_length_s: 30,
         stride_length_s: 5,
-        // language: language,
-        // task: subtask,
+        language: null,
+        task: null,
         return_timestamps: "word",
     }).catch((error) => {
         console.log(error);

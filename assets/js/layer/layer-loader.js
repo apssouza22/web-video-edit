@@ -39,10 +39,8 @@ export class LayerLoader {
     if (file.type.indexOf('video') >= 0) {
       let audioLayer = new AudioLayer(file);
       audioLayer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
-        console.log("Layer loaded:", audioBuffer);
         if (audioBuffer) {
-          console.log("call transcription worker");
-          // window.transcriptionManager.startTranscription(audioBuffer);
+          window.transcriptionManager.startTranscription(audioBuffer);
         }
       })
       this.insertLayer(audioLayer);

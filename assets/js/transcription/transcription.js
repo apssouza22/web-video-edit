@@ -285,16 +285,17 @@ export class TranscriptionManager {
 
   startTranscription(audioBuffer) {
     const data = this.getMockedData();
-    this.onTranscriptionComplete(data);
-
-    // this.worker.postMessage({
-    //   audio: getAudio(audioBuffer),
-    //   model: "Xenova/whisper-base",
-    //   multilingual: false,
-    //   quantized: false,
-    //   subtask: "transcribe",
-    //   // language: "en",
-    // });
+    // this.onTranscriptionComplete(data);
+    const audio = getAudio(audioBuffer);
+    console.log("Starting transcription with audio data:", audio);
+    this.worker.postMessage({
+      audio: audio,
+      model: "Xenova/whisper-base",
+      multilingual: false,
+      quantized: true,
+      subtask: null ,
+      language: null,
+    });
   }
 
   /**

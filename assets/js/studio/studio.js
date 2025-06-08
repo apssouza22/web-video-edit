@@ -24,7 +24,7 @@ export class VideoStudio {
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
     //Temporary
-    this.transcriptionManager.startTranscription(null);
+    // this.transcriptionManager.startTranscription(null);
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
