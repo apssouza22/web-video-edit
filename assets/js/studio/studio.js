@@ -8,6 +8,7 @@ import { VideoExporter } from './video-export.js';
 import { StudioControls } from './controls.js';
 import { PinchHandler } from './pinch-handler.js';
 import { DragItemHandler } from './drag-handler.js';
+import { MediaEditor } from './media-edit.js';
 import { TranscriptionManager } from "../transcription/transcription.js";
 import { uploadSupportedType } from './utils.js';
 
@@ -26,6 +27,7 @@ export class VideoStudio {
     this.videoExporter = new VideoExporter(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
+    this.mediaCutter = new MediaEditor(this);
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
@@ -73,6 +75,11 @@ export class VideoStudio {
       } else if (action === 'split') {
         // Handle split action (if implemented)
       }
+    });
+
+    this.transcriptionManager.addRemoveIntervalListener((startTime, endTime) => {
+      console.log(`TranscriptionManager: Removing interval from ${startTime} to ${endTime}`);
+      this.mediaCutter.removeInterval(startTime, endTime);
     });
   }
 

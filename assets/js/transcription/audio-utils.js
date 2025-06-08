@@ -65,27 +65,6 @@ export function removeAudioInterval(originalBuffer, startTime, endTime, audioCon
   return newBuffer;
 }
 
-/**
- * Finds AudioLayers in the studio layers
- * @returns {Array} Array of AudioLayer instances
- */
-export function getAudioLayers() {
-  if (!window.studio) {
-    console.error('Studio not found');
-    return [];
-  }
-  
-  const audioLayers = [];
-  const layers = window.studio.getLayers();
-  
-  for (let layer of layers) {
-    if (layer.constructor.name === 'AudioLayer' && layer.audioBuffer) {
-      audioLayers.push(layer);
-    }
-  }
-  
-  return audioLayers;
-}
 
 /**
  * Updates an AudioLayer with a new AudioBuffer

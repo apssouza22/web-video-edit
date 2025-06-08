@@ -1,9 +1,10 @@
-import { LayersSidebarView } from './layer-view.js';
-import { AudioLayer } from './layer-audio.js';
-import { VideoLayer } from './layer-video.js';
-import { ImageLayer } from './layer-image.js';
-import { TextLayer } from './layer-text.js';
-import { ext_map } from '../studio/utils.js';
+import {FlexibleLayer} from './layer-common.js';
+import {LayersSidebarView} from './layer-view.js';
+import {AudioLayer} from './layer-audio.js';
+import {VideoLayer} from './layer-video.js';
+import {ImageLayer} from './layer-image.js';
+import {TextLayer} from './layer-text.js';
+import {ext_map} from '../studio/utils.js';
 
 /**
  * LayerLoader class responsible for loading layers from JSON data
@@ -32,7 +33,7 @@ export class LayerLoader {
    * Add a layer from a file
    *
    * @param {File} file
-   * @returns {FlexibleLayer} The added layer
+   * @returns {FlexibleLayer[]} The added layer
    */
   addLayerFromFile(file) {
     let layers = [];
@@ -53,7 +54,7 @@ export class LayerLoader {
    * Load a layer from a URI
    *
    * @param {string} uri
-   * @returns {Promise<Standardlayer[]>} Promise that resolves to the added layer
+   * @returns {FlexibleLayer[]} Promise that resolves to the added layer
    */
   async loadLayerFromURI(uri) {
     if (!uri) {
@@ -77,7 +78,7 @@ export class LayerLoader {
   /**
    * Load layers from JSON data
    * @param {Array} layers - Array of layer data objects
-   * @returns {Promise} - Promise that resolves when all layers are loaded
+   * @returns {FlexibleLayer[]} - Promise that resolves when all layers are loaded
    */
   async loadLayersFromJson(layers) {
     const allLayers = [];
@@ -104,23 +105,24 @@ export class LayerLoader {
 
       layersCreated.forEach(layer => {
         layer.addLoadUpdateListener((l, progress, ctx, audioBuffer) => {
-          if (progress >= 100) {
-            layer.name = layer.name;
-            layer.width = layer_d.width;
-            layer.height = layer_d.height;
-            layer.start_time = layer_d.start_time;
-            layer.total_time = layer_d.total_time;
+          if (progress < 100) {
+            return
+          }
+          layer.name = layer.name;
+          layer.width = layer_d.width;
+          layer.height = layer_d.height;
+          layer.start_time = layer_d.start_time;
+          layer.total_time = layer_d.total_time;
 
-            if (layer_d.frames) {
-              layer.framesCollection.frames = [];
-              for (let f of layer_d.frames) {
-                layer.framesCollection.push(new Float32Array(f));
-              }
+          if (layer_d.frames) {
+            layer.framesCollection.frames = [];
+            for (let f of layer_d.frames) {
+              layer.framesCollection.push(new Float32Array(f));
             }
           }
         });
       })
     }
-    return [];
+    return allLayers;
   }
 }

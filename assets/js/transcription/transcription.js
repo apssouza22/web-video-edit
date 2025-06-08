@@ -6,12 +6,14 @@ export class TranscriptionManager {
     this.worker = new Worker(new URL("../worker.js", import.meta.url), {
       type: "module",
     });
-    this.transcriptionView = new TranscriptionView();
-    this.addEventListener();
+    this.transcriptionView = new TranscriptionView(this);
+    this.onRemoveIntervalListener = (startTime, endTime) => {}
+
+    this.#addEventListener();
     window.worker = this.worker; // Expose worker globally for debugging
   }
 
-  addEventListener() {
+  #addEventListener() {
     this.worker.addEventListener("message", ((event) => {
       const message = event.data;
       switch (message.status) {
@@ -22,15 +24,14 @@ export class TranscriptionManager {
           // console.log("update", message.data)
           break;
         case "complete":
-          this.onTranscriptionComplete(message.data);
-          // console.log("complete", message.data)
+          this.#onTranscriptionComplete(message.data);
           break;
 
         case "initiate":
           console.log("Initiating model loading");
           break;
         case "ready":
-          console.log("Model file ready");
+          console.log("Model ready");
           break;
         case "error":
           alert(
@@ -38,7 +39,7 @@ export class TranscriptionManager {
           );
           break;
         case "done":
-          // console.log("Model file loaded:", message.file);
+          console.log("Model file done loaded:", message.file);
           break;
 
         default:
@@ -46,10 +47,26 @@ export class TranscriptionManager {
           break;
       }
     }).bind(this));
-
   }
 
-  onTranscriptionComplete(data) {
+  addRemoveIntervalListener(callback) {
+    if (typeof callback === 'function') {
+      this.onRemoveIntervalListener = callback;
+    } else {
+      console.error("Callback must be a function");
+    }
+  }
+
+  /**
+   * Removes an interval from the transcription
+   * @param startTime
+   * @param endTime
+   */
+  removeInterval(startTime, endTime) {
+    this.onRemoveIntervalListener(startTime, endTime);
+  }
+
+  #onTranscriptionComplete(data) {
     console.log("Transcription complete:", data);
     
     // Update the transcription view with the new data
@@ -286,7 +303,7 @@ export class TranscriptionManager {
   startTranscription(audioBuffer) {
     const data = this.getMockedData();
     // this.onTranscriptionComplete(data);
-    const audio = getAudio(audioBuffer);
+    const audio = transformAudioBuffer(audioBuffer);
     console.log("Starting transcription with audio data:", audio);
     this.worker.postMessage({
       audio: audio,
@@ -305,7 +322,7 @@ export class TranscriptionManager {
   testTranscriptionView() {
     console.log("Testing TranscriptionView with mocked data...");
     const mockedData = this.getMockedData();
-    this.onTranscriptionComplete(mockedData);
+    this.#onTranscriptionComplete(mockedData);
     
     // Demonstrate highlighting functionality after a short delay
     setTimeout(() => {
@@ -323,7 +340,7 @@ export class TranscriptionManager {
   }
 }
 
-function getAudio(audioData) {
+function transformAudioBuffer(audioData) {
   let audio;
   if (audioData.numberOfChannels === 2) {
     const SCALING_FACTOR = Math.sqrt(2);

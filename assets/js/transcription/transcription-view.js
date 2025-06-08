@@ -1,8 +1,13 @@
-import { removeAudioInterval, getAudioLayers, updateAudioLayerBuffer } from './audio-utils.js';
-import { removeVideoInterval, getVideoLayers, updateStudioTotalTime } from './video-utils.js';
+import {TranscriptionManager} from './transcription.js';
 
 export class TranscriptionView {
-  constructor() {
+
+  /**
+   * Constructor for TranscriptionView
+   * @param {TranscriptionManager} manager
+   */
+  constructor(manager) {
+    this.transctriptionManager = manager;
     this.transcriptionElement = document.getElementById('transcription');
     this.textChunksContainer = this.transcriptionElement.querySelector('.text-chunks');
     
@@ -27,19 +32,17 @@ export class TranscriptionView {
       return;
     }
 
-    // Clear existing chunks
-    this.clearChunks();
+    this.#clearChunks();
 
-    // Add new chunks
     transcriptionData.chunks.forEach((chunk, index) => {
-      this.addTextChunk(chunk, index);
+      this.#addTextChunk(chunk, index);
     });
   }
 
   /**
    * Clears all existing text chunks from the view
    */
-  clearChunks() {
+  #clearChunks() {
     if (this.textChunksContainer) {
       this.textChunksContainer.innerHTML = '';
     }
@@ -50,7 +53,7 @@ export class TranscriptionView {
    * @param {Object} chunk - The chunk data with text and timestamp
    * @param {number} index - The index of the chunk
    */
-  addTextChunk(chunk, index) {
+  #addTextChunk(chunk, index) {
     // Create the main chunk span
     const chunkElement = document.createElement('span');
     chunkElement.className = 'text-chunk';
@@ -72,31 +75,18 @@ export class TranscriptionView {
     closeSpan.style.marginLeft = '5px';
     closeSpan.style.opacity = '0.7';
 
-    // Add click handler for the close button
     closeSpan.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.removeChunk(chunkElement, index);
+      this.#removeChunk(chunkElement, index);
     });
 
-    // Add click handler for the chunk (for potential seek functionality)
     chunkElement.addEventListener('click', () => {
-      this.onChunkClick(chunk, index);
+      this.#onChunkClick(chunk, index);
     });
 
-    // Add hover effects
-    chunkElement.addEventListener('mouseenter', () => {
-      closeSpan.style.opacity = '1';
-    });
-
-    chunkElement.addEventListener('mouseleave', () => {
-      closeSpan.style.opacity = '0.7';
-    });
-
-    // Append text and close button to chunk
     chunkElement.appendChild(textSpan);
     chunkElement.appendChild(closeSpan);
 
-    // Append chunk to container
     this.textChunksContainer.appendChild(chunkElement);
   }
 
@@ -105,123 +95,29 @@ export class TranscriptionView {
    * @param {HTMLElement} chunkElement - The chunk element to remove
    * @param {number} index - The index of the chunk
    */
-  removeChunk(chunkElement, index) {
+  #removeChunk(chunkElement, index) {
     if (chunkElement && chunkElement.parentNode) {
       const startTime = parseFloat(chunkElement.getAttribute('data-start-time'));
       const endTime = parseFloat(chunkElement.getAttribute('data-end-time'));
       const removedDuration = endTime - startTime;
       
       console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s, duration=${removedDuration}s`);
-      
-      // Remove audio interval from all AudioLayers
-      this.removeAudioInterval(startTime, endTime);
-      
-      // Remove video interval from all VideoLayers
-      this.removeVideoInterval(startTime, endTime);
-      
-      // Update timestamps of subsequent chunks
-      this.updateSubsequentTimestamps(startTime, removedDuration);
+
+      this.transctriptionManager.removeInterval(startTime, endTime);
+      this.#updateSubsequentTimestamps(startTime, removedDuration);
       
       chunkElement.remove();
-      this.onChunkRemove(index);
     }
   }
 
-  /**
-   * Removes audio interval from all AudioLayers in the studio
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
-   */
-  removeAudioInterval(startTime, endTime) {
-    try {
-      const audioLayers = getAudioLayers();
-      
-      if (audioLayers.length === 0) {
-        console.log('No audio layers found to remove interval from');
-        return;
-      }
-      
-      console.log(`Found ${audioLayers.length} audio layer(s) to process`);
-      
-      audioLayers.forEach((audioLayer, index) => {
-        if (audioLayer.audioBuffer && audioLayer.playerAudioContext) {
-          console.log(`Processing audio layer ${index + 1}: "${audioLayer.name}"`);
-          
-          const newBuffer = removeAudioInterval(
-            audioLayer.audioBuffer, 
-            startTime, 
-            endTime, 
-            audioLayer.playerAudioContext
-          );
-          
-          if (newBuffer && newBuffer !== audioLayer.audioBuffer) {
-            updateAudioLayerBuffer(audioLayer, newBuffer);
-            console.log(`Successfully updated audio layer: "${audioLayer.name}"`);
-          } else {
-            console.log(`No changes made to audio layer: "${audioLayer.name}"`);
-          }
-        } else {
-          console.log(`Audio layer "${audioLayer.name}" missing audioBuffer or playerAudioContext`);
-        }
-      });
-      
-    } catch (error) {
-      console.error('Error removing audio interval:', error);
-    }
-  }
-
-  /**
-   * Removes video interval from all VideoLayers in the studio
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
-   */
-  removeVideoInterval(startTime, endTime) {
-    try {
-      const videoLayers = getVideoLayers();
-      
-      if (videoLayers.length === 0) {
-        console.log('No video layers found to remove interval from');
-        return;
-      }
-      
-      console.log(`Found ${videoLayers.length} video layer(s) to process`);
-      
-      let anyLayerModified = false;
-      
-      videoLayers.forEach((videoLayer, index) => {
-        if (videoLayer.framesCollection && videoLayer.ready) {
-          console.log(`Processing video layer ${index + 1}: "${videoLayer.name}"`);
-          
-          const success = removeVideoInterval(videoLayer, startTime, endTime);
-          
-          if (success) {
-            console.log(`Successfully updated video layer: "${videoLayer.name}"`);
-            anyLayerModified = true;
-          } else {
-            console.log(`No changes made to video layer: "${videoLayer.name}"`);
-          }
-        } else {
-          console.log(`Video layer "${videoLayer.name}" not ready or missing frames collection`);
-        }
-      });
-      
-      // Update studio total time if any layer was modified
-      if (anyLayerModified) {
-        updateStudioTotalTime();
-      }
-      
-    } catch (error) {
-      console.error('Error removing video interval:', error);
-    }
-  }
 
   /**
    * Updates timestamps of chunks that come after the removed interval
    * @param {number} removedStartTime - Start time of the removed interval
    * @param {number} removedDuration - Duration of the removed interval
    */
-  updateSubsequentTimestamps(removedStartTime, removedDuration) {
-    const allChunks = this.getCurrentChunks();
+  #updateSubsequentTimestamps(removedStartTime, removedDuration) {
+    const allChunks = this.#getCurrentChunks();
     let updatedCount = 0;
     
     allChunks.forEach(chunk => {
@@ -236,8 +132,6 @@ export class TranscriptionView {
         chunk.setAttribute('data-start-time', newStartTime);
         chunk.setAttribute('data-end-time', newEndTime);
         updatedCount++;
-        
-        console.log(`Updated chunk: ${chunkStartTime}s-${chunkEndTime}s → ${newStartTime}s-${newEndTime}s`);
       }
     });
     
@@ -249,43 +143,17 @@ export class TranscriptionView {
    * @param {Object} chunk - The chunk data
    * @param {number} index - The chunk index
    */
-  onChunkClick(chunk, index) {
+  #onChunkClick(chunk, index) {
     console.log(`Chunk clicked: "${chunk.text}" at time ${chunk.timestamp[0]}s`);
     // This can be extended to seek to the timestamp in a video player
-  }
-
-  /**
-   * Handles chunk removal events (can be overridden for data management)
-   * @param {number} index - The index of the removed chunk
-   */
-  onChunkRemove(index) {
-    console.log(`Chunk removed at index: ${index}`);
-    // This can be extended to update the underlying data
   }
 
   /**
    * Gets all current text chunks as an array
    * @returns {Array} Array of chunk elements
    */
-  getCurrentChunks() {
+  #getCurrentChunks() {
     return Array.from(this.textChunksContainer.querySelectorAll('.text-chunk'));
-  }
-
-  /**
-   * Highlights a specific chunk (useful for current playback position)
-   * @param {number} index - The index of the chunk to highlight
-   */
-  highlightChunk(index) {
-    // Remove previous highlights
-    this.getCurrentChunks().forEach(chunk => {
-      chunk.classList.remove('highlighted');
-    });
-
-    // Add highlight to specified chunk
-    const chunkToHighlight = this.textChunksContainer.querySelector(`[data-index="${index}"]`);
-    if (chunkToHighlight) {
-      chunkToHighlight.classList.add('highlighted');
-    }
   }
 
   /**
@@ -293,7 +161,7 @@ export class TranscriptionView {
    * @param {number} currentTime - The current playback time in seconds
    */
   highlightChunksByTime(currentTime) {
-    this.getCurrentChunks().forEach(chunk => {
+    this.#getCurrentChunks().forEach(chunk => {
       const startTime = parseFloat(chunk.getAttribute('data-start-time'));
       const endTime = parseFloat(chunk.getAttribute('data-end-time'));
       
