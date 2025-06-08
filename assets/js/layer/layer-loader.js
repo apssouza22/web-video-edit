@@ -37,15 +37,8 @@ export class LayerLoader {
   addLayerFromFile(file) {
     let layers = [];
     if (file.type.indexOf('video') >= 0) {
-      let audioLayer = new AudioLayer(file);
-      audioLayer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
-        if (audioBuffer) {
-          window.transcriptionManager.startTranscription(audioBuffer);
-        }
-      })
-      this.insertLayer(audioLayer);
       layers.push(this.insertLayer(new VideoLayer(file)));
-      layers.push(audioLayer);
+      layers.push(this.insertLayer(new AudioLayer(file)));
     }
     if (file.type.indexOf('image') >= 0) {
       layers.push(this.insertLayer(new ImageLayer(file)));
@@ -53,17 +46,6 @@ export class LayerLoader {
     if (file.type.indexOf('audio') >= 0) {
       layers.push(this.insertLayer(new AudioLayer(file)));
     }
-
-    layers.forEach(layer => {
-      layer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
-        if (progress < 100) {
-          this.viewHandler.updateLayerName(layer, progress + " %");
-          // this.viewHandler.updateLayerThumb(layer, ctx)
-          return
-        }
-        this.viewHandler.updateLayerName(layer, layer.name);
-      })
-    })
     return layers;
   }
 
@@ -98,6 +80,7 @@ export class LayerLoader {
    * @returns {Promise} - Promise that resolves when all layers are loaded
    */
   async loadLayersFromJson(layers) {
+    const allLayers = [];
     for (let layer_d of layers) {
       let layersCreated = [];
       if (layer_d.type == "VideoLayer") {
@@ -117,9 +100,10 @@ export class LayerLoader {
         alert("Layer couldn't be processed.");
         continue;
       }
+      allLayers.push(...layersCreated);
 
       layersCreated.forEach(layer => {
-        layer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
+        layer.addLoadUpdateListener((l, progress, ctx, audioBuffer) => {
           if (progress >= 100) {
             layer.name = layer.name;
             layer.width = layer_d.width;
@@ -137,5 +121,6 @@ export class LayerLoader {
         });
       })
     }
+    return [];
   }
 }

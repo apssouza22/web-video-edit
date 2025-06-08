@@ -17,7 +17,7 @@ export class StandardLayer {
     this.height = 0;
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d', {willReadFrequently: true});
-    this.loadUpdateListener = (progress, ctx, audioBuffer) => {
+    this.loadUpdateListener = (layer, progress, ctx, audioBuffer) => {
     };
     this.lastRenderedTime = -1; // Track last rendered time for caching
 

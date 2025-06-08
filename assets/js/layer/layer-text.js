@@ -10,7 +10,7 @@ export class TextLayer extends FlexibleLayer {
     this.shadow = true;
     this.ready = true;
     setTimeout(() => {
-      this.loadUpdateListener(100);
+      this.loadUpdateListener(this,100, this.ctx, null);
     }, 10);
   }
 

@@ -37,7 +37,7 @@ export class AudioLayer extends StandardLayer {
       //TODO: On error
     }
     this.ready = true;
-    this.loadUpdateListener(100, null, audioBuffer);
+    this.loadUpdateListener(this, 100, null, audioBuffer);
   }
 
   updateName(name) {

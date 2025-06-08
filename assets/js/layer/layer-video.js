@@ -90,14 +90,15 @@ export class VideoLayer extends StandardLayer {
       let frame = await this.seek(i / fps);
       this.framesCollection.frames.push(frame);
       this.loadUpdateListener(
-          (100 * i / (d * fps)).toFixed(2),
-          this.ctx
+        this,
+        (100 * i / (d * fps)).toFixed(2),
+        this.ctx
       );
     }
     this.ready = true;
     this.video.remove();
     this.video = null;
-    this.loadUpdateListener(100, this.ctx);
+    this.loadUpdateListener(this, 100, this.ctx, null);
   }
 
   render(ctxOut, currentTime, playing = false) {

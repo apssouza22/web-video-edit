@@ -15,7 +15,7 @@ export class ImageLayer extends FlexibleLayer {
         this.width = this.img.naturalWidth;
         this.height = this.img.naturalHeight;
         this.ready = true;
-        this.loadUpdateListener(100);
+        this.loadUpdateListener(this, 100, this.ctx, null);
       }).bind(this));
     }).bind(this), false);
     this.reader.readAsDataURL(file);

@@ -2,11 +2,13 @@ import { VideoPlayer } from '../player/player.js';
 import { Timeline } from '../timeline/timeline.js';
 import { LayersSidebarView } from '../layer/layer-view.js';
 import { LayerLoader } from '../layer/layer-loader.js';
+import { AudioLayer } from '../layer/layer-audio.js';
+import { VideoLayer } from '../layer/layer-video.js';
 import { VideoExporter } from './video-export.js';
 import { StudioControls } from './controls.js';
 import { PinchHandler } from './pinch-handler.js';
 import { DragItemHandler } from './drag-handler.js';
-import {TranscriptionManager} from "../transcription/transcription.js";
+import { TranscriptionManager } from "../transcription/transcription.js";
 import { uploadSupportedType } from './utils.js';
 
 export class VideoStudio {
@@ -24,8 +26,6 @@ export class VideoStudio {
     this.videoExporter = new VideoExporter(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
-    //Temporary
-    // this.transcriptionManager.startTranscription(null);
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
@@ -43,26 +43,26 @@ export class VideoStudio {
     this.player.addTimeUpdateListener((newTime, oldTime) => {
       this.timeline.playerTime = newTime;
     });
-    
+
     this.timeline.addTimeUpdateListener((newTime, oldTime) => {
       if (!this.player.playing) {
         this.player.setTime(newTime);
       }
     });
-  
-    
+
+
     this.timeline.addLayerUpdateListener((action, layer, oldLayer) => {
       if (action === 'select') {
         this.layersSidebarView.setSelectedLayer(layer);
       } else if (action === 'delete') {
         this.remove(layer);
       } else if (action === 'clone') {
-        console.log("Clone action not implemented yet");    
+        console.log("Clone action not implemented yet");
       } else if (action === 'split') {
         this.split();
       }
     });
-    
+
     this.layersSidebarView.addLayerUpdateListener((action, layer, oldLayer) => {
       if (action === 'select') {
         this.timeline.setSelectedLayer(layer);
@@ -185,7 +185,8 @@ export class VideoStudio {
     nl.height = l.height;
     nl.canvas.width = l.canvas.width;
     nl.canvas.height = l.canvas.height;
-    this.layerLoader.insertLayer(nl);
+    const newLayer = this.layerLoader.insertLayer(nl);
+    newLayer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
     nl.ready = true;
 
     l.start_time = l.start_time + nl.totalTimeInMilSeconds;
@@ -231,21 +232,18 @@ export class VideoStudio {
     const layers = []
     let filePicker = document.getElementById('filepicker');
     filePicker.addEventListener('input', (e) => {
-        if (!uploadSupportedType(e.target.files)) { return }
-        for (let file of e.target.files) {
-            const l = this.layerLoader.addLayerFromFile(file);
-            layers.push(...l);
+      if (!uploadSupportedType(e.target.files)) { return }
+      for (let file of e.target.files) {
+        const l = this.layerLoader.addLayerFromFile(file);
+        layers.push(...l);
+      }
+      filePicker.value = '';
+
+      layers.forEach(layer => {
+        if (layer instanceof AudioLayer) {
+          layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
         }
-        filePicker.value = '';
-
-
-        // layers.forEach(layer => {
-        //   layer.addLoadUpdateListener((progress, ctx, audioBuffer) => {
-        //     if (progress < 100) {
-        //       this.layersSidebarView.updateLayerName(layer, progress + " %");
-        //     }
-        //   })
-        // })
+      })
     });
     filePicker.click();
   }
@@ -256,13 +254,25 @@ export class VideoStudio {
     }
     const extension = uri.split(/[#?]/)[0].split('.').pop().trim();
 
-    if (extension === 'json') {
-      let response = await fetch(uri);
-      let layers = await response.json();
-      await this.layerLoader.loadLayersFromJson(layers);
+    if (extension !== 'json') {
+      console.log("File is not a json file");
+    }
+    let response = await fetch(uri);
+    let layers = await response.json();
+    await this.layerLoader.loadLayersFromJson(layers);
+  }
+
+  #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
+    if (progress < 100) {
+      this.layersSidebarView.updateLayerName(layer, progress + " %");
+      // this.viewHandler.updateLayerThumb(layer, ctx)
       return
     }
-    console.log("File is not a json file");
+    if (audioBuffer) {
+      this.transcriptionManager.startTranscription(audioBuffer);
+    }
+
+    this.layersSidebarView.updateLayerName(layer, layer.name);
   }
 
 }
