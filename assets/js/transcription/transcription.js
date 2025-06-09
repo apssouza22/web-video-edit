@@ -305,14 +305,7 @@ export class TranscriptionManager {
     // this.onTranscriptionComplete(data);
     const audio = transformAudioBuffer(audioBuffer);
     console.log("Starting transcription with audio data:", audio);
-    this.worker.postMessage({
-      audio: audio,
-      model: "Xenova/whisper-base",
-      multilingual: false,
-      quantized: true,
-      subtask: null ,
-      language: null,
-    });
+    this.worker.postMessage({audio: audio});
   }
 
   /**
