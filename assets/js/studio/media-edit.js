@@ -1,4 +1,3 @@
-import {removeAudioInterval, updateAudioLayerBuffer} from "../transcription/audio-utils.js";
 import {getVideoLayers, removeVideoInterval, updateStudioTotalTime} from "../transcription/video-utils.js";
 import {AudioLayer} from "../layer/layer-audio.js";
 
@@ -33,24 +32,12 @@ export class MediaEditor{
         console.log('No audio layers found to remove interval from');
         return;
       }
+
+      console.log(`Found ${audioLayers.length} audio layer(s) to process`);
+
       audioLayers.forEach((audioLayer, index) => {
-        if (audioLayer.audioBuffer && audioLayer.playerAudioContext) {
-          console.log(`Processing audio layer ${index + 1}: "${audioLayer.name}"`);
-
-          const newBuffer = removeAudioInterval(
-              audioLayer.audioBuffer,
-              startTime,
-              endTime,
-              audioLayer.playerAudioContext
-          );
-
-          if (newBuffer && newBuffer !== audioLayer.audioBuffer) {
-            updateAudioLayerBuffer(audioLayer, newBuffer);
-            console.log(`Successfully updated audio layer: "${audioLayer.name}"`);
-          }
-        } else {
-          console.log(`Audio layer "${audioLayer.name}" missing audioBuffer or playerAudioContext`);
-        }
+        console.log(`Processing audio layer ${index + 1}: "${audioLayer.name}"`);
+        audioLayer.removeInterval(startTime, endTime);
       });
 
     } catch (error) {
