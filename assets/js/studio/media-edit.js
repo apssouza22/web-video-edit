@@ -145,4 +145,42 @@ export class MediaEditor{
     }
     return audioLayers;
   }
+
+  split() {
+    if (!this.studio.getSelectedLayer()) {
+      return;
+    }
+    let l = this.studio.getSelectedLayer();
+    if (!(l instanceof VideoLayer)) {
+      return;
+    }
+    if (!l.ready) {
+      return;
+    }
+    if (l.start_time > this.studio.player.time) {
+      return;
+    }
+    if (l.start_time + l.totalTimeInMilSeconds < this.studio.player.time) {
+      return;
+    }
+    let nl = new VideoLayer({
+      name: l.name + "NEW",
+      _leave_empty: true
+    });
+    const pct = (this.studio.player.time - l.start_time) / l.totalTimeInMilSeconds;
+    const split_idx = Math.round(pct * l.framesCollection.frames.length);
+    nl.framesCollection.frames = l.framesCollection.frames.splice(0, split_idx);
+    nl.start_time = l.start_time;
+    nl.totalTimeInMilSeconds = pct * l.totalTimeInMilSeconds;
+    nl.width = l.width;
+    nl.height = l.height;
+    nl.canvas.width = l.canvas.width;
+    nl.canvas.height = l.canvas.height;
+    const newLayer = this.studio.layerLoader.insertLayer(nl);
+    newLayer.addLoadUpdateListener(this.studio.onLayerLoadUpdate.bind(this.studio))
+    nl.ready = true;
+
+    l.start_time = l.start_time + nl.totalTimeInMilSeconds;
+    l.totalTimeInMilSeconds = l.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
+  }
 }

@@ -27,7 +27,7 @@ export class VideoStudio {
     this.videoExporter = new VideoExporter(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
-    this.mediaCutter = new MediaEditor(this);
+    this.mediaEditor = new MediaEditor(this);
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
@@ -61,7 +61,7 @@ export class VideoStudio {
       } else if (action === 'clone') {
         console.log("Clone action not implemented yet");
       } else if (action === 'split') {
-        this.split();
+        this.mediaEditor.split();
       }
     });
 
@@ -79,7 +79,7 @@ export class VideoStudio {
 
     this.transcriptionManager.addRemoveIntervalListener((startTime, endTime) => {
       console.log(`TranscriptionManager: Removing interval from ${startTime} to ${endTime}`);
-      this.mediaCutter.removeInterval(startTime, endTime);
+      this.mediaEditor.removeInterval(startTime, endTime);
     });
   }
 
@@ -162,44 +162,7 @@ export class VideoStudio {
     }
   }
 
-  split() {
-    if (!this.getSelectedLayer()) {
-      return;
-    }
-    let l = this.getSelectedLayer();
-    if (!(l instanceof VideoLayer)) {
-      return;
-    }
-    if (!l.ready) {
-      return;
-    }
-    if (l.start_time > this.player.time) {
-      return;
-    }
-    if (l.start_time + l.totalTimeInMilSeconds < this.player.time) {
-      return;
-    }
-    let nl = new VideoLayer({
-      name: l.name + "NEW",
-      _leave_empty: true
-    });
-    const pct = (this.player.time - l.start_time) / l.totalTimeInMilSeconds;
-    const split_idx = Math.round(pct * l.framesCollection.frames.length);
-    nl.framesCollection.frames = l.framesCollection.frames.splice(0, split_idx);
-    nl.start_time = l.start_time;
-    nl.totalTimeInMilSeconds = pct * l.totalTimeInMilSeconds;
-    nl.width = l.width;
-    nl.height = l.height;
-    nl.canvas.width = l.canvas.width;
-    nl.canvas.height = l.canvas.height;
-    const newLayer = this.layerLoader.insertLayer(nl);
-    newLayer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
-    nl.ready = true;
 
-    l.start_time = l.start_time + nl.totalTimeInMilSeconds;
-    l.totalTimeInMilSeconds = l.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
-
-  }
 
   play() {
     this.player.play();
@@ -248,7 +211,7 @@ export class VideoStudio {
 
       layers.forEach(layer => {
         if (layer instanceof AudioLayer) {
-          layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
+          layer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this))
         }
       })
     });
@@ -269,7 +232,7 @@ export class VideoStudio {
     await this.layerLoader.loadLayersFromJson(layers);
   }
 
-  #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
+  onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     if (progress < 100) {
       this.layersSidebarView.updateLayerName(layer, progress + " %");
       // this.viewHandler.updateLayerThumb(layer, ctx)

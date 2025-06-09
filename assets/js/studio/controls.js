@@ -1,6 +1,10 @@
 import { exportToJson } from './utils.js';
 
 export class StudioControls {
+
+  /**
+   * @param {VideoStudio} studio
+   */
   constructor(studio) {
     this.studio = studio;
 
@@ -57,7 +61,7 @@ export class StudioControls {
       return;
     }
     if (ev.code === "KeyS") {
-      this.studio.split();
+      this.studio.mediaEditor.split();
       return;
     }
     if (ev.code === "KeyJ") {
