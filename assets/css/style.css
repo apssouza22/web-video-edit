@@ -331,6 +331,14 @@ a:visited {
   background-color: #f0f0f0;
 }
 
+.layer-context-menu-item.clone {
+  color: #4CAF50;
+}
+
+.layer-context-menu-item.clone:hover {
+  background-color: #e8f5e8;
+}
+
 .layer-context-menu-item.delete {
   color: red;
 }

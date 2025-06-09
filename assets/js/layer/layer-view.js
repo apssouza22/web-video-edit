@@ -165,6 +165,16 @@ export class LayersSidebarView {
       menu.style.left = e.pageX + 'px';
       menu.style.top = e.pageY + 'px';
 
+      const cloneOption = document.createElement('div');
+      cloneOption.className = 'layer-context-menu-item clone';
+      cloneOption.textContent = 'Clone Layer';
+      cloneOption.addEventListener('click', () => {
+        if (this.layerUpdateListener) {
+          this.layerUpdateListener('clone', layer, null);
+        }
+        document.body.removeChild(menu);
+      });
+
       const deleteOption = document.createElement('div');
       deleteOption.className = 'layer-context-menu-item delete';
       deleteOption.textContent = 'Delete Layer';
@@ -180,6 +190,7 @@ export class LayersSidebarView {
         document.body.removeChild(menu);
       });
 
+      menu.appendChild(cloneOption);
       menu.appendChild(deleteOption);
       document.body.appendChild(menu);
 

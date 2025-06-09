@@ -4,6 +4,8 @@ import { LayersSidebarView } from '../layer/layer-view.js';
 import { LayerLoader } from '../layer/layer-loader.js';
 import { AudioLayer } from '../layer/layer-audio.js';
 import { VideoLayer } from '../layer/layer-video.js';
+import { ImageLayer } from '../layer/layer-image.js';
+import { TextLayer } from '../layer/layer-text.js';
 import { VideoExporter } from './video-export.js';
 import { StudioControls } from './controls.js';
 import { PinchHandler } from './pinch-handler.js';
@@ -59,7 +61,7 @@ export class VideoStudio {
       } else if (action === 'delete') {
         this.remove(layer);
       } else if (action === 'clone') {
-        console.log("Clone action not implemented yet");
+        this.cloneLayer(layer);
       } else if (action === 'split') {
         this.mediaEditor.split();
       }
@@ -71,7 +73,7 @@ export class VideoStudio {
       } else if (action === 'delete') {
         this.remove(layer);
       } else if (action === 'clone') {
-        // Handle clone action (if implemented)
+        this.cloneLayer(layer);
       } else if (action === 'split') {
         // Handle split action (if implemented)
       }
@@ -162,7 +164,152 @@ export class VideoStudio {
     }
   }
 
+  /**
+   * Clone a layer by creating a copy with slightly modified properties
+   * @param {StandardLayer} layer - The layer to clone
+   */
+  cloneLayer(layer) {
+    if (!layer) {
+      console.error('No layer provided for cloning');
+      return;
+    }
 
+    try {
+      // Generate clone name and offset start time
+      const cloneName = layer.name + ' (Clone)';
+      const cloneStartTime = layer.start_time + 100; // 100ms offset
+      
+      let clonedLayer = null;
+      
+      // Create new layer based on type - direct copying approach
+      if (layer instanceof TextLayer) {
+        // Create new TextLayer with cloned text
+        let nl = new TextLayer(cloneName);
+        
+        // Copy all text properties directly
+        nl.color = layer.color;
+        nl.shadow = layer.shadow;
+        nl.start_time = cloneStartTime;
+        nl.totalTimeInMilSeconds = layer.totalTimeInMilSeconds;
+        nl.width = layer.width;
+        nl.height = layer.height;
+        nl.canvas.width = layer.canvas.width;
+        nl.canvas.height = layer.canvas.height;
+        
+        // Copy frames directly
+        if (layer.framesCollection && layer.framesCollection.frames) {
+          nl.framesCollection.frames = [];
+          for (let frame of layer.framesCollection.frames) {
+            nl.framesCollection.frames.push(new Float32Array(frame));
+          }
+        }
+        
+        clonedLayer = this.layerLoader.insertLayer(nl);
+        
+      } else if (layer instanceof VideoLayer) {
+        // For VideoLayer, use direct frame copying
+        if (!layer.ready) {
+          console.error('Cannot clone VideoLayer that is not ready');
+          return;
+        }
+        
+        // Create empty VideoLayer
+        let nl = new VideoLayer({
+          name: cloneName,
+          _leave_empty: true
+        });
+        
+        // Copy frames directly from original layer
+        nl.framesCollection.frames = [...layer.framesCollection.frames];
+        nl.start_time = cloneStartTime;
+        nl.totalTimeInMilSeconds = layer.totalTimeInMilSeconds;
+        nl.width = layer.width;
+        nl.height = layer.height;
+        nl.canvas.width = layer.canvas.width;
+        nl.canvas.height = layer.canvas.height;
+        nl.ready = true;
+        
+        clonedLayer = this.layerLoader.insertLayer(nl);
+        clonedLayer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this));
+        
+      } else if (layer instanceof AudioLayer) {
+        // For AudioLayer, copy the audio buffer directly
+        if (!layer.ready || !layer.audioBuffer) {
+          console.error('Cannot clone AudioLayer that is not ready or has no audio buffer');
+          return;
+        }
+        
+        // Create dummy file object for AudioLayer constructor
+        let dummyFile = new File([''], cloneName, { type: 'audio/wav' });
+        let nl = new AudioLayer(dummyFile);
+        
+        // Set properties directly from the original layer (override after construction)
+        setTimeout(() => {
+          nl.audioBuffer = layer.audioBuffer;
+          nl.audioCtx = layer.audioCtx;
+          nl.playerAudioContext = layer.playerAudioContext;
+          nl.start_time = cloneStartTime;
+          nl.totalTimeInMilSeconds = layer.totalTimeInMilSeconds;
+          nl.width = layer.width;
+          nl.height = layer.height;
+          nl.ready = true;
+        }, 0);
+        
+        clonedLayer = this.layerLoader.insertLayer(nl);
+        clonedLayer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this));
+        
+      } else if (layer instanceof ImageLayer) {
+        // For ImageLayer, copy the image directly
+        if (!layer.ready || !layer.img) {
+          console.error('Cannot clone ImageLayer that is not ready or has no image');
+          return;
+        }
+        
+        // Create dummy file object for ImageLayer constructor
+        let dummyFile = new File([''], cloneName, { type: 'image/png' });
+        let nl = new ImageLayer(dummyFile);
+        
+        // Set properties directly from the original layer (override after construction)
+        setTimeout(() => {
+          nl.img = layer.img.cloneNode();
+          nl.start_time = cloneStartTime;
+          nl.totalTimeInMilSeconds = layer.totalTimeInMilSeconds;
+          nl.width = layer.width;
+          nl.height = layer.height;
+          nl.canvas.width = layer.canvas.width;
+          nl.canvas.height = layer.canvas.height;
+          nl.ready = true;
+          
+          // Copy frames directly
+          if (layer.framesCollection && layer.framesCollection.frames) {
+            nl.framesCollection.frames = [];
+            for (let frame of layer.framesCollection.frames) {
+              nl.framesCollection.frames.push(new Float32Array(frame));
+            }
+          }
+        }, 0);
+        
+        clonedLayer = this.layerLoader.insertLayer(nl);
+        clonedLayer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this));
+      }
+      
+      if (!clonedLayer) {
+        console.error('Failed to create cloned layer');
+        return;
+      }
+      
+      // Update layer name in UI
+      this.layersSidebarView.updateLayerName(clonedLayer, clonedLayer.name);
+      
+      // Select the cloned layer
+      this.layersSidebarView.setSelectedLayer(clonedLayer);
+      
+      console.log(`Successfully cloned layer: ${layer.name} -> ${clonedLayer.name}`);
+      
+    } catch (error) {
+      console.error('Error cloning layer:', error);
+    }
+  }
 
   play() {
     this.player.play();

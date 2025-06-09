@@ -150,37 +150,37 @@ export class MediaEditor{
     if (!this.studio.getSelectedLayer()) {
       return;
     }
-    let l = this.studio.getSelectedLayer();
-    if (!(l instanceof VideoLayer)) {
+    let layer = this.studio.getSelectedLayer();
+    if (!(layer instanceof VideoLayer)) {
       return;
     }
-    if (!l.ready) {
+    if (!layer.ready) {
       return;
     }
-    if (l.start_time > this.studio.player.time) {
+    if (layer.start_time > this.studio.player.time) {
       return;
     }
-    if (l.start_time + l.totalTimeInMilSeconds < this.studio.player.time) {
+    if (layer.start_time + layer.totalTimeInMilSeconds < this.studio.player.time) {
       return;
     }
     let nl = new VideoLayer({
-      name: l.name + "NEW",
+      name: layer.name + "NEW",
       _leave_empty: true
     });
-    const pct = (this.studio.player.time - l.start_time) / l.totalTimeInMilSeconds;
-    const split_idx = Math.round(pct * l.framesCollection.frames.length);
-    nl.framesCollection.frames = l.framesCollection.frames.splice(0, split_idx);
-    nl.start_time = l.start_time;
-    nl.totalTimeInMilSeconds = pct * l.totalTimeInMilSeconds;
-    nl.width = l.width;
-    nl.height = l.height;
-    nl.canvas.width = l.canvas.width;
-    nl.canvas.height = l.canvas.height;
+    const pct = (this.studio.player.time - layer.start_time) / layer.totalTimeInMilSeconds;
+    const split_idx = Math.round(pct * layer.framesCollection.frames.length);
+    nl.framesCollection.frames = layer.framesCollection.frames.splice(0, split_idx);
+    nl.start_time = layer.start_time;
+    nl.totalTimeInMilSeconds = pct * layer.totalTimeInMilSeconds;
+    nl.width = layer.width;
+    nl.height = layer.height;
+    nl.canvas.width = layer.canvas.width;
+    nl.canvas.height = layer.canvas.height;
     const newLayer = this.studio.layerLoader.insertLayer(nl);
     newLayer.addLoadUpdateListener(this.studio.onLayerLoadUpdate.bind(this.studio))
     nl.ready = true;
 
-    l.start_time = l.start_time + nl.totalTimeInMilSeconds;
-    l.totalTimeInMilSeconds = l.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
+    layer.start_time = layer.start_time + nl.totalTimeInMilSeconds;
+    layer.totalTimeInMilSeconds = layer.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
   }
 }
