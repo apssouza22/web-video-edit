@@ -1,5 +1,5 @@
-import {getVideoLayers, removeVideoInterval, updateStudioTotalTime} from "../transcription/video-utils.js";
 import {AudioLayer} from "../layer/layer-audio.js";
+import {VideoLayer} from "../layer/layer-video.js";
 
 export class MediaEditor{
   constructor(studio) {
@@ -55,7 +55,7 @@ export class MediaEditor{
    */
   #removeVideoInterval(startTime, endTime) {
     try {
-      const videoLayers = getVideoLayers();
+      const videoLayers = this.#getVideoLayers();
 
       if (videoLayers.length === 0) {
         console.log('No video layers found to remove interval from');
@@ -70,7 +70,7 @@ export class MediaEditor{
         if (videoLayer.framesCollection && videoLayer.ready) {
           console.log(`Processing video layer ${index + 1}: "${videoLayer.name}"`);
 
-          const success = removeVideoInterval(videoLayer, startTime, endTime);
+          const success = videoLayer.removeInterval(startTime, endTime);
 
           if (success) {
             console.log(`Successfully updated video layer: "${videoLayer.name}"`);
@@ -85,7 +85,7 @@ export class MediaEditor{
 
       // Update studio total time if any layer was modified
       if (anyLayerModified) {
-        updateStudioTotalTime();
+        this.#updateStudioTotalTime();
       }
 
     } catch (error) {
@@ -93,6 +93,42 @@ export class MediaEditor{
     }
   }
 
+  /**
+   * Updates studio total time after layer modifications
+   */
+  #updateStudioTotalTime() {
+    if (this.studio) {
+      this.studio.player.total_time = 0;
+      for (let layer of this.studio.getLayers()) {
+        if (layer.start_time + layer.totalTimeInMilSeconds > this.studio.player.total_time) {
+          this.studio.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
+        }
+      }
+      
+      // Refresh the studio timeline
+      if (this.studio.timeline) {
+        this.studio.timeline.render(this.studio.getLayers());
+      }
+      
+      console.log(`Updated studio total time to: ${this.studio.player.total_time / 1000}s`);
+    }
+  }
+
+  /**
+   * Finds VideoLayers in the studio layers
+   * @returns {VideoLayer[]} Array of VideoLayer instances
+   */
+  #getVideoLayers() {
+    const videoLayers = [];
+    const layers = this.studio.getLayers();
+
+    for (let layer of layers) {
+      if (layer instanceof VideoLayer && layer.framesCollection) {
+        videoLayers.push(layer);
+      }
+    }
+    return videoLayers;
+  }
 
   /**
    * Finds AudioLayers in the studio layers
