@@ -49,32 +49,45 @@ export class TranscriptionView {
   }
 
   /**
+   * Escapes HTML characters to prevent XSS attacks
+   * @param {string} text - The text to escape
+   * @returns {string} The escaped text
+   */
+  #escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
    * Adds a single text chunk to the view
    * @param {Object} chunk - The chunk data with text and timestamp
    * @param {number} index - The index of the chunk
    */
   #addTextChunk(chunk, index) {
-    // Create the main chunk span
-    const chunkElement = document.createElement('span');
-    chunkElement.className = 'text-chunk';
-    chunkElement.setAttribute('data-index', index);
-    chunkElement.setAttribute('data-start-time', chunk.timestamp[0]);
-    chunkElement.setAttribute('data-end-time', chunk.timestamp[1]);
+    // Escape HTML characters in the text to prevent XSS
+    const escapedText = this.#escapeHtml(chunk.text);
+    
+    // Create the HTML structure as a string
+    const chunkHTML = `
+      <span class="text-chunk" 
+            data-index="${index}" 
+            data-start-time="${chunk.timestamp[0]}" 
+            data-end-time="${chunk.timestamp[1]}">
+        <span class="chunk-text">${escapedText}</span>
+        <span class="close" 
+              style="font-size: 0.8em; cursor: pointer; margin-left: 5px; opacity: 0.7;">X</span>
+      </span>
+    `;
 
-    // Create the text span
-    const textSpan = document.createElement('span');
-    textSpan.textContent = chunk.text;
-    textSpan.className = 'chunk-text';
+    // Add the HTML to the container
+    this.textChunksContainer.insertAdjacentHTML('beforeend', chunkHTML);
 
-    // Create the close button
-    const closeSpan = document.createElement('span');
-    closeSpan.className = 'close';
-    closeSpan.textContent = 'X';
-    closeSpan.style.fontSize = '0.8em';
-    closeSpan.style.cursor = 'pointer';
-    closeSpan.style.marginLeft = '5px';
-    closeSpan.style.opacity = '0.7';
+    // Get the newly added chunk element to attach event listeners
+    const chunkElement = this.textChunksContainer.lastElementChild;
+    const closeSpan = chunkElement.querySelector('.close');
 
+    // Attach event listeners after the HTML is inserted
     closeSpan.addEventListener('click', (e) => {
       e.stopPropagation();
       this.#removeChunk(chunkElement, index);
@@ -83,11 +96,6 @@ export class TranscriptionView {
     chunkElement.addEventListener('click', () => {
       this.#onChunkClick(chunk, index);
     });
-
-    chunkElement.appendChild(textSpan);
-    chunkElement.appendChild(closeSpan);
-
-    this.textChunksContainer.appendChild(chunkElement);
   }
 
   /**

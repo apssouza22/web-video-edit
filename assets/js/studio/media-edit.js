@@ -26,6 +26,9 @@ export class MediaEditor{
    */
   #removeAudioInterval(startTime, endTime) {
     try {
+      /**
+       * @type {AudioLayer[]}
+       */
       const audioLayers = this.#getAudioLayers();
 
       if (audioLayers.length === 0) {

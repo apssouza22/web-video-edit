@@ -160,7 +160,6 @@ export class AudioLayer extends StandardLayer {
       return minimalBuffer;
     }
     
-    // Create new buffer
     const newBuffer = this.playerAudioContext.createBuffer(numberOfChannels, newLength, sampleRate);
     
     // Copy audio data for each channel
