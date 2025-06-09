@@ -60,10 +60,6 @@ export class StudioControls {
       }
       return;
     }
-    if (ev.code === "KeyS") {
-      this.studio.mediaEditor.split();
-      return;
-    }
     if (ev.code === "KeyJ") {
       if (ev.ctrlKey) {
         exportToJson();

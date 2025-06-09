@@ -350,6 +350,43 @@ export class Timeline {
     this.timelineCanvas.addEventListener('pointermove', this.#onPointerMove.bind(this), { passive: false });
     this.timelineCanvas.addEventListener('pointerleave', this.#onPointerLeave.bind(this));
     this.timelineCanvas.addEventListener('pointerup', this.#onPointerLeave.bind(this));
+    
+    this.#setupTimelineHeaderButtons();
+  }
+
+  /**
+   * Set up click event listeners for timeline header buttons
+   * @private
+   */
+  #setupTimelineHeaderButtons() {
+    // Get buttons by their specific IDs
+    const deleteButton = document.getElementById('delete-button');
+    const splitButton = document.getElementById('split-button');
+    const cloneButton = document.getElementById('clone-button');
+    
+    deleteButton.addEventListener('click', () => {
+      if (!this.selectedLayer) {
+        console.log('No layer selected. Please select a layer first.');
+        return;
+      }
+      this.layerUpdateListener('delete', this.selectedLayer, null);
+    });
+    
+    splitButton.addEventListener('click', () => {
+      if (!this.selectedLayer) {
+        console.log('No layer selected. Please select a layer first.');
+        return;
+      }
+      this.layerUpdateListener('split', this.selectedLayer, null);
+    });
+    
+    cloneButton.addEventListener('click', () => {
+      if (!this.selectedLayer) {
+        console.log('No layer selected. Please select a layer first.');
+        return;
+      }
+      this.layerUpdateListener('clone', this.selectedLayer, null);
+    });
   }
 
   /**
