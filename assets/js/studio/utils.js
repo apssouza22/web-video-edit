@@ -87,7 +87,7 @@ export function exportToJson() {
 export function addText() {
     let t = prompt("Enter text:");
     if (t) {
-        window.studio.layerLoader.insertLayer(new TextLayer(t));
+        window.studio.addLayer(new TextLayer(t));
     }
 }
 

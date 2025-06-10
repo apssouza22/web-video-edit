@@ -124,12 +124,7 @@ export class LayersSidebarView {
       "ctx": canvas.getContext('2d', {willReadFrequently: true})
     };
 
-    layer.start_time = this.studio.player.time;
-
-    layer.init(this.studio.player.width, null, this.studio.player.audioContext);
-
     this.#setupLayerUI(layer, layerItemHolder);
-
     this.layers.push(layer);
     this.setSelectedLayer(layer);
 

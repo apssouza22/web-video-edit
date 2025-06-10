@@ -1,7 +1,7 @@
 import {AudioLayer} from "../layer/layer-audio.js";
 import {VideoLayer} from "../layer/layer-video.js";
 
-export class MediaEditor{
+export class MediaEditor {
   constructor(studio) {
     this.studio = studio;
   }
@@ -17,7 +17,6 @@ export class MediaEditor{
     this.#removeAudioInterval(startTime, endTime);
     this.#removeVideoInterval(startTime, endTime);
   }
-
 
   /**
    * Removes audio interval from all AudioLayers in the studio
@@ -97,21 +96,20 @@ export class MediaEditor{
    * Updates studio total time after layer modifications
    */
   #updateStudioTotalTime() {
-    if (this.studio) {
-      this.studio.player.total_time = 0;
-      for (let layer of this.studio.getLayers()) {
-        if (layer.start_time + layer.totalTimeInMilSeconds > this.studio.player.total_time) {
-          this.studio.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
-        }
+    this.studio.player.total_time = 0;
+    for (let layer of this.studio.getLayers()) {
+      if (layer.start_time + layer.totalTimeInMilSeconds > this.studio.player.total_time) {
+        this.studio.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
       }
-      
-      // Refresh the studio timeline
-      if (this.studio.timeline) {
-        this.studio.timeline.render(this.studio.getLayers());
-      }
-      
-      console.log(`Updated studio total time to: ${this.studio.player.total_time / 1000}s`);
     }
+
+    // Refresh the studio timeline
+    if (this.studio.timeline) {
+      this.studio.timeline.render(this.studio.getLayers());
+    }
+
+    console.log(`Updated studio total time to: ${this.studio.player.total_time / 1000}s`);
+
   }
 
   /**
@@ -176,7 +174,7 @@ export class MediaEditor{
     nl.height = layer.height;
     nl.canvas.width = layer.canvas.width;
     nl.canvas.height = layer.canvas.height;
-    const newLayer = this.studio.layerLoader.insertLayer(nl);
+    const newLayer = this.studio.addLayer(nl);
     newLayer.addLoadUpdateListener(this.studio.onLayerLoadUpdate.bind(this.studio))
     nl.ready = true;
 

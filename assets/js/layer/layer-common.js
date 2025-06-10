@@ -3,6 +3,7 @@ import { dpr, fps } from '../constants.js';
 
 export class StandardLayer {
   constructor(file) {
+    this.file = file
     this.name = file.name;
     this.id = this.name + "-" + crypto.randomUUID();
     this.description = null;
