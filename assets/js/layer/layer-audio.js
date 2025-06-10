@@ -2,7 +2,7 @@ import { StandardLayer } from './layer-common.js';
 import { AudioContext } from '../constants.js';
 
 export class AudioLayer extends StandardLayer {
-  constructor(file) {
+  constructor(file, skipLoading = false) {
     super(file);
     this.reader = new FileReader();
     this.audioCtx = new AudioContext({
@@ -13,6 +13,9 @@ export class AudioLayer extends StandardLayer {
     this.playing = false;
     this.playerAudioContext = null;
     this.audioStreamDestination = null;
+    if(skipLoading) {
+      return
+    }
     this.reader.addEventListener("load", this.#onAudioLoad.bind(this));
     this.reader.readAsArrayBuffer(file);
   }

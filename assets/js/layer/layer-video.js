@@ -3,12 +3,12 @@ import { FrameCollection } from './frames.js';
 import { fps, max_size, dpr } from '../constants.js';
 
 export class VideoLayer extends StandardLayer {
-  constructor(file) {
+  constructor(file, skipLoading = false) {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);
 
     // Empty VideoLayers (split() requires this)
-    if (file._leave_empty) {
+    if (skipLoading) {
       return;
     }
     /**

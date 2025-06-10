@@ -82,35 +82,11 @@ export class MediaEditor {
         }
       });
 
-      // Update studio total time if any layer was modified
-      if (anyLayerModified) {
-        this.#updateStudioTotalTime();
-      }
-
     } catch (error) {
       console.error('Error removing video interval:', error);
     }
   }
 
-  /**
-   * Updates studio total time after layer modifications
-   */
-  #updateStudioTotalTime() {
-    this.studio.player.total_time = 0;
-    for (let layer of this.studio.getLayers()) {
-      if (layer.start_time + layer.totalTimeInMilSeconds > this.studio.player.total_time) {
-        this.studio.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
-      }
-    }
-
-    // Refresh the studio timeline
-    if (this.studio.timeline) {
-      this.studio.timeline.render(this.studio.getLayers());
-    }
-
-    console.log(`Updated studio total time to: ${this.studio.player.total_time / 1000}s`);
-
-  }
 
   /**
    * Finds VideoLayers in the studio layers
@@ -149,7 +125,9 @@ export class MediaEditor {
       return;
     }
     let layer = this.studio.getSelectedLayer();
-    if (!(layer instanceof VideoLayer)) {
+    
+    // Check if layer is VideoLayer or AudioLayer
+    if (!(layer instanceof VideoLayer) && !(layer instanceof AudioLayer)) {
       return;
     }
     if (!layer.ready) {
@@ -161,6 +139,19 @@ export class MediaEditor {
     if (layer.start_time + layer.totalTimeInMilSeconds < this.studio.player.time) {
       return;
     }
+
+    if (layer instanceof VideoLayer) {
+      this.#splitVideoLayer(layer);
+    } else if (layer instanceof AudioLayer) {
+      this.#splitAudioLayer(layer);
+    }
+  }
+
+  /**
+   * Splits a VideoLayer at the current player time
+   * @param {VideoLayer} layer - The VideoLayer to split
+   */
+  #splitVideoLayer(layer) {
     const nl = this.studio.layerOperations.clone(layer)
     nl.name = layer.name + " [Split]";
     nl._leave_empty = true;
@@ -174,5 +165,105 @@ export class MediaEditor {
 
     layer.start_time = layer.start_time + nl.totalTimeInMilSeconds;
     layer.totalTimeInMilSeconds = layer.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
+  }
+
+  /**
+   * Splits an AudioLayer at the current player time
+   * @param {AudioLayer} layer - The AudioLayer to split
+   */
+  #splitAudioLayer(layer) {
+    if (!layer.audioBuffer || !layer.playerAudioContext) {
+      console.error('AudioLayer missing audioBuffer or playerAudioContext');
+      return;
+    }
+
+    // Calculate split time relative to the layer
+    const layerRelativeTime = (this.studio.player.time - layer.start_time) / 1000; // Convert to seconds
+    
+    if (layerRelativeTime <= 0 || layerRelativeTime >= layer.audioBuffer.duration) {
+      console.error('Split time is outside layer bounds');
+      return;
+    }
+
+    // Create two new audio buffers
+    const firstBuffer = this.#createAudioBufferSegment(layer.audioBuffer, 0, layerRelativeTime, layer.playerAudioContext);
+    const secondBuffer = this.#createAudioBufferSegment(layer.audioBuffer, layerRelativeTime, layer.audioBuffer.duration, layer.playerAudioContext);
+
+    if (!firstBuffer || !secondBuffer) {
+      console.error('Failed to create audio buffer segments');
+      return;
+    }
+
+    // Clone the layer for the first part
+    const firstLayer = this.studio.layerOperations.clone(layer);
+    firstLayer.name = layer.name + " [Split]";
+    
+    // Update first layer with first buffer
+    firstLayer.audioBuffer = firstBuffer;
+    firstLayer.totalTimeInMilSeconds = firstBuffer.duration * 1000;
+
+    layer.audioBuffer = secondBuffer;
+    layer.totalTimeInMilSeconds = secondBuffer.duration * 1000;
+    layer.start_time = layer.start_time + firstLayer.totalTimeInMilSeconds;
+
+    this.studio.layersSidebarView.addLayer(firstLayer);
+
+
+    console.log(`Successfully split AudioLayer: "${layer.name}" at ${layerRelativeTime}s`);
+  }
+
+  /**
+   * Creates a new AudioBuffer containing a segment of the original buffer
+   * @param {AudioBuffer} originalBuffer - The original audio buffer
+   * @param {number} startTime - Start time in seconds
+   * @param {number} endTime - End time in seconds
+   * @param {AudioContext} audioContext - The audio context to create the buffer with
+   * @returns {AudioBuffer|null} New AudioBuffer segment or null if failed
+   */
+  #createAudioBufferSegment(originalBuffer, startTime, endTime, audioContext) {
+    if (!originalBuffer || startTime >= endTime || startTime < 0 || endTime > originalBuffer.duration) {
+      console.error('Invalid parameters for createAudioBufferSegment');
+      return null;
+    }
+
+    const sampleRate = originalBuffer.sampleRate;
+    const numberOfChannels = originalBuffer.numberOfChannels;
+    
+    // Convert time to sample indices
+    const startSample = Math.floor(startTime * sampleRate);
+    const endSample = Math.ceil(endTime * sampleRate);
+    
+    // Clamp to valid ranges
+    const clampedStartSample = Math.max(0, Math.min(startSample, originalBuffer.length));
+    const clampedEndSample = Math.max(clampedStartSample, Math.min(endSample, originalBuffer.length));
+    
+    const segmentLength = clampedEndSample - clampedStartSample;
+    
+    if (segmentLength <= 0) {
+      console.error('Invalid segment length');
+      return null;
+    }
+
+    try {
+      const newBuffer = audioContext.createBuffer(numberOfChannels, segmentLength, sampleRate);
+      
+      // Copy audio data for each channel
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const originalChannelData = originalBuffer.getChannelData(channel);
+        const newChannelData = newBuffer.getChannelData(channel);
+        
+        // Copy the segment
+        for (let i = 0; i < segmentLength; i++) {
+          newChannelData[i] = originalChannelData[clampedStartSample + i];
+        }
+      }
+      
+      console.log(`Created audio buffer segment: ${startTime}s-${endTime}s, duration: ${newBuffer.duration}s`);
+      return newBuffer;
+      
+    } catch (error) {
+      console.error('Error creating audio buffer segment:', error);
+      return null;
+    }
   }
 }

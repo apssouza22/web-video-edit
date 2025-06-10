@@ -47,14 +47,15 @@ export class LayerOperations {
       return new TextLayer(cloneName);
     }
     if (layer instanceof VideoLayer) {
-      return new VideoLayer({
-        name: cloneName,
-        _leave_empty: true
-      });
+      const videoLayer = new VideoLayer(layer.file,true);
+      videoLayer.name = cloneName;
+      return videoLayer;
     }
     if (layer instanceof AudioLayer) {
-      const audioLayer = new AudioLayer(layer.file);
+      const audioLayer = new AudioLayer(layer.file, true);
       audioLayer.name = cloneName;
+      audioLayer.playerAudioContext = layer.playerAudioContext;
+      audioLayer.audioBuffer = layer.audioBuffer;
       return audioLayer
     }
 
