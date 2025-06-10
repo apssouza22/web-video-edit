@@ -161,26 +161,6 @@ export class VideoStudio {
     }
   }
 
-  cloneLayerFrom(from, to) {
-    const cloneName = from.name + ' (Clone)';
-    const cloneStartTime = from.start_time + 100; // 100ms offset
-    to.id = from.id + '-clone';
-    to.name = cloneName;
-    to.start_time = cloneStartTime;
-    to.color = from.color;
-    to.shadow = from.shadow;
-    to.totalTimeInMilSeconds = from.totalTimeInMilSeconds;
-    to.width = from.width;
-    to.height = from.height;
-    to.canvas.width = from.canvas.width;
-    to.canvas.height = from.canvas.height;
-    to.framesCollection.frames = [...from.framesCollection.frames];
-    to.ready = true;
-    to.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this));
-    to.loadUpdateListener(to, 100, to.ctx, to.audioBuffer);
-    return to
-  }
-
   /**
    * Clone a layer by creating a copy with slightly modified properties
    * @param {StandardLayer} layer - The layer to clone
@@ -205,10 +185,6 @@ export class VideoStudio {
 
   pause() {
     this.player.pause();
-  }
-
-  render(time, update_preview) {
-
   }
 
   resize() {
@@ -273,7 +249,7 @@ export class VideoStudio {
   onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     if (progress < 100) {
       this.layersSidebarView.updateLayerName(layer, progress + " %");
-      // this.viewHandler.updateLayerThumb(layer, ctx)
+      this.layersSidebarView.updateLayerThumb(layer, ctx)
       return
     }
     if (audioBuffer) {

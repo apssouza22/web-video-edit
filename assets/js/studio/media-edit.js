@@ -161,22 +161,16 @@ export class MediaEditor {
     if (layer.start_time + layer.totalTimeInMilSeconds < this.studio.player.time) {
       return;
     }
-    let nl = new VideoLayer({
-      name: layer.name + "NEW",
-      _leave_empty: true
-    });
+    const nl = this.studio.layerOperations.clone(layer)
+    nl.name = layer.name + " [Split]";
+    nl._leave_empty = true;
+
     const pct = (this.studio.player.time - layer.start_time) / layer.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * layer.framesCollection.frames.length);
     nl.framesCollection.frames = layer.framesCollection.frames.splice(0, split_idx);
-    nl.start_time = layer.start_time;
+
     nl.totalTimeInMilSeconds = pct * layer.totalTimeInMilSeconds;
-    nl.width = layer.width;
-    nl.height = layer.height;
-    nl.canvas.width = layer.canvas.width;
-    nl.canvas.height = layer.canvas.height;
-    const newLayer = this.studio.addLayer(nl);
-    newLayer.addLoadUpdateListener(this.studio.onLayerLoadUpdate.bind(this.studio))
-    nl.ready = true;
+    this.studio.layersSidebarView.addLayer(nl)
 
     layer.start_time = layer.start_time + nl.totalTimeInMilSeconds;
     layer.totalTimeInMilSeconds = layer.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
