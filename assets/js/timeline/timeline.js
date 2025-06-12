@@ -446,7 +446,7 @@ export class Timeline {
       }
     }
 
-    this.previewHandler.updatePreview(ev, rect, time, this.totalTime);
+    this.previewHandler.updatePreview(ev, this.timelineHolder, time, this.totalTime);
     this.dragHandler.dragLayer(time, this.selectedLayer);
     this.setTime(time);
   }
