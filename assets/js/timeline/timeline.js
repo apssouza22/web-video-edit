@@ -481,13 +481,6 @@ export class Timeline {
     // Calculate the available height for layers (excluding the time marker height)
     const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height;
     
-    this.#renderLineMarker(this.playerTime);
-
-    if (this.isHover) {
-      this.#renderLineMarker(this.time);
-      this.previewHandler.render(this.time, layers);
-    }
-
     // Calculate vertical positions based on available height (below time marker)
     let verticalPositionSpace = availableHeight / (layers.length + 1);
     let verticalPosition = this.timelineCanvas.clientHeight - verticalPositionSpace;
@@ -500,6 +493,14 @@ export class Timeline {
     }
 
     this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
+
+    // Render line markers on top of all other elements
+    this.#renderLineMarker(this.playerTime);
+
+    if (this.isHover) {
+      this.#renderLineMarker(this.time);
+      this.previewHandler.render(this.time, layers);
+    }
   }
 
 
