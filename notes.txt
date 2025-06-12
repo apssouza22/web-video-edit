@@ -3,4 +3,7 @@ https://github.com/bwasti/mebm/blob/main/script.js
 https://vanilagy.github.io/webm-muxer/demo-streaming/script.js
 https://github.com/omni-media/omniclip/tree/main
 
+List of modules
+https://huggingface.co/models?library=transformers.js&sort=likes&search=whisper
+
 https://webml-community-smolvlm-realtime-webgpu.static.hf.space/index.html
