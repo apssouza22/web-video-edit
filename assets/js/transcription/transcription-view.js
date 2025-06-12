@@ -7,7 +7,7 @@ export class TranscriptionView {
    * @param {TranscriptionManager} manager
    */
   constructor(manager) {
-    this.transctriptionManager = manager;
+    this.transcriptionManager = manager;
     this.transcriptionElement = document.getElementById('transcription');
     this.textChunksContainer = this.transcriptionElement.querySelector('.text-chunks');
     
@@ -111,7 +111,7 @@ export class TranscriptionView {
       
       console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s, duration=${removedDuration}s`);
 
-      this.transctriptionManager.removeInterval(startTime, endTime);
+      this.transcriptionManager.removeInterval(startTime, endTime);
       this.#updateSubsequentTimestamps(startTime, removedDuration);
       
       chunkElement.remove();
@@ -153,7 +153,11 @@ export class TranscriptionView {
    */
   #onChunkClick(chunk, index) {
     console.log(`Chunk clicked: "${chunk.text}" at time ${chunk.timestamp[0]}s`);
-    // This can be extended to seek to the timestamp in a video player
+    
+    if (chunk.timestamp && chunk.timestamp.length > 0) {
+      const seekTime = chunk.timestamp[0];
+      this.transcriptionManager.seekToTimestamp(seekTime);
+    }
   }
 
   /**

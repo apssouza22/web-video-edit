@@ -8,6 +8,7 @@ export class TranscriptionManager {
     });
     this.transcriptionView = new TranscriptionView(this);
     this.onRemoveIntervalListener = (startTime, endTime) => {}
+    this.onSeekListener = (timestamp) => {}
 
     this.#addEventListener();
     window.worker = this.worker; // Expose worker globally for debugging
@@ -58,12 +59,32 @@ export class TranscriptionManager {
   }
 
   /**
+   * Adds a seek listener callback
+   * @param {Function} callback - Callback function that takes a timestamp parameter
+   */
+  addSeekListener(callback) {
+    if (typeof callback === 'function') {
+      this.onSeekListener = callback;
+    } else {
+      console.error("Callback must be a function");
+    }
+  }
+
+  /**
    * Removes an interval from the transcription
    * @param startTime
    * @param endTime
    */
   removeInterval(startTime, endTime) {
     this.onRemoveIntervalListener(startTime, endTime);
+  }
+
+  /**
+   * Seeks to a specific timestamp in the video player
+   * @param {number} timestamp - The timestamp to seek to in seconds
+   */
+  seekToTimestamp(timestamp) {
+    this.onSeekListener(timestamp);
   }
 
   #onTranscriptionComplete(data) {

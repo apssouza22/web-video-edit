@@ -45,6 +45,10 @@ export class VideoStudio {
   #setUpComponentListeners() {
     this.player.addTimeUpdateListener((newTime, oldTime) => {
       this.timeline.playerTime = newTime;
+
+      if (this.transcriptionManager && this.transcriptionManager.transcriptionView) {
+        this.transcriptionManager.transcriptionView.highlightChunksByTime(newTime / 1000);
+      }
     });
 
     this.timeline.addTimeUpdateListener((newTime, oldTime) => {
@@ -81,6 +85,10 @@ export class VideoStudio {
       console.log(`TranscriptionManager: Removing interval from ${startTime} to ${endTime}`);
       this.mediaEditor.removeInterval(startTime, endTime);
     });
+
+    this.transcriptionManager.addSeekListener((timestamp) => {
+      this.player.setTime(timestamp * 1000);
+    });
   }
 
   dumpToJson() {
@@ -89,13 +97,6 @@ export class VideoStudio {
       out.push(layer.dump());
     }
     return JSON.stringify(out);
-  }
-
-  intersectsTime(time, query) {
-    if (!query) {
-      query = this.player.time;
-    }
-    return Math.abs(query - time) / this.player.total_time < 0.01;
   }
 
   setupPinchHandler() {
