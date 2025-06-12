@@ -25,17 +25,8 @@ export class PreviewHandler {
 
 
   updatePreview(ev, rect, time, totalTime) {
-    // Get the timeline container element
-    const timelineContainer = document.getElementById('timeline_content');
-    const timelineContainerRect = timelineContainer.getBoundingClientRect();
-    
-    // Calculate the cursor position relative to the timeline container, accounting for scroll
-    let cursor_x = ev.clientX - timelineContainerRect.left + timelineContainer.scrollLeft - this.previewCanvas.clientWidth / 2;
-    
-    // Ensure the preview stays within the visible timeline container bounds
-    const containerWidth = timelineContainer.clientWidth;
-    cursor_x = Math.max(cursor_x, timelineContainer.scrollLeft);
-    cursor_x = Math.min(cursor_x, timelineContainer.scrollLeft + containerWidth - this.previewCanvas.clientWidth);
+    let cursor_x = Math.max(ev.clientX - this.previewCanvas.clientWidth / 2, 0);
+    cursor_x = Math.min(cursor_x, rect.width - this.previewCanvas.clientWidth);
 
     this.previewHolder.style.display = "block";
     this.previewHolder.style.left = cursor_x + "px";
