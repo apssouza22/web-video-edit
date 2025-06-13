@@ -84,7 +84,7 @@ export class VideoLayer extends StandardLayer {
     return true;
   }
 
-  #onLoadMetadata() {
+  async #onLoadMetadata() {
     let width = this.video.videoWidth;
     let height = this.video.videoHeight;
     let dur = this.video.duration;
@@ -101,7 +101,7 @@ export class VideoLayer extends StandardLayer {
     }
 
     this.#handleVideoRatio();
-    this.#convertToArrayBuffer();
+    await this.#convertToArrayBuffer();
   }
 
   #handleVideoRatio() {
@@ -118,7 +118,7 @@ export class VideoLayer extends StandardLayer {
     this.canvas.width = this.width;
   }
 
-  async seek(t) {
+  async #seek(t) {
     return await (new Promise((function (resolve, reject) {
       this.video.currentTime = t;
       this.video.pause();
@@ -141,7 +141,7 @@ export class VideoLayer extends StandardLayer {
     this.video.pause();
     let d = this.video.duration;
     for (let i = 0; i < d * fps; ++i) {
-      let frame = await this.seek(i / fps);
+      let frame = await this.#seek(i / fps);
       this.framesCollection.frames.push(frame);
       this.loadUpdateListener(
         this,

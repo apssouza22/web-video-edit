@@ -13,7 +13,6 @@ export class LayersSidebarView {
     this.studio = studio;
     this.layersHolder = document.getElementById('layers');
     this.selectedLayer = null;
-    this.selectedLayerUpdateListener = null;
     this.layerUpdateListener = null;
     /**
      * @type {StandardLayer[]}
@@ -224,23 +223,13 @@ export class LayersSidebarView {
     this.layerUpdateListener = listener;
   }
 
-  /**
-   * Adds a listener for changes to the selected layer
-   * @param {Function} listener - Function to call when selected layer changes
-   */
-  addSelectedLayerUpdateListener(listener) {
-    if (typeof listener !== 'function') {
-      throw new Error('Selected layer update listener must be a function');
-    }
-    this.selectedLayerUpdateListener = listener;
-  }
 
   setSelectedLayer(layer) {
     this.#deselect();
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = layer;
-    if (oldSelectedLayer !== layer && this.selectedLayerUpdateListener) {
-      this.selectedLayerUpdateListener(layer, oldSelectedLayer);
+    if (oldSelectedLayer !== layer ) {
+      this.layerUpdateListener('select', layer, oldSelectedLayer);
     }
     this.layerItemsUI[this.selectedLayer.id].box.classList.toggle('selected');
   }

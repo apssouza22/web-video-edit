@@ -13,12 +13,6 @@ export class PreviewHandler {
   render(time, layers) {
     this.previewCtx.clearRect(0, 0, this.previewCtx.canvas.width, this.previewCtx.canvas.height);
     for (let layer of layers) {
-      if (layer.start_time > time) {
-        continue;
-      }
-      if (layer.start_time + layer.totalTimeInMilSeconds < time) {
-        continue;
-      }
       layer.render(this.previewCtx, time);
     }
   }

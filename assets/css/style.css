@@ -90,6 +90,41 @@ text-align: center;
   cursor: pointer;
 }
 
+/* Loading popup specific styles */
+#loading-popup {
+  min-width: 300px;
+  max-width: 400px;
+}
+
+#loading-popup h3 {
+  margin: 0 0 15px 0;
+  font-family: 'JupiterSans';
+  font-size: 18px;
+  color: #c0c8d5;
+}
+
+#loading-progress-container {
+  margin: 0;
+}
+
+#loading-progress-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 8px 0;
+  color: #a9e1fa;
+}
+
+#loading-current-file {
+  font-size: 12px;
+  color: #8a9ba8;
+  margin: 8px 0 0 0;
+  word-break: break-all;
+  max-height: 40px;
+  overflow: hidden;
+}
+#loading-popup #loading-progress-fill {
+  margin: 0;
+}
 #background {
   z-index: 0;
   background: #2b2f33;

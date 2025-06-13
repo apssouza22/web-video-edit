@@ -11,6 +11,7 @@ import {MediaEditor} from './media-edit.js';
 import {TranscriptionManager} from "../transcription/transcription.js";
 import {uploadSupportedType} from './utils.js';
 import {LayerOperations} from "../layer/operations.js";
+import {LoadingPopup} from './loading-popup.js';
 
 export class VideoStudio {
 
@@ -29,6 +30,7 @@ export class VideoStudio {
     this.transcriptionManager = new TranscriptionManager();
     this.mediaEditor = new MediaEditor(this);
     this.layerOperations = new LayerOperations(this.onLayerLoadUpdate.bind(this));
+    this.loadingPopup = new LoadingPopup();
 
     window.requestAnimationFrame(this.loop.bind(this));
     this.#setUpComponentListeners();
@@ -221,13 +223,16 @@ export class VideoStudio {
       for (let file of e.target.files) {
         const l = this.layerLoader.addLayerFromFile(file);
         layers.push(...l);
+        
+        // Start tracking loading for each new layer
+        for (let layer of l) {
+          this.loadingPopup.startLoading(layer.id || layer.name || 'unknown', file.name);
+        }
       }
       filePicker.value = '';
 
       layers.forEach(layer => {
-        if (layer instanceof AudioLayer) {
-          layer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this))
-        }
+        layer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this))
       })
     });
     filePicker.click();
@@ -243,21 +248,31 @@ export class VideoStudio {
       console.error("File is not a json file");
       return
     }
+    
+    // Show loading popup for JSON loading
+    this.loadingPopup.startLoading('json-load', 'Project JSON');
+    this.loadingPopup.updateProgress('json-load', 50);
+    
     let response = await fetch(uri);
     let layers = await response.json();
     await this.layerLoader.loadLayersFromJson(layers);
+    
+    // Complete JSON loading
+    this.loadingPopup.updateProgress('json-load', 100);
   }
 
   onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
+    // Update the loading popup with progress
+    this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
+    
     if (progress < 100) {
-      this.layersSidebarView.updateLayerName(layer, progress + " %");
       this.layersSidebarView.updateLayerThumb(layer, ctx)
       return
     }
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);
     }
-
+    console.log(`Layer ${layer.name} loading: ${progress}%`);
     this.layersSidebarView.updateLayerName(layer, layer.name);
   }
 
