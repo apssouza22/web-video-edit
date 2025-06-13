@@ -11,7 +11,6 @@ export class TranscriptionManager {
     this.onSeekListener = (timestamp) => {}
 
     this.#addEventListener();
-    window.worker = this.worker; // Expose worker globally for debugging
   }
 
   #addEventListener() {
@@ -19,11 +18,9 @@ export class TranscriptionManager {
       const message = event.data;
       switch (message.status) {
         case "progress":
-          // console.log("Loading ", message.progress)
+          console.log("Loading model progress", message.progress)
           break;
-        case "update":
-          // console.log("update", message.data)
-          break;
+
         case "complete":
           this.#onTranscriptionComplete(message.data);
           break;
@@ -94,6 +91,10 @@ export class TranscriptionManager {
     if (this.transcriptionView) {
       this.transcriptionView.updateTranscription(data);
     }
+  }
+
+  loadModel() {
+    this.worker.postMessage({task: "load-model"});
   }
 
   startTranscription(audioBuffer) {

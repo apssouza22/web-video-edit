@@ -40,6 +40,7 @@ export class VideoStudio {
   init() {
     this.videoExporter.init();
     this.controls.init();
+    this.transcriptionManager.loadModel();
   }
 
   #setUpComponentListeners() {

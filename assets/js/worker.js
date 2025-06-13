@@ -62,6 +62,13 @@ self.addEventListener("message", async (event) => {
     if (!message) {
         return;
     }
+    if(message.task === "load-model") {
+        console.log("Loading model...");
+        await PipelineFactory.getInstance((data) => {
+            self.postMessage(data);
+        }).catch(onModelInferenceError);
+        return;
+    }
 
     let transcript = await transcribe(message.audio);
     if (transcript === null) {
