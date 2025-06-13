@@ -27,6 +27,11 @@ export class LayersSidebarView {
     for (let layer of this.layers) {
       let ctxOut = this.layerItemsUI[layer.id].ctx;
       let canvas = this.layerItemsUI[layer.id].canvas;
+      if(this.layerItemsUI[layer.id].rendered) {
+        continue;
+      }
+      this.layerItemsUI[layer.id].rendered = true;
+
       ctxOut.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
       layer.render(ctxOut, time, false);
     }
@@ -245,6 +250,7 @@ export class LayersSidebarView {
   }
 
   updateLayerThumb(layer, ctx) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     drawScaled(ctx, this.layerItemsUI[layer.id].ctx);
   }
 
