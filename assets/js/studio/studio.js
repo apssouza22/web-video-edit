@@ -3,7 +3,7 @@ import {Timeline} from '../timeline/timeline.js';
 import {LayersSidebarView} from '../layer/layer-view.js';
 import {LayerLoader} from './layer-loader.js';
 import {AudioLayer} from '../layer/layer-audio.js';
-import {VideoExporter} from './video-export.js';
+import {VideoExporter} from '../muxer/video-export.js';
 import {StudioControls} from './controls.js';
 import {PinchHandler} from './pinch-handler.js';
 import {DragItemHandler} from './drag-handler.js';

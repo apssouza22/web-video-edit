@@ -3,6 +3,8 @@ import { addElementToBackground } from '../layer/layer-common.js';
 
 /**
  * Class for exporting video using Web Codecs API
+ *
+ * This is not currently working
  */
 export class WebCodecExporter {
     /**

@@ -1,6 +1,6 @@
 import { AudioLayer } from '../layer/layer-audio.js';
 import { addElementToBackground } from '../layer/layer-common.js';
-import { getSupportedMimeTypes } from './utils.js';
+import { getSupportedMimeTypes } from '../studio/utils.js';
 
 /**
  * Class for exporting video using MediaRecorder API

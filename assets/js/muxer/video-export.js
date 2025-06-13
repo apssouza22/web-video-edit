@@ -1,4 +1,4 @@
-import { exportToJson } from './utils.js';
+import { exportToJson } from '../studio/utils.js';
 import { MediaRecorderExporter } from './media-recorder-exporter.js';
 import { WebCodecExporter } from './web-codec-exporter.js';
 
@@ -15,7 +15,7 @@ export class VideoExporter {
 
     #checkCodecSupport() {
         // Disabled codec support check for now
-        // return false;
+        return false;
 
         return 'VideoEncoder' in window && 'AudioEncoder' in window;
     }
