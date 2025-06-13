@@ -4,6 +4,7 @@ export class LoadingPopup {
     this.progressFill = document.getElementById('loading-progress-fill');
     this.progressText = document.getElementById('loading-progress-text');
     this.currentFileText = document.getElementById('loading-current-file');
+    this.title = document.getElementById('loading-title');
     
     this.activeLoads = new Map(); // Track multiple loading operations
     this.isVisible = false;
@@ -14,14 +15,15 @@ export class LoadingPopup {
    * @param {string} layerId - Unique identifier for the layer being loaded
    * @param {string} fileName - Name of the file being loaded
    */
-  startLoading(layerId, fileName = 'Unknown file') {
+  startLoading(layerId, fileName = 'Unknown file', title = 'Loading Media...') {
+    this.title.textContent = title;
     this.activeLoads.set(layerId, {
       fileName: fileName,
       progress: 0
     });
     
-    this.updateDisplay();
-    this.show();
+    this.#updateDisplay();
+    this.#show();
   }
 
   /**
@@ -32,7 +34,7 @@ export class LoadingPopup {
   updateProgress(layerId, progress) {
     if (this.activeLoads.has(layerId)) {
       this.activeLoads.get(layerId).progress = progress;
-      this.updateDisplay();
+      this.#updateDisplay();
       
       // If this operation is complete, remove it
       if (progress >= 100) {
@@ -42,7 +44,7 @@ export class LoadingPopup {
         if (this.activeLoads.size === 0) {
           setTimeout(() => {
             if (this.activeLoads.size === 0) {
-              this.hide();
+              this.#hide();
             }
           }, 500);
         }
@@ -53,7 +55,7 @@ export class LoadingPopup {
   /**
    * Update the popup display based on current loading operations
    */
-  updateDisplay() {
+  #updateDisplay() {
     if (this.activeLoads.size === 0) {
       return;
     }
@@ -92,7 +94,7 @@ export class LoadingPopup {
   /**
    * Show the loading popup
    */
-  show() {
+  #show() {
     if (!this.isVisible) {
       this.popup.style.display = 'block';
       this.isVisible = true;
@@ -102,7 +104,7 @@ export class LoadingPopup {
   /**
    * Hide the loading popup
    */
-  hide() {
+  #hide() {
     if (this.isVisible) {
       this.popup.style.display = 'none';
       this.isVisible = false;
@@ -110,18 +112,4 @@ export class LoadingPopup {
     }
   }
 
-  /**
-   * Force hide the popup (in case of errors)
-   */
-  forceHide() {
-    this.hide();
-  }
-
-  /**
-   * Check if any loading operations are active
-   * @returns {boolean}
-   */
-  hasActiveLoads() {
-    return this.activeLoads.size > 0;
-  }
 } 

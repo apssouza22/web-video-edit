@@ -24,18 +24,27 @@ export class WebCodecExporter {
         this.audioReader = null;
         this.isEncoding = false;
         this.exportStartTime = 0;
+        this.progressCallback = null;
+        this.completionCallback = null;
+        this.totalFrames = 0;
+        this.totalDuration = 0;
     }
 
     /**
      * Start the export process using Web Codecs API
      * @param {HTMLElement} exportButton - The button that triggered the export
      * @param {string} tempText - Original button text to restore after export
+     * @param {Function} progressCallback - Callback function to report progress (0-100)
+     * @param {Function} completionCallback - Callback function to call when export is complete
      */
-    async export(exportButton, tempText) {
+    async export(exportButton, tempText, progressCallback = null, completionCallback = null) {
         if (this.isEncoding) {
             console.warn('Export already in progress');
             return;
         }
+
+        this.progressCallback = progressCallback;
+        this.completionCallback = completionCallback;
 
         console.log('🎬 Starting WebCodec export...');
         console.log('Canvas dimensions:', this.studio.player.canvas.width, 'x', this.studio.player.canvas.height);
@@ -44,6 +53,10 @@ export class WebCodecExporter {
 
         this.isEncoding = true;
         this.exportStartTime = performance.now();
+        
+        // Calculate total duration and expected frames
+        this.totalDuration = this.#getTotalDuration();
+        this.totalFrames = Math.ceil(this.totalDuration * 30); // 30 FPS
         
         // Reset encoded chunks
         this.encodedChunks = {
@@ -60,12 +73,12 @@ export class WebCodecExporter {
             this.studio.player.onend(async (player) => {
                 console.log('🏁 Playback ended, finalizing export...');
                 await this.#finishEncodingAndDownload();
-                exportButton.textContent = tempText;
                 player.pause();
                 player.time = 0;
                 this.isEncoding = false;
                 const totalTime = ((performance.now() - this.exportStartTime) / 1000).toFixed(2);
                 console.log(`✅ Export completed in ${totalTime}s`);
+                if (this.completionCallback) this.completionCallback();
             });
 
             // Start playback and encoding
@@ -78,10 +91,26 @@ export class WebCodecExporter {
             this.studio.play();
         } catch (error) {
             console.error('❌ Error starting export:', error);
-            exportButton.textContent = tempText;
             this.isEncoding = false;
+            if (this.completionCallback) this.completionCallback();
             alert('Failed to start video export: ' + error.message);
         }
+    }
+
+    /**
+     * Calculate total duration from all layers
+     * @returns {number} Total duration in seconds
+     * @private
+     */
+    #getTotalDuration() {
+        let maxDuration = 0;
+        for (let layer of this.studio.getLayers()) {
+            const layerEnd = layer.start_time + layer.total_time;
+            if (layerEnd > maxDuration) {
+                maxDuration = layerEnd;
+            }
+        }
+        return maxDuration;
     }
 
     /**
@@ -257,6 +286,12 @@ export class WebCodecExporter {
                     if (this.encoders.video && this.encoders.video.state === 'configured') {
                         this.encoders.video.encode(frame, { keyFrame: frameCount % 30 === 0 });
                         frameCount++;
+                        
+                        // Update progress based on frames encoded
+                        if (this.progressCallback && this.totalFrames > 0) {
+                            const progress = Math.min((frameCount / this.totalFrames) * 100, 99); // Cap at 99%
+                            this.progressCallback(progress);
+                        }
                         
                         if (frameCount % 30 === 0) {
                             console.log(`📹 Encoded ${frameCount} frames (${(frameCount / fps).toFixed(1)}s)`);

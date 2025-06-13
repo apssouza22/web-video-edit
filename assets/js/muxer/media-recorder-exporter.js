@@ -17,13 +17,22 @@ export class MediaRecorderExporter {
      * Start the export process using MediaRecorder
      * @param {HTMLElement} exportButton - The button that triggered the export
      * @param {string} tempText - Original button text to restore after export
+     * @param {Function} progressCallback - Callback function to report progress (0-100)
+     * @param {Function} completionCallback - Callback function to call when export is complete
      */
-    export(exportButton, tempText) {
+    export(exportButton, tempText, progressCallback = null, completionCallback = null) {
+        this.progressCallback = progressCallback;
+        this.completionCallback = completionCallback;
+        
         const availableTypes = this.#getSupportedMimeTypes();
         if (availableTypes.length === 0) {
             alert("Cannot export! Please use a screen recorder instead.");
+            if (this.completionCallback) this.completionCallback();
             return;
         }
+
+        // Calculate total duration from layers
+        this.totalDuration = this.#getTotalDuration();
 
         const stream = this.studio.player.canvas.captureStream();
 
@@ -37,6 +46,22 @@ export class MediaRecorderExporter {
             stream.addTrack(tracks[0]);
         }
         this.#startMediaRecord(stream, exportButton, tempText, availableTypes);
+    }
+
+    /**
+     * Calculate total duration from all layers
+     * @returns {number} Total duration in seconds
+     * @private
+     */
+    #getTotalDuration() {
+        let maxDuration = 0;
+        for (let layer of this.studio.getLayers()) {
+            const layerEnd = layer.start_time + layer.total_time;
+            if (layerEnd > maxDuration) {
+                maxDuration = layerEnd;
+            }
+        }
+        return maxDuration;
     }
 
     /**
@@ -67,18 +92,51 @@ export class MediaRecorderExporter {
         const rec = new MediaRecorder(stream);
         rec.ondataavailable = e => chunks.push(e.data);
 
-        rec.onstop = e => this.#downloadVideo(new Blob(chunks, { type: availableTypes[0] }));
-        this.studio.player.onend(function (player) {
+        rec.onstop = e => {
+            this.#stopProgressTracking();
+            this.#downloadVideo(new Blob(chunks, { type: availableTypes[0] }));
+            if (this.completionCallback) this.completionCallback();
+        };
+
+        this.studio.player.onend((player) => {
             rec.stop();
-            exportButton.textContent = tempText;
             player.pause();
             player.time = 0;
         });
 
         this.studio.pause();
         this.studio.player.time = 0;
+        
+        // Start progress tracking
+        this.#startProgressTracking();
+        
         this.studio.play();
         rec.start();
+    }
+
+    /**
+     * Start tracking export progress based on playback time
+     * @private
+     */
+    #startProgressTracking() {
+        if (!this.progressCallback || this.totalDuration <= 0) return;
+
+        this.progressInterval = setInterval(() => {
+            const currentTime = this.studio.player.time;
+            const progress = Math.min((currentTime / this.totalDuration) * 100, 99); // Cap at 99% until complete
+            this.progressCallback(progress);
+        }, 100); // Update every 100ms
+    }
+
+    /**
+     * Stop progress tracking
+     * @private
+     */
+    #stopProgressTracking() {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+        }
     }
 
     /**
@@ -103,8 +161,9 @@ export class MediaRecorderExporter {
      * @private
      */
     #triggerFileDownload(blob) {
-        const extension = blob.type.split(';')[0].split('/')[1];
-        const filename = (new Date()).getTime() + '.' + extension;
+        const extension = blob.type.includes('webm') ? 'webm' : 'mp4';
+        const filename = `video_export_${(new Date()).getTime()}.${extension}`;
+        
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = filename;
