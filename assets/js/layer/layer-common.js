@@ -1,4 +1,4 @@
-import { FrameCollection } from './frames.js';
+import { FrameCollection } from '../frame/frames.js';
 import { dpr, fps } from '../constants.js';
 
 export class StandardLayer {
@@ -37,55 +37,8 @@ export class StandardLayer {
       console.warn('VideoLayer not ready or frames collection not available');
       return;
     }
-
-    this.totalTimeInMilSeconds = Math.max(1000 / fps, this.totalTimeInMilSeconds + diff); // Minimum one frame duration
-
-    const oldNumFrames = this.framesCollection.getLength();
-    const newNumFrames = Math.floor((this.totalTimeInMilSeconds / 1000) * fps);
-    const frameDiff = newNumFrames - oldNumFrames;
-
-    if (frameDiff === 0) {
-      return;
-    }
-
-    // Adding frames (extending video) - duplicate the last frame
-    if (frameDiff > 0) {
-      const lastFrame = this.framesCollection.frames[oldNumFrames - 1];
-      if (lastFrame instanceof ImageData) {
-        // Create copies of the last frame to extend the video
-        for (let i = 0; i < frameDiff; i++) {
-          // Create a new ImageData with the same dimensions and data
-          const newFrame = new ImageData(
-            new Uint8ClampedArray(lastFrame.data),
-            lastFrame.width,
-            lastFrame.height
-          );
-          this.framesCollection.frames.push(newFrame);
-        }
-        console.log(`Extended video layer "${this.name}" by ${diff}ms, added ${frameDiff} frames. New duration: ${this.totalTimeInMilSeconds / 1000}s`);
-      } else {
-        for (let i = 0; i < frameDiff; ++i) {
-          let f = new Float32Array(5);
-          f[2] = 1; // scale
-          this.framesCollection.push(f);
-        }
-      }
-      return;
-    }
-
-    // Removing frames (reducing video) - remove from the end
-    const framesToRemove = Math.abs(frameDiff);
-    if (framesToRemove >= oldNumFrames) {
-      console.warn(`Reducing video would result in empty layer: "${this.name}". Keeping one frame.`);
-      // Keep only the first frame
-      this.framesCollection.frames.splice(1, oldNumFrames - 1);
-      this.totalTimeInMilSeconds = 1000 / fps;
-    } else {
-      this.framesCollection.frames.splice(newNumFrames, framesToRemove);
-      console.log(`Reduced video layer "${this.name}" by ${Math.abs(diff)}ms, removed ${framesToRemove} frames. New duration: ${this.totalTimeInMilSeconds / 1000}s`);
-    }
-
-    // Reset render cache since the video duration changed
+    this.framesCollection.adjustTotalTime(diff);
+    this.totalTimeInMilSeconds =  this.framesCollection.getTotalTimeInMilSec();
     this.#resetRenderCache();
   }
 
@@ -95,7 +48,7 @@ export class StandardLayer {
    * @param {number} time - The time to check
    * @returns {boolean} - Whether the layer is visible at the given time
    */
-  isLayerTime(time) {
+  isLayerVisible(time) {
     return time >= this.start_time && time < this.start_time + this.totalTimeInMilSeconds;
   }
 

@@ -75,7 +75,7 @@ export class AudioLayer extends StandardLayer {
     if (!this.ready) {
       return;
     }
-    if (!this.isLayerTime(currentTime)) {
+    if (!this.isLayerVisible(currentTime)) {
       return;
     }
     if (!playing) {

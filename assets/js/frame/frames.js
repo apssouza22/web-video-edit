@@ -1,4 +1,5 @@
 import { fps } from '../constants.js';
+import { AdjustTimeHandler } from './adjust-time.js';
 
 export class FrameCollection {
     /**
@@ -22,14 +23,24 @@ export class FrameCollection {
      */
     constructor(milSeconds, startTime, flexibleLayer = true) {
         this.start_time = startTime
+        this.totalTimeInMilSeconds = milSeconds
         this.totalTimeInSeconds = milSeconds / 1000
+        this.timeAdjustHandler =  new AdjustTimeHandler(this);
         if (flexibleLayer) {
             this.initializeFrames();
         }
     }
+    
+    adjustTotalTime(diff) {
+        this.timeAdjustHandler.adjust(diff)
+    }
+
+    getTotalTimeInMilSec(){
+        return this.totalTimeInMilSeconds
+    }
 
     initializeFrames() {
-        for (let i = 0; i < (this.totalTimeInSeconds) * fps; ++i) {
+        for (let i = 0; i < this.totalTimeInSeconds * fps; ++i) {
             // x, y, scale, rot, anchor(bool)
             let f = new Float32Array(5);
             f[2] = 1; // scale

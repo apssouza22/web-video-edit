@@ -1,5 +1,5 @@
 import { StandardLayer, addElementToBackground } from './layer-common.js';
-import { FrameCollection } from './frames.js';
+import { FrameCollection } from '../frame/frames.js';
 import { fps, max_size, dpr } from '../constants.js';
 
 export class VideoLayer extends StandardLayer {
@@ -89,7 +89,7 @@ export class VideoLayer extends StandardLayer {
     let height = this.video.videoHeight;
     let dur = this.video.duration;
     this.totalTimeInMilSeconds = dur * 1000;
-    this.framesCollection = new FrameCollection(dur, this.start_time, false)
+    this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false)
     let size = fps * dur * width * height;
     if (size < max_size) {
       this.width = width;
@@ -159,7 +159,7 @@ export class VideoLayer extends StandardLayer {
     if (!this.ready) {
       return;
     }
-    if (!this.isLayerTime(currentTime)) {
+    if (!this.isLayerVisible(currentTime)) {
       return;
     }
     // Check if we need to re-render this frame

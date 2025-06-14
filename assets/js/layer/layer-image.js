@@ -25,7 +25,7 @@ export class ImageLayer extends FlexibleLayer {
     if (!this.ready) {
       return;
     }
-    if (!this.isLayerTime(currentTime)) {
+    if (!this.isLayerVisible(currentTime)) {
       return;
     }
     
