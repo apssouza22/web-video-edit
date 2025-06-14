@@ -17,7 +17,7 @@ export class StandardLayer {
     this.width = 0;
     this.height = 0;
     this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d', {willReadFrequently: true});
+    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
     this.loadUpdateListener = (layer, progress, ctx, audioBuffer) => {
     };
     this.lastRenderedTime = -1; // Track last rendered time for caching
@@ -25,6 +25,15 @@ export class StandardLayer {
     this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false)
     addElementToBackground(this.canvas);
     this.updateName(this.name);
+  }
+
+  /**
+   * Checks if the layer is visible at the given time
+   * @param {number} time - The time to check
+   * @returns {boolean} - Whether the layer is visible at the given time
+   */
+  isLayerTime(time) {
+    return time >= this.start_time && time < this.start_time + this.totalTimeInMilSeconds;
   }
 
 
@@ -90,7 +99,7 @@ export class StandardLayer {
     this.lastRenderedTime = -1;
   }
 
-  init(canvasWidth = 500, canvasHeight = null, audioContext=null) {
+  init(canvasWidth = 500, canvasHeight = null, audioContext = null) {
     this.canvas.width = canvasWidth;
     this.canvas.height = canvasHeight == null ? (canvasWidth / 16) * 9 : canvasHeight // 16:9 aspect ratio
   }
@@ -196,8 +205,8 @@ export class FlexibleLayer extends StandardLayer {
     }
     // Remove frames
     this.framesCollection.slice(
-        this.framesCollection.getLength() + numFrames + 1,
-        1 - numFrames
+      this.framesCollection.getLength() + numFrames + 1,
+      1 - numFrames
     );
   }
 
@@ -226,9 +235,9 @@ export function drawScaled(ctxFrom, ctxOutTo, video = false) {
     offset_width = (outLogicalWidth - (ratio * width)) / 2;
   }
   ctxOutTo.drawImage(
-      (video ? ctxFrom : ctxFrom.canvas),
-      0, 0, width, height,
-      offset_width, offset_height, ratio * width, ratio * height
+    (video ? ctxFrom : ctxFrom.canvas),
+    0, 0, width, height,
+    offset_width, offset_height, ratio * width, ratio * height
   );
 }
 

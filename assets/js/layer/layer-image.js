@@ -21,19 +21,22 @@ export class ImageLayer extends FlexibleLayer {
     this.reader.readAsDataURL(file);
   }
 
-  render(ctx_out, ref_time, playing = false) {
+  render(ctx_out, currentTime, playing = false) {
     if (!this.ready) {
+      return;
+    }
+    if (!this.isLayerTime(currentTime)) {
       return;
     }
     
     // Check if we need to re-render this frame
-    if (!this.shouldRender(ref_time, playing)) {
+    if (!this.shouldRender(currentTime, playing)) {
       // If we've already rendered this frame, just draw the cached canvas
       this.drawScaled(this.ctx, ctx_out);
       return;
     }
     
-    let f = this.getFrame(ref_time);
+    let f = this.getFrame(currentTime);
     if (f) {
       let scale = f[2];
       let x = f[0] + this.canvas.width / 2 - this.width / 2;
@@ -43,7 +46,7 @@ export class ImageLayer extends FlexibleLayer {
       this.drawScaled(this.ctx, ctx_out);
       
       // Update the render cache
-      this.updateRenderCache(ref_time, playing);
+      this.updateRenderCache(currentTime, playing);
     }
   }
 }

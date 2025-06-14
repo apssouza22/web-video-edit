@@ -1,9 +1,10 @@
 import { AudioLayer } from '../layer/layer-audio.js';
 import { addElementToBackground } from '../layer/layer-common.js';
 import { getSupportedMimeTypes } from '../studio/utils.js';
+import { VideoStudio } from '../studio/studio.js';
 
 /**
- * Class for exporting video using MediaRecorder API
+ * Class for exporting video using MediaRecorder API without playing in the main player
  */
 export class MediaRecorderExporter {
     /**
@@ -11,10 +12,17 @@ export class MediaRecorderExporter {
      */
     constructor(studio) {
         this.studio = studio;
+        this.recordingCanvas = null;
+        this.recordingCtx = null;
+        this.recordingTime = 0;
+        this.recordingInterval = null;
+        this.mediaRecorder = null;
+        this.isRecording = false;
+        this.audioContext = new AudioContext();
     }
 
     /**
-     * Start the export process using MediaRecorder
+     * Start the export process using MediaRecorder without playing in the main player
      * @param {HTMLElement} exportButton - The button that triggered the export
      * @param {string} tempText - Original button text to restore after export
      * @param {Function} progressCallback - Callback function to report progress (0-100)
@@ -23,7 +31,7 @@ export class MediaRecorderExporter {
     export(exportButton, tempText, progressCallback = null, completionCallback = null) {
         this.progressCallback = progressCallback;
         this.completionCallback = completionCallback;
-        
+
         const availableTypes = this.#getSupportedMimeTypes();
         if (availableTypes.length === 0) {
             alert("Cannot export! Please use a screen recorder instead.");
@@ -34,29 +42,172 @@ export class MediaRecorderExporter {
         // Calculate total duration from layers
         this.totalDuration = this.#getTotalDuration();
 
-        const stream = this.studio.player.canvas.captureStream();
+        if (this.totalDuration <= 0) {
+            alert("No content to export!");
+            this.completionCallback();
+            return;
+        }
 
-        let audioLayers = this.#getAudioLayers();
+        this.#createRecordingCanvas();
+
+        const audioLayers = this.#getAudioLayers();
+        let stream = this.recordingCanvas.captureStream();
+
         if (audioLayers.length > 0) {
-            const audioStreamDestination = this.studio.player.audioContext.createMediaStreamDestination();
+            const audioStreamDestination = this.audioContext.createMediaStreamDestination();
             audioLayers.forEach(layer => {
                 layer.audioStreamDestination = audioStreamDestination;
             });
             let tracks = audioStreamDestination.stream.getAudioTracks();
-            stream.addTrack(tracks[0]);
+            if (tracks.length > 0) {
+                stream.addTrack(tracks[0]);
+            }
         }
-        this.#startMediaRecord(stream, exportButton, tempText, availableTypes);
+
+        this.#startBackgroundRecording(stream, availableTypes);
+    }
+
+    /**
+     * Create a separate canvas for recording that matches the player canvas
+     * @private
+     */
+    #createRecordingCanvas() {
+        this.recordingCanvas = document.createElement('canvas');
+        this.recordingCanvas.width = this.studio.player.canvas.width;
+        this.recordingCanvas.height = this.studio.player.canvas.height;
+        this.recordingCtx = this.recordingCanvas.getContext('2d');
+
+        addElementToBackground(this.recordingCanvas);
+    }
+
+    /**
+     * Start recording using MediaRecorder with background rendering
+     * @param {MediaStream} stream - The stream to record
+     * @param {Array} availableTypes - Array of supported MIME types
+     * @private
+     */
+    #startBackgroundRecording(stream, availableTypes) {
+        const chunks = [];
+        this.mediaRecorder = new MediaRecorder(stream, { mimeType: availableTypes[0] });
+        this.isRecording = true;
+        this.recordingTime = 0;
+
+        this.mediaRecorder.ondataavailable = e => chunks.push(e.data);
+
+        this.mediaRecorder.onstop = e => {
+            this.#stopBackgroundRecording();
+            this.#downloadVideo(new Blob(chunks, { type: availableTypes[0] }));
+            if (this.completionCallback) {
+                this.completionCallback();
+            }
+        };
+
+        this.#startProgressTracking();
+        this.#startBackgroundRendering();
+        this.mediaRecorder.start();
+    }
+
+    /**
+     * Start background rendering loop that renders frames without playing
+     * @private
+     */
+    #startBackgroundRendering() {
+        const fps = 30;
+        const frameInterval = 1000 / fps; // ~33.33ms per frame
+        let startTime = performance.now();
+        let frameCount = 0;
+        
+        // Setup audio connections once at the beginning
+        this.#setupAudioForExport();
+
+        const renderFrame = (currentTime) => {
+            if (!this.isRecording) return;
+
+            // Calculate expected time for this frame
+            const expectedTime = frameCount * frameInterval;
+            
+            // Only render if we've reached the expected time for the next frame
+            if (currentTime - startTime >= expectedTime) {
+                // Render the current frame
+                this.#renderLayersAtTime(this.recordingTime);
+                
+                // Update recording time to match the exact frame timing
+                this.recordingTime = expectedTime;
+                frameCount++;
+
+                // Check if we've reached the end
+                if (this.recordingTime >= this.totalDuration) {
+                    this.mediaRecorder.stop();
+                    return;
+                }
+            }
+
+            // Continue the animation loop
+            window.requestAnimationFrame(renderFrame);
+        };
+
+        // Start the animation loop
+        window.requestAnimationFrame(renderFrame);
+    }
+
+    /**
+     * Setup audio connections for export
+     * @private
+     */
+    #setupAudioForExport() {
+        this.audioContext.resume();
+        
+        // Connect all audio layers to the export audio context
+        for (let layer of this.studio.getLayers()) {
+            if (layer instanceof AudioLayer) {
+                layer.connectAudioSource(this.audioContext);
+            }
+        }
+    }
+
+    /**
+     * Render all layers to the recording canvas at a specific time
+     * @param {number} time - Time in milliseconds
+     * @private
+     */
+    #renderLayersAtTime(time) {
+        this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
+        const layers = this.studio.getLayers();
+
+        for (let layer of layers) {
+            // Pass playing=true to ensure audio layers start at correct time
+            layer.render(this.recordingCtx, time, true);
+        }
+    }
+
+    /**
+     * Stop background recording and cleanup
+     * @private
+     */
+    #stopBackgroundRecording() {
+        this.isRecording = false;
+        this.#stopProgressTracking();
+        this.studio.getLayers().forEach(layer => {
+            layer.audioStreamDestination = null;
+        });
+
+        // Cleanup recording canvas
+        if (this.recordingCanvas) {
+            this.recordingCanvas.remove();
+            this.recordingCanvas = null;
+            this.recordingCtx = null;
+        }
     }
 
     /**
      * Calculate total duration from all layers
-     * @returns {number} Total duration in seconds
+     * @returns {number} Total duration in milliseconds
      * @private
      */
     #getTotalDuration() {
         let maxDuration = 0;
         for (let layer of this.studio.getLayers()) {
-            const layerEnd = layer.start_time + layer.total_time;
+            const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
             }
@@ -80,50 +231,14 @@ export class MediaRecorderExporter {
     }
 
     /**
-     * Start recording using MediaRecorder
-     * @param {MediaStream} stream - The stream to record
-     * @param {HTMLElement} exportButton - The button that triggered the export
-     * @param {string} tempText - Original button text to restore after export
-     * @param {Array} availableTypes - Array of supported MIME types
-     * @private
-     */
-    #startMediaRecord(stream, exportButton, tempText, availableTypes) {
-        const chunks = [];
-        const rec = new MediaRecorder(stream);
-        rec.ondataavailable = e => chunks.push(e.data);
-
-        rec.onstop = e => {
-            this.#stopProgressTracking();
-            this.#downloadVideo(new Blob(chunks, { type: availableTypes[0] }));
-            if (this.completionCallback) this.completionCallback();
-        };
-
-        this.studio.player.onend((player) => {
-            rec.stop();
-            player.pause();
-            player.time = 0;
-        });
-
-        this.studio.pause();
-        this.studio.player.time = 0;
-        
-        // Start progress tracking
-        this.#startProgressTracking();
-        
-        this.studio.play();
-        rec.start();
-    }
-
-    /**
-     * Start tracking export progress based on playback time
+     * Start tracking export progress based on recording time
      * @private
      */
     #startProgressTracking() {
         if (!this.progressCallback || this.totalDuration <= 0) return;
 
         this.progressInterval = setInterval(() => {
-            const currentTime = this.studio.player.time;
-            const progress = Math.min((currentTime / this.totalDuration) * 100, 99); // Cap at 99% until complete
+            const progress = Math.min((this.recordingTime / this.totalDuration) * 100, 99); // Cap at 99% until complete
             this.progressCallback(progress);
         }, 100); // Update every 100ms
     }
@@ -136,6 +251,10 @@ export class MediaRecorderExporter {
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
+        }
+
+        if (this.progressCallback) {
+            this.progressCallback(100);
         }
     }
 
@@ -163,7 +282,7 @@ export class MediaRecorderExporter {
     #triggerFileDownload(blob) {
         const extension = blob.type.includes('webm') ? 'webm' : 'mp4';
         const filename = `video_export_${(new Date()).getTime()}.${extension}`;
-        
+
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = filename;

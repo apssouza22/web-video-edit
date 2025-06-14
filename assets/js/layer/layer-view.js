@@ -195,7 +195,7 @@ export class LayersSidebarView {
 
       // Remove menu when clicking elsewhere
       const removeMenu = (event) => {
-        if (!menu.contains(event.target)) {
+        if (!menu.contains(event.target) && document.body.contains(menu)  ) {
           document.body.removeChild(menu);
           document.removeEventListener('click', removeMenu);
         }

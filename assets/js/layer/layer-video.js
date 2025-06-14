@@ -159,7 +159,9 @@ export class VideoLayer extends StandardLayer {
     if (!this.ready) {
       return;
     }
-
+    if (!this.isLayerTime(currentTime)) {
+      return;
+    }
     // Check if we need to re-render this frame
     if (!this.shouldRender(currentTime, playing)) {
       this.drawScaled(this.ctx, ctxOut);

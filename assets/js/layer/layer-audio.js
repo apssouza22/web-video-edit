@@ -13,7 +13,7 @@ export class AudioLayer extends StandardLayer {
     this.playing = false;
     this.playerAudioContext = null;
     this.audioStreamDestination = null;
-    if(skipLoading) {
+    if (skipLoading) {
       return
     }
     this.reader.addEventListener("load", this.#onAudioLoad.bind(this));
@@ -47,25 +47,26 @@ export class AudioLayer extends StandardLayer {
 
   disconnect() {
     if (this.source) {
-      this.source.disconnect(this.playerAudioContext.destination);
+      this.source.disconnect();
       this.source = null;
     }
   }
 
-  init(canvasWidth, canvasHeight,playerAudioContext) {
+  init(canvasWidth, canvasHeight, playerAudioContext) {
     super.init(canvasWidth, canvasHeight);
     this.playerAudioContext = playerAudioContext;
   }
 
-  connectAudioSource() {
+  connectAudioSource(playerAudioContext) {
     this.disconnect();
-    this.source = this.playerAudioContext.createBufferSource();
+    this.source = playerAudioContext.createBufferSource();
     this.source.buffer = this.audioBuffer;
-    this.source.connect(this.playerAudioContext.destination);
-    
+
     if (this.audioStreamDestination) {
       //Used for video exporting
       this.source.connect(this.audioStreamDestination);
+    } else {
+      this.source.connect(playerAudioContext.destination);
     }
     this.started = false;
   }
@@ -74,7 +75,10 @@ export class AudioLayer extends StandardLayer {
     if (!this.ready) {
       return;
     }
-    if(!playing){
+    if (!this.isLayerTime(currentTime)) {
+      return;
+    }
+    if (!playing) {
       return;
     }
 
@@ -84,9 +88,6 @@ export class AudioLayer extends StandardLayer {
     }
 
     if (!this.started) {
-      if (!this.source) {
-        this.connectAudioSource(currentTime);
-      }
       this.source.start(0, time / 1000);
       this.started = true;
     }
@@ -143,48 +144,48 @@ export class AudioLayer extends StandardLayer {
     const sampleRate = this.audioBuffer.sampleRate;
     const numberOfChannels = this.audioBuffer.numberOfChannels;
     const originalLength = this.audioBuffer.length;
-    
+
     // Convert time to sample indices
     const startSample = Math.floor(startTime * sampleRate);
     const endSample = Math.ceil(endTime * sampleRate);
-    
+
     // Clamp to valid ranges
     const clampedStartSample = Math.max(0, Math.min(startSample, originalLength));
     const clampedEndSample = Math.max(clampedStartSample, Math.min(endSample, originalLength));
-    
+
     // Calculate new buffer length
     const removedSamples = clampedEndSample - clampedStartSample;
     const newLength = originalLength - removedSamples;
-    
+
     if (newLength <= 0) {
       console.warn('Removing interval would result in empty audio buffer');
       // Return a minimal buffer with silence
       const minimalBuffer = this.playerAudioContext.createBuffer(numberOfChannels, 1, sampleRate);
       return minimalBuffer;
     }
-    
+
     const newBuffer = this.playerAudioContext.createBuffer(numberOfChannels, newLength, sampleRate);
-    
+
     // Copy audio data for each channel
     for (let channel = 0; channel < numberOfChannels; channel++) {
       const originalChannelData = this.audioBuffer.getChannelData(channel);
       const newChannelData = newBuffer.getChannelData(channel);
-      
+
       let writeIndex = 0;
-      
+
       // Copy data before the removed interval
       for (let i = 0; i < clampedStartSample; i++) {
         newChannelData[writeIndex++] = originalChannelData[i];
       }
-      
+
       // Skip the removed interval and copy data after
       for (let i = clampedEndSample; i < originalLength; i++) {
         newChannelData[writeIndex++] = originalChannelData[i];
       }
     }
-    
+
     console.log(`Removed audio interval ${startTime}s-${endTime}s. Original: ${this.audioBuffer.duration}s, New: ${newBuffer.duration}s`);
-    
+
     return newBuffer;
   }
 
@@ -198,16 +199,16 @@ export class AudioLayer extends StandardLayer {
       console.error('Invalid buffer provided for updateBuffer');
       return;
     }
-    
+
     // Disconnect current audio source
     this.disconnect();
-    
+
     // Update the audio buffer
     this.audioBuffer = newBuffer;
-    
+
     // Update total time
     this.totalTimeInMilSeconds = newBuffer.duration * 1000;
-    
+
     // Update studio total time if needed
     if (window.studio) {
       window.studio.player.total_time = 0;
@@ -216,11 +217,11 @@ export class AudioLayer extends StandardLayer {
           window.studio.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
         }
       }
-      
+
       // Refresh audio connections
       window.studio.player.refreshAudio();
     }
-    
+
     console.log(`Updated AudioLayer "${this.name}" with new buffer duration: ${newBuffer.duration}s`);
   }
 }

@@ -28,6 +28,9 @@ export class TextLayer extends FlexibleLayer {
   }
 
   render(ctxOut, refTime, playing = false) {
+    if (!this.isLayerTime(refTime)) {
+      return;
+    }
     let frame = this.getFrame(refTime);
     if (!frame) {
       return;

@@ -70,7 +70,7 @@ export class VideoPlayer {
   refreshAudio() {
     for (let layer of this.layers) {
       if (layer instanceof AudioLayer) {
-        layer.connectAudioSource(this.time);
+        layer.connectAudioSource(this.audioContext);
       }
     }
   }
@@ -117,12 +117,6 @@ export class VideoPlayer {
   renderLayers() {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     for (let layer of this.layers) {
-      if (layer.start_time > this.time) {
-        continue;
-      }
-      if (layer.start_time + layer.totalTimeInMilSeconds < this.time) {
-        continue;
-      }
       layer.render(this.ctx, this.time, this.playing);
     }
   }
