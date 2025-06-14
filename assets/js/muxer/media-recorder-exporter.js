@@ -38,8 +38,6 @@ export class MediaRecorderExporter {
             if (this.completionCallback) this.completionCallback();
             return;
         }
-
-        // Calculate total duration from layers
         this.totalDuration = this.#getTotalDuration();
 
         if (this.totalDuration <= 0) {
@@ -49,22 +47,24 @@ export class MediaRecorderExporter {
         }
 
         this.#createRecordingCanvas();
-
-        const audioLayers = this.#getAudioLayers();
         let stream = this.recordingCanvas.captureStream();
-
-        if (audioLayers.length > 0) {
-            const audioStreamDestination = this.audioContext.createMediaStreamDestination();
-            audioLayers.forEach(layer => {
-                layer.audioStreamDestination = audioStreamDestination;
-            });
-            let tracks = audioStreamDestination.stream.getAudioTracks();
-            if (tracks.length > 0) {
-                stream.addTrack(tracks[0]);
-            }
-        }
-
+        this.#loadAudioTrack(stream);
         this.#startBackgroundRecording(stream, availableTypes);
+    }
+
+    #loadAudioTrack(stream) {
+        const audioLayers = this.#getAudioLayers();
+        if (audioLayers.length <= 0) {
+            return
+        }
+        const audioStreamDestination = this.audioContext.createMediaStreamDestination();
+        audioLayers.forEach(layer => {
+            layer.audioStreamDestination = audioStreamDestination;
+        });
+        let tracks = audioStreamDestination.stream.getAudioTracks();
+        if (tracks.length > 0) {
+            stream.addTrack(tracks[0]);
+        }
     }
 
     /**
@@ -93,7 +93,6 @@ export class MediaRecorderExporter {
         this.recordingTime = 0;
 
         this.mediaRecorder.ondataavailable = e => chunks.push(e.data);
-
         this.mediaRecorder.onstop = e => {
             this.#stopBackgroundRecording();
             this.#downloadVideo(new Blob(chunks, { type: availableTypes[0] }));
@@ -112,41 +111,31 @@ export class MediaRecorderExporter {
      * @private
      */
     #startBackgroundRendering() {
-        const fps = 30;
-        const frameInterval = 1000 / fps; // ~33.33ms per frame
-        let startTime = performance.now();
-        let frameCount = 0;
+        let lastTimestamp = null;
         
-        // Setup audio connections once at the beginning
         this.#setupAudioForExport();
 
         const renderFrame = (currentTime) => {
+            if (lastTimestamp === null) {
+                lastTimestamp = currentTime;
+            }
+            
             if (!this.isRecording) return;
 
-            // Calculate expected time for this frame
-            const expectedTime = frameCount * frameInterval;
-            
-            // Only render if we've reached the expected time for the next frame
-            if (currentTime - startTime >= expectedTime) {
-                // Render the current frame
-                this.#renderLayersAtTime(this.recordingTime);
-                
-                // Update recording time to match the exact frame timing
-                this.recordingTime = expectedTime;
-                frameCount++;
+            const deltaTime = currentTime - lastTimestamp;
+            this.recordingTime += deltaTime;
+            this.#renderLayersAtTime(this.recordingTime);
 
-                // Check if we've reached the end
-                if (this.recordingTime >= this.totalDuration) {
-                    this.mediaRecorder.stop();
-                    return;
-                }
+            if (this.recordingTime >= this.totalDuration) {
+                this.mediaRecorder.stop();
+                return;
             }
 
-            // Continue the animation loop
+            lastTimestamp = currentTime;
+            
             window.requestAnimationFrame(renderFrame);
         };
 
-        // Start the animation loop
         window.requestAnimationFrame(renderFrame);
     }
 
@@ -156,8 +145,6 @@ export class MediaRecorderExporter {
      */
     #setupAudioForExport() {
         this.audioContext.resume();
-        
-        // Connect all audio layers to the export audio context
         for (let layer of this.studio.getLayers()) {
             if (layer instanceof AudioLayer) {
                 layer.connectAudioSource(this.audioContext);
