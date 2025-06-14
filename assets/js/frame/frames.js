@@ -1,5 +1,5 @@
 import { fps } from '../constants.js';
-import { AdjustTimeHandler } from './adjust-time.js';
+import { FrameAdjustHandler } from './adjust-time.js';
 
 export class FrameCollection {
     /**
@@ -25,7 +25,7 @@ export class FrameCollection {
         this.start_time = startTime
         this.totalTimeInMilSeconds = milSeconds
         this.totalTimeInSeconds = milSeconds / 1000
-        this.timeAdjustHandler =  new AdjustTimeHandler(this);
+        this.timeAdjustHandler =  new FrameAdjustHandler(this);
         if (flexibleLayer) {
             this.initializeFrames();
         }
@@ -146,4 +146,7 @@ export class FrameCollection {
         return f;
     }
 
+    removeInterval(startTime, endTime) {
+        return this.timeAdjustHandler.removeInterval(startTime, endTime);
+    }
 }

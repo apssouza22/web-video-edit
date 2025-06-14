@@ -35,8 +35,3 @@ Alternatively, you can use any server, such as Python's built-in HTTP server.
 - Exporting
   - Click the "Export" button.
   - Click "Download" to save the `.webm` video.
-
-## Credits
-This project couldn't have been done without the excellent work of Bram Wasti and their projects 'mebm' and 'jott'.
-
-To get the source code for Bram Wasti's 'mebm', visit [the GitHub repository](https://github.com/bwasti/mebm/).

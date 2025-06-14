@@ -1,6 +1,6 @@
-import { StandardLayer, addElementToBackground } from './layer-common.js';
-import { FrameCollection } from '../frame/frames.js';
-import { fps, max_size, dpr } from '../constants.js';
+import {StandardLayer, addElementToBackground} from './layer-common.js';
+import {FrameCollection} from '../frame/frames.js';
+import {fps, max_size, dpr} from '../constants.js';
 
 export class VideoLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
@@ -37,51 +37,11 @@ export class VideoLayer extends StandardLayer {
    * @returns {boolean} True if the interval was removed successfully
    */
   removeInterval(startTime, endTime) {
-    if (!this.framesCollection || startTime >= endTime || startTime < 0) {
-      console.error('Invalid parameters for removeInterval on VideoLayer');
-      return false;
+    const success = this.framesCollection.removeInterval(startTime, endTime);
+    if (success) {
+      this.totalTimeInMilSeconds = this.framesCollection.getTotalTimeInMilSec();
     }
-
-    const totalDuration = this.totalTimeInMilSeconds / 1000;
-    
-    // Clamp times to valid ranges
-    const clampedStartTime = Math.max(0, Math.min(startTime, totalDuration));
-    const clampedEndTime = Math.max(clampedStartTime, Math.min(endTime, totalDuration));
-    
-    // Convert time to frame indices
-    const startFrameIndex = Math.floor(clampedStartTime * fps);
-    const endFrameIndex = Math.ceil(clampedEndTime * fps);
-    
-    // Clamp to valid frame ranges
-    const totalFrames = this.framesCollection.getLength();
-    const clampedStartFrame = Math.max(0, Math.min(startFrameIndex, totalFrames));
-    const clampedEndFrame = Math.max(clampedStartFrame, Math.min(endFrameIndex, totalFrames));
-    
-    const framesToRemove = clampedEndFrame - clampedStartFrame;
-    
-    if (framesToRemove <= 0) {
-      console.log(`No frames to remove from video layer: "${this.name}"`);
-      return false;
-    }
-    
-    if (framesToRemove >= totalFrames) {
-      console.warn(`Removing interval would result in empty video layer: "${this.name}"`);
-      // Keep at least one frame to avoid empty layer
-      this.framesCollection.slice(1, totalFrames - 1);
-      this.totalTimeInMilSeconds = 1000 / fps; // Duration of one frame
-      return true;
-    }
-    
-    // Remove the frames from the collection
-    this.framesCollection.slice(clampedStartFrame, framesToRemove);
-    
-    // Update the total time
-    const removedDuration = (clampedEndTime - clampedStartTime) * 1000;
-    this.totalTimeInMilSeconds = Math.max(0, this.totalTimeInMilSeconds - removedDuration);
-    
-    console.log(`Removed video interval ${clampedStartTime}s-${clampedEndTime}s from "${this.name}". Removed ${framesToRemove} frames. New duration: ${this.totalTimeInMilSeconds / 1000}s`);
-    
-    return true;
+    return success;
   }
 
   async #onLoadMetadata() {
@@ -144,9 +104,9 @@ export class VideoLayer extends StandardLayer {
       let frame = await this.#seek(i / fps);
       this.framesCollection.frames.push(frame);
       this.loadUpdateListener(
-        this,
-        (100 * i / (d * fps)).toFixed(2),
-        this.ctx
+          this,
+          (100 * i / (d * fps)).toFixed(2),
+          this.ctx
       );
     }
     this.ready = true;

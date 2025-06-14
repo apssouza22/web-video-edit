@@ -90,7 +90,9 @@ export class VideoStudio {
     });
 
     this.transcriptionManager.addSeekListener((timestamp) => {
+      this.player.pause()
       this.player.setTime(timestamp * 1000);
+      this.player.play();
     });
   }
 
