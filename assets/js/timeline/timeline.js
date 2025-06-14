@@ -441,7 +441,8 @@ export class Timeline {
       if (this.intersectsTime(this.selectedLayer.start_time, time)) {
         document.body.style.cursor = "col-resize";
       }
-      if (this.intersectsTime(this.selectedLayer.start_time + this.selectedLayer.totalTimeInMilSeconds, time)) {
+      const endTime = this.selectedLayer.start_time + this.selectedLayer.totalTimeInMilSeconds;
+      if (this.intersectsTime(endTime, time)) {
         document.body.style.cursor = "col-resize";
       }
     }

@@ -30,8 +30,8 @@ export class LayerLoader {
   addLayerFromFile(file) {
     let layers = [];
     if (file.type.indexOf('video') >= 0) {
-      layers.push(this.viewHandler.addLayer(new VideoLayer(file)));
       layers.push(this.viewHandler.addLayer(new AudioLayer(file)));
+      layers.push(this.viewHandler.addLayer(new VideoLayer(file)));
     }
     if (file.type.indexOf('image') >= 0) {
       layers.push(this.viewHandler.addLayer(new ImageLayer(file)));

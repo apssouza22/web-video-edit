@@ -27,6 +27,69 @@ export class StandardLayer {
     this.updateName(this.name);
   }
 
+
+  /**
+   * Adjusts the total time of the video layer by adding or removing frames
+   * @param {number} diff - Time difference in milliseconds (positive to extend, negative to reduce)
+   */
+  adjustTotalTime(diff) {
+    if (!this.ready || !this.framesCollection) {
+      console.warn('VideoLayer not ready or frames collection not available');
+      return;
+    }
+
+    this.totalTimeInMilSeconds = Math.max(1000 / fps, this.totalTimeInMilSeconds + diff); // Minimum one frame duration
+
+    const oldNumFrames = this.framesCollection.getLength();
+    const newNumFrames = Math.floor((this.totalTimeInMilSeconds / 1000) * fps);
+    const frameDiff = newNumFrames - oldNumFrames;
+
+    if (frameDiff === 0) {
+      return;
+    }
+
+    // Adding frames (extending video) - duplicate the last frame
+    if (frameDiff > 0) {
+      const lastFrame = this.framesCollection.frames[oldNumFrames - 1];
+      if (lastFrame instanceof ImageData) {
+        // Create copies of the last frame to extend the video
+        for (let i = 0; i < frameDiff; i++) {
+          // Create a new ImageData with the same dimensions and data
+          const newFrame = new ImageData(
+            new Uint8ClampedArray(lastFrame.data),
+            lastFrame.width,
+            lastFrame.height
+          );
+          this.framesCollection.frames.push(newFrame);
+        }
+        console.log(`Extended video layer "${this.name}" by ${diff}ms, added ${frameDiff} frames. New duration: ${this.totalTimeInMilSeconds / 1000}s`);
+      } else {
+        for (let i = 0; i < frameDiff; ++i) {
+          let f = new Float32Array(5);
+          f[2] = 1; // scale
+          this.framesCollection.push(f);
+        }
+      }
+      return;
+    }
+
+    // Removing frames (reducing video) - remove from the end
+    const framesToRemove = Math.abs(frameDiff);
+    if (framesToRemove >= oldNumFrames) {
+      console.warn(`Reducing video would result in empty layer: "${this.name}". Keeping one frame.`);
+      // Keep only the first frame
+      this.framesCollection.frames.splice(1, oldNumFrames - 1);
+      this.totalTimeInMilSeconds = 1000 / fps;
+    } else {
+      this.framesCollection.frames.splice(newNumFrames, framesToRemove);
+      console.log(`Reduced video layer "${this.name}" by ${Math.abs(diff)}ms, removed ${framesToRemove} frames. New duration: ${this.totalTimeInMilSeconds / 1000}s`);
+    }
+
+    // Reset render cache since the video duration changed
+    this.#resetRenderCache();
+  }
+
+
   /**
    * Checks if the layer is visible at the given time
    * @param {number} time - The time to check
@@ -95,7 +158,7 @@ export class StandardLayer {
    * Call this method after operations that change the visual appearance
    * like updates to position, scale, or rotation
    */
-  resetRenderCache() {
+  #resetRenderCache() {
     this.lastRenderedTime = -1;
   }
 
@@ -151,7 +214,7 @@ export class StandardLayer {
 
     // Reset the render cache if any changes were made
     if (hasChanges) {
-      this.resetRenderCache();
+      this.#resetRenderCache();
     }
   }
 
@@ -183,32 +246,6 @@ export class FlexibleLayer extends StandardLayer {
     return obj;
   }
 
-  /**
-   *
-   * @param {number} diff
-   */
-  adjustTotalTime(diff) {
-    this.totalTimeInMilSeconds += diff;
-    const numFrames = Math.floor((this.totalTimeInMilSeconds / 1000) * fps - this.framesCollection.getLength());
-    if (numFrames === 0) {
-      return;
-    }
-
-    // Add frames
-    if (numFrames > 0) {
-      for (let i = 0; i < numFrames; ++i) {
-        let f = new Float32Array(5);
-        f[2] = 1; // scale
-        this.framesCollection.push(f);
-      }
-      return
-    }
-    // Remove frames
-    this.framesCollection.slice(
-      this.framesCollection.getLength() + numFrames + 1,
-      1 - numFrames
-    );
-  }
 
 }
 
