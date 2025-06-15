@@ -1,4 +1,3 @@
-import { FlexibleLayer } from '../layer/layer-common.js';
 /**
  * Handles layer dragging and scrubbing in the timeline
  */

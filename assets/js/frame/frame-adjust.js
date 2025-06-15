@@ -1,5 +1,5 @@
-import {fps} from "../constants.js";
-import {FrameCollection} from "./frames.js";
+import { fps } from "../constants.js";
+import { FrameCollection } from "./index.js";
 
 export class FrameAdjustHandler {
   /**

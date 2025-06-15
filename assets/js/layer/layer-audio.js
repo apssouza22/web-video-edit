@@ -1,4 +1,4 @@
-import { StandardLayer } from './layer-common.js';
+import { StandardLayer } from './index.js';
 import { AudioContext } from '../constants.js';
 
 export class AudioLayer extends StandardLayer {

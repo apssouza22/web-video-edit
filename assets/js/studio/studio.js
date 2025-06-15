@@ -1,16 +1,14 @@
-import {VideoPlayer} from '../player/player.js';
-import {Timeline} from '../timeline/timeline.js';
-import {LayersSidebarView} from '../layer/layer-view.js';
+import {VideoPlayer} from '../player';
+import {Timeline} from '../timeline';
+import {LayersSidebarView, AudioLayer, LayerOperations} from '../layer';
 import {LayerLoader} from './layer-loader.js';
-import {AudioLayer} from '../layer/layer-audio.js';
-import {VideoExporter} from '../muxer/video-export.js';
+import {VideoExporter} from '../muxer';
 import {StudioControls} from './controls.js';
 import {PinchHandler} from './pinch-handler.js';
 import {DragItemHandler} from './drag-handler.js';
 import {MediaEditor} from './media-edit.js';
-import {TranscriptionManager} from "../transcription/transcription.js";
+import {TranscriptionManager} from "../transcription";
 import {uploadSupportedType} from './utils.js';
-import {LayerOperations} from "../layer/operations.js";
 import {LoadingPopup} from './loading-popup.js';
 
 export class VideoStudio {

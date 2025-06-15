@@ -1,7 +1,5 @@
-import { AudioLayer } from '../layer/layer-audio.js';
-import { addElementToBackground } from '../layer/layer-common.js';
-import { getSupportedMimeTypes } from '../studio/utils.js';
-import { VideoStudio } from '../studio/studio.js';
+import { addElementToBackground, AudioLayer } from '../layer';
+import { getSupportedMimeTypes, VideoStudio } from '../studio';
 
 /**
  * Class for exporting video using MediaRecorder API without playing in the main player
@@ -15,7 +13,6 @@ export class MediaRecorderExporter {
         this.recordingCanvas = null;
         this.recordingCtx = null;
         this.recordingTime = 0;
-        this.recordingInterval = null;
         this.mediaRecorder = null;
         this.isRecording = false;
         this.audioContext = new AudioContext();

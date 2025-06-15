@@ -1,6 +1,6 @@
 
 
-import { FlexibleLayer } from './layer-common.js';
+import { FlexibleLayer } from './index.js';
 
 export class ImageLayer extends FlexibleLayer {
   constructor(file) {

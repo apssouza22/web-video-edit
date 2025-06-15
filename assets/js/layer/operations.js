@@ -1,7 +1,4 @@
-import {TextLayer} from "./layer-text.js";
-import {VideoLayer} from "./layer-video.js";
-import {AudioLayer} from "./layer-audio.js";
-import {ImageLayer} from "./layer-image.js";
+import { TextLayer, VideoLayer, AudioLayer, ImageLayer } from "./index.js";
 
 export class LayerOperations {
 

@@ -1,4 +1,4 @@
-import { FrameCollection } from '../frame/frames.js';
+import { FrameCollection } from '../frame/index.js';
 import { dpr, fps } from '../constants.js';
 
 export class StandardLayer {

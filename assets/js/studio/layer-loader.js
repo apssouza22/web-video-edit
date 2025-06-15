@@ -1,10 +1,5 @@
-import {FlexibleLayer} from '../layer/layer-common.js';
-import {LayersSidebarView} from '../layer/layer-view.js';
-import {AudioLayer} from '../layer/layer-audio.js';
-import {VideoLayer} from '../layer/layer-video.js';
-import {ImageLayer} from '../layer/layer-image.js';
-import {TextLayer} from '../layer/layer-text.js';
-import {ext_map} from './utils.js';
+import { FlexibleLayer, LayersSidebarView, AudioLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index.js';
+import { ext_map } from './index.js';
 
 /**
  * LayerLoader class responsible for loading layers from JSON data

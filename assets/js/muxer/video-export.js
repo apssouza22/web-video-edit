@@ -1,4 +1,4 @@
-import { exportToJson } from '../studio/utils.js';
+import { exportToJson } from '../studio';
 import { MediaRecorderExporter } from './media-recorder-exporter.js';
 import { WebCodecExporter } from './web-codec-exporter.js';
 

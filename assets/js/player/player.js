@@ -1,5 +1,5 @@
 import { dpr } from '../constants.js';
-import { AudioLayer } from '../layer/layer-audio.js';
+import { AudioLayer } from '../layer';
 
 export class VideoPlayer {
 

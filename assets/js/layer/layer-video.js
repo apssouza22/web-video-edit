@@ -1,6 +1,6 @@
-import {StandardLayer, addElementToBackground} from './layer-common.js';
-import {FrameCollection} from '../frame/frames.js';
-import {fps, max_size, dpr} from '../constants.js';
+import { StandardLayer, addElementToBackground } from './index.js';
+import { FrameCollection } from '../frame/index.js';
+import { fps, max_size, dpr } from '../constants.js';
 
 export class VideoLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
