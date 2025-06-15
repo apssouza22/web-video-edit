@@ -1,25 +1,54 @@
-import { StandardLayer, addElementToBackground } from './index.js';
-import { FrameCollection } from '../frame/index.js';
-import { fps, max_size, dpr } from '../constants.js';
+import {StandardLayer, addElementToBackground} from './layer-common.js';
+import {FrameCollection} from '../frame';
+import {fps, max_size, dpr} from '../constants.js';
 
 export class VideoLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);
+    this.useWebCodecs = this.#checkWebCodecsSupport();
+    this.chunkSize = 30; // Process 30 frames at a time
+    this.optimizedFPS = 12;
 
     // Empty VideoLayers (split() requires this)
     if (skipLoading) {
       return;
     }
+
+    if (this.useWebCodecs && file.type.startsWith('video/')) {
+      this.#initializeWithWebCodecs(file);
+    } else {
+      this.#initializeWithHTMLVideo(file);
+    }
+  }
+
+  #checkWebCodecsSupport() {
+    return typeof VideoDecoder !== 'undefined' &&
+        typeof VideoFrame !== 'undefined' &&
+        typeof EncodedVideoChunk !== 'undefined';
+  }
+
+  async #initializeWithWebCodecs(file) {
+    try {
+      // Use WebCodecs API for better performance
+      const arrayBuffer = await file.arrayBuffer();
+      await this.#processVideoWithWebCodecs(arrayBuffer);
+    } catch (error) {
+      console.warn('WebCodecs failed, falling back to HTML video:', error);
+      this.#initializeWithHTMLVideo(file);
+    }
+  }
+
+  #initializeWithHTMLVideo(file) {
     /**
      * @type {HTMLVideoElement}
      */
     this.video = document.createElement('video');
-    this.video.setAttribute('autoplay', true);
-    this.video.setAttribute('loop', true);
+    this.video.setAttribute('autoplay', false);
+    this.video.setAttribute('loop', false);
     this.video.setAttribute('playsinline', true);
     this.video.setAttribute('muted', true);
-    this.video.setAttribute('controls', true);
+    this.video.setAttribute('preload', 'metadata');
     addElementToBackground(this.video);
 
     this.reader = new FileReader();
@@ -27,7 +56,15 @@ export class VideoLayer extends StandardLayer {
       this.video.addEventListener('loadedmetadata', this.#onLoadMetadata.bind(this));
       this.video.src = this.reader.result;
     }).bind(this), false);
+
     this.reader.readAsDataURL(file);
+  }
+
+  async #processVideoWithWebCodecs(arrayBuffer) {
+    console.log('Processing video with WebCodecs API...');
+
+    // For now, fall back to HTML video as WebCodecs requires format-specific handling
+    this.#initializeWithHTMLVideo(this.file);
   }
 
   /**
@@ -49,19 +86,20 @@ export class VideoLayer extends StandardLayer {
     let height = this.video.videoHeight;
     let dur = this.video.duration;
     this.totalTimeInMilSeconds = dur * 1000;
-    this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false)
+    this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
+
     let size = fps * dur * width * height;
     if (size < max_size) {
       this.width = width;
       this.height = height;
     } else {
-      let scale = size / max_size;
+      let scale = Math.sqrt(size / max_size);
       this.width = Math.floor(width / scale);
       this.height = Math.floor(height / scale);
     }
 
     this.#handleVideoRatio();
-    await this.#convertToArrayBuffer();
+    await this.#convertToArrayBufferOptimized();
   }
 
   #handleVideoRatio() {
@@ -78,41 +116,118 @@ export class VideoLayer extends StandardLayer {
     this.canvas.width = this.width;
   }
 
-  async #seek(t) {
-    return await (new Promise((function (resolve, reject) {
-      this.video.currentTime = t;
-      this.video.pause();
-      this.video.addEventListener('seeked', (function (ev) {
+  async #seekWithTimeout(time, timeout = 500) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`Seek timeout for time ${time}`));
+      }, timeout);
+
+      const onSeeked = () => {
+        clearTimeout(timeoutId);
+        this.video.removeEventListener('seeked', onSeeked);
+
         this.drawScaled(this.video, this.ctx, true);
         this.thumb_ctx.canvas.width = this.thumb_ctx.canvas.clientWidth * dpr;
         this.thumb_ctx.canvas.height = this.thumb_ctx.canvas.clientHeight * dpr;
         this.thumb_ctx.clearRect(0, 0, this.thumb_ctx.canvas.clientWidth, this.thumb_ctx.canvas.clientHeight);
         this.thumb_ctx.scale(dpr, dpr);
         this.drawScaled(this.ctx, this.thumb_ctx);
+
         let frame = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         resolve(frame);
-      }).bind(this), {
-        once: true
-      });
-    }).bind(this)));
+      };
+
+      this.video.addEventListener('seeked', onSeeked, {once: true});
+      this.video.currentTime = time;
+      this.video.pause();
+    });
   }
 
-  async #convertToArrayBuffer() {
+  async #convertToArrayBufferOptimized(optimizedFps = 12) {
     this.video.pause();
-    let d = this.video.duration;
-    for (let i = 0; i < d * fps; ++i) {
-      let frame = await this.#seek(i / fps);
-      this.framesCollection.frames.push(frame);
-      this.loadUpdateListener(
-          this,
-          (100 * i / (d * fps)).toFixed(2),
-          this.ctx
-      );
+    const duration = this.video.duration;
+    const totalFrames = Math.floor(duration * fps);
+
+    // Smart frame sampling - extract fewer frames initially
+    const optimizedTotalFrames = Math.floor(duration * optimizedFps);
+
+    const chunks = Math.ceil(optimizedTotalFrames / this.chunkSize);
+    const frameInterval = duration / optimizedTotalFrames;
+    console.log(`Processing ${optimizedTotalFrames} frames in ${chunks} chunks...`);
+
+    for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
+      const startFrame = chunkIndex * this.chunkSize;
+      const endFrame = Math.min(startFrame + this.chunkSize, optimizedTotalFrames);
+
+      console.log(`Processing chunk ${chunkIndex + 1}/${chunks} (frames ${startFrame}-${endFrame})`);
+      const chunkFrames = await this.#processFramesInParallel(startFrame, endFrame, frameInterval);
+      this.#updateFrameCollection(chunkFrames, startFrame, optimizedTotalFrames);
+
+      // Add a small delay between chunks to prevent blocking
+      if (chunkIndex < chunks - 1) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
     }
+
+    this.#fillMissingFrames(totalFrames, optimizedTotalFrames);
+    this.loadUpdateListener(this, 100, this.ctx, null);
     this.ready = true;
+    if (optimizedFps < fps) {
+      // await this.upgradeQuality()
+    }
     this.video.remove();
     this.video = null;
-    this.loadUpdateListener(this, 100, this.ctx, null);
+
+    console.log(`Video processing complete. Extracted ${this.framesCollection.frames.length} frames.`);
+  }
+
+  #updateFrameCollection(chunkFrames, startFrame, targetFrameCount) {
+    for (let j = 0; j < chunkFrames.length; j++) {
+      const result = chunkFrames[j];
+      const frameIndex = startFrame + j;
+
+      if (result.status === 'fulfilled' && result.value) {
+        this.framesCollection.update(frameIndex, result.value);
+      } else {
+        // Add a placeholder or duplicate previous frame
+        if (this.framesCollection.frames.length > 0) {
+          const lastFrame = this.framesCollection.frames[this.framesCollection.frames.length - 1];
+          this.framesCollection.update(frameIndex, lastFrame);
+        }
+      }
+
+      const progress = ((startFrame + j + 1) / targetFrameCount * 100).toFixed(2);
+      this.loadUpdateListener(this, progress, this.ctx);
+    }
+  }
+
+  async #processFramesInParallel(startFrame, endFrame, frameInterval) {
+    // This parallel processing is not working due to the limitations of HTMLVideoElement
+    // Without await the seek will return the same frame
+    //TODO: Try web codec API for better performance
+    const framePromises = [];
+    for (let i = startFrame; i < endFrame; i++) {
+      const time = i * frameInterval;
+      framePromises.push(await this.#seekWithTimeout(time));
+    }
+    return await Promise.allSettled(framePromises);
+  }
+
+  #fillMissingFrames(totalFrames, extractedFrames) {
+    if (extractedFrames >= totalFrames) {
+      return;
+    }
+
+    // Interpolate or duplicate frames to reach target frame count
+    const ratio = extractedFrames / totalFrames;
+    const originalFrames = this.framesCollection.copy();
+    this.framesCollection.frames = [];
+
+    for (let i = 0; i < totalFrames; i++) {
+      const sourceIndex = Math.floor(i * ratio);
+      const clampedIndex = Math.min(sourceIndex, originalFrames.length - 1);
+      this.framesCollection.frames.push(originalFrames[clampedIndex]);
+    }
   }
 
   render(ctxOut, currentTime, playing = false) {
@@ -122,6 +237,7 @@ export class VideoLayer extends StandardLayer {
     if (!this.isLayerVisible(currentTime)) {
       return;
     }
+
     // Check if we need to re-render this frame
     if (!this.shouldRender(currentTime, playing)) {
       this.drawScaled(this.ctx, ctxOut);
@@ -132,15 +248,25 @@ export class VideoLayer extends StandardLayer {
     if (index < 0 || index >= this.framesCollection.getLength()) {
       return;
     }
-    const frame = this.framesCollection.frames[index];
 
+    const frame = this.framesCollection.frames[index];
     if (!(frame instanceof ImageData)) {
       console.error("Invalid frame data at index", index, "for VideoLayer", this.name);
       return;
     }
+
     this.ctx.putImageData(frame, 0, 0);
     this.drawScaled(this.ctx, ctxOut);
     this.updateRenderCache(currentTime, playing);
-
   }
+
+  // Method to upgrade video quality on demand
+  async upgradeQuality() {
+    if (this.video) {
+      console.log('Upgrading video quality...');
+      // Re-process with higher frame rate or quality
+      await this.#convertToArrayBufferOptimized(fps);
+    }
+  }
+
 }
