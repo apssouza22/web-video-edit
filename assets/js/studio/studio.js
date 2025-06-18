@@ -27,14 +27,15 @@ export class VideoStudio {
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
     this.mediaEditor = new MediaEditor(this);
-    this.layerOperations = new LayerOperations(this.onLayerLoadUpdate.bind(this));
+    this.layerOperations = new LayerOperations(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
 
-    window.requestAnimationFrame(this.loop.bind(this));
+    window.requestAnimationFrame(this.#loop.bind(this));
+
     this.#setUpComponentListeners();
-    this.setupPinchHandler();
-    this.setupDragHandler();
-    this.resize();
+    this.#setupPinchHandler();
+    this.#setupDragHandler();
+    this.#resize();
   }
 
   init() {
@@ -102,7 +103,7 @@ export class VideoStudio {
     return JSON.stringify(out);
   }
 
-  setupPinchHandler() {
+  #setupPinchHandler() {
     this.pinchHandler = new PinchHandler(
         this.mainSection,
         (function (scale, rotation) {
@@ -116,12 +117,11 @@ export class VideoStudio {
     this.pinchHandler.setupEventListeners();
   }
 
-  setupDragHandler() {
+  #setupDragHandler() {
     let callback = (function (x, y) {
       this.update = {x: x, y: y};
     }).bind(this);
 
-    // Create a new DragHandler instance
     const dragHandler = new DragItemHandler(this.mainSection, callback, this);
     dragHandler.setupEventListeners()
   }
@@ -134,12 +134,16 @@ export class VideoStudio {
     return this.layersSidebarView.selectedLayer;
   }
 
+  /**
+   * Get all layers in the studio
+   * @returns {StandardLayer[]}
+   */
   getLayers() {
     return this.layersSidebarView.layers;
   }
 
   /**
-   *
+   * Remove a layer from the studio
    * @param {StandardLayer} layer
    */
   remove(layer) {
@@ -175,6 +179,7 @@ export class VideoStudio {
     this.layersSidebarView.updateLayerName(clonedLayer, clonedLayer.name);
     this.layersSidebarView.setSelectedLayer(clonedLayer);
     console.log(`Successfully cloned layer: ${layer.name}`);
+    return clonedLayer;
   }
 
   addLayer(layer) {
@@ -191,13 +196,13 @@ export class VideoStudio {
     this.player.pause();
   }
 
-  resize() {
+  #resize() {
     this.player.resize();
     this.timeline.resize();
     this.layersSidebarView.resize();
   }
 
-  loop(realtime) {
+  #loop(realtime) {
     // Process updates for selected layer
     if (this.getSelectedLayer() && this.update) {
       console.log('Applying update to layer:', this.getSelectedLayer().name, 'Update:', this.update);
@@ -210,7 +215,7 @@ export class VideoStudio {
     this.timeline.render(this.getLayers());
     this.layersSidebarView.render(this.player.time);
 
-    window.requestAnimationFrame(this.loop.bind(this));
+    window.requestAnimationFrame(this.#loop.bind(this));
   }
 
   upload() {
@@ -232,7 +237,7 @@ export class VideoStudio {
       filePicker.value = '';
 
       layers.forEach(layer => {
-        layer.addLoadUpdateListener(this.onLayerLoadUpdate.bind(this))
+        layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
       })
     });
     filePicker.click();
@@ -261,8 +266,7 @@ export class VideoStudio {
     this.loadingPopup.updateProgress('json-load', 100);
   }
 
-  onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
-    // Update the loading popup with progress
+  #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
     
     if (progress < 100) {

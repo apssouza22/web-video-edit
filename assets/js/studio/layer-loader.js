@@ -45,7 +45,7 @@ export class LayerLoader {
    * Load a layer from a URI
    *
    * @param {string} uri
-   * @returns {FlexibleLayer[]} Promise that resolves to the added layer
+   * @returns {Promise<FlexibleLayer[]>} Promise that resolves to the added layer
    */
   async loadLayerFromURI(uri) {
     if (!uri) {
@@ -74,47 +74,55 @@ export class LayerLoader {
   async loadLayersFromJson(layers) {
     const allLayers = [];
     for (let layer_d of layers) {
-      let layersCreated = [];
-      if (layer_d.type == "VideoLayer") {
-        const l = await this.loadLayerFromURI(layer_d.uri);
-        layersCreated.push(...l);
-      }
-      if (layer_d.type == "TextLayer") {
-        const layer = this.viewHandler.addLayer(new TextLayer(layer_d.name));
-        layer.init(this.studio.player.width, null, this.studio.player.audioContext);
-        layersCreated.push(layer);
-      }
-      if (layer_d.type == "ImageLayer") {
-        const l = await this.loadLayerFromURI(layer_d.uri);
-        layersCreated.push(...l);
-      }
+      let layersCreated = await this.#loadLayerType(layer_d);
 
       if (!layersCreated.length) {
         alert("Layer couldn't be processed.");
         continue;
       }
       allLayers.push(...layersCreated);
-
-      layersCreated.forEach(layer => {
-        layer.addLoadUpdateListener((l, progress, ctx, audioBuffer) => {
-          if (progress < 100) {
-            return
-          }
-          layer.name = layer.name;
-          layer.width = layer_d.width;
-          layer.height = layer_d.height;
-          layer.start_time = layer_d.start_time;
-          layer.total_time = layer_d.total_time;
-
-          if (layer_d.frames) {
-            layer.framesCollection.frames = [];
-            for (let f of layer_d.frames) {
-              layer.framesCollection.push(new Float32Array(f));
-            }
-          }
-        });
-      })
+      this.#addOnLoadUpdateListener(layersCreated, layer_d);
     }
     return allLayers;
   }
-} 
+
+  #addOnLoadUpdateListener(layersCreated, layer_d) {
+    layersCreated.forEach(layer => {
+      layer.addLoadUpdateListener((l, progress, ctx, audioBuffer) => {
+        if (progress < 100) {
+          return
+        }
+        layer.name = layer.name;
+        layer.width = layer_d.width;
+        layer.height = layer_d.height;
+        layer.start_time = layer_d.start_time;
+        layer.total_time = layer_d.total_time;
+
+        if (layer_d.frames) {
+          layer.framesCollection.frames = [];
+          for (let f of layer_d.frames) {
+            layer.framesCollection.push(new Float32Array(f));
+          }
+        }
+      });
+    })
+  }
+
+  async #loadLayerType(layer_d) {
+    let layersCreated = [];
+    if (layer_d.type === "VideoLayer") {
+      const l = await this.loadLayerFromURI(layer_d.uri);
+      layersCreated.push(...l);
+    }
+    if (layer_d.type === "TextLayer") {
+      const layer = this.viewHandler.addLayer(new TextLayer(layer_d.name));
+      layer.init(this.studio.player.width, null, this.studio.player.audioContext);
+      layersCreated.push(layer);
+    }
+    if (layer_d.type === "ImageLayer") {
+      const l = await this.loadLayerFromURI(layer_d.uri);
+      layersCreated.push(...l);
+    }
+    return layersCreated;
+  }
+}
