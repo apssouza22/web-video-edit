@@ -1,24 +1,68 @@
 import {StandardLayer, addElementToBackground} from './layer-common.js';
 import {FrameCollection} from '../frame';
 import {fps, max_size, dpr} from '../constants.js';
+import {DemuxHandler} from "../demux/demux.js";
 
 export class VideoLayer extends StandardLayer {
+
+
   constructor(file, skipLoading = false) {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);
     this.useWebCodecs = this.#checkWebCodecsSupport();
     this.chunkSize = 30; // Process 30 frames at a time
     this.optimizedFPS = 12;
+    this.demuxHandler = new DemuxHandler();
+    this.demuxHandler.addOnUpdateListener(this.#demuxUpdateListener.bind(this));
 
     // Empty VideoLayers (split() requires this)
     if (skipLoading) {
       return;
     }
 
-    if (this.useWebCodecs && file.type.startsWith('video/')) {
-      this.#initializeWithWebCodecs(file);
+    this.#readFile(file);
+  }
+
+  #demuxUpdateListener(message) {
+    const data = message.data
+
+    for (const key in data) {
+      if (key === "onReady") {
+        console.log("onReady", data[key]);
+        let width = data[key].video.width;
+        let height = data[key].video.height;
+        let dur = data[key].duration;
+        this.totalTimeInMilSeconds = dur * 1000;
+        this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
+        this.#setSize(dur, width, height);
+        this.#handleVideoRatio();
+
+
+      }
+
+      if(key === "onFrame"){
+        console.log("onFrame", data[key]);
+        this.framesCollection.push(data[key]);
+        console.log("total time:", this.framesCollection.calculateTotalTimeInMilSec(), "to", this.totalTimeInMilSeconds);
+        console.log("frames length:", this.framesCollection.getLength(), "to", this.totalTimeInMilSeconds / 1000  * fps);
+        if (this.framesCollection.calculateTotalTimeInMilSec() === this.totalTimeInMilSeconds){
+          console.log("finished!!!!!!!!!!!!!")
+          this.loadUpdateListener(this, 100, this.ctx, null);
+          this.ready = true;
+        }
+      }
+    }
+  }
+
+  #setSize(dur, width, height) {
+    let size = fps * dur * width * height;
+    if (size < max_size) {
+      this.width = width;
+      this.height = height;
     } else {
-      this.#initializeWithHTMLVideo(file);
+      let scale = Math.sqrt(size / max_size);
+      this.width = Math.floor(width / scale);
+      this.height = Math.floor(height / scale);
     }
   }
 
@@ -30,16 +74,14 @@ export class VideoLayer extends StandardLayer {
 
   async #initializeWithWebCodecs(file) {
     try {
-      // Use WebCodecs API for better performance
-      const arrayBuffer = await file.arrayBuffer();
-      await this.#processVideoWithWebCodecs(arrayBuffer);
+      await this.#processVideoWithWebCodecs();
     } catch (error) {
       console.warn('WebCodecs failed, falling back to HTML video:', error);
-      this.#initializeWithHTMLVideo(file);
+      this.#initializeWithHTMLVideo();
     }
   }
 
-  #initializeWithHTMLVideo(file) {
+  #initializeWithHTMLVideo() {
     /**
      * @type {HTMLVideoElement}
      */
@@ -50,21 +92,27 @@ export class VideoLayer extends StandardLayer {
     this.video.setAttribute('muted', true);
     this.video.setAttribute('preload', 'metadata');
     addElementToBackground(this.video);
+    this.video.addEventListener('loadedmetadata', this.#onLoadMetadata.bind(this));
+    this.video.src = this.fileSrc
+  }
 
+  #readFile(file) {
     this.reader = new FileReader();
     this.reader.addEventListener("load", (function () {
-      this.video.addEventListener('loadedmetadata', this.#onLoadMetadata.bind(this));
-      this.video.src = this.reader.result;
+      this.fileSrc = this.reader.result;
+      if (this.useWebCodecs && file.type.startsWith('video/')) {
+        this.#initializeWithWebCodecs(file).then(r => {
+        });
+      } else {
+        this.#initializeWithHTMLVideo(file);
+      }
     }).bind(this), false);
 
     this.reader.readAsDataURL(file);
   }
 
-  async #processVideoWithWebCodecs(arrayBuffer) {
-    console.log('Processing video with WebCodecs API...');
-
-    // For now, fall back to HTML video as WebCodecs requires format-specific handling
-    this.#initializeWithHTMLVideo(this.file);
+  async #processVideoWithWebCodecs() {
+    this.demuxHandler.start(this.fileSrc, "2d");
   }
 
   /**
@@ -88,16 +136,7 @@ export class VideoLayer extends StandardLayer {
     this.totalTimeInMilSeconds = dur * 1000;
     this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
 
-    let size = fps * dur * width * height;
-    if (size < max_size) {
-      this.width = width;
-      this.height = height;
-    } else {
-      let scale = Math.sqrt(size / max_size);
-      this.width = Math.floor(width / scale);
-      this.height = Math.floor(height / scale);
-    }
-
+    this.#setSize(dur, width, height);
     this.#handleVideoRatio();
     await this.#convertToArrayBufferOptimized();
   }

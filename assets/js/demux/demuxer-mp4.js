@@ -34,9 +34,9 @@ class MP4FileSink {
 // Demuxes the first video track of an MP4 file using MP4Box and decodes it using VideoDecoder,
 // calling `onFrame()` with decoded VideoFrame objects and `onError()` for decode errors.
 class MP4Demuxer {
-  #onFrame = null;
-  #onError = null;
-  #setStatus = null;
+  #onFrame = (f) =>{};
+  #onError = (f) =>{};
+  #setStatus = (f) =>{};
   #file = null;
   #decoder = null;
   #frameCount = 0;
@@ -49,7 +49,7 @@ class MP4Demuxer {
 
     // Configure an MP4Box File for demuxing.
     this.#file = MP4Box.createFile();
-    this.#file.onError = error => setStatus("demux", error);
+    this.#file.onError = error => setStatus("onError", error);
     this.#file.onReady = this.#onReady.bind(this);
     this.#file.onSamples = this.#onSamples.bind(this);
 
@@ -78,10 +78,10 @@ class MP4Demuxer {
   }
 
   #onReady(info) {
-    this.#setStatus("demux", "Ready");
     const track = info.videoTracks[0];
     this.#configureDecoder(track);
     this.#file.setExtractionOptions(track.id);
+    this.#setStatus("onReady", {duration: info.duration, video: track.video});
     this.#file.start();
   }
 
@@ -95,7 +95,7 @@ class MP4Demuxer {
         } else {
           const elapsed = (performance.now() - this.#startTime) / 1000;
           const fps = ++this.#frameCount / elapsed;
-          this.#setStatus("render", `${fps.toFixed(0)} fps`);
+          // this.#setStatus("render", `${fps.toFixed(0)} fps`);
         }
         this.#onFrame(frame);
       },
@@ -112,7 +112,7 @@ class MP4Demuxer {
       codedWidth: track.video.width,
       description: this.#description(track),
     };
-
+    this.#setStatus("video", track.video)
     this.#setStatus("decode", `${config.codec} @ ${config.codedWidth}x${config.codedHeight}`);
     this.#decoder.configure(config);
   }

@@ -39,6 +39,10 @@ export class FrameCollection {
     return this.totalTimeInMilSeconds
   }
 
+  calculateTotalTimeInMilSec() {
+    return  this.frames.length / fps * 1000;
+  }
+
   initializeFrames() {
     for (let i = 0; i < this.totalTimeInSeconds * fps; ++i) {
       // x, y, scale, rot, anchor(bool)
