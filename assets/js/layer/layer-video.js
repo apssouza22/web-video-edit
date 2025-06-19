@@ -41,10 +41,13 @@ export class VideoLayer extends StandardLayer {
 
       if(key === "onFrame"){
         const frameData = data[key];
-        // Push the actual VideoFrame to the collection
-        this.framesCollection.push(frameData.frame);
+        
+        // Convert VideoFrame to ImageData if needed
+        // You can choose to store as ImageData for consistency
+        const frame = this.#convertVideoFrameToImageData(frameData.frame);
+        this.framesCollection.push(frame);
 
-        // Use the isLastFrame flag to determine completion
+         // Use the isLastFrame flag to determine completion
         if (frameData.isLastFrame) {
           console.log("Last frame received! Processing complete.");
           console.log(`Processed ${frameData.frameNumber}/${frameData.totalFrames} frames`);
@@ -85,6 +88,7 @@ export class VideoLayer extends StandardLayer {
   async #initializeWithWebCodecs(file) {
     try {
       await this.#processVideoWithWebCodecs();
+      // this.#initializeWithHTMLVideo();
     } catch (error) {
       console.warn('WebCodecs failed, falling back to HTML video:', error);
       this.#initializeWithHTMLVideo();
@@ -299,15 +303,21 @@ export class VideoLayer extends StandardLayer {
     }
 
     const frame = this.framesCollection.frames[index];
-    // if (!(frame instanceof ImageData)) {
-    //   console.error("Invalid frame data at index", index, "for VideoLayer", this.name);
-    //   return;
-    // }
+    if (frame instanceof ImageData) {
+      this.ctx.putImageData(frame, 0, 0);
+      this.drawScaled(this.ctx, ctxOut);
+      this.updateRenderCache(currentTime, playing);
+      return;
+    }
 
-    // this.ctx.putImageData(frame, 0, 0);
-    this.ctx.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
-    this.drawScaled(this.ctx, ctxOut);
-    this.updateRenderCache(currentTime, playing);
+    // Legacy support for VideoFrame objects (if any remain unconverted)
+    if(frame instanceof VideoFrame) {
+      // Convert VideoFrame to ImageData on-the-fly if needed
+      const imageData = this.#convertVideoFrameToImageData(frame);
+      this.ctx.putImageData(imageData, 0, 0);
+      this.drawScaled(this.ctx, ctxOut);
+      this.updateRenderCache(currentTime, playing);
+    }
   }
 
   // Method to upgrade video quality on demand
@@ -317,6 +327,30 @@ export class VideoLayer extends StandardLayer {
       // Re-process with higher frame rate or quality
       await this.#convertToArrayBufferOptimized(fps);
     }
+  }
+
+  /**
+   * Converts a VideoFrame to ImageData
+   * @param {VideoFrame} videoFrame - The VideoFrame to convert
+   * @returns {ImageData} The converted ImageData
+   */
+  #convertVideoFrameToImageData(videoFrame) {
+    // Create a temporary canvas for conversion
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // Set canvas dimensions to match this layer's canvas size
+    tempCanvas.width = this.canvas.width;
+    tempCanvas.height = this.canvas.height;
+    
+    // Draw the VideoFrame scaled to fit the canvas dimensions
+    tempCtx.drawImage(videoFrame, 0, 0, this.canvas.width, this.canvas.height);
+    
+    // Extract ImageData from the canvas
+    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    videoFrame.close();
+    
+    return imageData;
   }
 
 }

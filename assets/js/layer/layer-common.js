@@ -1,5 +1,5 @@
-import { FrameCollection } from '../frame/index.js';
-import { dpr, fps } from '../constants.js';
+import {FrameCollection} from '../frame';
+import {dpr, fps} from '../constants.js';
 
 export class StandardLayer {
   constructor(file) {
@@ -26,7 +26,6 @@ export class StandardLayer {
     addElementToBackground(this.canvas);
     this.updateName(this.name);
   }
-
 
   /**
    * Adjusts the total time of the video layer by adding or removing frames
@@ -198,7 +197,6 @@ export class FlexibleLayer extends StandardLayer {
     }
     return obj;
   }
-
 
 }
 

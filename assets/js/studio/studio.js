@@ -35,7 +35,7 @@ export class VideoStudio {
     this.#setUpComponentListeners();
     this.#setupPinchHandler();
     this.#setupDragHandler();
-    this.#resize();
+    this.resize();
   }
 
   init() {
@@ -196,7 +196,7 @@ export class VideoStudio {
     this.player.pause();
   }
 
-  #resize() {
+  resize() {
     this.player.resize();
     this.timeline.resize();
     this.layersSidebarView.resize();
