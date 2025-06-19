@@ -31,17 +31,20 @@ class MP4FileSink {
   }
 }
 
-// Demuxes the first video track of an MP4 file using MP4Box, calling
-// `onConfig()` and `onChunk()` with appropriate WebCodecs objects.
- class MP4Demuxer {
-  #onConfig = null;
-  #onChunk = null;
+// Demuxes the first video track of an MP4 file using MP4Box and decodes it using VideoDecoder,
+// calling `onFrame()` with decoded VideoFrame objects and `onError()` for decode errors.
+class MP4Demuxer {
+  #onFrame = null;
+  #onError = null;
   #setStatus = null;
   #file = null;
+  #decoder = null;
+  #frameCount = 0;
+  #startTime = null;
 
-  constructor(uri, {onConfig, onChunk, setStatus}) {
-    this.#onConfig = onConfig;
-    this.#onChunk = onChunk;
+  constructor(uri, {onFrame, onError, setStatus}) {
+    this.#onFrame = onFrame;
+    this.#onError = onError;
     this.#setStatus = setStatus;
 
     // Configure an MP4Box File for demuxing.
@@ -77,31 +80,68 @@ class MP4FileSink {
   #onReady(info) {
     this.#setStatus("demux", "Ready");
     const track = info.videoTracks[0];
-
-    // Generate and emit an appropriate VideoDecoderConfig.
-    this.#onConfig({
-      // Browser doesn't support parsing full vp8 codec (eg: `vp08.00.41.08`),
-      // they only support `vp8`.
-      codec: track.codec.startsWith('vp08') ? 'vp8' : track.codec,
-      codedHeight: track.video.height,
-      codedWidth: track.video.width,
-      description: this.#description(track),
-    });
-
-    // Start demuxing.
+    this.#configureDecoder(track);
     this.#file.setExtractionOptions(track.id);
     this.#file.start();
   }
 
+  #configureDecoder(track) {
+    // Create and configure the VideoDecoder
+    this.#decoder = new VideoDecoder({
+      output: (frame) => {
+        // Update statistics.
+        if (this.#startTime == null) {
+          this.#startTime = performance.now();
+        } else {
+          const elapsed = (performance.now() - this.#startTime) / 1000;
+          const fps = ++this.#frameCount / elapsed;
+          this.#setStatus("render", `${fps.toFixed(0)} fps`);
+        }
+        this.#onFrame(frame);
+      },
+      error: (e) => {
+        this.#setStatus("decode", e);
+        this.#onError(e);
+      }
+    });
+
+    // Generate and configure VideoDecoderConfig.
+    const config = {
+      codec: this.#getCodec(track),
+      codedHeight: track.video.height,
+      codedWidth: track.video.width,
+      description: this.#description(track),
+    };
+
+    this.#setStatus("decode", `${config.codec} @ ${config.codedWidth}x${config.codedHeight}`);
+    this.#decoder.configure(config);
+  }
+
+  #getCodec(track) {
+    // Browser doesn't support parsing full vp8 codec (eg: `vp08.00.41.08`), they only support `vp8`.
+    return track.codec.startsWith('vp08') ? 'vp8' : track.codec;
+  }
+
   #onSamples(track_id, ref, samples) {
-    // Generate and emit an EncodedVideoChunk for each demuxed sample.
+    // Generate and decode EncodedVideoChunk for each demuxed sample.
     for (const sample of samples) {
-      this.#onChunk(new EncodedVideoChunk({
+      const chunk = new EncodedVideoChunk({
         type: sample.is_sync ? "key" : "delta",
         timestamp: 1e6 * sample.cts / sample.timescale,
         duration: 1e6 * sample.duration / sample.timescale,
         data: sample.data
-      }));
+      });
+      
+      // Decode the chunk directly
+      this.#decoder.decode(chunk);
+    }
+  }
+
+  // Public method to close/cleanup the decoder
+  close() {
+    if (this.#decoder) {
+      this.#decoder.close();
+      this.#decoder = null;
     }
   }
 }

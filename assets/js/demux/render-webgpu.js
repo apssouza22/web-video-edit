@@ -1,5 +1,4 @@
-
-export class WebGPURenderer {
+class WebGPURenderer {
   #canvas = null;
   #ctx = null;
 

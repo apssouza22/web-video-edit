@@ -15,19 +15,33 @@ const status = {
 };
 
 function setStatus(message) {
-  for (const key in message.data) {
-    status[key].innerText = message.data[key];
+  console.log(status, message.data.data);
+  for (const key in message.data.data) {
+    status[key].innerText = message.data.data[key];
   }
 }
-const worker = new Worker(new URL("./worker.js", import.meta.url));
 
 function start() {
   const videoCodec = document.querySelector("input[name=\"video_codec\"]:checked").value;
   const dataUri = `https://w3c.github.io/webcodecs/samples/data/bbb_video_${videoCodec}_frag.mp4`;
   const rendererName = document.querySelector("input[name=\"renderer\"]:checked").value;
   const canvas = document.querySelector("canvas").transferControlToOffscreen();
-
-  console.log(`Starting worker with dataUri: ${dataUri}, renderer: ${rendererName}`);
-  worker.addEventListener("message", setStatus);
-  worker.postMessage({dataUri, rendererName, canvas}, [canvas]);
+  const handler  =new DemuxHandler();
+  handler.start(dataUri, rendererName, canvas);
 }
+
+class DemuxHandler{
+  #worker;
+
+  constructor() {
+    this.#worker = new Worker(new URL("./worker.js", import.meta.url));
+    this.#worker.addEventListener("message", setStatus);
+  }
+
+  start(dataUri, rendererName, canvas) {
+    const task = "start";
+    console.log(`Starting worker with dataUri: ${dataUri}, renderer: ${rendererName}`);
+    this.#worker.postMessage({task, dataUri, rendererName, canvas}, [canvas]);
+  }
+}
+

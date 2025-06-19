@@ -1,5 +1,4 @@
-
-export class WebGLRenderer {
+class WebGLRenderer {
   #canvas = null;
   #ctx = null;
 
