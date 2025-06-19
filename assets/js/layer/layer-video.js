@@ -33,23 +33,33 @@ export class VideoLayer extends StandardLayer {
         let height = data[key].video.height;
         let dur = data[key].duration;
         this.totalTimeInMilSeconds = dur * 1000;
+        this.expectedTotalFrames = data[key].totalFrames || Math.ceil(dur * fps);
         this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
         this.#setSize(dur, width, height);
         this.#handleVideoRatio();
-
-
       }
 
       if(key === "onFrame"){
-        console.log("onFrame", data[key]);
-        this.framesCollection.push(data[key]);
-        console.log("total time:", this.framesCollection.calculateTotalTimeInMilSec(), "to", this.totalTimeInMilSeconds);
-        console.log("frames length:", this.framesCollection.getLength(), "to", this.totalTimeInMilSeconds / 1000  * fps);
-        if (this.framesCollection.calculateTotalTimeInMilSec() === this.totalTimeInMilSeconds){
-          console.log("finished!!!!!!!!!!!!!")
+        const frameData = data[key];
+        // Push the actual VideoFrame to the collection
+        this.framesCollection.push(frameData.frame);
+
+        // Use the isLastFrame flag to determine completion
+        if (frameData.isLastFrame) {
+          console.log("Last frame received! Processing complete.");
+          console.log(`Processed ${frameData.frameNumber}/${frameData.totalFrames} frames`);
           this.loadUpdateListener(this, 100, this.ctx, null);
           this.ready = true;
+        } else {
+          // Update progress based on frame count
+          const progress = Math.min(95, (frameData.frameNumber / frameData.totalFrames) * 100);
+          this.loadUpdateListener(this, progress, this.ctx, null);
         }
+      }
+      
+      if(key === "onComplete") {
+        console.log("Demux completed:", data[key]);
+        // Additional completion handling if needed
       }
     }
   }
@@ -112,7 +122,7 @@ export class VideoLayer extends StandardLayer {
   }
 
   async #processVideoWithWebCodecs() {
-    this.demuxHandler.start(this.fileSrc, "2d");
+    this.demuxHandler.start(await this.file.arrayBuffer(), "2d");
   }
 
   /**
@@ -289,12 +299,13 @@ export class VideoLayer extends StandardLayer {
     }
 
     const frame = this.framesCollection.frames[index];
-    if (!(frame instanceof ImageData)) {
-      console.error("Invalid frame data at index", index, "for VideoLayer", this.name);
-      return;
-    }
+    // if (!(frame instanceof ImageData)) {
+    //   console.error("Invalid frame data at index", index, "for VideoLayer", this.name);
+    //   return;
+    // }
 
-    this.ctx.putImageData(frame, 0, 0);
+    // this.ctx.putImageData(frame, 0, 0);
+    this.ctx.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
     this.drawScaled(this.ctx, ctxOut);
     this.updateRenderCache(currentTime, playing);
   }

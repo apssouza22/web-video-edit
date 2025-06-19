@@ -41,6 +41,8 @@ class MP4Demuxer {
   #decoder = null;
   #frameCount = 0;
   #startTime = null;
+  #totalFrames = 0;
+  #expectedFrames = 0;
 
   constructor(uri, {onFrame, onError, setStatus}) {
     this.#onFrame = onFrame;
@@ -52,14 +54,17 @@ class MP4Demuxer {
     this.#file.onError = error => setStatus("onError", error);
     this.#file.onReady = this.#onReady.bind(this);
     this.#file.onSamples = this.#onSamples.bind(this);
+    uri.fileStart = 0;
+    this.#file.appendBuffer(uri)
+    this.#file.flush();
 
     // Fetch the file and pipe the data through.
-    const fileSink = new MP4FileSink(this.#file, setStatus);
-    fetch(uri).then(response => {
-      // highWaterMark should be large enough for smooth streaming, but lower is
-      // better for memory usage.
-      response.body.pipeTo(new WritableStream(fileSink, {highWaterMark: 2}));
-    });
+    // const fileSink = new MP4FileSink(this.#file, setStatus);
+    // fetch(uri).then(response => {
+    //   // highWaterMark should be large enough for smooth streaming, but lower is
+    //   // better for memory usage.
+    //   response.body.pipeTo(new WritableStream(fileSink, {highWaterMark: 2}));
+    // });
   }
 
   // Get the appropriate `description` for a specific track. Assumes that the
@@ -79,9 +84,17 @@ class MP4Demuxer {
 
   #onReady(info) {
     const track = info.videoTracks[0];
+    
+    // Calculate expected total frames based on duration and track samples
+    this.#expectedFrames = track.nb_samples || Math.ceil(info.duration * (track.movie_timescale / track.movie_duration) * track.timescale / track.duration);
+    
     this.#configureDecoder(track);
     this.#file.setExtractionOptions(track.id);
-    this.#setStatus("onReady", {duration: info.duration, video: track.video});
+    this.#setStatus("onReady", {
+      duration: info.duration, 
+      video: track.video,
+      totalFrames: this.#expectedFrames
+    });
     this.#file.start();
   }
 
@@ -97,7 +110,28 @@ class MP4Demuxer {
           const fps = ++this.#frameCount / elapsed;
           // this.#setStatus("render", `${fps.toFixed(0)} fps`);
         }
-        this.#onFrame(frame);
+        
+        // Increment total frames processed
+        this.#totalFrames++;
+        
+        // Check if this is the last frame
+        const isLastFrame = this.#totalFrames >= this.#expectedFrames -5;
+        
+        // Pass frame with metadata
+        this.#onFrame({
+          frame: frame,
+          frameNumber: this.#totalFrames,
+          totalFrames: this.#expectedFrames,
+          isLastFrame: isLastFrame
+        });
+        
+        // If this is the last frame, signal completion
+        if (isLastFrame) {
+          this.#setStatus("onComplete", {
+            totalFramesProcessed: this.#totalFrames,
+            expectedFrames: this.#expectedFrames
+          });
+        }
       },
       error: (e) => {
         this.#setStatus("decode", e);

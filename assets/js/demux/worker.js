@@ -85,11 +85,16 @@ class DemuxWorker {
 
   /**
    * Handles decoded video frames for rendering
-   * @param {VideoFrame} frame - Decoded video frame
+   * @param {Object} frameData - Frame data with metadata
+   * @param {VideoFrame} frameData.frame - Decoded video frame
+   * @param {number} frameData.frameNumber - Current frame number
+   * @param {number} frameData.totalFrames - Total expected frames
+   * @param {boolean} frameData.isLastFrame - Whether this is the last frame
    * @private
    */
-  #handleFrame(frame) {
-    self.postMessage({["onFrame"]: frame});
+  #handleFrame(frameData) {
+    // Pass the entire frame data object to the main thread
+    self.postMessage({["onFrame"]: frameData});
   }
 
   /**
