@@ -1,5 +1,3 @@
-
-
 import { FlexibleLayer } from './index.js';
 
 export class ImageLayer extends FlexibleLayer {
@@ -39,14 +37,14 @@ export class ImageLayer extends FlexibleLayer {
     let f = this.getFrame(currentTime);
     if (f) {
       let scale = f[2];
-      let x = f[0] + this.canvas.width / 2 - this.width / 2;
-      let y = f[1] + this.canvas.height / 2 - this.height / 2;
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.drawImage(this.img, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
+      let x = f[0] + this.renderer.width / 2 - this.width / 2;
+      let y = f[1] + this.renderer.height / 2 - this.height / 2;
+      this.renderer.clearRect();
+      this.renderer.drawImage(this.img, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
       this.drawScaled(this.ctx, ctx_out);
       
       // Update the render cache
-      this.updateRenderCache(currentTime, playing);
+      this.updateRenderCache(currentTime);
     }
   }
 }

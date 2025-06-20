@@ -1,5 +1,5 @@
 import { dpr } from '../constants.js';
-import { drawScaled } from './layer-common.js';
+import { Canvas2DRender } from '../common/render-2d.js';
 
 /**
  * LayersSidebarView class responsible for managing the layer preview UI elements
@@ -251,7 +251,7 @@ export class LayersSidebarView {
 
   updateLayerThumb(layer, ctx) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    drawScaled(ctx, this.layerItemsUI[layer.id].ctx);
+    Canvas2DRender.drawScaled(ctx, this.layerItemsUI[layer.id].ctx);
   }
 
   resize() {

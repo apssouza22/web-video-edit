@@ -2,9 +2,9 @@ import {StandardLayer, addElementToBackground} from './layer-common.js';
 import {FrameCollection} from '../frame';
 import {fps, max_size, dpr} from '../constants.js';
 import {DemuxHandler} from "../demux/demux.js";
+import {Canvas2DRender} from '../common/render-2d.js';
 
 export class VideoLayer extends StandardLayer {
-
 
   constructor(file, skipLoading = false) {
     super(file);
@@ -87,8 +87,8 @@ export class VideoLayer extends StandardLayer {
 
   async #initializeWithWebCodecs(file) {
     try {
-      await this.#processVideoWithWebCodecs();
-      // this.#initializeWithHTMLVideo();
+      // await this.#processVideoWithWebCodecs();
+      this.#initializeWithHTMLVideo();
     } catch (error) {
       console.warn('WebCodecs failed, falling back to HTML video:', error);
       this.#initializeWithHTMLVideo();
@@ -118,7 +118,7 @@ export class VideoLayer extends StandardLayer {
         this.#initializeWithWebCodecs(file).then(r => {
         });
       } else {
-        this.#initializeWithHTMLVideo(file);
+        this.#initializeWithHTMLVideo();
       }
     }).bind(this), false);
 
@@ -335,21 +335,12 @@ export class VideoLayer extends StandardLayer {
    * @returns {ImageData} The converted ImageData
    */
   #convertVideoFrameToImageData(videoFrame) {
-    // Create a temporary canvas for conversion
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    
-    // Set canvas dimensions to match this layer's canvas size
-    tempCanvas.width = this.canvas.width;
-    tempCanvas.height = this.canvas.height;
-    
-    // Draw the VideoFrame scaled to fit the canvas dimensions
-    tempCtx.drawImage(videoFrame, 0, 0, this.canvas.width, this.canvas.height);
-    
-    // Extract ImageData from the canvas
-    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    // Use the Canvas2DRender abstraction for conversion
+    const tempRender = new Canvas2DRender();
+    tempRender.setSize(this.canvas.width, this.canvas.height);
+    tempRender.drawImage(videoFrame, 0, 0, this.canvas.width, this.canvas.height);
+    const imageData = tempRender.getImageData();
     videoFrame.close();
-    
     return imageData;
   }
 

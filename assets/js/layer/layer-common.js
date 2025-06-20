@@ -1,5 +1,6 @@
 import {FrameCollection} from '../frame';
 import {dpr, fps} from '../constants.js';
+import {Canvas2DRender} from '../common/render-2d.js';
 
 export class StandardLayer {
   constructor(file) {
@@ -16,15 +17,23 @@ export class StandardLayer {
     this.start_time = 0;
     this.width = 0;
     this.height = 0;
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+    this.renderer = new Canvas2DRender();
     this.loadUpdateListener = (layer, progress, ctx, audioBuffer) => {
     };
     this.lastRenderedTime = -1; // Track last rendered time for caching
 
     this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false)
-    addElementToBackground(this.canvas);
+    addElementToBackground(this.renderer.canvas);
     this.updateName(this.name);
+  }
+
+  // Getters for backward compatibility
+  get canvas() {
+    return this.renderer.canvas;
+  }
+
+  get ctx() {
+    return this.renderer.context;
   }
 
   /**
@@ -88,10 +97,9 @@ export class StandardLayer {
   /**
    * Checks if the layer needs to be rendered again based on time and playing state
    * @param {number} currentTime - The current time of the player
-   * @param {boolean} playing - Whether the player is currently playing
    * @returns {boolean} - Whether the layer needs to be rendered
    */
-  shouldRender(currentTime, playing) {
+  shouldRender(currentTime) {
     // Only re-render if time has changed
     return currentTime !== this.lastRenderedTime;
   }
@@ -99,9 +107,8 @@ export class StandardLayer {
   /**
    * Updates the rendering cache information
    * @param {number} currentTime - The current time that was rendered
-   * @param {boolean} playing - The current playing state
    */
-  updateRenderCache(currentTime, playing) {
+  updateRenderCache(currentTime) {
     this.lastRenderedTime = currentTime;
   }
 
@@ -115,8 +122,8 @@ export class StandardLayer {
   }
 
   init(canvasWidth = 500, canvasHeight = null, audioContext = null) {
-    this.canvas.width = canvasWidth;
-    this.canvas.height = canvasHeight == null ? (canvasWidth / 16) * 9 : canvasHeight // 16:9 aspect ratio
+    const height = canvasHeight == null ? (canvasWidth / 16) * 9 : canvasHeight // 16:9 aspect ratio
+    this.renderer.setSize(canvasWidth, height);
   }
 
   /**
@@ -175,7 +182,7 @@ export class StandardLayer {
   }
 
   drawScaled(ctxFrom, ctxOutTo, video = false) {
-    drawScaled(ctxFrom, ctxOutTo, video);
+    Canvas2DRender.drawScaled(ctxFrom, ctxOutTo, video);
   }
 }
 
@@ -198,35 +205,6 @@ export class FlexibleLayer extends StandardLayer {
     return obj;
   }
 
-}
-
-export function drawScaled(ctxFrom, ctxOutTo, video = false) {
-  const width = video ? ctxFrom.videoWidth : ctxFrom.canvas.clientWidth;
-  const height = video ? ctxFrom.videoHeight : ctxFrom.canvas.clientHeight;
-  const in_ratio = width / height;
-
-  // Use logical dimensions (buffer dimensions divided by device pixel ratio)
-  const outLogicalWidth = ctxOutTo.canvas.width / dpr;
-  const outLogicalHeight = ctxOutTo.canvas.height / dpr;
-  const out_ratio = outLogicalWidth / outLogicalHeight;
-
-  let ratio = 1;
-  let offset_width = 0;
-  let offset_height = 0;
-  if (in_ratio > out_ratio) { // input is wider
-    // match width
-    ratio = outLogicalWidth / width;
-    offset_height = (outLogicalHeight - (ratio * height)) / 2;
-  } else { // output is wider
-    // match height
-    ratio = outLogicalHeight / height;
-    offset_width = (outLogicalWidth - (ratio * width)) / 2;
-  }
-  ctxOutTo.drawImage(
-    (video ? ctxFrom : ctxFrom.canvas),
-    0, 0, width, height,
-    offset_width, offset_height, ratio * width, ratio * height
-  );
 }
 
 /**

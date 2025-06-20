@@ -21,7 +21,7 @@ export class TextLayer extends FlexibleLayer {
    * @param refTime
    */
   update(change, refTime) {
-    let rect = this.ctx.measureText(this.name);
+    let rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
     super.update(change, refTime);
@@ -41,28 +41,28 @@ export class TextLayer extends FlexibleLayer {
     }
 
     let scale = frame[2];
-    this.ctx.font = Math.floor(scale * 30) + "px sans-serif";
-    let rect = this.ctx.measureText(this.name);
+    this.renderer.font = Math.floor(scale * 30) + "px sans-serif";
+    let rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
-    let x = frame[0] + this.canvas.width / 2;
-    let y = frame[1] + this.canvas.height / 2;
+    let x = frame[0] + this.renderer.width / 2;
+    let y = frame[1] + this.renderer.height / 2;
     if (this.shadow) {
-      this.ctx.shadowColor = "black";
-      this.ctx.shadowBlur = 7;
+      this.renderer.shadowColor = "black";
+      this.renderer.shadowBlur = 7;
     } else {
-      this.ctx.shadowColor = null;
-      this.ctx.shadowBlur = null;
+      this.renderer.shadowColor = null;
+      this.renderer.shadowBlur = null;
     }
-    this.ctx.fillStyle = this.color;
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.save();
-    this.ctx.translate(x, y);
-    this.ctx.rotate(frame[3] * (Math.PI / 180));
-    this.ctx.textAlign = "center";
-    this.ctx.fillText(this.name, 0, 0);
-    this.ctx.restore();
+    this.renderer.fillStyle = this.color;
+    this.renderer.clearRect();
+    this.renderer.save();
+    this.renderer.translate(x, y);
+    this.renderer.rotate(frame[3] * (Math.PI / 180));
+    this.renderer.textAlign = "center";
+    this.renderer.fillText(this.name, 0, 0);
+    this.renderer.restore();
     this.drawScaled(this.ctx, ctxOut);
-    this.updateRenderCache(refTime, playing);
+    this.updateRenderCache(refTime);
   }
 }
