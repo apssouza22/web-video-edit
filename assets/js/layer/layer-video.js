@@ -1,9 +1,8 @@
-import {StandardLayer, addElementToBackground} from './layer-common.js';
-import {FrameCollection} from '../frame';
-import {fps, max_size, dpr} from '../constants.js';
-import {DemuxHandler} from "../demux/demux.js";
-import {HTMLVideoDemuxer} from "../demux/html-video-demuxer.js";
-import {Canvas2DRender} from '../common/render-2d.js';
+import { fps, max_size } from '../constants.js';
+import { CodecDemuxer } from "../demux/codec-demuxer.js";
+import { HTMLVideoDemuxer } from "../demux/html-video-demuxer.js";
+import { FrameCollection } from '../frame';
+import { StandardLayer } from './layer-common.js';
 
 export class VideoLayer extends StandardLayer {
 
@@ -11,10 +10,9 @@ export class VideoLayer extends StandardLayer {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);
     this.useWebCodecs = this.#checkWebCodecsSupport();
-    this.demuxHandler = new DemuxHandler();
-    this.demuxHandler.addOnUpdateListener(this.#demuxUpdateListener.bind(this));
     this.htmlVideoDemuxer = new HTMLVideoDemuxer();
     this.#setupDemuxerCallbacks();
+    this.codecDemuxer = new CodecDemuxer();
 
     // Empty VideoLayers (split() requires this)
     if (skipLoading) {
@@ -47,44 +45,6 @@ export class VideoLayer extends StandardLayer {
     });
   }
 
-  #demuxUpdateListener(message) {
-    const data = message.data
-
-    for (const key in data) {
-      if (key === "onReady") {
-        console.log("onReady", data[key]);
-        let width = data[key].video.width;
-        let height = data[key].video.height;
-        let dur = data[key].duration;
-        this.totalTimeInMilSeconds = dur * 1000;
-        this.expectedTotalFrames = data[key].totalFrames || Math.ceil(dur * fps);
-        this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
-        this.#setSize(dur, width, height);
-        this.#handleVideoRatio();
-      }
-
-      if (key === "onFrame") {
-        const frameData = data[key];
-
-        // Convert VideoFrame to ImageData if needed
-        // You can choose to store as ImageData for consistency
-        const frame = this.#convertVideoFrameToImageData(frameData.frame);
-        this.framesCollection.push(frame);
-
-        // Update progress based on frame count
-        const progress = Math.min(95, (frameData.frameNumber / frameData.totalFrames) * 100);
-        this.loadUpdateListener(this, progress, this.ctx, null);
-
-      }
-
-      if (key === "onComplete") {
-        console.log("Demux completed:", data[key]);
-        console.log(`Processed ${this.framesCollection.getLength()}frames`);
-        this.loadUpdateListener(this, 100, this.ctx, null);
-        this.ready = true;
-      }
-    }
-  }
 
   #setSize(dur, width, height) {
     let size = fps * dur * width * height;
@@ -133,9 +93,6 @@ export class VideoLayer extends StandardLayer {
     this.reader.readAsDataURL(file);
   }
 
-  async #processVideoWithWebCodecs() {
-    this.demuxHandler.start(await this.file.arrayBuffer(), "2d");
-  }
 
   /**
    * Removes a video interval by removing frames from the layer
@@ -195,16 +152,5 @@ export class VideoLayer extends StandardLayer {
     await this.htmlVideoDemuxer.upgradeQuality();
   }
 
-  /**
-   * Converts a VideoFrame to ImageData
-   * @param {VideoFrame} videoFrame - The VideoFrame to convert
-   * @returns {ImageData} The converted ImageData
-   */
-  #convertVideoFrameToImageData(videoFrame) {
-    this.renderer.drawImage(videoFrame, 0, 0);
-    const frame = this.renderer.getImageData(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
-    videoFrame.close();
-    return frame;
-  }
 
 }
