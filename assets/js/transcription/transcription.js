@@ -86,11 +86,7 @@ export class TranscriptionManager {
 
   #onTranscriptionComplete(data) {
     console.log("Transcription complete:", data);
-    
-    // Update the transcription view with the new data
-    if (this.transcriptionView) {
-      this.transcriptionView.updateTranscription(data);
-    }
+    this.transcriptionView.updateTranscription(data);
   }
 
   loadModel() {
@@ -98,10 +94,10 @@ export class TranscriptionManager {
   }
 
   startTranscription(audioBuffer) {
-    const data = getMockedData();
-    this.#onTranscriptionComplete(data);
-
-    return
+    // const data = getMockedData();
+    // this.#onTranscriptionComplete(data);
+    //
+    // return
 
     const audio = transformAudioBuffer(audioBuffer);
     console.log("Starting transcription with audio data:", audio);

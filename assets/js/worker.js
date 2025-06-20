@@ -1,4 +1,4 @@
-import {PipelineFactory, transcribe} from "./transcription/";
+import {PipelineFactory, transcribe, onModelInferenceError} from "./transcription/";
 
 
 self.addEventListener("message", async (event) => {
@@ -30,14 +30,3 @@ self.addEventListener("message", async (event) => {
         data: transcript,
     });
 });
-
-
-function onModelInferenceError(error){
-    console.log(error);
-    self.postMessage({
-        status: "error",
-        task: "automatic-speech-recognition",
-        data: error,
-    });
-    return null;
-}

@@ -48,3 +48,14 @@ export async function transcribe(audio) {
   return output;
 }
 
+
+export function onModelInferenceError(error){
+  console.log(error);
+  self.postMessage({
+    status: "error",
+    task: "automatic-speech-recognition",
+    data: error,
+  });
+  return null;
+}
+
