@@ -11,7 +11,6 @@ export class StandardLayer {
     if (file.uri) {
       this.uri = file.uri;
     }
-    this.thumb_ctx = null;
     this.ready = false;
     this.totalTimeInMilSeconds = 0;
     this.start_time = 0;
@@ -99,7 +98,7 @@ export class StandardLayer {
    * @param {number} currentTime - The current time of the player
    * @returns {boolean} - Whether the layer needs to be rendered
    */
-  shouldRender(currentTime) {
+  shouldReRender(currentTime) {
     // Only re-render if time has changed
     return currentTime !== this.lastRenderedTime;
   }

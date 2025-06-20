@@ -11,16 +11,9 @@ export class VideoLayer extends StandardLayer {
     super(file);
     this.framesCollection = new FrameCollection(0, 0, false);
     this.useWebCodecs = this.#checkWebCodecsSupport();
-    this.chunkSize = 30; // Process 30 frames at a time
-    this.optimizedFPS = 12;
     this.demuxHandler = new DemuxHandler();
     this.demuxHandler.addOnUpdateListener(this.#demuxUpdateListener.bind(this));
-    
-    // Initialize HTML video demuxer
-    this.htmlVideoDemuxer = new HTMLVideoDemuxer({
-      chunkSize: this.chunkSize,
-      optimizedFPS: this.optimizedFPS
-    });
+    this.htmlVideoDemuxer = new HTMLVideoDemuxer();
     this.#setupDemuxerCallbacks();
 
     // Empty VideoLayers (split() requires this)
@@ -70,30 +63,25 @@ export class VideoLayer extends StandardLayer {
         this.#handleVideoRatio();
       }
 
-      if(key === "onFrame"){
+      if (key === "onFrame") {
         const frameData = data[key];
-        
+
         // Convert VideoFrame to ImageData if needed
         // You can choose to store as ImageData for consistency
         const frame = this.#convertVideoFrameToImageData(frameData.frame);
         this.framesCollection.push(frame);
 
-         // Use the isLastFrame flag to determine completion
-        if (frameData.isLastFrame) {
-          console.log("Last frame received! Processing complete.");
-          console.log(`Processed ${frameData.frameNumber}/${frameData.totalFrames} frames`);
-          this.loadUpdateListener(this, 100, this.ctx, null);
-          this.ready = true;
-        } else {
-          // Update progress based on frame count
-          const progress = Math.min(95, (frameData.frameNumber / frameData.totalFrames) * 100);
-          this.loadUpdateListener(this, progress, this.ctx, null);
-        }
+        // Update progress based on frame count
+        const progress = Math.min(95, (frameData.frameNumber / frameData.totalFrames) * 100);
+        this.loadUpdateListener(this, progress, this.ctx, null);
+
       }
-      
-      if(key === "onComplete") {
+
+      if (key === "onComplete") {
         console.log("Demux completed:", data[key]);
-        // Additional completion handling if needed
+        console.log(`Processed ${this.framesCollection.getLength()}frames`);
+        this.loadUpdateListener(this, 100, this.ctx, null);
+        this.ready = true;
       }
     }
   }
@@ -127,7 +115,7 @@ export class VideoLayer extends StandardLayer {
   }
 
   #initializeWithHTMLVideo() {
-    this.htmlVideoDemuxer.initialize(this.fileSrc, this.canvas, this.ctx, this.thumb_ctx);
+    this.htmlVideoDemuxer.initialize(this.fileSrc, this.renderer);
   }
 
   #readFile(file) {
@@ -173,8 +161,7 @@ export class VideoLayer extends StandardLayer {
       let scale = playerRatio / videoRatio;
       this.width *= scale;
     }
-    this.canvas.height = this.height;
-    this.canvas.width = this.width;
+    this.renderer.setSize(this.width, this.height);
   }
 
   render(ctxOut, currentTime, playing = false) {
@@ -186,7 +173,7 @@ export class VideoLayer extends StandardLayer {
     }
 
     // Check if we need to re-render this frame
-    if (!this.shouldRender(currentTime, playing)) {
+    if (!this.shouldReRender(currentTime)) {
       this.drawScaled(this.ctx, ctxOut);
       return;
     }
@@ -197,13 +184,9 @@ export class VideoLayer extends StandardLayer {
     }
 
     const frame = this.framesCollection.frames[index];
-    if (frame instanceof ImageData) {
-      this.ctx.putImageData(frame, 0, 0);
-      this.drawScaled(this.ctx, ctxOut);
-      this.updateRenderCache(currentTime, playing);
-      return;
-    }
-
+    this.renderer.putImageData(frame, 0, 0);
+    this.drawScaled(this.ctx, ctxOut);
+    this.updateRenderCache(currentTime);
   }
 
   // Method to upgrade video quality on demand
@@ -218,13 +201,10 @@ export class VideoLayer extends StandardLayer {
    * @returns {ImageData} The converted ImageData
    */
   #convertVideoFrameToImageData(videoFrame) {
-    // Use the Canvas2DRender abstraction for conversion
-    const tempRender = new Canvas2DRender();
-    tempRender.setSize(this.canvas.width, this.canvas.height);
-    tempRender.drawImage(videoFrame, 0, 0, this.canvas.width, this.canvas.height);
-    const imageData = tempRender.getImageData();
+    this.renderer.drawImage(videoFrame, 0, 0);
+    const frame = this.renderer.getImageData(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
     videoFrame.close();
-    return imageData;
+    return frame;
   }
 
 }

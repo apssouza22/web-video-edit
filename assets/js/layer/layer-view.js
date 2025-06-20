@@ -144,7 +144,6 @@ export class LayersSidebarView {
     const thumb_canvas = layerItemHolder.querySelector('canvas');
     const thumb_ctx = thumb_canvas.getContext('2d');
     thumb_ctx.scale(dpr, dpr);
-    layer.thumb_ctx = thumb_ctx;
     
     // Add right-click context menu for layer operations
     this.#setupContextMenu(layer, layerItemHolder);
@@ -250,8 +249,9 @@ export class LayersSidebarView {
   }
 
   updateLayerThumb(layer, ctx) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    Canvas2DRender.drawScaled(ctx, this.layerItemsUI[layer.id].ctx);
+    const thumbCtx = this.layerItemsUI[layer.id].ctx;
+    thumbCtx.clearRect(0, 0, thumbCtx.canvas.width, thumbCtx.canvas.height);
+    Canvas2DRender.drawScaled(ctx, thumbCtx);
   }
 
   resize() {

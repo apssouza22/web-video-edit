@@ -1,11 +1,11 @@
-import {addElementToBackground} from '../layer/layer-common.js';
-import {fps, dpr} from '../constants.js';
-import {FrameCollection} from '../frame';
+import {addElementToBackground} from '../layer/';
+import {fps} from '../constants.js';
+import{Canvas2DRender} from "../common/render-2d.js";
 
 export class HTMLVideoDemuxer {
-  constructor(options = {}) {
-    this.chunkSize = options.chunkSize || 30;
-    this.optimizedFPS = options.optimizedFPS || 12;
+  constructor() {
+    this.chunkSize =  30;
+    this.optimizedFPS = 12;
     this.video = null;
     this.fileSrc = null;
     this.onProgressCallback = null;
@@ -40,15 +40,11 @@ export class HTMLVideoDemuxer {
   /**
    * Initialize HTML video processing
    * @param {string} fileSrc - Video file source URL
-   * @param {HTMLCanvasElement} canvas - Canvas for rendering
-   * @param {CanvasRenderingContext2D} ctx - Canvas context
-   * @param {CanvasRenderingContext2D} thumbCtx - Thumbnail context
+   * @param {Canvas2DRender} renderer - Renderer
    */
-  initialize(fileSrc, canvas, ctx, thumbCtx) {
+  initialize(fileSrc, renderer) {
     this.fileSrc = fileSrc;
-    this.canvas = canvas;
-    this.ctx = ctx;
-    this.thumbCtx = thumbCtx;
+    this.renderer = renderer;
     this.#createVideoElement();
   }
 
@@ -90,18 +86,8 @@ export class HTMLVideoDemuxer {
       const onSeeked = () => {
         clearTimeout(timeoutId);
         this.video.removeEventListener('seeked', onSeeked);
-
-        // Draw the video frame to canvas
-        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-        
-        // Update thumbnail
-        this.thumbCtx.canvas.width = this.thumbCtx.canvas.clientWidth * dpr;
-        this.thumbCtx.canvas.height = this.thumbCtx.canvas.clientHeight * dpr;
-        this.thumbCtx.clearRect(0, 0, this.thumbCtx.canvas.clientWidth, this.thumbCtx.canvas.clientHeight);
-        this.thumbCtx.scale(dpr, dpr);
-        this.thumbCtx.drawImage(this.canvas, 0, 0);
-
-        const frame = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        Canvas2DRender.drawScaled(this.video, this.renderer.context, true);
+        const frame = this.renderer.getImageData(0, 0);
         resolve(frame);
       };
 

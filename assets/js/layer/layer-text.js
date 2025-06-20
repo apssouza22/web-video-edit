@@ -35,7 +35,7 @@ export class TextLayer extends FlexibleLayer {
     if (!frame) {
       return;
     }
-    if (!this.shouldRender(refTime, playing)) {
+    if (!this.shouldReRender(refTime, playing)) {
       this.drawScaled(this.ctx, ctxOut);
       return;
     }

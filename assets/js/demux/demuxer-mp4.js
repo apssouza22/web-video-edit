@@ -42,7 +42,13 @@ class MP4Demuxer {
   #frameCount = 0;
   #startTime = null;
   #totalFrames = 0;
+  #totalSkipFrames = 0;
   #expectedFrames = 0;
+  #lastEmittedTimestamp = null;
+  #targetFps = 24;
+  #frameInterval = 1000000 / 24; // 33333.33 microseconds for 30 fps
+  #originalFps = 0;
+  #expectedFramesAt30fps = 0;
 
   constructor(uri, {onFrame, onError, setStatus}) {
     this.#onFrame = onFrame;
@@ -88,48 +94,74 @@ class MP4Demuxer {
     // Calculate expected total frames based on duration and track samples
     this.#expectedFrames = track.nb_samples || Math.ceil(info.duration * (track.movie_timescale / track.movie_duration) * track.timescale / track.duration);
     
+    // Calculate original FPS and expected frames at 30fps
+    const durationInSeconds = info.duration / info.timescale;
+    this.#originalFps = this.#expectedFrames / durationInSeconds;
+    this.#expectedFramesAt30fps = Math.ceil(durationInSeconds * this.#targetFps);
+    
     this.#configureDecoder(track);
     this.#file.setExtractionOptions(track.id);
     this.#setStatus("onReady", {
       duration: info.duration, 
       video: track.video,
-      totalFrames: this.#expectedFrames
+      totalFrames: this.#expectedFrames,
+      originalFps: this.#originalFps.toFixed(2),
+      targetFps: this.#targetFps,
+      expectedFramesAt30fps: this.#expectedFramesAt30fps
     });
     this.#file.start();
   }
 
   #configureDecoder(track) {
-    // Create and configure the VideoDecoder
     this.#decoder = new VideoDecoder({
       output: (frame) => {
-        // Update statistics.
-        if (this.#startTime == null) {
-          this.#startTime = performance.now();
+        // Frame rate limiting: only emit frames at target FPS (30 fps)
+        const currentTimestamp = frame.timestamp;
+        if (this.#lastEmittedTimestamp === null ||
+            currentTimestamp - this.#lastEmittedTimestamp >= this.#frameInterval) {
+
+          // Update statistics.
+          if (this.#startTime == null) {
+            this.#startTime = performance.now();
+          } else {
+            const elapsed = (performance.now() - this.#startTime) / 1000;
+            const fps = ++this.#frameCount / elapsed;
+            this.#setStatus("render", `${fps.toFixed(0)} fps (capped at ${this.#targetFps})`);
+          }
+
+          // Update last emitted timestamp
+          this.#lastEmittedTimestamp = currentTimestamp;
+
+          // Increment total frames processed (only for emitted frames)
+          this.#totalFrames++;
+
+          // Check if this is the last frame
+
+
+          // Pass frame with metadata
+          this.#onFrame({
+            frame: frame,
+            frameNumber: this.#totalFrames,
+            totalFrames: this.#expectedFramesAt30fps,
+          });
+
+
         } else {
-          const elapsed = (performance.now() - this.#startTime) / 1000;
-          const fps = ++this.#frameCount / elapsed;
-          // this.#setStatus("render", `${fps.toFixed(0)} fps`);
+          console.log(`Skip frame at timestamp: ${currentTimestamp}, last emitted: ${this.#lastEmittedTimestamp}`);
+          this.#totalSkipFrames++
+          frame.close();
         }
-        
-        // Increment total frames processed
-        this.#totalFrames++;
-        
-        // Check if this is the last frame
-        const isLastFrame = this.#totalFrames >= this.#expectedFrames -5;
-        
-        // Pass frame with metadata
-        this.#onFrame({
-          frame: frame,
-          frameNumber: this.#totalFrames,
-          totalFrames: this.#expectedFrames,
-          isLastFrame: isLastFrame
-        });
-        
         // If this is the last frame, signal completion
+        const isLastFrame = this.#totalFrames + this.#totalSkipFrames >= this.#expectedFrames - 5;
+        console.log(`Decoded frame at timestamp: ${currentTimestamp}, total frames: ${this.#totalFrames}, skipped frames: ${this.#totalSkipFrames}`);
         if (isLastFrame) {
+          console.log(`Last frame processed! Total frames: ${this.#totalFrames}, Skipped frames: ${this.#totalSkipFrames}`);
           this.#setStatus("onComplete", {
             totalFramesProcessed: this.#totalFrames,
-            expectedFrames: this.#expectedFrames
+            expectedFrames: this.#expectedFramesAt30fps,
+            originalFrames: this.#expectedFrames,
+            originalFps: this.#originalFps.toFixed(2),
+            targetFps: this.#targetFps
           });
         }
       },

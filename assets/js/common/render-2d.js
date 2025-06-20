@@ -7,7 +7,7 @@ export class Canvas2DRender {
   constructor(canvas = null) {
     if (canvas) {
       this.#canvas = canvas;
-      this.#ctx = canvas.getContext("2d", { willReadFrequently: true });
+      this.#ctx = canvas.getContext("2d", {willReadFrequently: true});
     } else {
       this.#createCanvas();
     }
@@ -16,7 +16,7 @@ export class Canvas2DRender {
   // Canvas management methods
   #createCanvas() {
     this.#canvas = document.createElement('canvas');
-    this.#ctx = this.#canvas.getContext('2d', { willReadFrequently: true });
+    this.#ctx = this.#canvas.getContext('2d', {willReadFrequently: true});
   }
 
   get canvas() {
@@ -148,42 +148,6 @@ export class Canvas2DRender {
     return this.#ctx.textAlign;
   }
 
-  // Utility methods
-  drawScaled(sourceRender, video = false) {
-    this.drawScaledTo(sourceRender, this, video);
-  }
-
-  drawScaledTo(sourceRender, targetRender, video = false) {
-    const source = video ? sourceRender : sourceRender.canvas;
-    const width = video ? source.videoWidth : source.clientWidth;
-    const height = video ? source.videoHeight : source.clientHeight;
-    const in_ratio = width / height;
-
-    // Use logical dimensions (buffer dimensions divided by device pixel ratio)
-    const outLogicalWidth = targetRender.width / dpr;
-    const outLogicalHeight = targetRender.height / dpr;
-    const out_ratio = outLogicalWidth / outLogicalHeight;
-
-    let ratio = 1;
-    let offset_width = 0;
-    let offset_height = 0;
-    if (in_ratio > out_ratio) { // input is wider
-      // match width
-      ratio = outLogicalWidth / width;
-      offset_height = (outLogicalHeight - (ratio * height)) / 2;
-    } else { // output is wider
-      // match height
-      ratio = outLogicalHeight / height;
-      offset_width = (outLogicalWidth - (ratio * width)) / 2;
-    }
-    
-    targetRender.context.drawImage(
-      source,
-      0, 0, width, height,
-      offset_width, offset_height, ratio * width, ratio * height
-    );
-  }
-
   // Static method for standalone usage (maintains backward compatibility)
   static drawScaled(ctxFrom, ctxOutTo, video = false) {
     const width = video ? ctxFrom.videoWidth : ctxFrom.canvas.clientWidth;
@@ -208,35 +172,10 @@ export class Canvas2DRender {
       offset_width = (outLogicalWidth - (ratio * width)) / 2;
     }
     ctxOutTo.drawImage(
-      (video ? ctxFrom : ctxFrom.canvas),
-      0, 0, width, height,
-      offset_width, offset_height, ratio * width, ratio * height
+        (video ? ctxFrom : ctxFrom.canvas),
+        0, 0, width, height,
+        offset_width, offset_height, ratio * width, ratio * height
     );
   }
 
-  // Frame drawing method (for video frames)
-  draw(frame) {
-    if (frame instanceof ImageData) {
-      this.putImageData(frame, 0, 0);
-    } else if (frame instanceof VideoFrame) {
-      // Convert VideoFrame to ImageData
-      const tempRender = new Canvas2DRender();
-      tempRender.setSize(this.width, this.height);
-      tempRender.drawImage(frame, 0, 0, this.width, this.height);
-      const imageData = tempRender.getImageData();
-      this.putImageData(imageData, 0, 0);
-      frame.close();
-    } else {
-      // Assume it's an image-like object
-      this.drawImage(frame, 0, 0, this.width, this.height);
-    }
-  }
-
-  // Convenience method to add canvas to background
-  addToBackground() {
-    let bg = document.getElementById('background');
-    if (bg) {
-      bg.appendChild(this.#canvas);
-    }
-  }
 }
