@@ -56,16 +56,48 @@ class DemuxWorker {
    * Initializes the demuxer and renderer with the provided configuration
    * @param {Object} config - Configuration object
    * @param {string} config.dataUri - URI of the video data
+   * @param {string} config.rendererName - Name of the renderer to use
+   * @param {OffscreenCanvas} config.canvas - Canvas for rendering
    * @private
    */
-  #start({dataUri}) {
+  #start({dataUri, rendererName, canvas}) {
     if (this.#isInitialized) {
       console.warn("Worker already initialized, cleaning up previous instance");
       this.#cleanup();
     }
 
+    this.#initializeRenderer(rendererName, canvas);
     this.#initializeDemuxer(dataUri);
     this.#isInitialized = true;
+  }
+
+  /**
+   * Initializes the appropriate renderer based on the renderer name
+   * @param {string} rendererName - Name of the renderer
+   * @param {OffscreenCanvas} canvas - Canvas for rendering
+   * @private
+   */
+  #initializeRenderer(rendererName, canvas) {
+    switch (rendererName) {
+      case "2d":
+        console.log("Using 2D renderer");
+        this.#renderer = new Canvas2DRenderer(canvas);
+        break;
+      case "webgl":
+        console.log("Using WebGL renderer");
+        this.#renderer = new WebGLRenderer(rendererName, canvas);
+        break;
+      case "webgl2":
+        console.log("Using WebGL2 renderer");
+        this.#renderer = new WebGLRenderer(rendererName, canvas);
+        break;
+      case "webgpu":
+        console.log("Using WebGPU renderer");
+        this.#renderer = new WebGPURenderer(canvas);
+        break;
+      default:
+        throw new Error(`Unknown renderer: ${rendererName}`);
+    }
   }
 
   /**
@@ -85,16 +117,12 @@ class DemuxWorker {
 
   /**
    * Handles decoded video frames for rendering
-   * @param {Object} frameData - Frame data with metadata
-   * @param {VideoFrame} frameData.frame - Decoded video frame
-   * @param {number} frameData.frameNumber - Current frame number
-   * @param {number} frameData.totalFrames - Total expected frames
-   * @param {boolean} frameData.isLastFrame - Whether this is the last frame
+   * @param {VideoFrame} frame - Decoded video frame
    * @private
    */
-  #handleFrame(frameData) {
-    // Pass the entire frame data object to the main thread
-    self.postMessage({["onFrame"]: frameData});
+  #handleFrame(frame) {
+    this.#setStatus("frame", frame)
+    this.#scheduleFrameRender(frame);
   }
 
   /**
@@ -104,7 +132,33 @@ class DemuxWorker {
    */
   #handleError(error) {
     console.error("Decode error:", error);
-    this.#setStatus("onError", error.message || error.toString());
+    this.#setStatus("decode", error.message || error.toString());
+  }
+
+  /**
+   * Schedules a frame for rendering in the next animation frame
+   * @param {VideoFrame} frame - Frame to render
+   * @private
+   */
+  #scheduleFrameRender(frame) {
+    if (!this.#pendingFrame) {
+      self.requestAnimationFrame(() => this.#renderAnimationFrame());
+    } else {
+      this.#pendingFrame.close();
+    }
+    
+    this.#pendingFrame = frame;
+  }
+
+  /**
+   * Renders the pending frame
+   * @private
+   */
+  #renderAnimationFrame() {
+    if (this.#pendingFrame && this.#renderer) {
+      this.#renderer.draw(this.#pendingFrame);
+      this.#pendingFrame = null;
+    }
   }
 
   /**
@@ -128,7 +182,7 @@ class DemuxWorker {
    */
   #statusAnimationFrame() {
     if (this.#pendingStatus) {
-      self.postMessage(this.#pendingStatus);
+      self.postMessage({data: this.#pendingStatus});
       this.#pendingStatus = null;
     }
   }
@@ -142,16 +196,16 @@ class DemuxWorker {
       this.#demuxer.close();
       this.#demuxer = null;
     }
-
+    
     if (this.#pendingFrame) {
       this.#pendingFrame.close();
       this.#pendingFrame = null;
     }
-
+    
     this.#renderer = null;
     this.#pendingStatus = null;
     this.#isInitialized = false;
-
+    
     console.log("Worker cleanup completed");
   }
 }
