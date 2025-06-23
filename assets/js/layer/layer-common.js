@@ -1,4 +1,4 @@
-import {FrameCollection} from '../frame';
+import {FrameCollection} from '../frame/index.js';
 import {dpr, fps} from '../constants.js';
 import {Canvas2DRender} from '../common/render-2d.js';
 

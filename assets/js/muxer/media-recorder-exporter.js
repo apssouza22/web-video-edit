@@ -1,5 +1,5 @@
-import { addElementToBackground, AudioLayer } from '../layer';
-import { getSupportedMimeTypes, VideoStudio } from '../studio';
+import { addElementToBackground, AudioLayer } from '../layer/index.js';
+import { getSupportedMimeTypes, VideoStudio } from '../studio/index.js';
 
 /**
  * Class for exporting video using MediaRecorder API without playing in the main player

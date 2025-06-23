@@ -2,7 +2,7 @@ import { TimeMarker } from './time-marker.js';
 import { TimelineZoomHandler } from './zoom.js';
 import { PreviewHandler } from './preview.js';
 import { DragLayerHandler } from './drag.js';
-import { PinchHandler } from '../studio';
+import { PinchHandler } from '../studio/index.js';
 import { dpr } from '../constants.js';
 
 /**

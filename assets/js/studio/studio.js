@@ -1,13 +1,13 @@
-import {VideoPlayer} from '../player';
-import {Timeline} from '../timeline';
-import {LayersSidebarView, AudioLayer, LayerOperations} from '../layer';
+import {VideoPlayer} from '../player/index.js';
+import {Timeline} from '../timeline/index.js';
+import {LayersSidebarView, AudioLayer, LayerOperations} from '../layer/index.js';
 import {LayerLoader} from './layer-loader.js';
-import {VideoExporter} from '../muxer';
+import {VideoExporter} from '../muxer/index.js';
 import {StudioControls} from './controls.js';
 import {PinchHandler} from './pinch-handler.js';
 import {DragItemHandler} from './drag-handler.js';
 import {MediaEditor} from './media-edit.js';
-import {TranscriptionManager} from "../transcription";
+import {TranscriptionManager} from "../transcription/index.js";
 import {uploadSupportedType} from './utils.js';
 import {LoadingPopup} from './loading-popup.js';
 

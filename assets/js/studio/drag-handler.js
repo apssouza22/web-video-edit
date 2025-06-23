@@ -1,4 +1,4 @@
-import { FlexibleLayer } from '../layer';
+import { FlexibleLayer } from '../layer/index.js';
 
 /**
  * DragHandler class handles drag operations on moveable layers.

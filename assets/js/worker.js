@@ -1,4 +1,4 @@
-import {PipelineFactory, transcribe, onModelInferenceError} from "./transcription/";
+import {PipelineFactory, transcribe, onModelInferenceError} from "./transcription/index.js";
 
 
 self.addEventListener("message", async (event) => {

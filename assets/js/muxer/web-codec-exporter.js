@@ -1,4 +1,4 @@
-import { AudioLayer, addElementToBackground } from '../layer';
+import { AudioLayer, addElementToBackground } from '../layer/index.js';
 
 /**
  * Class for exporting video using Web Codecs API

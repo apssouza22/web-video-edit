@@ -1,5 +1,5 @@
 
-import { TextLayer } from '../layer';
+import { TextLayer } from '../layer/index.js';
 
 /**
  * File extension to MIME type mapping

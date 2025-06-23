@@ -1,4 +1,4 @@
-import {AudioLayer, VideoLayer} from "../layer";
+import {AudioLayer, VideoLayer} from "../layer/index.js";
 
 export class MediaEditor {
   constructor(studio) {

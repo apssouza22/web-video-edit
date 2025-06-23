@@ -1,7 +1,8 @@
+
 import { fps, max_size } from '../constants.js';
 import { CodecDemuxer } from "../demux/codec-demuxer.js";
 import { HTMLVideoDemuxer } from "../demux/html-video-demuxer.js";
-import { FrameCollection } from '../frame';
+import { FrameCollection } from '../frame/index.js';
 import { StandardLayer } from './layer-common.js';
 
 export class VideoLayer extends StandardLayer {

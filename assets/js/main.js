@@ -1,4 +1,4 @@
-import { VideoStudio, addText, popup, updateSettings } from './studio';
+import { VideoStudio, addText, popup, updateSettings } from './studio/index.js';
 
 const studio = new VideoStudio();
 studio.init();
