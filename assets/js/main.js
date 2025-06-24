@@ -1,8 +1,10 @@
 import { VideoStudio, addText, popup, updateSettings } from './studio/index.js';
+import {initScreenRecording} from "./record/controls.js";
 
 const studio = new VideoStudio();
 studio.init();
 
+initScreenRecording();
 
 // Expose global functions for HTML onclick handlers
 window.studio = studio;
@@ -44,6 +46,4 @@ function onLoadHandler() {
     popup(text);
     localStorage.setItem('_seen', 'true');
   }
-
 }
-

@@ -59,4 +59,10 @@ export class CodecDemuxer {
     videoFrame.close();
     return frame;
   }
+
+  async initialize(fileSrc, renderer) {
+    this.fileSrc = fileSrc;
+    this.renderer = renderer;
+    // TODO: Implement codec demuxer using library
+  }
 }

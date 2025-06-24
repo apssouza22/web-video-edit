@@ -1,9 +1,7 @@
-
-import { fps, max_size } from '../constants.js';
-import { CodecDemuxer } from "../demux/codec-demuxer.js";
-import { HTMLVideoDemuxer } from "../demux/html-video-demuxer.js";
-import { FrameCollection } from '../frame/index.js';
-import { StandardLayer } from './layer-common.js';
+import {fps, max_size} from '../constants.js';
+import {HTMLVideoDemuxer, CodecDemuxer} from "../demux/index.js";
+import {FrameCollection} from '../frame/index.js';
+import {StandardLayer} from './layer-common.js';
 
 export class VideoLayer extends StandardLayer {
 
@@ -46,7 +44,6 @@ export class VideoLayer extends StandardLayer {
     });
   }
 
-
   #setSize(dur, width, height) {
     let size = fps * dur * width * height;
     if (size < max_size) {
@@ -60,15 +57,15 @@ export class VideoLayer extends StandardLayer {
   }
 
   #checkWebCodecsSupport() {
-    return typeof VideoDecoder !== 'undefined' &&
-        typeof VideoFrame !== 'undefined' &&
-        typeof EncodedVideoChunk !== 'undefined';
+    return false;
+    // return typeof VideoDecoder !== 'undefined' &&
+    //     typeof VideoFrame !== 'undefined' &&
+    //     typeof EncodedVideoChunk !== 'undefined';
   }
 
   async #initializeWithWebCodecs(file) {
     try {
-      // await this.#processVideoWithWebCodecs();
-      this.#initializeWithHTMLVideo();
+      await this.codecDemuxer.initialize(this.fileSrc, this.renderer);
     } catch (error) {
       console.warn('WebCodecs failed, falling back to HTML video:', error);
       this.#initializeWithHTMLVideo();
@@ -93,7 +90,6 @@ export class VideoLayer extends StandardLayer {
 
     this.reader.readAsDataURL(file);
   }
-
 
   /**
    * Removes a video interval by removing frames from the layer
@@ -152,6 +148,5 @@ export class VideoLayer extends StandardLayer {
     console.log('Upgrading video quality...');
     await this.htmlVideoDemuxer.upgradeQuality();
   }
-
 
 }

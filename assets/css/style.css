@@ -311,6 +311,38 @@ a:visited {
   cursor: pointer;
 }
 
+/* Screen recording button styles */
+#record-screen-btn {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 4px;
+}
+
+#record-screen-btn:hover {
+  background-color: rgba(220, 53, 69, 0.2);
+}
+
+#stop-recording-btn {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 4px;
+}
+
+#stop-recording-btn:hover {
+  background-color: rgba(255, 193, 7, 0.2);
+}
+
+/* Recording indicator animation */
+@keyframes recording-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+#record-screen-btn.recording {
+  animation: recording-pulse 1s infinite;
+}
+
 #layers .preview {
   font-size: 12px;
   font-family: 'JupiterSans';
