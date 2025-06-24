@@ -1,7 +1,6 @@
 import {popup} from "../studio/index.js";
 import {ScreenRecordingService} from "./service.js";
 
-// Initialize screen recording service
 const screenRecorder = new ScreenRecordingService();
 const recordBtn = document.getElementById('record-screen-btn');
 const stopBtn = document.getElementById('stop-recording-btn');
@@ -9,6 +8,16 @@ const stopBtn = document.getElementById('stop-recording-btn');
 export function initScreenRecording() {
   recordBtn.addEventListener('click', startScreenRecording);
   stopBtn.addEventListener('click', stopScreenRecording);
+  screenRecorder.addOnVideoFileCreatedListener((videoFile) => {
+    console.log('Video file created:', videoFile);
+    const videoElement = document.createElement('video');
+    videoElement.src = URL.createObjectURL(videoFile);
+    videoElement.controls = true;
+    videoElement.autoplay = true;
+    videoElement.style.width = '100%';
+    videoElement.style.height = 'auto';
+    popup(videoElement);
+  })
 }
 
 function displayUserError(error) {
@@ -47,7 +56,6 @@ async function stopScreenRecording() {
 }
 
 function toggleRecordingButtons(isRecording) {
-
   if (isRecording) {
     recordBtn.style.display = 'none';
     stopBtn.style.display = 'inline-block';
