@@ -1,9 +1,10 @@
 import { ScreenRecordingService } from './service.js';
+import { RecordingPreview } from './preview.js';
 
 /**
- * Export the main ScreenRecordingService class
+ * Export the main classes
  */
-export { ScreenRecordingService };
+export { ScreenRecordingService, RecordingPreview };
 
 /**
  * Create and initialize a new screen recording service instance

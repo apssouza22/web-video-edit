@@ -1,3 +1,5 @@
+import { RecordingPreview } from './preview.js';
+
 /**
  * ScreenRecordingService - Handles screen capture and recording functionality
  */
@@ -33,11 +35,11 @@ export class ScreenRecordingService {
     this.isRecording = false;
     
     /**
-     * Reference to preview video element showing live capture
-     * @type {HTMLVideoElement|null}
+     * Preview manager for handling video preview and status overlay
+     * @type {RecordingPreview}
      * @private
      */
-    this.previewVideo = null;
+    this.preview = new RecordingPreview();
     
     /**
      * Maximum memory usage allowed before implementing progressive storage (bytes)
@@ -173,200 +175,7 @@ export class ScreenRecordingService {
     return support;
   }
 
-  /**
-   * Set up preview video element for live screen capture
-   */
-  setupPreviewVideo() {
-    // Create preview video element if it doesn't exist
-    if (!this.previewVideo) {
-      this.previewVideo = document.createElement('video');
-      this.previewVideo.id = 'screen-recording-preview';
-      this.previewVideo.autoplay = true;
-      this.previewVideo.muted = true; // Prevent audio feedback
-      this.previewVideo.controls = false;
-      
-      // Style the preview video
-      this.previewVideo.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        width: 300px;
-        height: auto;
-        max-height: 200px;
-        border: 2px solid #69d2ff;
-        border-radius: 8px;
-        background: black;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        object-fit: contain;
-        transition: all 0.3s ease;
-      `;
-      
-      // Add preview controls overlay
-      const previewOverlay = document.createElement('div');
-      previewOverlay.id = 'screen-recording-overlay';
-      previewOverlay.style.cssText = `
-        position: fixed;
-        top: 50px;
-        right: 20px;
-        width: 300px;
-        background: rgba(43, 47, 51, 0.9);
-        color: #c0c8d5;
-        padding: 8px 12px;
-        border-radius: 8px 8px 0 0;
-        font-family: 'JupiterSans', Arial, sans-serif;
-        font-size: 12px;
-        z-index: 1001;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      `;
-      
-      previewOverlay.innerHTML = `
-        <div id="recording-status">
-          <span id="recording-indicator" style="color: #dc3545;">● REC</span>
-          <span id="recording-duration">00:00</span>
-        </div>
-        <div id="recording-info">
-          <span id="recording-size">0 MB</span>
-          <span id="recording-format">WebM</span>
-        </div>
-      `;
-      
-      // Add to DOM
-      document.body.appendChild(previewOverlay);
-      document.body.appendChild(this.previewVideo);
-      
-      // Store reference to overlay for later cleanup
-      this.previewOverlay = previewOverlay;
-    }
-    
-    // Set the media stream as the video source
-    if (this.mediaStream) {
-      this.previewVideo.srcObject = this.mediaStream;
-      console.log('Preview video set up with media stream');
-    }
-    
-    // Start the preview update interval
-    this.startPreviewUpdates();
-  }
 
-  /**
-   * Start updating preview information
-   */
-  startPreviewUpdates() {
-    if (this.previewUpdateInterval) {
-      clearInterval(this.previewUpdateInterval);
-    }
-    
-    // Get initial recording info
-    this.updateRecordingInfo();
-    
-    this.previewUpdateInterval = setInterval(() => {
-      if (this.isRecording) {
-        // Update duration
-        const durationElement = document.getElementById('recording-duration');
-        if (durationElement) {
-          durationElement.textContent = this.formatDuration(this.recordingDuration);
-        }
-        
-        // Update file size
-        const sizeElement = document.getElementById('recording-size');
-        if (sizeElement) {
-          sizeElement.textContent = this.formatBytes(this.totalFileSize);
-        }
-        
-        // Animate recording indicator
-        const indicator = document.getElementById('recording-indicator');
-        if (indicator) {
-          indicator.style.opacity = indicator.style.opacity === '0.5' ? '1' : '0.5';
-        }
-      }
-    }, 500); // Update every 500ms
-  }
-
-  /**
-   * Update recording information display
-   */
-  updateRecordingInfo() {
-    // Update format info
-    const formatElement = document.getElementById('recording-format');
-    if (formatElement && this.mediaRecorder) {
-      const mimeType = this.mediaRecorder.mimeType || 'Unknown';
-      let format = 'Unknown';
-      
-      if (mimeType.includes('webm')) {
-        format = 'WebM';
-      } else if (mimeType.includes('mp4')) {
-        format = 'MP4';
-      }
-      
-      // Add codec info if available
-      if (mimeType.includes('vp9')) {
-        format += ' (VP9)';
-      } else if (mimeType.includes('vp8')) {
-        format += ' (VP8)';
-      } else if (mimeType.includes('h264')) {
-        format += ' (H264)';
-      }
-      
-      formatElement.textContent = format;
-    }
-    
-    // Update resolution info in overlay title
-    if (this.mediaStream && this.previewOverlay) {
-      const videoTrack = this.mediaStream.getVideoTracks()[0];
-      if (videoTrack) {
-        const settings = videoTrack.getSettings();
-        if (settings.width && settings.height) {
-          // Add resolution info to the overlay
-          let resolutionSpan = document.getElementById('recording-resolution');
-          if (!resolutionSpan) {
-            resolutionSpan = document.createElement('span');
-            resolutionSpan.id = 'recording-resolution';
-            resolutionSpan.style.fontSize = '10px';
-            resolutionSpan.style.color = '#8a9ba8';
-            
-            const recordingInfo = document.getElementById('recording-info');
-            if (recordingInfo) {
-              recordingInfo.appendChild(document.createElement('br'));
-              recordingInfo.appendChild(resolutionSpan);
-            }
-          }
-          resolutionSpan.textContent = `${settings.width}×${settings.height}`;
-        }
-      }
-    }
-  }
-
-  /**
-   * Hide preview video element
-   */
-  hidePreviewVideo() {
-    if (this.previewVideo) {
-      this.previewVideo.style.display = 'none';
-    }
-    if (this.previewOverlay) {
-      this.previewOverlay.style.display = 'none';
-    }
-    
-    if (this.previewUpdateInterval) {
-      clearInterval(this.previewUpdateInterval);
-      this.previewUpdateInterval = null;
-    }
-  }
-
-  /**
-   * Show preview video element
-   */
-  showPreviewVideo() {
-    if (this.previewVideo) {
-      this.previewVideo.style.display = 'block';
-    }
-    if (this.previewOverlay) {
-      this.previewOverlay.style.display = 'flex';
-    }
-  }
 
   /**
    * Set up handlers for recording interruptions
@@ -525,9 +334,12 @@ export class ScreenRecordingService {
         this.isRecording = false;
       };
       
-      // Handle stream end events and recording interruptions
-      this.setupInterruptionHandlers();
-      this.setupPreviewVideo();
+              // Handle stream end events and recording interruptions
+        this.setupInterruptionHandlers();
+        
+        // Set up preview video and start updates
+        this.preview.setupPreview(this.mediaStream);
+        this.preview.startUpdates(() => this.getRecordingData());
       
       // Clear previous recorded chunks and reset metadata
       this.recordedChunks = [];
@@ -543,7 +355,7 @@ export class ScreenRecordingService {
       
       console.log('Screen recording started - State: idle → recording', {
         startTime: new Date(this.recordingStartTime).toISOString(),
-        maxMemoryLimit: this.formatBytes(this.maxMemoryUsage)
+        maxMemoryLimit: this.preview.formatBytes(this.maxMemoryUsage)
       });
       
     } catch (error) {
@@ -655,14 +467,14 @@ export class ScreenRecordingService {
       console.log('Recorded chunk added:', {
         chunkSize: event.data.size,
         totalChunks: this.recordedChunks.length,
-        memoryUsage: this.formatBytes(this.currentMemoryUsage),
-        totalFileSize: this.formatBytes(this.totalFileSize),
-        duration: this.formatDuration(this.recordingDuration)
+        memoryUsage: this.preview.formatBytes(this.currentMemoryUsage),
+        totalFileSize: this.preview.formatBytes(this.totalFileSize),
+        duration: this.preview.formatDuration(this.recordingDuration)
       });
       
       // Monitor memory usage and warn if getting high
       if (this.currentMemoryUsage > this.maxMemoryUsage * 0.8) {
-        console.warn('Memory usage approaching limit:', this.formatBytes(this.currentMemoryUsage));
+        console.warn('Memory usage approaching limit:', this.preview.formatBytes(this.currentMemoryUsage));
       }
     }
   }
@@ -685,28 +497,18 @@ export class ScreenRecordingService {
   }
 
   /**
-   * Format bytes into human readable format
-   * @param {number} bytes - Number of bytes
-   * @returns {string} Formatted string
+   * Get current recording data for preview updates
+   * @returns {Object} Current recording data
+   * @private
    */
-  formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  /**
-   * Format duration into human readable format
-   * @param {number} ms - Duration in milliseconds
-   * @returns {string} Formatted duration
-   */
-  formatDuration(ms) {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  getRecordingData() {
+    return {
+      isRecording: this.isRecording,
+      duration: this.recordingDuration,
+      fileSize: this.totalFileSize,
+      mimeType: this.mediaRecorder ? this.mediaRecorder.mimeType : null,
+      mediaStream: this.mediaStream
+    };
   }
 
   /**
@@ -765,13 +567,13 @@ export class ScreenRecordingService {
 
       console.log('Adding screen recording to layer system:', {
         filename,
-        size: this.formatBytes(videoBlob.size),
+        size: this.preview.formatBytes(videoBlob.size),
         type: videoBlob.type
       });
 
       console.log('buffer from the url data:', {
         filename,
-        size: this.formatBytes(data.size),
+        size: this.preview.formatBytes(data.size),
         type: data.type
       });
       let file = new File([data], 'screen-recording.mp4', { type: videoBlob.type });
@@ -793,8 +595,8 @@ export class ScreenRecordingService {
           <h3>Screen Recording Complete!</h3>
           <p>Your screen recording has been added to the timeline.</p>
           <p><strong>File:</strong> ${filename}</p>
-          <p><strong>Size:</strong> ${this.formatBytes(videoBlob.size)}</p>
-          <p><strong>Duration:</strong> ${this.formatDuration(this.recordingDuration)}</p>
+          <p><strong>Size:</strong> ${this.preview.formatBytes(videoBlob.size)}</p>
+          <p><strong>Duration:</strong> ${this.preview.formatDuration(this.recordingDuration)}</p>
         `;
         window.popup(successMessage);
       }
@@ -844,24 +646,8 @@ export class ScreenRecordingService {
       this.mediaStream = null;
     }
     
-    // Clean up preview video if exists
-    if (this.previewVideo) {
-      this.previewVideo.srcObject = null;
-      document.body.removeChild(this.previewVideo);
-      this.previewVideo = null;
-    }
-    
-    // Clean up preview overlay if exists
-    if (this.previewOverlay) {
-      document.body.removeChild(this.previewOverlay);
-      this.previewOverlay = null;
-    }
-    
-    // Clear preview update interval
-    if (this.previewUpdateInterval) {
-      clearInterval(this.previewUpdateInterval);
-      this.previewUpdateInterval = null;
-    }
+    // Clean up preview
+    this.preview.cleanup();
     
     console.log('Resources, metadata, and preview elements cleaned up');
   }
