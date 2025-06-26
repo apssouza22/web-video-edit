@@ -77,6 +77,11 @@ export class VideoLayer extends StandardLayer {
   }
 
   #readFile(file) {
+    if(file.uri !== null && file.uri !== undefined) {
+      this.fileSrc = file.uri
+      this.#initializeWithHTMLVideo();
+      return;
+    }
     this.reader = new FileReader();
     this.reader.addEventListener("load", (function () {
       this.fileSrc = this.reader.result;

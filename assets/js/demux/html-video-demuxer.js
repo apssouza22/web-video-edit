@@ -64,7 +64,7 @@ export class HTMLVideoDemuxer {
     const width = this.video.videoWidth;
     const height = this.video.videoHeight;
     const duration = this.video.duration;
-
+    console.log(`Video metadata loaded: ${width}x${height}, duration: ${duration}s`);
     if (this.onMetadataCallback) {
       this.onMetadataCallback({
         width,

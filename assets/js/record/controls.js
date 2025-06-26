@@ -12,28 +12,27 @@ export function initScreenRecording() {
   // Dropdown functionality
   recordBtn.addEventListener('click', toggleDropdown);
   document.addEventListener('click', closeDropdownOnOutsideClick);
-  
+
   // Recording functionality
   recordScreenBtn.addEventListener('click', startScreenRecording);
   recordVideoBtn.addEventListener('click', startCameraRecording);
   stopBtn.addEventListener('click', stopRecording);
-  
+
   screenRecorder.addOnVideoFileCreatedListener((videoFile) => {
+    const l = window.studio.layerLoader.addLayerFromFile(videoFile);
     console.log('Video file created:', videoFile);
-    const videoElement = document.createElement('video');
-    videoElement.src = URL.createObjectURL(videoFile);
-    videoElement.controls = true;
-    videoElement.autoplay = true;
-    videoElement.style.width = '100%';
-    videoElement.style.height = 'auto';
-    console.log(videoElement.duration)
-    videoElement.addEventListener('loadedmetadata', () => {
-      console.log(`Video duration: ${videoElement.duration} seconds`);
-    });
-    videoElement.addEventListener("loadeddata", (event) => {
-      console.log(`Video duration: ${videoElement.duration} seconds`);
-    })
-    popup(videoElement);
+    // const videoElement = document.createElement('video');
+    // videoElement.src = videoFile.uri;
+    // videoElement.controls = true;
+    // videoElement.autoplay = true;
+    // videoElement.style.width = '100%';
+    // videoElement.style.height = 'auto';
+    //
+    // videoElement.addEventListener('loadedmetadata', () => {
+    //   console.log(`Video duration: ${videoElement.duration} seconds`);
+    // });
+
+    // popup(videoElement);
   })
 }
 

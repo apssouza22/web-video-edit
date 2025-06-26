@@ -1,5 +1,6 @@
 import {RecordingPreview} from './preview.js';
 import {checkBrowserSupport} from "./browser-support.js";
+import webmDurationFix from 'https://cdn.jsdelivr.net/npm/webm-duration-fix@1.0.4/+esm'
 
 /**
  * ScreenRecordingService - Handles screen capture and recording functionality
@@ -122,7 +123,7 @@ export class ScreenRecordingService {
         if (this.#recordedChunks.length < 1) {
           return; // No data to save
         }
-        const partialBlob = this.#createVideoBlob();
+        const partialBlob = await this.#createVideoBlob();
         this.#onVideoFileCreatedCallback(this.#createVideoFile(partialBlob));
         if (partialBlob) {
           console.log('Partial recording saved:', partialBlob.size, 'bytes');
@@ -336,7 +337,7 @@ export class ScreenRecordingService {
           this.#mediaRecorder.addEventListener('stop', resolve, {once: true});
         }
       });
-      const videoBlob = this.#createVideoBlob();
+      const videoBlob = await this.#createVideoBlob();
 
       if (videoBlob) {
         console.log('Processing recorded data - State: processing → complete');
@@ -434,7 +435,7 @@ export class ScreenRecordingService {
    * Combine chunks into final video blob
    * @returns {Blob} The combined video blob
    */
-  #createVideoBlob() {
+  async #createVideoBlob() {
     if (this.#recordedChunks.length === 0) {
       console.warn('No recorded chunks available');
       return null;
@@ -452,7 +453,7 @@ export class ScreenRecordingService {
       chunks: this.#recordedChunks.length
     });
 
-    return videoBlob;
+    return await webmDurationFix.default(videoBlob, {mimeType: videoBlob.type});
   }
 
   /**
