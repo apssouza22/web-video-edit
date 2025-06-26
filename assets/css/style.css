@@ -528,3 +528,56 @@ a:visited {
 #timeline_zoom_slider::-moz-range-thumb:hover {
   background: rgb(139, 205, 240);
 }
+
+/* Dropdown Menu Styles */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 12px;
+  background: rgb(43,47,51);
+  color: white;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.dropdown-toggle:hover {
+  background: rgb(53,57,61);
+}
+
+#header .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 140px;
+  background: rgb(43,47,51);
+  border: 1px solid rgb(60,64,68);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 1000;
+}
+
+#header .dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  color: white;
+  border-bottom: 1px solid rgb(60,64,68);
+  transition: background 0.2s;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: rgb(53,57,61);
+}

@@ -1,0 +1,5 @@
+Ensure one class per file and use PascalCase for class names.
+
+Also use private methods for any helper functions that are not intended to be used outside the class.
+
+In javascript use # for private methods

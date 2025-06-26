@@ -57,7 +57,13 @@
     <div id="header">
       <div onclick='window.studio.upload()'>+ Media</div>
       <div onclick='addText()'>+ Text</div>
-      <div id="record-screen-btn" > Record Screen</div>
+      <div id="record-dropdown" class="dropdown">
+        <div id="record-btn" class="dropdown-toggle">Record</div>
+        <div id="record-menu" class="dropdown-menu">
+          <div id="record-screen-btn" class="dropdown-item">Record Screen</div>
+          <div id="record-video-btn" class="dropdown-item">Record Video</div>
+        </div>
+      </div>
       <div id="stop-recording-btn" style="display: none;">Stop Recording</div>
       <div onclick='updateSettings()'>Settings</div>
       <div id="export">Export</div>
