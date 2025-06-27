@@ -1,7 +1,7 @@
 import {popup} from "../studio/index.js";
-import {ScreenRecordingService} from "./service.js";
+import {UserMediaRecordingService} from "./service.js";
 
-const screenRecorder = new ScreenRecordingService();
+const userMediaRecorder = new UserMediaRecordingService();
 const recordBtn = document.getElementById('record-btn');
 const recordMenu = document.getElementById('record-menu');
 const recordScreenBtn = document.getElementById('record-screen-btn');
@@ -9,7 +9,6 @@ const recordVideoBtn = document.getElementById('record-video-btn');
 const stopBtn = document.getElementById('stop-recording-btn');
 
 export function initScreenRecording() {
-  // Dropdown functionality
   recordBtn.addEventListener('click', toggleDropdown);
   document.addEventListener('click', closeDropdownOnOutsideClick);
 
@@ -18,21 +17,21 @@ export function initScreenRecording() {
   recordVideoBtn.addEventListener('click', startCameraRecording);
   stopBtn.addEventListener('click', stopRecording);
 
-  screenRecorder.addOnVideoFileCreatedListener((videoFile) => {
+  userMediaRecorder.addOnVideoFileCreatedListener((videoFile) => {
     const l = window.studio.layerLoader.addLayerFromFile(videoFile);
     console.log('Video file created:', videoFile);
-    // const videoElement = document.createElement('video');
-    // videoElement.src = videoFile.uri;
-    // videoElement.controls = true;
-    // videoElement.autoplay = true;
-    // videoElement.style.width = '100%';
-    // videoElement.style.height = 'auto';
-    //
-    // videoElement.addEventListener('loadedmetadata', () => {
-    //   console.log(`Video duration: ${videoElement.duration} seconds`);
-    // });
+    const videoElement = document.createElement('video');
+    videoElement.src = videoFile.uri;
+    videoElement.controls = true;
+    videoElement.autoplay = true;
+    videoElement.style.width = '100%';
+    videoElement.style.height = 'auto';
 
-    // popup(videoElement);
+    videoElement.addEventListener('loadedmetadata', () => {
+      console.log(`Video duration: ${videoElement.duration} seconds`);
+    });
+
+    popup(videoElement);
   })
 }
 
@@ -63,7 +62,7 @@ async function startScreenRecording() {
     console.log('Starting screen recording...');
     recordMenu.classList.remove('show'); // Close dropdown
     toggleRecordingButtons(true);
-    await screenRecorder.startScreenCapture();
+    await userMediaRecorder.startScreenCapture();
 
   } catch (error) {
     console.error('Failed to start screen recording:', error);
@@ -77,7 +76,7 @@ async function startCameraRecording() {
     console.log('Starting camera recording...');
     recordMenu.classList.remove('show'); // Close dropdown
     toggleRecordingButtons(true);
-    await screenRecorder.startCameraCapture();
+    await userMediaRecorder.startCameraCapture();
   } catch (error) {
     console.error('Failed to start camera recording:', error);
     toggleRecordingButtons(false);
@@ -87,7 +86,7 @@ async function startCameraRecording() {
 
 async function stopRecording() {
   try {
-    await screenRecorder.stopRecording();
+    await userMediaRecorder.stopRecording();
     toggleRecordingButtons(false);
   } catch (error) {
     console.error('Failed to stop recording:', error);

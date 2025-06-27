@@ -5,7 +5,7 @@ import webmDurationFix from 'https://cdn.jsdelivr.net/npm/webm-duration-fix@1.0.
 /**
  * ScreenRecordingService - Handles screen capture and recording functionality
  */
-export class ScreenRecordingService {
+export class UserMediaRecordingService {
   #mediaStream = null;
   #mediaRecorder = null;
   #recordedChunks = [];
@@ -45,6 +45,41 @@ export class ScreenRecordingService {
     this.#chunkCount = 0;
     this.#recordingDuration = 0;
     this.#totalFileSize = 0;
+  }
+
+
+  addOnVideoFileCreatedListener(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Callback must be a function');
+    }
+    this.#onVideoFileCreatedCallback = callback;
+  }
+
+
+  /**
+   * Request display media and initialize recording
+   * @returns {Promise<void>}
+   */
+  async startScreenCapture() {
+    this.#checkBrowserSupport();
+    const constraints = this.#getDefaultUserMediaConstraints();
+    constraints.video.mediaSource = 'screen';
+
+    this.#mediaStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+    await this.#startRecording();
+  }
+
+
+  /**
+   * Request camera media and initialize recording
+   * @returns {Promise<void>}
+   */
+  async startCameraCapture() {
+    this.#checkBrowserSupport();
+    const constraints = this.#getDefaultUserMediaConstraints();
+    constraints.video.facingMode = 'user';
+    this.#mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+    await this.#startRecording();
   }
 
   /**
@@ -96,13 +131,6 @@ export class ScreenRecordingService {
     });
   }
 
-  addOnVideoFileCreatedListener(callback) {
-    if (typeof callback !== 'function') {
-      throw new Error('Callback must be a function');
-    }
-    this.#onVideoFileCreatedCallback = callback;
-  }
-
   /**
    * Handle recording interruptions
    * @param {string} reason - Reason for interruption
@@ -136,51 +164,30 @@ export class ScreenRecordingService {
     }
   }
 
-  /**
-   * Request display media and initialize recording
-   * @returns {Promise<void>}
-   */
-  async startScreenCapture() {
-    try {
-      const browserSupport = checkBrowserSupport();
-      if (!browserSupport.isSupported) {
-        const error = new Error(`Screen recording is not supported: ${browserSupport.errors.join(', ')}`);
-        error.name = 'UnsupportedBrowserError';
-        error.userMessage = `Screen recording is not supported in ${browserSupport.browserInfo.name}. Please use Chrome, Firefox, or Edge.`;
-        error.supportDetails = browserSupport;
-        throw error;
+  #getDefaultUserMediaConstraints() {
+    return {
+      video: {
+        width: 1920,
+        height: 1080,
+        frameRate: 30,
+      },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100
       }
+    };
+  }
 
-      const constraints = {
-        video: {
-          mediaSource: 'screen',
-          width: {ideal: 1920, max: 1920},
-          height: {ideal: 1080, max: 1080},
-          frameRate: {ideal: 30, max: 60}
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100
-        }
-      };
-
-      this.#mediaStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+  async #startRecording() {
+    try {
       this.#setupMediaRecorder();
       this.#addEventListeners();
 
       this.#preview.setupPreview(this.#mediaStream);
       this.#preview.startUpdates(() => this.#getRecordingData());
-
-      // Clear previous recorded chunks and reset metadata
-      this.#recordedChunks = [];
-      this.#currentMemoryUsage = 0;
-      this.#chunkCount = 0;
-      this.#totalFileSize = 0;
+      this.#resetMetadata();
       this.#recordingStartTime = Date.now();
-      this.#recordingDuration = 0;
-
-      // Start recording - State transition: idle → recording
       this.#mediaRecorder.start(1000); // Collect data every 1000ms
       this.isRecording = true;
 
@@ -190,124 +197,44 @@ export class ScreenRecordingService {
       });
 
     } catch (error) {
-      console.error('Error starting screen capture:', error);
+      console.error('Error starting user media capture:', error);
       if (error.name === 'NotAllowedError') {
-        // User denied permission
-        const permissionError = new Error('Screen capture permission was denied by the user');
+        const permissionError = new Error('User media capture permission was denied by the user');
         permissionError.name = 'PermissionDeniedError';
-        permissionError.userMessage = 'Please allow screen sharing to start recording';
+        permissionError.userMessage = 'Please allow user media capture to start recording';
         throw permissionError;
-      } else if (error.name === 'NotFoundError') {
-        // No screen capture source available
-        const sourceError = new Error('No screen or window is available for capture');
+      }
+      if (error.name === 'NotFoundError') {
+        const sourceError = new Error('No user media is available for capture');
         sourceError.name = 'NoSourceError';
-        sourceError.userMessage = 'No screen or window is available for capture';
+        sourceError.userMessage = 'No user media is available for capture';
         throw sourceError;
-      } else if (error.name === 'AbortError') {
-        // User canceled the screen selection
+      }
+      if (error.name === 'AbortError') {
         const cancelError = new Error('Screen capture was canceled by the user');
         cancelError.name = 'UserCanceledError';
         cancelError.userMessage = 'Screen capture was canceled';
         throw cancelError;
-      } else if (error.message.includes('not supported')) {
-        // Browser doesn't support screen capture
-        const supportError = new Error('Screen capture is not supported in this browser');
+      }
+      if (error.message.includes('not supported')) {
+        const supportError = new Error('User media capture is not supported in this browser');
         supportError.name = 'UnsupportedError';
-        supportError.userMessage = 'Your browser does not support screen recording. Please use Chrome, Firefox, or Edge.';
+        supportError.userMessage = 'Your browser does not User media recording. Please use Chrome, Firefox, or Edge.';
         throw supportError;
       }
 
-      // For any other errors, re-throw with user-friendly message
-      error.userMessage = 'An unexpected error occurred while starting screen capture';
+      error.userMessage = 'An unexpected error occurred while User media capture';
       throw error;
     }
   }
 
-  /**
-   * Request camera media and initialize recording
-   * @returns {Promise<void>}
-   */
-  async startCameraCapture() {
-    try {
-      const browserSupport = checkBrowserSupport();
-      if (!browserSupport.isSupported) {
-        const error = new Error(`Camera recording is not supported: ${browserSupport.errors.join(', ')}`);
-        error.name = 'UnsupportedBrowserError';
-        error.userMessage = `Camera recording is not supported in ${browserSupport.browserInfo.name}. Please use Chrome, Firefox, or Edge.`;
-        error.supportDetails = browserSupport;
-        throw error;
-      }
 
-      const constraints = {
-        video: {
-          width: {ideal: 1920, max: 1920},
-          height: {ideal: 1080, max: 1080},
-          frameRate: {ideal: 30, max: 60},
-          facingMode: 'user' // Front-facing camera
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100
-        }
-      };
-
-      this.#mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.#setupMediaRecorder();
-      this.#addEventListeners();
-
-      this.#preview.setupPreview(this.#mediaStream);
-      this.#preview.startUpdates(() => this.#getRecordingData());
-
-      // Clear previous recorded chunks and reset metadata
-      this.#recordedChunks = [];
-      this.#currentMemoryUsage = 0;
-      this.#chunkCount = 0;
-      this.#totalFileSize = 0;
-      this.#recordingStartTime = Date.now();
-      this.#recordingDuration = 0;
-
-      // Start recording - State transition: idle → recording
-      this.#mediaRecorder.start(1000); // Collect data every 1000ms
-      this.isRecording = true;
-
-      console.log('Camera recording started - State: idle → recording', {
-        startTime: new Date(this.#recordingStartTime).toISOString(),
-        maxMemoryLimit: this.#preview.formatBytes(this.#maxMemoryUsage)
-      });
-
-    } catch (error) {
-      console.error('Error starting camera capture:', error);
-      if (error.name === 'NotAllowedError') {
-        // User denied permission
-        const permissionError = new Error('Camera access permission was denied by the user');
-        permissionError.name = 'PermissionDeniedError';
-        permissionError.userMessage = 'Please allow camera access to start recording';
-        throw permissionError;
-      } else if (error.name === 'NotFoundError') {
-        // No camera available
-        const sourceError = new Error('No camera device found');
-        sourceError.name = 'NoSourceError';
-        sourceError.userMessage = 'No camera device is available for recording';
-        throw sourceError;
-      } else if (error.name === 'AbortError') {
-        // User canceled the camera selection
-        const cancelError = new Error('Camera access was canceled by the user');
-        cancelError.name = 'UserCanceledError';
-        cancelError.userMessage = 'Camera access was canceled';
-        throw cancelError;
-      } else if (error.message.includes('not supported')) {
-        // Browser doesn't support camera capture
-        const supportError = new Error('Camera capture is not supported in this browser');
-        supportError.name = 'UnsupportedError';
-        supportError.userMessage = 'Your browser does not support camera recording. Please use Chrome, Firefox, or Edge.';
-        throw supportError;
-      }
-
-      // For any other errors, re-throw with user-friendly message
-      error.userMessage = 'An unexpected error occurred while starting camera capture';
-      throw error;
-    }
+  #resetMetadata() {
+    this.#recordedChunks = [];
+    this.#currentMemoryUsage = 0;
+    this.#chunkCount = 0;
+    this.#totalFileSize = 0;
+    this.#recordingDuration = 0;
   }
 
   /**
@@ -352,15 +279,6 @@ export class ScreenRecordingService {
       this.isRecording = false;
       throw error;
     }
-  }
-
-  /**
-   * Backward compatibility method for stopScreenCapture
-   * @returns {Promise<void>}
-   * @deprecated Use stopRecording() instead
-   */
-  async stopScreenCapture() {
-    return this.stopRecording();
   }
 
   /**
@@ -464,12 +382,11 @@ export class ScreenRecordingService {
   #createVideoFile(videoBlob) {
     try {
       const videoUrl = URL.createObjectURL(videoBlob);
-      console.log('Video blob converted to URL:', videoUrl);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `screen-recording-${timestamp}.webm`;
 
-      console.log('Adding screen recording to layer system:', {
+      console.log('Creating video file:', {
         filename,
         size: this.#preview.formatBytes(videoBlob.size),
         type: videoBlob.type
@@ -488,30 +405,12 @@ export class ScreenRecordingService {
    * Clean up resources after recording
    */
   #cleanup() {
-    // Reset recording state
     this.isRecording = false;
-
-    // Clear recorded chunks to free memory
-    this.#recordedChunks = [];
-
-    // Reset metadata
-    this.#currentMemoryUsage = 0;
-    this.#chunkCount = 0;
-    this.#totalFileSize = 0;
+    this.#resetMetadata();
     this.#recordingStartTime = null;
-    this.#recordingDuration = 0;
 
-    // Clean up media recorder
-    if (this.#mediaRecorder) {
-      this.#mediaRecorder = null;
-    }
-
-    // Clean up media stream
-    if (this.#mediaStream) {
-      this.#mediaStream = null;
-    }
-
-    // Clean up preview
+    this.#mediaRecorder = null;
+    this.#mediaStream = null;
     this.#preview.cleanup();
 
     console.log('Resources, metadata, and preview elements cleaned up');
@@ -553,5 +452,16 @@ export class ScreenRecordingService {
       console.log('MediaRecorder stopped');
       this.isRecording = false;
     };
+  }
+
+  #checkBrowserSupport() {
+    const browserSupport = checkBrowserSupport();
+    if (!browserSupport.isSupported) {
+      const error = new Error(`Camera recording is not supported: ${browserSupport.errors.join(', ')}`);
+      error.name = 'UnsupportedBrowserError';
+      error.userMessage = `Camera recording is not supported in ${browserSupport.browserInfo.name}. Please use Chrome, Firefox, or Edge.`;
+      error.supportDetails = browserSupport;
+      throw error;
+    }
   }
 }

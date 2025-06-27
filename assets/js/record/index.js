@@ -1,2 +1,2 @@
-export { ScreenRecordingService } from './service.js';
+export { UserMediaRecordingService } from './service.js';
 
