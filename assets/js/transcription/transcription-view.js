@@ -184,4 +184,8 @@ export class TranscriptionView {
       }
     });
   }
-} 
+
+  showLoading() {
+    this.textChunksContainer.innerHTML = 'Transcribing... Please wait.';
+  }
+}

@@ -98,6 +98,7 @@ export class TranscriptionManager {
     // this.#onTranscriptionComplete(data);
     //
     // return
+    this.transcriptionView.showLoading();
 
     const audio = transformAudioBuffer(audioBuffer);
     console.log("Starting transcription with audio data:", audio);

@@ -1,4 +1,4 @@
-importScripts("demuxer-mp4.js", "render-2d.js", "render-webgl.js", "render-webgpu.js");
+importScripts("demuxer-mp4.js", "render-2d.js");
 
 /**
  * Main worker class that handles video demuxing, decoding, and rendering
@@ -82,18 +82,6 @@ class DemuxWorker {
       case "2d":
         console.log("Using 2D renderer");
         this.#renderer = new Canvas2DRenderer(canvas);
-        break;
-      case "webgl":
-        console.log("Using WebGL renderer");
-        this.#renderer = new WebGLRenderer(rendererName, canvas);
-        break;
-      case "webgl2":
-        console.log("Using WebGL2 renderer");
-        this.#renderer = new WebGLRenderer(rendererName, canvas);
-        break;
-      case "webgpu":
-        console.log("Using WebGPU renderer");
-        this.#renderer = new WebGPURenderer(canvas);
         break;
       default:
         throw new Error(`Unknown renderer: ${rendererName}`);

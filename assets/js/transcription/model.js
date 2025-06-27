@@ -16,6 +16,11 @@ export class PipelineFactory {
   static model = "Xenova/whisper-small.en";
   static instance = null;
 
+  /**
+   * Get an instance of the pipeline for the specified task and model.
+   * @param progress_callback
+   * @returns {Promise<Function>}
+   */
   static async getInstance(progress_callback = null) {
     if (this.instance === null) {
       this.instance = pipeline(
@@ -37,11 +42,11 @@ export class PipelineFactory {
 
 export async function transcribe(audio) {
   // Load transcriber model
-  let modelInferance = await PipelineFactory.getInstance((data) => {
+  let modelInference = await PipelineFactory.getInstance((data) => {
     self.postMessage(data);
   });
   let start = performance.now();
-  let output = await modelInferance(audio, modelParams).catch(onModelInferenceError);
+  let output = await modelInference(audio, modelParams).catch(onModelInferenceError);
   let end = performance.now();
   console.log(`Time taken to transcribe: ${(end - start)/1000} seconds`);
   console.log(output);

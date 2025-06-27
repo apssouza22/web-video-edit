@@ -1,5 +1,6 @@
 import { addElementToBackground, AudioLayer } from '../layer/index.js';
 import { getSupportedMimeTypes, VideoStudio } from '../studio/index.js';
+import {fixWebmDuration} from "../common/utils.js";
 
 /**
  * Class for exporting video using MediaRecorder API without playing in the main player
@@ -90,9 +91,11 @@ export class MediaRecorderExporter {
         this.recordingTime = 0;
 
         this.mediaRecorder.ondataavailable = e => chunks.push(e.data);
-        this.mediaRecorder.onstop = e => {
+        this.mediaRecorder.onstop = async e => {
             this.#stopBackgroundRecording();
-            this.#downloadVideo(new Blob(chunks, { type: availableTypes[0] }));
+            const blob = new Blob(chunks, { type: availableTypes[0] });
+            const videoBlob = await fixWebmDuration(blob);
+            this.#downloadVideo(videoBlob);
             if (this.completionCallback) {
                 this.completionCallback();
             }

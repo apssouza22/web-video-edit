@@ -1,6 +1,6 @@
 import {RecordingPreview} from './preview.js';
 import {checkBrowserSupport} from "./browser-support.js";
-import webmDurationFix from 'https://cdn.jsdelivr.net/npm/webm-duration-fix@1.0.4/+esm'
+import {fixWebmDuration} from "../common/utils.js";
 
 /**
  * ScreenRecordingService - Handles screen capture and recording functionality
@@ -399,7 +399,7 @@ export class UserMediaRecordingService {
       chunks: this.#recordedChunks.length
     });
 
-    return await webmDurationFix.default(videoBlob, {mimeType: videoBlob.type});
+    return await fixWebmDuration(videoBlob);
   }
 
   /**

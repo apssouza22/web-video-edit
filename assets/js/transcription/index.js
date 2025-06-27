@@ -1,2 +1,2 @@
 export { TranscriptionManager } from './transcription.js';
-export {PipelineFactory, transcribe} from "./model.js";
+export {PipelineFactory, transcribe,onModelInferenceError} from "./model.js";
