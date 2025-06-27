@@ -18,6 +18,7 @@ export class UserMediaRecordingService {
   #totalFileSize = 0;
   #onVideoFileCreatedCallback = (file) => {
   }
+  #originalStreams = null;
 
   constructor() {
     /**
@@ -45,6 +46,7 @@ export class UserMediaRecordingService {
     this.#chunkCount = 0;
     this.#recordingDuration = 0;
     this.#totalFileSize = 0;
+    this.#originalStreams = null;
   }
 
 
@@ -62,11 +64,37 @@ export class UserMediaRecordingService {
    */
   async startScreenCapture() {
     this.#checkBrowserSupport();
-    const constraints = this.#getDefaultUserMediaConstraints();
-    constraints.video.mediaSource = 'screen';
-
-    this.#mediaStream = await navigator.mediaDevices.getDisplayMedia(constraints);
-    await this.#startRecording();
+    
+    try {
+      // Get screen capture stream
+      const screenConstraints = this.#getDefaultUserMediaConstraints();
+      screenConstraints.video.mediaSource = 'screen';
+      const screenStream = await navigator.mediaDevices.getDisplayMedia(screenConstraints);
+      
+      // Try to get microphone audio stream
+      let microphoneStream = null;
+      try {
+        const micConstraints = {
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 44100
+          }
+        };
+        microphoneStream = await navigator.mediaDevices.getUserMedia(micConstraints);
+        console.log('Microphone access granted for screen recording');
+      } catch (micError) {
+        console.warn('Microphone access denied or unavailable, continuing with screen-only recording:', micError.message);
+      }
+      
+      // Combine streams
+      this.#mediaStream = this.#combineStreams(screenStream, microphoneStream);
+      await this.#startRecording();
+      
+    } catch (error) {
+      console.error('Error starting screen capture:', error);
+      throw error;
+    }
   }
 
 
@@ -409,6 +437,19 @@ export class UserMediaRecordingService {
     this.#resetMetadata();
     this.#recordingStartTime = null;
 
+    if (this.#originalStreams) {
+      if (this.#originalStreams.screen) {
+        this.#originalStreams.screen.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+      if (this.#originalStreams.microphone) {
+        this.#originalStreams.microphone.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+    }
+
     this.#mediaRecorder = null;
     this.#mediaStream = null;
     this.#preview.cleanup();
@@ -452,6 +493,43 @@ export class UserMediaRecordingService {
       console.log('MediaRecorder stopped');
       this.isRecording = false;
     };
+  }
+
+  /**
+   * Combine screen video stream with microphone audio stream
+   * @param {MediaStream} screenStream - Screen capture stream
+   * @param {MediaStream|null} microphoneStream - Microphone audio stream (optional)
+   * @returns {MediaStream} Combined stream
+   */
+  #combineStreams(screenStream, microphoneStream) {
+    const combinedStream = new MediaStream();
+    
+    // Add video tracks from screen stream
+    screenStream.getVideoTracks().forEach(track => {
+      combinedStream.addTrack(track);
+    });
+    
+    // Add audio tracks from screen stream (system audio if available)
+    screenStream.getAudioTracks().forEach(track => {
+      combinedStream.addTrack(track);
+      console.log('Added system audio track to recording');
+    });
+    
+    // Add microphone audio tracks if available
+    if (microphoneStream) {
+      microphoneStream.getAudioTracks().forEach(track => {
+        combinedStream.addTrack(track);
+        console.log('Added microphone audio track to recording');
+      });
+    }
+    
+    // Store reference to original streams for cleanup
+    this.#originalStreams = {
+      screen: screenStream,
+      microphone: microphoneStream
+    };
+    
+    return combinedStream;
   }
 
   #checkBrowserSupport() {
