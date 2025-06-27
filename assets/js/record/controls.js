@@ -18,20 +18,7 @@ export function initScreenRecording() {
   stopBtn.addEventListener('click', stopRecording);
 
   userMediaRecorder.addOnVideoFileCreatedListener((videoFile) => {
-    const l = window.studio.layerLoader.addLayerFromFile(videoFile);
-    console.log('Video file created:', videoFile);
-    const videoElement = document.createElement('video');
-    videoElement.src = videoFile.uri;
-    videoElement.controls = true;
-    videoElement.autoplay = true;
-    videoElement.style.width = '100%';
-    videoElement.style.height = 'auto';
-
-    videoElement.addEventListener('loadedmetadata', () => {
-      console.log(`Video duration: ${videoElement.duration} seconds`);
-    });
-
-    popup(videoElement);
+    window.studio.addLayerFromFile(videoFile);
   })
 }
 

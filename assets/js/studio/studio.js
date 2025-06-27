@@ -226,21 +226,23 @@ export class VideoStudio {
         return
       }
       for (let file of e.target.files) {
-        const l = this.layerLoader.addLayerFromFile(file);
-        layers.push(...l);
-        
-        // Start tracking loading for each new layer
-        for (let layer of l) {
-          this.loadingPopup.startLoading(layer.id || layer.name || 'unknown', file.name);
-        }
+        this.addLayerFromFile(file)
+        .forEach(layer => {
+          layers.push(layer);
+        });
       }
       filePicker.value = '';
-
-      layers.forEach(layer => {
-        layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
-      })
     });
     filePicker.click();
+  }
+
+  addLayerFromFile(file) {
+    const layers = this.layerLoader.addLayerFromFile(file);
+    layers.forEach(layer => {
+      layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
+      this.loadingPopup.startLoading(layer.id, file.name);
+    })
+    return layers;
   }
 
   async loadLayersFromJson(uri) {
@@ -253,22 +255,22 @@ export class VideoStudio {
       console.error("File is not a json file");
       return
     }
-    
+
     // Show loading popup for JSON loading
     this.loadingPopup.startLoading('json-load', 'Project JSON');
     this.loadingPopup.updateProgress('json-load', 50);
-    
+
     let response = await fetch(uri);
     let layers = await response.json();
     await this.layerLoader.loadLayersFromJson(layers);
-    
+
     // Complete JSON loading
     this.loadingPopup.updateProgress('json-load', 100);
   }
 
   #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
-    
+
     if (progress < 100) {
       this.layersSidebarView.updateLayerThumb(layer, ctx)
       return
