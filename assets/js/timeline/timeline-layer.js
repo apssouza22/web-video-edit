@@ -186,12 +186,12 @@ export class TimelineLayer {
 
   /**
    * Main render method for the timeline layer
-   * @param {number} y_coord - The y coordinate to render at
+   * @param {number} yPos - The y coordinate to render at
    * @param {number} height - The height of the layer track
    * @param {boolean} selected - Whether the layer is selected
    */
-  render(y_coord, height, selected = false) {
-    if (!isFinite(y_coord) || !isFinite(height) || height <= 0) {
+  render(yPos, height, selected = false) {
+    if (!isFinite(yPos) || !isFinite(height) || height <= 0) {
       console.warn("Invalid layer coordinates");
       return;
     }
@@ -204,17 +204,17 @@ export class TimelineLayer {
     }
 
     const colors = this.#getColors(selected);
-    const trackY = y_coord - height / 2;
+    const trackY = yPos - height / 2;
     this.#drawTrack(start, length, trackY, height, colors, selected);
-    this.#drawResizeHandles(start, length, y_coord, height, selected);
+    this.#drawResizeHandles(start, length, yPos, height, selected);
 
     // Draw layer type symbol if the layer is wide enough
     if (length > height * 2.5) {
       const symbolX = start + height * 0.8;
-      const symbolY = y_coord;
+      const symbolY = yPos;
       const symbolSize = height * 0.7;
       this.#drawSymbol(symbolX, symbolY, symbolSize);
     }
-    this.#drawLayerName(start, length, y_coord, height);
+    this.#drawLayerName(start, length, yPos, height);
   }
 }

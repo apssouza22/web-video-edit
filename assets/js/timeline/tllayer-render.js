@@ -60,12 +60,12 @@ export class TimelineLayerRender {
   /**
    * Render a single layer in the timeline
    * @param {StandardLayer} layer - The layer to render
-   * @param {number} y_coord - The y coordinate to render at
+   * @param {number} yPos - The y coordinate to render at
    * @param {number} height - The height of the layer track
    * @param {boolean} selected - Whether the layer is selected
    */
-  renderLayer(layer, y_coord, height, selected = false) {
+  renderLayer(layer, yPos, height, selected = false) {
     const renderer = this.#getLayerRenderer(layer);
-    renderer.render(y_coord, height, selected);
+    renderer.render(yPos, height, selected);
   }
 }

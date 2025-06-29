@@ -1,10 +1,10 @@
-import { TimeMarker } from './time-marker.js';
-import { TimelineZoomHandler } from './zoom.js';
-import { PreviewHandler } from './preview.js';
-import { DragLayerHandler } from './drag.js';
-import { TimelineLayerRender } from './tllayer-render.js';
-import { PinchHandler } from '../studio/index.js';
-import { dpr } from '../constants.js';
+import {TimeMarker} from './time-marker.js';
+import {TimelineZoomHandler} from './zoom.js';
+import {PreviewHandler} from './preview.js';
+import {DragLayerHandler} from './drag.js';
+import {TimelineLayerRender} from './tllayer-render.js';
+import {PinchHandler} from '../studio/index.js';
+import {dpr} from '../constants.js';
 
 /**
  * Class representing a timeline for a video player
@@ -32,10 +32,9 @@ export class Timeline {
 
     // Configuration for timeline elements
     this.layerHeight = 35; // Height per layer
-    this.minLayerSpacing = 15; // Minimum space between layers
+    this.minLayerSpacing = 10; // Minimum space between layers
     this.contentPadding = 15; // Padding around content
-    
-    // Create time marker handler
+
     this.timeMarker = new TimeMarker({
       height: 25,
       spacing: 60
@@ -43,9 +42,9 @@ export class Timeline {
 
     // Initialize layer renderer
     this.layerRenderer = new TimelineLayerRender(
-      this.timelineCtx, 
-      this.totalTime, 
-      this.timelineCanvas.clientWidth
+        this.timelineCtx,
+        this.totalTime,
+        this.timelineCanvas.clientWidth
     );
 
     this.previewHandler = new PreviewHandler();
@@ -61,11 +60,11 @@ export class Timeline {
    * Setter for time property that notifies listeners when time changes
    */
   setTime(newTime) {
-    const oldTime = this.time;
     this.time = newTime;
-    if (oldTime !== newTime) {
-      this.timeUpdateListener(newTime, oldTime)
-    }
+  }
+
+  #onClick() {
+    this.timeUpdateListener(this.time, this.playerTime);
   }
 
   /**
@@ -91,17 +90,6 @@ export class Timeline {
     }
   }
 
-  /**
-   * Delete the currently selected layer and notify listeners
-   */
-  deleteSelectedLayer() {
-    if (this.selectedLayer && this.layerUpdateListener) {
-      const layerToDelete = this.selectedLayer;
-      this.selectedLayer = null;
-      this.layerUpdateListener('delete', layerToDelete, null);
-    }
-  }
-
   addTimeUpdateListener(listener) {
     if (typeof listener !== 'function') {
       throw new Error('Time update listener must be a function');
@@ -113,10 +101,10 @@ export class Timeline {
     const callback = (function (scale, rotation) {
       let new_x = (this.timelineHolder.clientWidth * scale - this.timelineHolder.clientWidth);
       let old_x = this.timelineHolder.scrollLeft;
+      // this.timelineHolder.scroll(Math.round(old_x + new_x), 0);
+
       this.scale = Math.max(1, this.scale * scale);
       this.resize();
-      this.timelineHolder.scroll(Math.round(old_x + new_x), 0);
-      
       // Update the zoom slider to match the current scale
       if (this.zoomHandler) {
         this.zoomHandler.updateSliderValue();
@@ -125,16 +113,16 @@ export class Timeline {
 
     const pinch = new PinchHandler(this.timelineHolder, callback, this.studio);
     pinch.setupEventListeners();
-    
+
     this.zoomHandler = new TimelineZoomHandler(this);
   }
 
   #addEventListeners() {
     this.timelineCanvas.addEventListener('pointerdown', this.#onPointerDown.bind(this));
-    this.timelineCanvas.addEventListener('pointermove', this.#onPointerMove.bind(this), { passive: false });
+    this.timelineCanvas.addEventListener('pointermove', this.#onPointerMove.bind(this), {passive: false});
     this.timelineCanvas.addEventListener('pointerleave', this.#onPointerLeave.bind(this));
     this.timelineCanvas.addEventListener('pointerup', this.#onPointerLeave.bind(this));
-    
+    this.timelineCanvas.addEventListener('click', this.#onClick.bind(this));
     this.#setupTimelineHeaderButtons();
   }
 
@@ -147,7 +135,7 @@ export class Timeline {
     const deleteButton = document.getElementById('delete-button');
     const splitButton = document.getElementById('split-button');
     const cloneButton = document.getElementById('clone-button');
-    
+
     deleteButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
         console.log('No layer selected. Please select a layer first.');
@@ -155,7 +143,7 @@ export class Timeline {
       }
       this.layerUpdateListener('delete', this.selectedLayer, null);
     });
-    
+
     splitButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
         console.log('No layer selected. Please select a layer first.');
@@ -163,7 +151,7 @@ export class Timeline {
       }
       this.layerUpdateListener('split', this.selectedLayer, null);
     });
-    
+
     cloneButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
         console.log('No layer selected. Please select a layer first.');
@@ -259,44 +247,34 @@ export class Timeline {
     this.layers = layers;
     this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientHeight);
     this.#updateTotalTime(layers);
-    
-    // Update layer renderer properties
     this.layerRenderer.updateProperties(this.totalTime, this.timelineCanvas.clientWidth);
-    
+
     // Skip rendering if no layers or invalid canvas dimensions
     if (layers.length === 0 || this.timelineCanvas.clientHeight <= 0 || this.timelineCanvas.clientWidth <= 0) {
       this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
       return;
     }
-    
-    // Calculate the available height for layers (excluding the time marker height)
+
     const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height - this.contentPadding;
-    
-    // Ensure we have positive available height
     if (availableHeight <= 0) {
       this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
       return;
     }
-    
+
     // Calculate vertical positions starting from top (below time marker)
-    const layerSpacing = Math.max(
-      this.minLayerSpacing,
-      availableHeight / Math.max(layers.length, 1)
-    );
-    
-    let verticalPosition = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
+    const layerSpacing = this.minLayerSpacing + this.layerHeight;
+
+    let yPos = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
 
     for (let layer of layers) {
       let selected = this.selectedLayer === layer;
-      // Use the layer renderer to render each layer
-      this.layerRenderer.renderLayer(layer, verticalPosition, this.layerHeight, selected);
-      verticalPosition += layerSpacing;
+      this.layerRenderer.renderLayer(layer, yPos, this.layerHeight, selected);
+      yPos += layerSpacing;
     }
 
     this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
-
-    // Render line markers on top of all other elements
     this.#renderLineMarker(this.playerTime);
+    console.log(this.playerTime)
 
     if (this.isHover) {
       this.#renderLineMarker(this.time);
@@ -310,35 +288,28 @@ export class Timeline {
    * @returns {boolean} - Whether a layer was selected
    */
   #selectLayer(ev) {
-    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height - this.contentPadding;
-    
-    const layerSpacing = Math.max(
-      this.minLayerSpacing,
-      availableHeight / Math.max(this.layers.length, 1)
-    );
-    
-    let verticalPosition = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
+    const layerSpacing = this.minLayerSpacing + this.layerHeight;
+    let yPos = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
 
     for (let layer of this.layers) {
       if (!this.#canSelectLayer(layer)) {
-        verticalPosition += layerSpacing;
+        yPos += layerSpacing;
         continue;
       }
-      
+
       // Check if click is within the layer's vertical bounds
-      const layerTop = verticalPosition - this.layerHeight / 2;
-      const layerBottom = verticalPosition + this.layerHeight / 2;
-      
+      const layerTop = yPos - this.layerHeight / 2;
+      const layerBottom = yPos + this.layerHeight / 2;
+
       if (ev.offsetY >= layerTop && ev.offsetY <= layerBottom) {
         this.setSelectedLayer(layer);
         return true;
       }
-      
-      verticalPosition += layerSpacing;
+
+      yPos += layerSpacing;
     }
     return false;
   }
-
 
   /**
    * Ensures that only layers overlapping or near the current time (with a small margin of 1%)
@@ -362,7 +333,7 @@ export class Timeline {
       this.totalTime = 0;
       return;
     }
-    
+
     this.totalTime = 0;
     for (let layer of layers) {
       const layerEndTime = layer.start_time + layer.totalTimeInMilSeconds;
@@ -373,11 +344,13 @@ export class Timeline {
   }
 
   #renderLineMarker(time) {
-    if (this.totalTime === 0) return;
-    
+    if (this.totalTime === 0) {
+      return;
+    }
+
     const scale = this.timelineCanvas.clientWidth / this.totalTime;
     const markerX = time * scale;
-    
+
     // Draw the main line marker
     this.timelineCtx.beginPath();
     this.timelineCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
@@ -385,26 +358,26 @@ export class Timeline {
     this.timelineCtx.moveTo(markerX, 0);
     this.timelineCtx.lineTo(markerX, this.timelineCanvas.clientHeight);
     this.timelineCtx.stroke();
-    
+
     // Draw time display
     this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     this.timelineCtx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
     this.timelineCtx.textAlign = 'left';
     this.timelineCtx.textBaseline = 'top';
-    
+
     // Position text to avoid overlapping with time marker
     const textX = markerX + 5;
     const textY = this.timeMarker.height + 5;
-    
+
     // Draw background for better readability
     const timeText = time.toFixed(2) + 's';
     const textMetrics = this.timelineCtx.measureText(timeText);
     const textWidth = textMetrics.width + 6;
     const textHeight = 16;
-    
+
     this.timelineCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.timelineCtx.fillRect(textX - 3, textY - 2, textWidth, textHeight);
-    
+
     this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     this.timelineCtx.fillText(timeText, textX, textY);
   }
