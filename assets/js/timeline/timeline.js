@@ -34,33 +34,43 @@ export class TimelineLayerRender {
    * Get the color scheme for a layer based on its type
    * @param {StandardLayer} layer - The layer to get colors for
    * @param {boolean} selected - Whether the layer is selected
-   * @returns {Object} - Object containing fillColor and strokeColor
+   * @returns {Object} - Object containing fillColor, gradientColor, strokeColor, and shadowColor
    */
   getLayerColors(layer, selected) {
     const layerType = layer.constructor.name;
-    let baseColor, selectedColor;
+    let baseColor, gradientColor, selectedColor, selectedGradient;
     
     switch (layerType) {
       case 'AudioLayer':
         baseColor = 'rgb(255, 165, 0)'; // Orange
-        selectedColor = 'rgb(255, 140, 0)';
+        gradientColor = 'rgb(255, 140, 0)';
+        selectedColor = 'rgb(255, 200, 50)';
+        selectedGradient = 'rgb(255, 165, 0)';
         break;
       case 'VideoLayer':
         baseColor = 'rgb(30, 144, 255)'; // Dodger Blue
-        selectedColor = 'rgb(0, 123, 255)';
+        gradientColor = 'rgb(0, 123, 255)';
+        selectedColor = 'rgb(70, 180, 255)';
+        selectedGradient = 'rgb(30, 144, 255)';
         break;
       case 'ImageLayer':
         baseColor = 'rgb(138, 43, 226)'; // Blue Violet
-        selectedColor = 'rgb(123, 28, 211)';
+        gradientColor = 'rgb(123, 28, 211)';
+        selectedColor = 'rgb(170, 80, 255)';
+        selectedGradient = 'rgb(138, 43, 226)';
         break;
       default: // Text or other layers
         baseColor = 'rgb(34, 197, 94)'; // Green
-        selectedColor = 'rgb(22, 163, 74)';
+        gradientColor = 'rgb(22, 163, 74)';
+        selectedColor = 'rgb(70, 220, 120)';
+        selectedGradient = 'rgb(34, 197, 94)';
     }
     
     return {
       fillColor: selected ? selectedColor : baseColor,
-      strokeColor: selected ? 'rgb(255, 255, 255)' : 'rgb(100, 100, 100)'
+      gradientColor: selected ? selectedGradient : gradientColor,
+      strokeColor: selected ? 'rgb(255, 255, 255)' : 'rgba(255, 255, 255, 0.3)',
+      shadowColor: 'rgba(0, 0, 0, 0.3)'
     };
   }
 
@@ -72,36 +82,41 @@ export class TimelineLayerRender {
    * @param {number} size - Size of the symbol
    */
   drawLayerSymbol(layerType, x, y, size) {
-    this.ctx.fillStyle = 'white';
-    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-    this.ctx.lineWidth = 1;
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    this.ctx.lineWidth = 1.5;
     
     switch (layerType) {
       case 'AudioLayer':
         // Draw audio wave symbol
         this.ctx.beginPath();
-        const waveWidth = size * 0.8;
-        const waveHeight = size * 0.4;
+        const waveWidth = size;
+        const waveHeight = size * 0.5;
         const waveX = x - waveWidth / 2;
         const waveY = y;
         
-        // Draw simplified audio wave
+        // Draw  audio wave
         this.ctx.moveTo(waveX, waveY);
-        this.ctx.lineTo(waveX + waveWidth * 0.2, waveY - waveHeight);
-        this.ctx.lineTo(waveX + waveWidth * 0.4, waveY + waveHeight);
-        this.ctx.lineTo(waveX + waveWidth * 0.6, waveY - waveHeight * 0.5);
-        this.ctx.lineTo(waveX + waveWidth * 0.8, waveY + waveHeight * 0.7);
+        this.ctx.lineTo(waveX + waveWidth * 0.15, waveY - waveHeight * 0.8);
+        this.ctx.lineTo(waveX + waveWidth * 0.3, waveY + waveHeight * 0.6);
+        this.ctx.lineTo(waveX + waveWidth * 0.45, waveY - waveHeight * 1.0);
+        this.ctx.lineTo(waveX + waveWidth * 0.6, waveY + waveHeight * 0.9);
+        this.ctx.lineTo(waveX + waveWidth * 0.75, waveY - waveHeight * 0.7);
+        this.ctx.lineTo(waveX + waveWidth * 0.9, waveY + waveHeight * 0.4);
         this.ctx.lineTo(waveX + waveWidth, waveY);
         this.ctx.stroke();
         break;
         
       case 'VideoLayer':
-        // Draw play button triangle
+        // Draw enhanced play button triangle
         this.ctx.beginPath();
-        const triangleSize = size * 0.6;
-        this.ctx.moveTo(x - triangleSize / 3, y - triangleSize / 2);
-        this.ctx.lineTo(x - triangleSize / 3, y + triangleSize / 2);
-        this.ctx.lineTo(x + triangleSize / 2, y);
+        const triangleSize = size * 0.8;
+        const triangleX = x - triangleSize * 0.3;
+        const triangleY = y;
+        
+        this.ctx.moveTo(triangleX, triangleY - triangleSize * 0.5);
+        this.ctx.lineTo(triangleX, triangleY + triangleSize * 0.5);
+        this.ctx.lineTo(triangleX + triangleSize * 0.8, triangleY);
         this.ctx.closePath();
         this.ctx.fill();
         this.ctx.stroke();
@@ -109,36 +124,35 @@ export class TimelineLayerRender {
         
       case 'ImageLayer':
         // Draw image/picture symbol
-        const imgSize = size * 0.7;
+        const imgSize = size * 0.9;
         const imgX = x - imgSize / 2;
         const imgY = y - imgSize / 2;
         
-        // Draw rectangle frame
-        this.ctx.fillRect(imgX, imgY, imgSize, imgSize);
-        this.ctx.strokeRect(imgX, imgY, imgSize, imgSize);
+        // Draw image frame
+        this.ctx.strokeRect(imgX, imgY, imgSize, imgSize * 0.75);
         
-        // Draw small circle and line to represent a simple image
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        // Draw mountain/landscape inside
         this.ctx.beginPath();
-        this.ctx.arc(imgX + imgSize * 0.3, imgY + imgSize * 0.3, imgSize * 0.1, 0, 2 * Math.PI);
-        this.ctx.fill();
-        
-        // Draw mountain-like shape
-        this.ctx.beginPath();
-        this.ctx.moveTo(imgX + imgSize * 0.1, imgY + imgSize * 0.8);
-        this.ctx.lineTo(imgX + imgSize * 0.4, imgY + imgSize * 0.5);
-        this.ctx.lineTo(imgX + imgSize * 0.7, imgY + imgSize * 0.6);
-        this.ctx.lineTo(imgX + imgSize * 0.9, imgY + imgSize * 0.8);
+        this.ctx.moveTo(imgX + imgSize * 0.1, imgY + imgSize * 0.6);
+        this.ctx.lineTo(imgX + imgSize * 0.3, imgY + imgSize * 0.3);
+        this.ctx.lineTo(imgX + imgSize * 0.5, imgY + imgSize * 0.45);
+        this.ctx.lineTo(imgX + imgSize * 0.7, imgY + imgSize * 0.25);
+        this.ctx.lineTo(imgX + imgSize * 0.9, imgY + imgSize * 0.6);
         this.ctx.stroke();
+        
+        // Draw sun/circle
+        this.ctx.beginPath();
+        this.ctx.arc(imgX + imgSize * 0.75, imgY + imgSize * 0.25, imgSize * 0.08, 0, 2 * Math.PI);
+        this.ctx.fill();
         break;
         
       default: // Text or other layers
         // Draw "T" for text
-        const textSize = size * 0.6;
+        const textSize = size * 0.7;
         this.ctx.font = `bold ${textSize}px Arial`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillStyle = 'white';
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         this.ctx.fillText('T', x, y);
         this.ctx.strokeText('T', x, y);
     }
@@ -152,57 +166,90 @@ export class TimelineLayerRender {
    * @param {boolean} selected - Whether the layer is selected
    */
   renderLayer(layer, y_coord, height, selected) {
+    if (!isFinite(y_coord) || !isFinite(height) || height <= 0) {
+      console.warn("Invalid layer coordinates")
+      return;
+    }
+    
     let scale = this.canvasWidth / this.totalTime;
     let start = scale * layer.start_time;
     let length = scale * layer.totalTimeInMilSeconds;
+
+    if (!isFinite(start) || !isFinite(length) || length <= 0) {
+      console.warn("Invalid layer position details")
+      return;
+    }
     
     const colors = this.getLayerColors(layer, selected);
+    const gradientStartY = y_coord - height/2;
+    const gradientEndY = y_coord + height/2;
+    const gradient = this.ctx.createLinearGradient(start, gradientStartY, start, gradientEndY);
+    gradient.addColorStop(0, colors.fillColor);
+    gradient.addColorStop(1, colors.gradientColor);
     
-    // Draw the main layer track with rounded corners
-    this.ctx.fillStyle = colors.fillColor;
-    this.ctx.strokeStyle = colors.strokeColor;
-    this.ctx.lineWidth = selected ? 2 : 1;
-    
-    const radius = height * 0.2;
+    const radius = height * 0.25;
     const trackY = y_coord - height / 2;
     
-    // Draw rounded rectangle for the main track
+    // Draw shadow first
+    this.ctx.fillStyle = colors.shadowColor;
+    this.ctx.beginPath();
+    this.ctx.roundRect(start + 2, trackY + 2, length, height, radius);
+    this.ctx.fill();
+    
+    // Draw the main layer track with gradient
+    this.ctx.fillStyle = gradient;
+    this.ctx.strokeStyle = colors.strokeColor;
+    this.ctx.lineWidth = selected ? 3 : 1.5;
+    
     this.ctx.beginPath();
     this.ctx.roundRect(start, trackY, length, height, radius);
     this.ctx.fill();
     this.ctx.stroke();
 
-    // Draw resize handles at start and end
-    const handleWidth = 4;
-    const handleHeight = height * 1.2;
+    // Draw resize handles
+    const handleWidth = 6;
+    const handleHeight = height * 1.4;
     const handleY = y_coord - handleHeight / 2;
+    const handleRadius = 2;
     
-    this.ctx.fillStyle = selected ? 'rgb(255, 255, 255)' : colors.strokeColor;
+    this.ctx.fillStyle = selected ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.6)';
+    this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+    this.ctx.lineWidth = 1;
     
-    // Handles for resizing the layer
-    this.ctx.fillRect(start, handleY, handleWidth, handleHeight);
-    this.ctx.fillRect(start + length - handleWidth, handleY, handleWidth, handleHeight);
+    // Left handle
+    this.ctx.beginPath();
+    this.ctx.roundRect(start - handleWidth/2, handleY, handleWidth, handleHeight, handleRadius);
+    this.ctx.fill();
+    this.ctx.stroke();
+    
+    // Right handle
+    this.ctx.beginPath();
+    this.ctx.roundRect(start + length - handleWidth/2, handleY, handleWidth, handleHeight, handleRadius);
+    this.ctx.fill();
+    this.ctx.stroke();
     
     // Draw layer type symbol if the layer is wide enough
-    if (length > height * 2) {
-      const symbolX = start + height;
+    if (length > height * 2.5) {
+      const symbolX = start + height * 0.8;
       const symbolY = y_coord;
-      const symbolSize = height * 0.6;
+      const symbolSize = height * 0.7;
       this.drawLayerSymbol(layer.constructor.name, symbolX, symbolY, symbolSize);
     }
     
-    // Draw layer name if there's enough space
+    // Draw layer name with improved typography
     if (length > height * 4) {
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = `${Math.min(10, height * 0.4)}px Arial`;
+      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+      this.ctx.lineWidth = 0.5;
+      this.ctx.font = `${Math.min(12, height * 0.45)}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
       this.ctx.textAlign = 'left';
       this.ctx.textBaseline = 'middle';
       
-      const textX = start + height * 2;
+      const textX = start + height * 2.2;
       const maxTextWidth = length - height * 3;
       
       // Truncate text if it's too long
-      let displayName = layer.name;
+      let displayName = layer.name || 'Unnamed Layer';
       const textWidth = this.ctx.measureText(displayName).width;
       if (textWidth > maxTextWidth) {
         while (this.ctx.measureText(displayName + '...').width > maxTextWidth && displayName.length > 0) {
@@ -211,6 +258,8 @@ export class TimelineLayerRender {
         displayName += '...';
       }
       
+      // Draw text with subtle stroke for better readability
+      this.ctx.strokeText(displayName, textX, y_coord);
       this.ctx.fillText(displayName, textX, y_coord);
     }
   }
@@ -241,13 +290,13 @@ export class Timeline {
     this.timelineHolder.appendChild(this.timelineCanvas);
 
     // Configuration for timeline elements
-    this.layerHeight = 30; // Height per layer
-    this.minLayerSpacing = 10; // Minimum space between layers
-    this.contentPadding = 10; // Padding around content
+    this.layerHeight = 35; // Height per layer
+    this.minLayerSpacing = 15; // Minimum space between layers
+    this.contentPadding = 15; // Padding around content
     
     // Create time marker handler
     this.timeMarker = new TimeMarker({
-      height: 20,
+      height: 25,
       spacing: 60
     });
 
@@ -278,13 +327,9 @@ export class Timeline {
     }
   }
 
-
   /**
    * Add a listener for layer updates
    * @param {Function} listener - Function to call when layer updates occur
-   * @param {string} action - The action that occurred ('select', 'delete', 'clone', 'split')
-   * @param {StandardLayer} layer - The layer that was affected
-   * @param {StandardLayer|null} [oldLayer] - The previous layer (for 'select' action)
    */
   addLayerUpdateListener(listener) {
     if (typeof listener !== 'function') {
@@ -322,8 +367,6 @@ export class Timeline {
     }
     this.timeUpdateListener = listener
   }
-
-
 
   #setupPinchHandler() {
     const callback = (function (scale, rotation) {
@@ -473,24 +516,40 @@ export class Timeline {
    */
   render(layers) {
     this.layers = layers;
-    this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientWidth);
+    this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientHeight);
     this.#updateTotalTime(layers);
     
     // Update layer renderer properties
     this.layerRenderer.updateProperties(this.totalTime, this.timelineCanvas.clientWidth);
     
-    // Calculate the available height for layers (excluding the time marker height)
-    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height;
+    // Skip rendering if no layers or invalid canvas dimensions
+    if (layers.length === 0 || this.timelineCanvas.clientHeight <= 0 || this.timelineCanvas.clientWidth <= 0) {
+      this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
+      return;
+    }
     
-    // Calculate vertical positions based on available height (below time marker)
-    let verticalPositionSpace = availableHeight / (layers.length + 1);
-    let verticalPosition = this.timelineCanvas.clientHeight - verticalPositionSpace;
+    // Calculate the available height for layers (excluding the time marker height)
+    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height - this.contentPadding;
+    
+    // Ensure we have positive available height
+    if (availableHeight <= 0) {
+      this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
+      return;
+    }
+    
+    // Calculate vertical positions starting from top (below time marker)
+    const layerSpacing = Math.max(
+      this.minLayerSpacing,
+      availableHeight / Math.max(layers.length, 1)
+    );
+    
+    let verticalPosition = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
 
     for (let layer of layers) {
       let selected = this.selectedLayer === layer;
       // Use the layer renderer to render each layer
-      this.layerRenderer.renderLayer(layer, verticalPosition, 20, selected);
-      verticalPosition -= verticalPositionSpace;
+      this.layerRenderer.renderLayer(layer, verticalPosition, this.layerHeight, selected);
+      verticalPosition += layerSpacing;
     }
 
     this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
@@ -504,41 +563,37 @@ export class Timeline {
     }
   }
 
-
-  #renderLineMarker(time) {
-    let x = this.timelineCanvas.clientWidth * time / this.totalTime;
-    this.timelineCtx.fillStyle = `rgb(192,200,213)`;
-    this.timelineCtx.fillRect(x, 0, 2, this.timelineCanvas.clientHeight);
-    this.timelineCtx.font = "10px sans-serif";
-    
-    // Position the text in a way that doesn't overlap with the time marker
-    this.timelineCtx.fillText(time.toFixed(2), x + 5, this.timeMarker.height + 15);
-    this.timelineCtx.fillText(this.totalTime.toFixed(2), x + 5, this.timeMarker.height + 30);
-  }
-
-
-
   /**
-   * Select a layer based on the event position
+   * Select a layer based on the event position with updated top-down positioning
    * @param {Event} ev - The pointer event
    * @returns {boolean} - Whether a layer was selected
    */
   #selectLayer(ev) {
-    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height;
+    const availableHeight = this.timelineCanvas.clientHeight - this.timeMarker.height - this.contentPadding;
     
-    let verticalSpacing = availableHeight / (this.layers.length + 1);
-    let verticalPosition = this.timelineCanvas.clientHeight;
+    const layerSpacing = Math.max(
+      this.minLayerSpacing,
+      availableHeight / Math.max(this.layers.length, 1)
+    );
+    
+    let verticalPosition = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
 
     for (let layer of this.layers) {
-      verticalPosition -= verticalSpacing;
       if (!this.#canSelectLayer(layer)) {
+        verticalPosition += layerSpacing;
         continue;
       }
-      //checks if ev.offsetY is within 5% of the height of the timeline canvas
-      if (Math.abs(ev.offsetY - verticalPosition) < (0.05 * this.timelineCanvas.clientHeight)) {
+      
+      // Check if click is within the layer's vertical bounds
+      const layerTop = verticalPosition - this.layerHeight / 2;
+      const layerBottom = verticalPosition + this.layerHeight / 2;
+      
+      if (ev.offsetY >= layerTop && ev.offsetY <= layerBottom) {
         this.setSelectedLayer(layer);
         return true;
       }
+      
+      verticalPosition += layerSpacing;
     }
     return false;
   }
@@ -561,17 +616,55 @@ export class Timeline {
     return true;
   }
 
-  /**
-   * Update the total time of the player based on the layers
-   * 
-   * @param {StandardLayer[]} layers - The layers to check
-   */
   #updateTotalTime(layers) {
+    if (layers.length === 0) {
+      this.totalTime = 0;
+      return;
+    }
+    
+    this.totalTime = 0;
     for (let layer of layers) {
-      if (layer.start_time + layer.totalTimeInMilSeconds > this.totalTime) {
-        this.totalTime = layer.start_time + layer.totalTimeInMilSeconds;
+      const layerEndTime = layer.start_time + layer.totalTimeInMilSeconds;
+      if (layerEndTime > this.totalTime) {
+        this.totalTime = layerEndTime;
       }
     }
   }
-}
 
+  #renderLineMarker(time) {
+    if (this.totalTime === 0) return;
+    
+    const scale = this.timelineCanvas.clientWidth / this.totalTime;
+    const markerX = time * scale;
+    
+    // Draw the main line marker
+    this.timelineCtx.beginPath();
+    this.timelineCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    this.timelineCtx.lineWidth = 2;
+    this.timelineCtx.moveTo(markerX, 0);
+    this.timelineCtx.lineTo(markerX, this.timelineCanvas.clientHeight);
+    this.timelineCtx.stroke();
+    
+    // Draw time display
+    this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    this.timelineCtx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+    this.timelineCtx.textAlign = 'left';
+    this.timelineCtx.textBaseline = 'top';
+    
+    // Position text to avoid overlapping with time marker
+    const textX = markerX + 5;
+    const textY = this.timeMarker.height + 5;
+    
+    // Draw background for better readability
+    const timeText = time.toFixed(2) + 's';
+    const textMetrics = this.timelineCtx.measureText(timeText);
+    const textWidth = textMetrics.width + 6;
+    const textHeight = 16;
+    
+    this.timelineCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.timelineCtx.fillRect(textX - 3, textY - 2, textWidth, textHeight);
+    
+    this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    this.timelineCtx.fillText(timeText, textX, textY);
+  }
+}

@@ -94,10 +94,10 @@ export class TranscriptionManager {
   }
 
   startTranscription(audioBuffer) {
-    // const data = getMockedData();
-    // this.#onTranscriptionComplete(data);
-    //
-    // return
+    const data = getMockedData();
+    this.#onTranscriptionComplete(data);
+
+    return
     this.transcriptionView.showLoading();
 
     const audio = transformAudioBuffer(audioBuffer);
