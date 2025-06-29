@@ -3,6 +3,7 @@ import {dpr, fps} from '../constants.js';
 import {Canvas2DRender} from '../common/render-2d.js';
 
 export class StandardLayer {
+  audioBuffer = null;
   constructor(file) {
     this.file = file
     this.name = file.name;
@@ -42,6 +43,10 @@ export class StandardLayer {
   adjustTotalTime(diff) {
     if (!this.ready || !this.framesCollection) {
       console.warn('VideoLayer not ready or frames collection not available');
+      return;
+    }
+    if(this.audioBuffer) {
+      console.log("Audio layer cannot adjust total time");
       return;
     }
     this.framesCollection.adjustTotalTime(diff);

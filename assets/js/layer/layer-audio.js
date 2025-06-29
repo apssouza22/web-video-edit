@@ -35,7 +35,7 @@ export class AudioLayer extends StandardLayer {
     this.audioBuffer = audioBuffer;
     this.totalTimeInMilSeconds = this.audioBuffer.duration * 1000;
     if (this.totalTimeInMilSeconds === 0) {
-      //TODO: On error
+      console.warn("Failed to load audio layer: " + this.name + ". Audio buffer duration is 0.");
     }
     this.ready = true;
     this.loadUpdateListener(this, 100, null, audioBuffer);

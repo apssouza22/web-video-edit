@@ -25,13 +25,13 @@ export class DragLayerHandler {
     const endTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
     // If the click is at the layer's end time, adjust the total time. Change the width of the layer
     if (this.timeline.intersectsTime(endTime, time)) {
-      this.dragging = this.#getResizeLayerFn(selectedLayer);
+      this.dragging = this.#getResizeLayerEndFn(selectedLayer);
       return;
     }
 
-    // If the click is at the layer's start time, drag  the entire layer
+    // If the click is at the layer's start time, adjust the total time. Change the width of the layer
     if (this.timeline.intersectsTime(selectedLayer.start_time, time)) {
-      this.dragging = this.#getResizeLayerStartFn(selectedLayer);
+      this.dragging = this.#getMoveLayerStartFn(selectedLayer);
       return;
     }
 
@@ -41,7 +41,7 @@ export class DragLayerHandler {
     }
   }
 
-  #getResizeLayerStartFn(selectedLayer) {
+  #getMoveLayerStartFn(selectedLayer) {
     let baseTime = selectedLayer.start_time;
     return (time, selectedLayer) => {
       let diff = time - baseTime;
@@ -64,7 +64,7 @@ export class DragLayerHandler {
    * @param {StandardLayer} selectedLayer
    * @returns {(function(*, *): void)|*}
    */
-  #getResizeLayerFn(selectedLayer) {
+  #getResizeLayerEndFn(selectedLayer) {
     console.log("Resizing layer:", selectedLayer.name);
     let baseTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
     return (time, selectedLayer) => {
