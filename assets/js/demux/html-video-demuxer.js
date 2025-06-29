@@ -98,7 +98,8 @@ export class HTMLVideoDemuxer {
   }
 
   async #convertToArrayBufferOptimized(optimizedFps = null) {
-    const actualFps = optimizedFps || this.optimizedFPS;
+    // const actualFps = optimizedFps || this.optimizedFPS;
+    const actualFps = fps;
     this.video.pause();
     const duration = this.video.duration;
     const totalFrames = Math.floor(duration * fps);
