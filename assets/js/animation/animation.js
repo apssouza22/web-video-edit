@@ -2,7 +2,7 @@
 // This is currently not used - WIP
 // ##################################################
 
-import { FrameCollection } from '../layer/frames.js';
+import { FrameService } from '../layer/frames.js';
 import { fps } from '../constants.js';
 
 /**
@@ -10,7 +10,7 @@ import { fps } from '../constants.js';
  */
 export class AnimationHandler {
     /**
-     * @param {FrameCollection} framesCollection - The collection of frames to animate
+     * @param {FrameService} framesCollection - The collection of frames to animate
      * @param {number} startTime - The start time of the animation
      */
     constructor(framesCollection, startTime) {

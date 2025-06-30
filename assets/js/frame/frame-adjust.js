@@ -1,10 +1,10 @@
 import { fps } from "../constants.js";
-import { FrameCollection } from "./index.js";
+import { FrameService } from "./frames.js";
 
 export class FrameAdjustHandler {
   /**
    *
-   * @param {FrameCollection} framesCollection
+   * @param {FrameService} framesCollection
    */
   constructor(framesCollection) {
     this.framesCollection = framesCollection;

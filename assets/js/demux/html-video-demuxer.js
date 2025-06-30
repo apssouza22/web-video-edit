@@ -1,7 +1,7 @@
 import {addElementToBackground} from '../layer/index.js';
 import {fps} from '../constants.js';
 import{Canvas2DRender} from "../common/render-2d.js";
-import {FrameQuality, FrameMetadata} from '../frame/frame-quality.js';
+import {FrameQuality, FrameMetadata} from './frame-quality.js';
 
 export class HTMLVideoDemuxer {
   constructor() {
@@ -62,7 +62,6 @@ export class HTMLVideoDemuxer {
     this.video.addEventListener('loadedmetadata', this.#onLoadMetadata.bind(this));
     this.video.src = this.fileSrc;
   }
-
   async #onLoadMetadata() {
     const width = this.video.videoWidth;
     const height = this.video.videoHeight;
@@ -87,7 +86,6 @@ export class HTMLVideoDemuxer {
 
     await this.#convertToArrayBufferOptimized();
   }
-
   async #seekWithTimeout(time, timeout = 500) {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -107,7 +105,6 @@ export class HTMLVideoDemuxer {
       this.video.pause();
     });
   }
-
   async #convertToArrayBufferOptimized(optimizedFps = null) {
     const actualFps = optimizedFps || this.optimizedFPS;
     this.video.pause();
@@ -142,10 +139,6 @@ export class HTMLVideoDemuxer {
     console.log('Initial video processing complete. Took', elapsed/1000, 'seconds ')
     setTimeout(() => this.#startBackgroundUpgrade(), 1000);
   }
-
-  /**
-   * Process a chunk of initial frames
-   */
   async #processInitialFrameChunk(startFrame, endFrame, frameInterval, targetFps) {
     for (let i = startFrame; i < endFrame; i++) {
       const time = i * frameInterval;
@@ -185,34 +178,24 @@ export class HTMLVideoDemuxer {
     }
   }
 
-  /**
-   * Convert frame metadata to legacy format for compatibility
-   */
   #convertToLegacyFormat() {
     return this.frameMetadata.map(frameMetadata => {
       return frameMetadata.getDisplayData(this.frameMetadata);
     }).filter(data => data !== null);
   }
 
-  /**
-   * Start background quality upgrade
-   */
   async #startBackgroundUpgrade() {
     if (this.isUpgrading) return;
-    
-    console.log('Starting background quality upgrade... Status: ', this.getLoadingStats());
+    console.log('Starting background quality upgrade... Status: ', this.#getLoadingStats());
     this.isUpgrading = true;
     const now = Date.now();
     await this.#upgradeFrameQuality();
     const elapsed = Date.now() - now;
     this.onCompleteCallback(this.#convertToLegacyFormat());
-    this.frameMetadata =  null;
+    this.#cleanup()
     console.log('Finished background quality upgrade. Took', elapsed/1000, 'ms. ');
   }
 
-  /**
-   * Upgrade frame quality by filling missing frames
-   */
   async #upgradeFrameQuality() {
     const framesToUpgrade = this.frameMetadata
       .map((frame, index) => ({ frame, index }))
@@ -241,7 +224,6 @@ export class HTMLVideoDemuxer {
     
     this.isUpgrading = false;
   }
-
   async #chunkUpgrade(startIdx, endIdx, framesToUpgrade) {
     for (let i = startIdx; i < endIdx; i++) {
       const {frame, index} = framesToUpgrade[i];
@@ -260,22 +242,14 @@ export class HTMLVideoDemuxer {
       }
     }
   }
-
-  /**
-   * Clean up resources
-   */
-  cleanup() {
+  #cleanup() {
     if (this.video) {
       this.video.remove();
       this.video = null;
     }
+    this.frameMetadata = null;
   }
-
-
-  /**
-   * Get current loading statistics
-   */
-  getLoadingStats() {
+  #getLoadingStats() {
     if (this.frameMetadata.length === 0) {
       return { total: 0, lowRes: 0, highRes: 0, interpolated: 0, empty: 0 };
     }

@@ -1,5 +1,4 @@
-import {FrameCollection} from '../frame/index.js';
-import {dpr, fps} from '../constants.js';
+import {createFrameService} from '../frame/index.js';
 import {Canvas2DRender} from '../common/render-2d.js';
 
 export class StandardLayer {
@@ -22,7 +21,7 @@ export class StandardLayer {
     };
     this.lastRenderedTime = -1; // Track last rendered time for caching
 
-    this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false)
+    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false)
     addElementToBackground(this.renderer.canvas);
     this.updateName(this.name);
   }
@@ -197,7 +196,7 @@ export class FlexibleLayer extends StandardLayer {
   constructor(file) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;
-    this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time)
+    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time)
   }
 
   dump() {

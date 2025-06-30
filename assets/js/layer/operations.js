@@ -1,6 +1,6 @@
 import { TextLayer, VideoLayer, AudioLayer, ImageLayer } from "./index.js";
 
-export class LayerOperations {
+export class LayerService {
 
   constructor(onLayerLoadUploadListener) {
     this.onLayerLoadUpdate = onLayerLoadUploadListener;

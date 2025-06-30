@@ -4,4 +4,4 @@ export { AudioLayer } from './layer-audio.js';
 export { ImageLayer } from './layer-image.js';
 export { TextLayer } from './layer-text.js';
 export { LayersSidebarView } from './layer-view.js';
-export { LayerOperations } from './operations.js';
+export { LayerService } from './operations.js';

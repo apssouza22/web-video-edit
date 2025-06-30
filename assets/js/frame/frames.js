@@ -1,7 +1,7 @@
 import {fps} from '../constants.js';
 import {FrameAdjustHandler} from './frame-adjust.js';
 
-export class FrameCollection {
+export class FrameService {
   /**
    * @type {Array<Float32Array>}
    * @description frames = [x, y, scale, rotation, anchor]

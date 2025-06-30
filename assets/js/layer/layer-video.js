@@ -1,17 +1,15 @@
 import {fps, max_size} from '../constants.js';
-import {HTMLVideoDemuxer, CodecDemuxer} from "../demux/index.js";
-import {FrameCollection} from '../frame/index.js';
+import {createDemuxer} from "../demux/index.js";
+import {createFrameService} from '../frame/index.js';
 import {StandardLayer} from './layer-common.js';
 
 export class VideoLayer extends StandardLayer {
 
   constructor(file, skipLoading = false) {
     super(file);
-    this.framesCollection = new FrameCollection(0, 0, false);
-    this.useWebCodecs = this.#checkWebCodecsSupport();
-    this.htmlVideoDemuxer = new HTMLVideoDemuxer();
+    this.framesCollection = createFrameService(0, 0, false);
+    this.videoDemuxer = createDemuxer();
     this.#setupDemuxerCallbacks();
-    this.codecDemuxer = new CodecDemuxer();
 
     // Empty VideoLayers (split() requires this)
     if (skipLoading) {
@@ -22,11 +20,11 @@ export class VideoLayer extends StandardLayer {
   }
 
   #setupDemuxerCallbacks() {
-    this.htmlVideoDemuxer.setOnProgressCallback((progress) => {
+    this.videoDemuxer.setOnProgressCallback((progress) => {
       this.loadUpdateListener(this, progress, this.ctx);
     });
 
-    this.htmlVideoDemuxer.setOnCompleteCallback((frames) => {
+    this.videoDemuxer.setOnCompleteCallback((frames) => {
       frames.forEach((frame, index) => {
         this.framesCollection.update(index, frame);
       });
@@ -34,9 +32,9 @@ export class VideoLayer extends StandardLayer {
       this.ready = true;
     });
 
-    this.htmlVideoDemuxer.setOnMetadataCallback((metadata) => {
+    this.videoDemuxer.setOnMetadataCallback((metadata) => {
       this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
-      this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
+      this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
       this.#setSize(metadata.duration, metadata.width, metadata.height);
       this.#handleVideoRatio();
     });
@@ -55,41 +53,17 @@ export class VideoLayer extends StandardLayer {
     }
   }
 
-  #checkWebCodecsSupport() {
-    return false;
-    // return typeof VideoDecoder !== 'undefined' &&
-    //     typeof VideoFrame !== 'undefined' &&
-    //     typeof EncodedVideoChunk !== 'undefined';
-  }
-
-  async #initializeWithWebCodecs(file) {
-    try {
-      await this.codecDemuxer.initialize(this.fileSrc, this.renderer);
-    } catch (error) {
-      console.warn('WebCodecs failed, falling back to HTML video:', error);
-      this.#initializeWithHTMLVideo();
-    }
-  }
-
-  #initializeWithHTMLVideo() {
-    this.htmlVideoDemuxer.initialize(this.fileSrc, this.renderer);
-  }
-
   #readFile(file) {
     if(file.uri !== null && file.uri !== undefined) {
       this.fileSrc = file.uri
-      this.#initializeWithHTMLVideo();
+      this.videoDemuxer.initDemux(this.fileSrc, this.renderer);
       return;
     }
+
     this.reader = new FileReader();
     this.reader.addEventListener("load", (function () {
       this.fileSrc = this.reader.result;
-      if (this.useWebCodecs && file.type.startsWith('video/')) {
-        this.#initializeWithWebCodecs(file).then(r => {
-        });
-      } else {
-        this.#initializeWithHTMLVideo();
-      }
+      this.videoDemuxer.initDemux(this.fileSrc, this.renderer);
     }).bind(this), false);
 
     this.reader.readAsDataURL(file);

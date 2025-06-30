@@ -1,6 +1,6 @@
 import {VideoPlayer} from '../player/index.js';
 import {Timeline} from '../timeline/index.js';
-import {LayersSidebarView, AudioLayer, LayerOperations} from '../layer/index.js';
+import {LayersSidebarView, AudioLayer} from '../layer/index.js';
 import {LayerLoader} from './layer-loader.js';
 import {VideoExporter} from '../muxer/index.js';
 import {StudioControls} from './controls.js';
@@ -10,6 +10,7 @@ import {MediaEditor} from './media-edit.js';
 import {TranscriptionManager} from "../transcription/index.js";
 import {uploadSupportedType} from './utils.js';
 import {LoadingPopup} from './loading-popup.js';
+import {LayerFactory} from "../layer/layer-factory.js";
 
 export class VideoStudio {
 
@@ -27,7 +28,7 @@ export class VideoStudio {
     this.controls = new StudioControls(this);
     this.transcriptionManager = new TranscriptionManager();
     this.mediaEditor = new MediaEditor(this);
-    this.layerOperations = new LayerOperations(this.#onLayerLoadUpdate.bind(this));
+    this.layerOperations = LayerFactory.createService(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
 
     window.requestAnimationFrame(this.#loop.bind(this));
