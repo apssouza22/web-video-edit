@@ -154,9 +154,18 @@ export class Canvas2DRender {
     const height = video ? ctxFrom.videoHeight : ctxFrom.canvas.clientHeight;
     const in_ratio = width / height;
 
-    // Use logical dimensions (buffer dimensions divided by device pixel ratio)
-    const outLogicalWidth = ctxOutTo.canvas.width / dpr;
-    const outLogicalHeight = ctxOutTo.canvas.height / dpr;
+    // Check if the output canvas context has been scaled by device pixel ratio
+    // by comparing actual canvas size to client size
+    const canvasScaled = ctxOutTo.canvas.width !== ctxOutTo.canvas.clientWidth;
+    
+    // Use appropriate dimensions based on whether canvas is scaled
+    const outLogicalWidth = canvasScaled ? 
+      ctxOutTo.canvas.width / dpr : 
+      ctxOutTo.canvas.width;
+    const outLogicalHeight = canvasScaled ? 
+      ctxOutTo.canvas.height / dpr : 
+      ctxOutTo.canvas.height;
+    
     const out_ratio = outLogicalWidth / outLogicalHeight;
 
     let ratio = 1;
