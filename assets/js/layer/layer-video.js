@@ -27,17 +27,11 @@ export class VideoLayer extends StandardLayer {
     });
 
     this.htmlVideoDemuxer.setOnCompleteCallback((frames) => {
-      // Update frames collection with the processed frames
       frames.forEach((frame, index) => {
         this.framesCollection.update(index, frame);
       });
       this.loadUpdateListener(this, 100, this.ctx, null);
       this.ready = true;
-      console.log('Initial video loading complete - ready for playback');
-    });
-
-    this.htmlVideoDemuxer.setOnQualityUpgradeCallback((upgradeInfo) => {
-      console.log(`Background quality upgrade progress: ${upgradeInfo}`);
     });
 
     this.htmlVideoDemuxer.setOnMetadataCallback((metadata) => {

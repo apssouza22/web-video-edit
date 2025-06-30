@@ -10,9 +10,8 @@ export class HTMLVideoDemuxer {
     this.video = null;
     this.fileSrc = null;
     this.onProgressCallback = null;
-    this.onCompleteCallback = null;
+    this.onCompleteCallback = (frames) => {};
     this.onMetadataCallback = null;
-    this.onQualityUpgradeCallback = null;
     this.isUpgrading = false;
     this.frameMetadata = [];
   }
@@ -39,14 +38,6 @@ export class HTMLVideoDemuxer {
    */
   setOnMetadataCallback(callback) {
     this.onMetadataCallback = callback;
-  }
-
-  /**
-   * Set callback for quality upgrade progress
-   * @param {Function} callback - Quality upgrade callback function
-   */
-  setOnQualityUpgradeCallback(callback) {
-    this.onQualityUpgradeCallback = callback;
   }
 
   /**
@@ -119,19 +110,8 @@ export class HTMLVideoDemuxer {
 
   async #convertToArrayBufferOptimized(optimizedFps = null) {
     const actualFps = optimizedFps || this.optimizedFPS;
-    const isUpgradePhase = optimizedFps && optimizedFps > this.optimizedFPS;
-    
     this.video.pause();
-    const duration = this.video.duration;
-    
-    if (isUpgradePhase) {
-      console.log('Starting quality upgrade to full FPS...');
-      this.isUpgrading = true;
-      await this.#upgradeFrameQuality();
-    } else {
-      console.log(`Starting initial load at ${actualFps} FPS...`);
-      await this.#loadInitialFrames(actualFps, duration);
-    }
+    await this.#loadInitialFrames(actualFps, this.video.duration);
   }
 
   /**
@@ -143,7 +123,7 @@ export class HTMLVideoDemuxer {
     const chunks = Math.ceil(optimizedFrameCount / this.chunkSize);
     
     console.log(`Loading ${optimizedFrameCount} initial frames in ${chunks} chunks...`);
-
+    const startTime = Date.now();
     for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
       const startFrame = chunkIndex * this.chunkSize;
       const endFrame = Math.min(startFrame + this.chunkSize, optimizedFrameCount);
@@ -157,12 +137,9 @@ export class HTMLVideoDemuxer {
       }
     }
     this.#fillInterpolatedFrames();
-    const legacyFrames = this.#convertToLegacyFormat();
-
-    this.onCompleteCallback(legacyFrames);
-    console.log(`Initial video processing complete. Loaded ${optimizedFrameCount} frames at ${targetFps} FPS.`);
-    
-    // Start background upgrade after a short delay
+    this.onCompleteCallback(this.#convertToLegacyFormat());
+    const elapsed = Date.now() - startTime;
+    console.log('Initial video processing complete. Took', elapsed/1000, 'seconds ')
     setTimeout(() => this.#startBackgroundUpgrade(), 1000);
   }
 
@@ -184,12 +161,8 @@ export class HTMLVideoDemuxer {
       } catch (error) {
         console.warn(`Failed to extract frame at ${time}s:`, error);
       }
-
-      // Update progress
       const progress = ((i + 1) / Math.floor(this.video.duration * targetFps) * 100);
-      if (this.onProgressCallback) {
-        this.onProgressCallback(Math.min(progress, 100));
-      }
+      this.onProgressCallback(Math.min(progress, 100));
     }
   }
 
@@ -227,10 +200,14 @@ export class HTMLVideoDemuxer {
   async #startBackgroundUpgrade() {
     if (this.isUpgrading) return;
     
-    console.log('Starting background quality upgrade...');
+    console.log('Starting background quality upgrade... Status: ', this.getLoadingStats());
     this.isUpgrading = true;
-    this.onQualityUpgradeCallback({ phase: 'start', progress: 0 });
+    const now = Date.now();
     await this.#upgradeFrameQuality();
+    const elapsed = Date.now() - now;
+    this.onCompleteCallback(this.#convertToLegacyFormat());
+    this.frameMetadata =  null;
+    console.log('Finished background quality upgrade. Took', elapsed/1000, 'ms. ');
   }
 
   /**
@@ -248,45 +225,40 @@ export class HTMLVideoDemuxer {
     }
     
     console.log(`Upgrading ${framesToUpgrade.length} frames to full quality...`);
-    
     const chunks = Math.ceil(framesToUpgrade.length / this.chunkSize);
-    
+
     for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
       const startIdx = chunkIndex * this.chunkSize;
       const endIdx = Math.min(startIdx + this.chunkSize, framesToUpgrade.length);
       
       console.log(`Upgrading chunk ${chunkIndex + 1}/${chunks}`);
-      
-      for (let i = startIdx; i < endIdx; i++) {
-        const { frame, index } = framesToUpgrade[i];
-        const timestamp = index / fps;
-        
-        try {
-          const frameData = await this.#seekWithTimeout(timestamp);
-          if (frameData) {
-            frame.data = frameData;
-            frame.quality = FrameQuality.HIGH_RES;
-            frame.timestamp = timestamp;
-            frame.sourceIndex = null; // No longer needs interpolation
-          }
-        } catch (error) {
-          console.warn(`Failed to upgrade frame at ${timestamp}s:`, error);
-        }
+      await this.#chunkUpgrade(startIdx, endIdx, framesToUpgrade);
 
-        const progress = ((i + 1) / framesToUpgrade.length * 100);
-        this.onQualityUpgradeCallback({ phase: 'progress', progress });
-      }
-      
-      // Small delay between chunks
       if (chunkIndex < chunks - 1) {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
     }
     
     this.isUpgrading = false;
-    console.log('Quality upgrade completed');
-    
-    this.onQualityUpgradeCallback({ phase: 'complete', progress: 100 });
+  }
+
+  async #chunkUpgrade(startIdx, endIdx, framesToUpgrade) {
+    for (let i = startIdx; i < endIdx; i++) {
+      const {frame, index} = framesToUpgrade[i];
+      const timestamp = index / fps;
+
+      try {
+        const frameData = await this.#seekWithTimeout(timestamp);
+        if (frameData) {
+          frame.data = frameData;
+          frame.quality = FrameQuality.HIGH_RES;
+          frame.timestamp = timestamp;
+          frame.sourceIndex = null; // No longer needs interpolation
+        }
+      } catch (error) {
+        console.warn(`Failed to upgrade frame at ${timestamp}s:`, error);
+      }
+    }
   }
 
   /**
@@ -299,21 +271,6 @@ export class HTMLVideoDemuxer {
     }
   }
 
-  /**
-   * Upgrade video quality by re-processing with higher frame rate
-   */
-  async upgradeQuality() {
-    if (this.isUpgrading) {
-      console.log('Quality upgrade already in progress');
-      return;
-    }
-    
-    if (!this.video || this.frameMetadata.length === 0) {
-      console.warn('Cannot upgrade quality: video not loaded');
-      return;
-    }
-    await this.#startBackgroundUpgrade();
-  }
 
   /**
    * Get current loading statistics
