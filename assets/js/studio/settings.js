@@ -16,15 +16,11 @@ export class SettingsPopup {
       <label>Max RAM (in MB)</label>
       <input type="text" class="ram-input" />
     </div>
-    <a class="apply-button">[APPLY]</a>
+
     `;
 
     const fpsInput = this.divBox.querySelector('.fps-input');
     const ramInput = this.divBox.querySelector('.ram-input');
-    const applyButton = this.divBox.querySelector('.apply-button');
-    applyButton.addEventListener('click', () => {
-      console.log(`FPS: ${fps}, Max RAM: ${max_size}`);
-    });
 
     fpsInput.value = fps.toFixed(2);
     ramInput.value = (max_size / 1e6).toFixed(2);
