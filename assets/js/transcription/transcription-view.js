@@ -1,10 +1,10 @@
-import {TranscriptionManager} from './transcription.js';
+import {TranscriptionService} from './transcription.js';
 
 export class TranscriptionView {
 
   /**
    * Constructor for TranscriptionView
-   * @param {TranscriptionManager} manager
+   * @param {TranscriptionService} manager
    */
   constructor(manager) {
     this.transcriptionManager = manager;

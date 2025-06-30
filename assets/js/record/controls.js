@@ -1,7 +1,7 @@
 import {popup} from "../studio/index.js";
-import {UserMediaRecordingService} from "./service.js";
+import {createUserMediaRecordingService} from "./index.js";
 
-const userMediaRecorder = new UserMediaRecordingService();
+const userMediaRecorder =  createUserMediaRecordingService();
 const recordBtn = document.getElementById('record-btn');
 const recordMenu = document.getElementById('record-menu');
 const recordScreenBtn = document.getElementById('record-screen-btn');

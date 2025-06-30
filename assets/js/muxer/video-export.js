@@ -2,7 +2,7 @@ import { exportToJson } from '../studio/index.js';
 import { MediaRecorderExporter } from './media-recorder-exporter.js';
 import { WebCodecExporter } from './web-codec-exporter.js';
 
-export class VideoExporter {
+export class VideoExportService {
 
     /**
      * 

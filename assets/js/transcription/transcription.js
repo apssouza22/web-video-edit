@@ -1,6 +1,6 @@
 import { TranscriptionView } from './transcription-view.js';
 
-export class TranscriptionManager {
+export class TranscriptionService {
 
   constructor() {
     this.worker = new Worker(new URL("../worker.js", import.meta.url), {

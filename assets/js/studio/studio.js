@@ -1,16 +1,15 @@
-import {VideoPlayer} from '../player/index.js';
-import {Timeline} from '../timeline/index.js';
-import {LayersSidebarView, AudioLayer} from '../layer/index.js';
+import {createPlayer} from '../player/index.js';
+import {createTimeline} from '../timeline/index.js';
+import {LayersSidebarView, AudioLayer, createLayerService} from '../layer/index.js';
 import {LayerLoader} from './layer-loader.js';
-import {VideoExporter} from '../muxer/index.js';
+import {createVideoMuxer} from '../muxer/index.js';
 import {StudioControls} from './controls.js';
 import {PinchHandler} from './pinch-handler.js';
 import {DragItemHandler} from './drag-handler.js';
 import {MediaEditor} from './media-edit.js';
-import {TranscriptionManager} from "../transcription/index.js";
+import {createTranscriptionService} from "../transcription/index.js";
 import {uploadSupportedType} from './utils.js';
 import {LoadingPopup} from './loading-popup.js';
-import {LayerFactory} from "../layer/layer-factory.js";
 
 export class VideoStudio {
 
@@ -18,17 +17,17 @@ export class VideoStudio {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas');
 
-    this.player = new VideoPlayer()
+    this.player = createPlayer()
     this.player.mount(this.mainSection);
 
-    this.timeline = new Timeline(this);
+    this.timeline = createTimeline(this);
     this.layersSidebarView = new LayersSidebarView(this);
     this.layerLoader = new LayerLoader(this, this.layersSidebarView);
-    this.videoExporter = new VideoExporter(this);
+    this.videoExporter = createVideoMuxer(this);
     this.controls = new StudioControls(this);
-    this.transcriptionManager = new TranscriptionManager();
+    this.transcriptionManager = createTranscriptionService();
     this.mediaEditor = new MediaEditor(this);
-    this.layerOperations = LayerFactory.createService(this.#onLayerLoadUpdate.bind(this));
+    this.layerOperations = createLayerService(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
 
     window.requestAnimationFrame(this.#loop.bind(this));

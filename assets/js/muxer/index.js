@@ -1,1 +1,5 @@
-export { VideoExporter } from './video-export.js';
+import { VideoExportService } from './video-export.js';
+
+export function createVideoMuxer(studio) {
+    return new VideoExportService(studio);
+}
