@@ -33,16 +33,21 @@ export class VideoLayer extends StandardLayer {
       });
       this.loadUpdateListener(this, 100, this.ctx, null);
       this.ready = true;
+      console.log('Initial video loading complete - ready for playback');
+    });
+
+    this.htmlVideoDemuxer.setOnQualityUpgradeCallback((upgradeInfo) => {
+      console.log(`Background quality upgrade progress: ${upgradeInfo}`);
     });
 
     this.htmlVideoDemuxer.setOnMetadataCallback((metadata) => {
       this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
-      this.expectedTotalFrames = Math.ceil(metadata.duration * fps);
       this.framesCollection = new FrameCollection(this.totalTimeInMilSeconds, this.start_time, false);
       this.#setSize(metadata.duration, metadata.width, metadata.height);
       this.#handleVideoRatio();
     });
   }
+
 
   #setSize(dur, width, height) {
     let size = fps * dur * width * height;
@@ -146,12 +151,6 @@ export class VideoLayer extends StandardLayer {
     this.renderer.putImageData(frame, 0, 0);
     this.drawScaled(this.ctx, ctxOut);
     this.updateRenderCache(currentTime);
-  }
-
-  // Method to upgrade video quality on demand
-  async upgradeQuality() {
-    console.log('Upgrading video quality...');
-    await this.htmlVideoDemuxer.upgradeQuality();
   }
 
 }

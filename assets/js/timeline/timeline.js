@@ -274,7 +274,6 @@ export class Timeline {
 
     this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
     this.#renderLineMarker(this.playerTime);
-    console.log(this.playerTime)
 
     if (this.isHover) {
       this.#renderLineMarker(this.time);

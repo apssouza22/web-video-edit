@@ -1,6 +1,7 @@
 import {addElementToBackground} from '../layer/index.js';
 import {fps} from '../constants.js';
 import{Canvas2DRender} from "../common/render-2d.js";
+import {FrameQuality, FrameMetadata} from '../frame/frame-quality.js';
 
 export class HTMLVideoDemuxer {
   constructor() {
@@ -11,6 +12,9 @@ export class HTMLVideoDemuxer {
     this.onProgressCallback = null;
     this.onCompleteCallback = null;
     this.onMetadataCallback = null;
+    this.onQualityUpgradeCallback = null;
+    this.isUpgrading = false;
+    this.frameMetadata = [];
   }
 
   /**
@@ -35,6 +39,14 @@ export class HTMLVideoDemuxer {
    */
   setOnMetadataCallback(callback) {
     this.onMetadataCallback = callback;
+  }
+
+  /**
+   * Set callback for quality upgrade progress
+   * @param {Function} callback - Quality upgrade callback function
+   */
+  setOnQualityUpgradeCallback(callback) {
+    this.onQualityUpgradeCallback = callback;
   }
 
   /**
@@ -65,6 +77,14 @@ export class HTMLVideoDemuxer {
     const height = this.video.videoHeight;
     const duration = this.video.duration;
     console.log(`Video metadata loaded: ${width}x${height}, duration: ${duration}s`);
+
+    const totalFramesTarget = Math.floor(duration * fps);
+    this.frameMetadata = [];
+    for (let i = 0; i < totalFramesTarget; i++) {
+      const timestamp = i / fps;
+      this.frameMetadata.push(new FrameMetadata(null, FrameQuality.EMPTY, timestamp));
+    }
+    
     if (this.onMetadataCallback) {
       this.onMetadataCallback({
         width,
@@ -98,94 +118,175 @@ export class HTMLVideoDemuxer {
   }
 
   async #convertToArrayBufferOptimized(optimizedFps = null) {
-    // const actualFps = optimizedFps || this.optimizedFPS;
-    const actualFps = fps;
+    const actualFps = optimizedFps || this.optimizedFPS;
+    const isUpgradePhase = optimizedFps && optimizedFps > this.optimizedFPS;
+    
     this.video.pause();
     const duration = this.video.duration;
-    const totalFrames = Math.floor(duration * fps);
+    
+    if (isUpgradePhase) {
+      console.log('Starting quality upgrade to full FPS...');
+      this.isUpgrading = true;
+      await this.#upgradeFrameQuality();
+    } else {
+      console.log(`Starting initial load at ${actualFps} FPS...`);
+      await this.#loadInitialFrames(actualFps, duration);
+    }
+  }
 
-    // Smart frame sampling - extract fewer frames initially
-    const optimizedTotalFrames = Math.floor(duration * actualFps);
-
-    const chunks = Math.ceil(optimizedTotalFrames / this.chunkSize);
-    const frameInterval = duration / optimizedTotalFrames;
-    console.log(`Processing ${optimizedTotalFrames} frames in ${chunks} chunks...`);
-
-    const allFrames = [];
+  /**
+   * Load initial frames at reduced FPS for immediate playback
+   */
+  async #loadInitialFrames(targetFps, duration) {
+    const frameInterval = 1 / targetFps;
+    const optimizedFrameCount = Math.floor(duration * targetFps);
+    const chunks = Math.ceil(optimizedFrameCount / this.chunkSize);
+    
+    console.log(`Loading ${optimizedFrameCount} initial frames in ${chunks} chunks...`);
 
     for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
       const startFrame = chunkIndex * this.chunkSize;
-      const endFrame = Math.min(startFrame + this.chunkSize, optimizedTotalFrames);
+      const endFrame = Math.min(startFrame + this.chunkSize, optimizedFrameCount);
 
-      console.log(`Processing chunk ${chunkIndex + 1}/${chunks} (frames ${startFrame}-${endFrame})`);
-      const chunkFrames = await this.#processFramesInParallel(startFrame, endFrame, frameInterval);
-      this.#updateFrameCollection(chunkFrames, startFrame, optimizedTotalFrames, allFrames);
+      console.log(`Processing initial chunk ${chunkIndex + 1}/${chunks} (frames ${startFrame}-${endFrame})`);
+      await this.#processInitialFrameChunk(startFrame, endFrame, frameInterval, targetFps);
 
       // Add a small delay between chunks to prevent blocking
       if (chunkIndex < chunks - 1) {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
     }
+    this.#fillInterpolatedFrames();
+    const legacyFrames = this.#convertToLegacyFormat();
 
-    const finalFrames = this.#fillMissingFrames(totalFrames, optimizedTotalFrames, allFrames);
+    this.onCompleteCallback(legacyFrames);
+    console.log(`Initial video processing complete. Loaded ${optimizedFrameCount} frames at ${targetFps} FPS.`);
     
-    if (this.onCompleteCallback) {
-      this.onCompleteCallback(finalFrames);
-    }
-
-    this.cleanup();
-    console.log(`Video processing complete. Extracted ${finalFrames.length} frames.`);
+    // Start background upgrade after a short delay
+    setTimeout(() => this.#startBackgroundUpgrade(), 1000);
   }
 
-  #updateFrameCollection(chunkFrames, startFrame, targetFrameCount, allFrames) {
-    for (let j = 0; j < chunkFrames.length; j++) {
-      const result = chunkFrames[j];
-      const frameIndex = startFrame + j;
-
-      if (result.status === 'fulfilled' && result.value) {
-        allFrames[frameIndex] = result.value;
-      } else {
-        // Add a placeholder or duplicate previous frame
-        if (allFrames.length > 0) {
-          const lastFrame = allFrames[allFrames.length - 1];
-          allFrames[frameIndex] = lastFrame;
-        }
-      }
-
-      const progress = ((startFrame + j + 1) / targetFrameCount * 100).toFixed(2);
-      if (this.onProgressCallback) {
-        this.onProgressCallback(parseFloat(progress));
-      }
-    }
-  }
-
-  async #processFramesInParallel(startFrame, endFrame, frameInterval) {
-    // This parallel processing is not working due to the limitations of HTMLVideoElement
-    // Without await the seek will return the same frame
-    const framePromises = [];
+  /**
+   * Process a chunk of initial frames
+   */
+  async #processInitialFrameChunk(startFrame, endFrame, frameInterval, targetFps) {
     for (let i = startFrame; i < endFrame; i++) {
       const time = i * frameInterval;
-      framePromises.push(await this.#seekWithTimeout(time));
+      const targetIndex = Math.floor(time * fps); // Map to full FPS index
+      
+      try {
+        const frameData = await this.#seekWithTimeout(time);
+        if (frameData && targetIndex < this.frameMetadata.length) {
+          this.frameMetadata[targetIndex].data = frameData;
+          this.frameMetadata[targetIndex].quality = FrameQuality.LOW_RES;
+          this.frameMetadata[targetIndex].timestamp = time;
+        }
+      } catch (error) {
+        console.warn(`Failed to extract frame at ${time}s:`, error);
+      }
+
+      // Update progress
+      const progress = ((i + 1) / Math.floor(this.video.duration * targetFps) * 100);
+      if (this.onProgressCallback) {
+        this.onProgressCallback(Math.min(progress, 100));
+      }
     }
-    return await Promise.allSettled(framePromises);
   }
 
-  #fillMissingFrames(totalFrames, extractedFrames, frames) {
-    if (extractedFrames >= totalFrames) {
-      return frames.slice(0, totalFrames);
+  /**
+   * Fill gaps between extracted frames with interpolated references
+   */
+  #fillInterpolatedFrames() {
+    let lastRealFrameIndex = -1;
+    
+    for (let i = 0; i < this.frameMetadata.length; i++) {
+      const frame = this.frameMetadata[i];
+      
+      if (frame.hasRealData()) {
+        lastRealFrameIndex = i;
+      } else if (lastRealFrameIndex >= 0) {
+        // Mark as interpolated and point to nearest real frame
+        frame.quality = FrameQuality.INTERPOLATED;
+        frame.sourceIndex = lastRealFrameIndex;
+      }
     }
+  }
 
-    // Interpolate or duplicate frames to reach target frame count
-    const ratio = extractedFrames / totalFrames;
-    const finalFrames = [];
+  /**
+   * Convert frame metadata to legacy format for compatibility
+   */
+  #convertToLegacyFormat() {
+    return this.frameMetadata.map(frameMetadata => {
+      return frameMetadata.getDisplayData(this.frameMetadata);
+    }).filter(data => data !== null);
+  }
 
-    for (let i = 0; i < totalFrames; i++) {
-      const sourceIndex = Math.floor(i * ratio);
-      const clampedIndex = Math.min(sourceIndex, frames.length - 1);
-      finalFrames.push(frames[clampedIndex]);
+  /**
+   * Start background quality upgrade
+   */
+  async #startBackgroundUpgrade() {
+    if (this.isUpgrading) return;
+    
+    console.log('Starting background quality upgrade...');
+    this.isUpgrading = true;
+    this.onQualityUpgradeCallback({ phase: 'start', progress: 0 });
+    await this.#upgradeFrameQuality();
+  }
+
+  /**
+   * Upgrade frame quality by filling missing frames
+   */
+  async #upgradeFrameQuality() {
+    const framesToUpgrade = this.frameMetadata
+      .map((frame, index) => ({ frame, index }))
+      .filter(({ frame }) => frame.needsUpgrade());
+    
+    if (framesToUpgrade.length === 0) {
+      console.log('No frames need quality upgrade');
+      this.isUpgrading = false;
+      return;
     }
+    
+    console.log(`Upgrading ${framesToUpgrade.length} frames to full quality...`);
+    
+    const chunks = Math.ceil(framesToUpgrade.length / this.chunkSize);
+    
+    for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
+      const startIdx = chunkIndex * this.chunkSize;
+      const endIdx = Math.min(startIdx + this.chunkSize, framesToUpgrade.length);
+      
+      console.log(`Upgrading chunk ${chunkIndex + 1}/${chunks}`);
+      
+      for (let i = startIdx; i < endIdx; i++) {
+        const { frame, index } = framesToUpgrade[i];
+        const timestamp = index / fps;
+        
+        try {
+          const frameData = await this.#seekWithTimeout(timestamp);
+          if (frameData) {
+            frame.data = frameData;
+            frame.quality = FrameQuality.HIGH_RES;
+            frame.timestamp = timestamp;
+            frame.sourceIndex = null; // No longer needs interpolation
+          }
+        } catch (error) {
+          console.warn(`Failed to upgrade frame at ${timestamp}s:`, error);
+        }
 
-    return finalFrames;
+        const progress = ((i + 1) / framesToUpgrade.length * 100);
+        this.onQualityUpgradeCallback({ phase: 'progress', progress });
+      }
+      
+      // Small delay between chunks
+      if (chunkIndex < chunks - 1) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+    }
+    
+    this.isUpgrading = false;
+    console.log('Quality upgrade completed');
+    
+    this.onQualityUpgradeCallback({ phase: 'complete', progress: 100 });
   }
 
   /**
@@ -202,9 +303,51 @@ export class HTMLVideoDemuxer {
    * Upgrade video quality by re-processing with higher frame rate
    */
   async upgradeQuality() {
-    if (this.video) {
-      console.log('Upgrading video quality...');
-      await this.#convertToArrayBufferOptimized(fps);
+    if (this.isUpgrading) {
+      console.log('Quality upgrade already in progress');
+      return;
     }
+    
+    if (!this.video || this.frameMetadata.length === 0) {
+      console.warn('Cannot upgrade quality: video not loaded');
+      return;
+    }
+    await this.#startBackgroundUpgrade();
+  }
+
+  /**
+   * Get current loading statistics
+   */
+  getLoadingStats() {
+    if (this.frameMetadata.length === 0) {
+      return { total: 0, lowRes: 0, highRes: 0, interpolated: 0, empty: 0 };
+    }
+    
+    const stats = {
+      total: this.frameMetadata.length,
+      lowRes: 0,
+      highRes: 0,
+      interpolated: 0,
+      empty: 0
+    };
+    
+    this.frameMetadata.forEach(frame => {
+      switch (frame.quality) {
+        case FrameQuality.LOW_RES:
+          stats.lowRes++;
+          break;
+        case FrameQuality.HIGH_RES:
+          stats.highRes++;
+          break;
+        case FrameQuality.INTERPOLATED:
+          stats.interpolated++;
+          break;
+        case FrameQuality.EMPTY:
+          stats.empty++;
+          break;
+      }
+    });
+    
+    return stats;
   }
 } 
