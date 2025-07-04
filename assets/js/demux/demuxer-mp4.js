@@ -39,13 +39,13 @@ class MP4Demuxer {
   #setStatus = null;
   #file = null;
   #decoder = null;
-  #frameCount = 0;
-  #startTime = null;
+  #onReadyCallback;
 
-  constructor(uri, {onFrame, onError, setStatus}) {
+  constructor(uri, {onFrame, onError, setStatus, onReady}) {
     this.#onFrame = onFrame;
     this.#onError = onError;
     this.#setStatus = setStatus;
+    this.#onReadyCallback = onReady
 
     // Configure an MP4Box File for demuxing.
     this.#file = MP4Box.createFile();
@@ -78,7 +78,7 @@ class MP4Demuxer {
   }
 
   #onReady(info) {
-    this.#setStatus("demux", "Ready");
+    this.#onReadyCallback(info);
     const track = info.videoTracks[0];
     this.#configureDecoder(track);
     this.#file.setExtractionOptions(track.id);
@@ -86,21 +86,11 @@ class MP4Demuxer {
   }
 
   #configureDecoder(track) {
-    // Create and configure the VideoDecoder
     this.#decoder = new VideoDecoder({
       output: (frame) => {
-        // Update statistics.
-        if (this.#startTime == null) {
-          this.#startTime = performance.now();
-        } else {
-          const elapsed = (performance.now() - this.#startTime) / 1000;
-          const fps = ++this.#frameCount / elapsed;
-          this.#setStatus("render", `${fps.toFixed(0)} fps`);
-        }
         this.#onFrame(frame);
       },
       error: (e) => {
-        this.#setStatus("decode", e);
         this.#onError(e);
       }
     });

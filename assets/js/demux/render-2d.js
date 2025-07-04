@@ -14,4 +14,12 @@ class Canvas2DRenderer {
     this.#ctx.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight);
     frame.close();
   }
+
+  getImageData(x, y, width, height) {
+    return this.#ctx.getImageData(x, y, this.#canvas.width, this.#canvas.height);
+  }
+
+  get canvas() {
+    return this.#canvas;
+  }
 }

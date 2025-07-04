@@ -1,13 +1,17 @@
 // import { DemuxHandler } from "./demux.js";
 
 export class CodecDemuxer {
+  #worker;
+
   constructor() {
-    // this.demuxHandler = new DemuxHandler();
-    // this.demuxHandler.addOnUpdateListener(this.#demuxUpdateListener.bind(this));
+    this.#worker = new Worker(new URL("./worker.js", import.meta.url));
+    this.#worker.addEventListener("message", this.#demuxUpdateListener.bind(this));
+    this.loadUpdateListener = (progress) => {
+      console.log("Load update:", progress);
+    }
   }
 
-
-  async #processVideoWithWebCodecs(file) {
+  async start(file) {
     this.demuxHandler.start(await file.arrayBuffer(), "2d");
   }
 
@@ -31,11 +35,7 @@ export class CodecDemuxer {
         // Convert VideoFrame to ImageData if needed
         // You can choose to store as ImageData for consistency
         const frame = this.#convertVideoFrameToImageData(frameData.frame);
-        this.framesCollection.push(frame);
-
-        // Update progress based on frame count
-        const progress = Math.min(95, (frameData.frameNumber / frameData.totalFrames) * 100);
-        this.loadUpdateListener(this, progress, this.ctx, null);
+        console.log("Frame converted:", frame);
 
       }
 

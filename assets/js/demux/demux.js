@@ -13,10 +13,21 @@ const status = {
   decode: document.querySelector("#decode"),
   render: document.querySelector("#render"),
 };
-
+const frames = []
 function setStatus(message) {
-  console.log(status, message.data.data);
+  if(message.data["imageData"]){
+    console.log(message.data["imageData"])
+    frames.push(message.data["imageData"]);
+    console.log("Frame received", frames.length) ;
+    return
+  }
+
+
   for (const key in message.data.data) {
+    if(!status[key]) {
+      console.log("Frame status", key, message.data.data[key]);
+      continue;
+    }
     status[key].innerText = message.data.data[key];
   }
 }
@@ -26,16 +37,22 @@ function start() {
   const dataUri = `https://w3c.github.io/webcodecs/samples/data/bbb_video_${videoCodec}_frag.mp4`;
   const rendererName = document.querySelector("input[name=\"renderer\"]:checked").value;
   const canvas = document.querySelector("canvas").transferControlToOffscreen();
-  const handler  =new DemuxHandler();
+  const handler = new DemuxHandler(setStatus);
   handler.start(dataUri, rendererName, canvas);
 }
 
-class DemuxHandler{
+class DemuxHandler {
   #worker;
 
-  constructor() {
+  constructor(onUpdateListener) {
     this.#worker = new Worker(new URL("./worker.js", import.meta.url));
-    this.#worker.addEventListener("message", setStatus);
+    this.#worker.addEventListener("message", onUpdateListener);
+  }
+
+
+  init(arrayBuffer, canvas, rendererName) {
+    const task = "start";
+    this.#worker.postMessage({task, arrayBuffer, rendererName, canvas}, [canvas]);
   }
 
   start(dataUri, rendererName, canvas) {
