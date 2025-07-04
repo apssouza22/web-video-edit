@@ -23,6 +23,16 @@ npm start
 
 Alternatively, you can use any server, such as Python's built-in HTTP server.
 
+## Testing
+
+This project includes comprehensive unit tests for all service classes using Jest.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
 ## Features
 - Press `space` to pause or play the preview.
 - Select layers to manipulate them (click on the Timeline or sidebar).
