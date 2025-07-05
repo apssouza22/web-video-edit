@@ -10,21 +10,23 @@ class MP4Demuxer {
   #decoder = null;
   #onReadyCallback;
 
-  constructor(uri, {onFrame, onError, onReady}) {
+  constructor({onFrame, onError, onReady}) {
     this.#onFrame = onFrame;
     this.#onError = onError;
     this.#onReadyCallback = onReady
-
-    // Configure an MP4Box File for demuxing.
-    this.#file = MP4Box.createFile();
-    this.#file.onError = onError
-    this.#file.onReady = this.#onReady.bind(this);
-    this.#file.onSamples = this.#onSamples.bind(this);
-    uri.fileStart=0
-    this.#file.appendBuffer(uri);
   }
 
-  // Get the appropriate `description` for a specific track. Assumes that the
+  start(buffer) {
+    // Configure an MP4Box File for demuxing.
+    this.#file = MP4Box.createFile();
+    this.#file.onError = this.#onError;
+    this.#file.onReady = this.#onReady.bind(this);
+    this.#file.onSamples = this.#onSamples.bind(this);
+    buffer.fileStart = 0
+    this.#file.appendBuffer(buffer);
+  }
+
+// Get the appropriate `description` for a specific track. Assumes that the
   // track is H.264, H.265, VP8, VP9, or AV1.
   #description(track) {
     const trak = this.#file.getTrackById(track.id);

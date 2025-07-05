@@ -56,14 +56,12 @@ export class CodecDemuxer {
     const data = message.data
 
     if (data["type"] === "frame_processed") {
-      this.#frames.push(data.data.frameData.frame);
+      this.#frames.push(data.data.frame);
       const currentTimeMs = data.data.timestamp / 1000; // Convert microseconds to milliseconds
       const progress = this.totalTimeInMilSeconds > 0 ? Math.min(100, (currentTimeMs / this.totalTimeInMilSeconds) * 100) : 0;
       this.onProgressCallback(progress);
 
-      // Complete when we reach 99% or higher
       if (progress >= 99) {
-        console.log("Processing complete! Total frames:", this.#frames.length);
         this.onCompleteCallback(this.#frames);
       }
     }
@@ -90,7 +88,7 @@ export class CodecDemuxer {
   /**
    * Initialize codec demuxing with worker
    * @param {File} file - Video file to process
-   * @param {Object} renderer - Renderer object
+   * @param {Canvas2DRender} renderer - Renderer object
    */
   async initialize(file, renderer) {
     this.#isProcessing = true;
@@ -107,11 +105,6 @@ export class CodecDemuxer {
         console.error('Worker error:', error);
         this.cleanup();
       });
-
-      // Register worker with global cleanup manager if available
-      if (typeof globalThis.cleanupManager !== 'undefined') {
-        globalThis.cleanupManager.registerWorker(this.#worker, 'CodecDemuxer');
-      }
     }
 
     const arrayBuffer = await file.arrayBuffer();
