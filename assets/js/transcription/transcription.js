@@ -3,7 +3,7 @@ import { TranscriptionView } from './transcription-view.js';
 export class TranscriptionService {
 
   constructor() {
-    this.worker = new Worker(new URL("../worker.js", import.meta.url), {
+    this.worker = new Worker(new URL("./worker.js", import.meta.url), {
       type: "module",
     });
     this.transcriptionView = new TranscriptionView(this);
@@ -94,10 +94,10 @@ export class TranscriptionService {
   }
 
   startTranscription(audioBuffer) {
-    const data = getMockedData();
-    this.#onTranscriptionComplete(data);
-
-    return
+    // const data = getMockedData();
+    // this.#onTranscriptionComplete(data);
+    //
+    // return
     this.transcriptionView.showLoading();
 
     const audio = transformAudioBuffer(audioBuffer);
