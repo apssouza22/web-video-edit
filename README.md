@@ -3,7 +3,7 @@
 WebVideoEdit is a browser-based video editor that lets you perform basic video edition directly on the browser - no downloads or installations required.
 <img src="assets/image.png" alt="Web Video Edit demo" width="500">
 ## Demo
-You can try the demo at [WebEdit Demo](https://apssouza22.github.io/web-video-edit/index.html#https://apssouza22.github.io/web-video-edit/assets/example.json).
+You can try the demo at [WebEdit Demo](https://apssouza22.github.io/web-video-edit/index.html).
 
 ## Installation
 WebEdit is a web application that uses vanilla JavaScript, HTML, and CSS. 

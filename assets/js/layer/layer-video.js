@@ -2,6 +2,7 @@ import {fps, max_size} from '../constants.js';
 import {createDemuxer} from "../demux/index.js";
 import {createFrameService} from '../frame/index.js';
 import {StandardLayer} from './layer-common.js';
+import {Frame} from "../frame/frame.js";
 
 export class VideoLayer extends StandardLayer {
 
@@ -26,7 +27,7 @@ export class VideoLayer extends StandardLayer {
 
     this.videoDemuxer.setOnCompleteCallback((frames) => {
       frames.forEach((frame, index) => {
-        this.framesCollection.update(index, frame);
+        this.framesCollection.update(index, new Frame(frame));
       });
       this.loadUpdateListener(this, 100, this.ctx, null);
       this.ready = true;
@@ -35,7 +36,6 @@ export class VideoLayer extends StandardLayer {
     this.videoDemuxer.setOnMetadataCallback((metadata) => {
       this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
       this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
-      console.log("Video metadata:", metadata);
       this.width = metadata.width;
       this.height = metadata.height;
       this.#handleVideoRatio();
@@ -104,7 +104,14 @@ export class VideoLayer extends StandardLayer {
     }
 
     const frame = this.framesCollection.frames[index];
-    this.renderer.drawImage(frame, 0, 0);
+    // this.renderer.drawImage(frame, 0, 0);
+    let scale = frame.scale;
+    let x = frame.x + this.renderer.width / 2 - this.width / 2;
+    let y = frame.y + this.renderer.height / 2 - this.height / 2;
+
+    this.renderer.clearRect();
+    this.renderer.drawImage(frame.frame, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
+
     this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
   }

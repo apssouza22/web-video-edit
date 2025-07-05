@@ -1,4 +1,5 @@
 import { FrameService } from '../../assets/js/frame/frames.js';
+import { Frame } from '../../assets/js/frame/frame.js';
 import { mockFn } from '../utils/mock-fn.js';
 
 // Mock FrameAdjustHandler
@@ -54,7 +55,7 @@ describe('FrameService', () => {
     test('should initialize frames when flexibleLayer is true', () => {
       const expectedFrameCount = (testDuration / 1000) * fps;
       expect(frameService.frames).toHaveLength(expectedFrameCount);
-      expect(frameService.frames[0][4]).toBe(1); // First frame should be anchor
+      expect(frameService.frames[0].anchor).toBe(true); // First frame should be anchor
     });
 
     test('should not initialize frames when flexibleLayer is false', () => {
@@ -111,10 +112,12 @@ describe('FrameService', () => {
       frameService.initializeFrames();
 
       const firstFrame = frameService.frames[0];
-      expect(firstFrame).toBeInstanceOf(Float32Array);
-      expect(firstFrame).toHaveLength(5);
-      expect(firstFrame[2]).toBe(1); // scale should be 1
-      expect(firstFrame[4]).toBe(1); // first frame should be anchor
+      expect(firstFrame).toBeInstanceOf(Frame);
+      expect(firstFrame.x).toBe(0);
+      expect(firstFrame.y).toBe(0);
+      expect(firstFrame.scale).toBe(1); // scale should be 1
+      expect(firstFrame.rotation).toBe(0);
+      expect(firstFrame.anchor).toBe(true); // first frame should be anchor
     });
   });
 
@@ -126,7 +129,7 @@ describe('FrameService', () => {
 
   describe('push', () => {
     test('should add frame to frames array', () => {
-      const newFrame = new Float32Array([10, 20, 1.5, 0.5, 0]);
+      const newFrame = new Frame(null, 10, 20, 1.5, 0.5, false);
       const originalLength = frameService.frames.length;
 
       frameService.push(newFrame);
@@ -153,14 +156,14 @@ describe('FrameService', () => {
       const index = 10;
 
       frameService.setAnchor(index);
-      expect(frameService.isAnchor(index)).toBe(1);
+      expect(frameService.isAnchor(index)).toBe(true);
     });
 
     test('should return falsy for non-anchor frames', () => {
       const index = 10;
-      frameService.frames[index][4] = 0;
+      frameService.frames[index].anchor = false;
 
-      expect(frameService.isAnchor(index)).toBe(0);
+      expect(frameService.isAnchor(index)).toBe(false);
     });
   });
 
@@ -204,29 +207,29 @@ describe('FrameService', () => {
 
   describe('interpolateFrame', () => {
     test('should interpolate between two frames', () => {
-      const frame1 = new Float32Array([0, 0, 1, 0, 0]);
-      const frame2 = new Float32Array([10, 10, 2, 1, 0]);
+      const frame1 = new Frame(null, 0, 0, 1, 0, false);
+      const frame2 = new Frame(null, 10, 10, 2, 1, false);
       const weight = 0.5;
 
       const result = frameService.interpolateFrame(frame1, frame2, weight);
 
-      expect(result[0]).toBe(5); // x position
-      expect(result[1]).toBe(5); // y position
-      expect(result[2]).toBe(1.5); // scale
-      expect(result[3]).toBe(0.5); // rotation
+      expect(result.x).toBe(5); // x position
+      expect(result.y).toBe(5); // y position
+      expect(result.scale).toBe(1.5); // scale
+      expect(result.rotation).toBe(0.5); // rotation
     });
 
     test('should clamp weight to valid range', () => {
-      const frame1 = new Float32Array([0, 0, 1, 0, 0]);
-      const frame2 = new Float32Array([10, 10, 2, 1, 0]);
+      const frame1 = new Frame(null, 0, 0, 1, 0, false);
+      const frame2 = new Frame(null, 10, 10, 2, 1, false);
 
       // Test weight > 1
       const result1 = frameService.interpolateFrame(frame1, frame2, 1.5);
-      expect(result1[0]).toBe(10); // Should use frame2 values
+      expect(result1.x).toBe(10); // Should use frame2 values
 
       // Test weight < 0
       const result2 = frameService.interpolateFrame(frame1, frame2, -0.5);
-      expect(result2[0]).toBe(0); // Should use frame1 values
+      expect(result2.x).toBe(0); // Should use frame1 values
     });
   });
 
@@ -242,22 +245,21 @@ describe('FrameService', () => {
       const validTime = testStartTime + 1000; // 1 second after start
       const result = frameService.getFrame(validTime, testStartTime);
 
-      expect(result).toBeInstanceOf(Float32Array);
-      expect(result).toHaveLength(5);
+      expect(result).toBeInstanceOf(Frame);
     });
 
     test('should interpolate between frames when needed', () => {
-      // Set up specific frame values for testing
+      // Set up specific frames for interpolation test
       const index = 30;
-      frameService.frames[index] = new Float32Array([0, 0, 1, 0, 0]);
-      frameService.frames[index + 1] = new Float32Array([10, 10, 2, 1, 0]);
+      frameService.frames[index] = new Frame(null, 0, 0, 1, 0, false);
+      frameService.frames[index + 1] = new Frame(null, 10, 10, 2, 1, false);
 
       const time = frameService.getTime(index, testStartTime) + 500; // Halfway between frames
       const result = frameService.getFrame(time, testStartTime);
 
       // Should be interpolated values
-      expect(result[0]).toBeGreaterThan(0);
-      expect(result[0]).toBeLessThan(10);
+      expect(result.x).toBeGreaterThan(0);
+      expect(result.x).toBeLessThan(10);
     });
   });
 
@@ -284,7 +286,7 @@ describe('FrameService', () => {
   describe('update', () => {
     test('should update frame at specific index', () => {
       const index = 5;
-      const newFrame = new Float32Array([100, 200, 3, 1.5, 1]);
+      const newFrame = new Frame(null, 100, 200, 3, 1.5, true);
 
       frameService.update(index, newFrame);
 
@@ -298,7 +300,7 @@ describe('FrameService', () => {
       const workflowFrameService = new FrameService(2000, 0, true);
 
       // Add some frames
-      const customFrame = new Float32Array([50, 50, 2, 0.5, 0]);
+      const customFrame = new Frame(null, 50, 50, 2, 0.5, false);
       workflowFrameService.push(customFrame);
 
       // Set an anchor
@@ -309,8 +311,8 @@ describe('FrameService', () => {
 
       // Verify the workflow
       expect(workflowFrameService.getLength()).toBeGreaterThan(60); // 2 seconds at 30fps + 1 custom
-      expect(workflowFrameService.isAnchor(10)).toBe(1);
-      expect(frame).toBeInstanceOf(Float32Array);
+      expect(workflowFrameService.isAnchor(10)).toBe(true);
+      expect(frame).toBeInstanceOf(Frame);
     });
   });
 });

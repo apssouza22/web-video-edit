@@ -40,13 +40,13 @@ export class TextLayer extends FlexibleLayer {
       return;
     }
 
-    let scale = frame[2];
+    let scale = frame.scale;
     this.renderer.font = Math.floor(scale * 30) + "px sans-serif";
     let rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
-    let x = frame[0] + this.renderer.width / 2;
-    let y = frame[1] + this.renderer.height / 2;
+    let x = frame.x + this.renderer.width / 2;
+    let y = frame.y + this.renderer.height / 2;
     if (this.shadow) {
       this.renderer.shadowColor = "black";
       this.renderer.shadowBlur = 7;

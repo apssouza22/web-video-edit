@@ -55,18 +55,15 @@ export class DragItemHandler {
       console.log('No layer selected');
       return;
     }
-    if (!(this.studio.getSelectedLayer() instanceof FlexibleLayer)) {
-      console.log('Selected layer is not a FlexibleLayer');
-      return;
-    }
+
     e.preventDefault();
     let f = this.studio.getSelectedLayer().getFrame(this.studio.player.time);
     if (!f) {
       return;
     }
     this.dragging = true;
-    this.base_x = e.offsetX * this.get_ratio(e.target) - f[0];
-    this.base_y = e.offsetY * this.get_ratio(e.target) - f[1];
+    this.base_x = e.offsetX * this.get_ratio(e.target) - f.x;
+    this.base_y = e.offsetY * this.get_ratio(e.target) - f.y;
     window.addEventListener('pointerup', this.pointerup, {
       once: true
     });
@@ -86,8 +83,10 @@ export class DragItemHandler {
     e.preventDefault();
     e.stopPropagation();
     if (this.dragging) {
+      console.log(`Pointer move: offsetX=${e.offsetX}, offsetY=${e.offsetY}`);
       let dx = e.offsetX * this.get_ratio(e.target) - this.base_x;
       let dy = e.offsetY * this.get_ratio(e.target) - this.base_y;
+      console.log(`Dragging: dx=${dx}, dy=${dy}`);
       this.callback(dx, dy);
     }
   }

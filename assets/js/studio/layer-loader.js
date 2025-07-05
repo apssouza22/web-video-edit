@@ -1,5 +1,6 @@
 import { FlexibleLayer, LayersSidebarView, AudioLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index.js';
 import { ext_map } from './index.js';
+import { Frame } from '../frame/frame.js';
 
 /**
  * LayerLoader class responsible for loading layers from JSON data
@@ -101,7 +102,7 @@ export class LayerLoader {
         if (layer_d.frames) {
           layer.framesCollection.frames = [];
           for (let f of layer_d.frames) {
-            layer.framesCollection.push(new Float32Array(f));
+            layer.framesCollection.push(Frame.fromArray(new Float32Array(f)));
           }
         }
       });

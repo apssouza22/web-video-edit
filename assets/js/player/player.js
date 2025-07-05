@@ -105,7 +105,7 @@ export class VideoPlayer {
         this.refreshAudio();
       }
       // // This will make the playback loop
-      // newTime %= this.total_time;
+      newTime %= this.total_time;
 
       this.setTime(newTime);
     }

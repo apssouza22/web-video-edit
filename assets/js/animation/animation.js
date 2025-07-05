@@ -3,6 +3,7 @@
 // ##################################################
 
 import { FrameService } from '../layer/frames.js';
+import { Frame } from '../frame/frame.js';
 import { fps } from '../constants.js';
 
 /**
@@ -21,7 +22,7 @@ export class AnimationHandler {
     /**
      * Gets a frame at the specified reference time
      * @param {number} referenceTime - The time to get the frame for
-     * @returns {Float32Array|null} - The frame at the specified time or null if out of range
+     * @returns {Frame|null} - The frame at the specified time or null if out of range
      */
     getFrame(referenceTime) {
         return this.framesCollection.getFrame(referenceTime, this.startTime);
@@ -76,7 +77,7 @@ export class AnimationHandler {
      */
     deleteAnchor(referenceTime) {
         let i = this.getIndex(referenceTime);
-        this.framesCollection.frames[i][4] = 0;
+        this.framesCollection.frames[i].anchor = false;
         let prevIndex = this.nearestAnchor(referenceTime, false);
         this.interpolate(prevIndex);
     }
@@ -183,31 +184,31 @@ export class AnimationHandler {
         let index = this.getIndex(referenceTime);
         
         if (change.scale) {
-            const oldScale = f[2];
-            const newScale = f[2] * change.scale;
+            const oldScale = f.scale;
+            const newScale = f.scale * change.scale;
             let deltaX = ((width * oldScale) - (width * newScale)) / 2;
             let deltaY = ((height * oldScale) - (height * newScale)) / 2;
-            this.framesCollection.frames[index][0] = f[0] + deltaX;
-            this.framesCollection.frames[index][1] = f[1] + deltaY;
-            this.framesCollection.frames[index][2] = newScale;
+            this.framesCollection.frames[index].x = f.x + deltaX;
+            this.framesCollection.frames[index].y = f.y + deltaY;
+            this.framesCollection.frames[index].scale = newScale;
             this.interpolate(index);
             this.setAnchor(index);
         }
         
         if (change.x) {
-            this.framesCollection.frames[index][0] = change.x;
+            this.framesCollection.frames[index].x = change.x;
             this.interpolate(index);
             this.setAnchor(index);
         }
         
         if (change.y) {
-            this.framesCollection.frames[index][1] = change.y;
+            this.framesCollection.frames[index].y = change.y;
             this.interpolate(index);
             this.setAnchor(index);
         }
         
         if (change.rotation) {
-            this.framesCollection.frames[index][3] = f[3] + change.rotation;
+            this.framesCollection.frames[index].rotation = f.rotation + change.rotation;
             this.interpolate(index);
             this.setAnchor(index);
         }
@@ -245,8 +246,7 @@ export class AnimationHandler {
         
         if (numFrames > 0) {
             for (let i = 0; i < numFrames; ++i) {
-                let f = new Float32Array(5);
-                f[2] = 1; // scale
+                let f = new Frame(null, 0, 0, 1, 0, false);
                 this.framesCollection.push(f);
             }
         } else if (numFrames < 0) {

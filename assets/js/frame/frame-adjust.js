@@ -1,5 +1,6 @@
 import { fps } from "../constants.js";
 import { FrameService } from "./frames.js";
+import { Frame } from "./frame.js";
 
 export class FrameAdjustHandler {
   /**
@@ -112,8 +113,7 @@ export class FrameAdjustHandler {
       return
     }
     for (let i = 0; i < frameDiff; ++i) {
-      let f = new Float32Array(5);
-      f[2] = 1; // scale
+      let f = new Frame(null, 0, 0, 1, 0, false);
       this.framesCollection.push(f);
     }
 

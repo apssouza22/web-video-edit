@@ -146,30 +146,30 @@ export class StandardLayer {
     let hasChanges = false;
 
     if (change.scale) {
-      const newScale = f[2] * change.scale;
+      const newScale = f.scale * change.scale;
       for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i][2] = newScale;
+        this.framesCollection.frames[i].scale = newScale;
       }
       hasChanges = true;
     }
 
     if (change.x) {
       for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i][0] = change.x;
+        this.framesCollection.frames[i].x = change.x;
       }
       hasChanges = true;
     }
 
     if (change.y) {
       for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i][1] = change.y;
+        this.framesCollection.frames[i].y = change.y;
       }
       hasChanges = true;
     }
 
     if (change.rotation) {
       for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i][3] = f[3] + change.rotation;
+        this.framesCollection.frames[i].rotation = f.rotation + change.rotation;
       }
       hasChanges = true;
     }
@@ -180,6 +180,11 @@ export class StandardLayer {
     }
   }
 
+  /**
+   * Gets the frame at the specified reference time
+   * @param ref_time
+   * @returns {Frame|null}
+   */
   getFrame(ref_time) {
     return this.framesCollection.getFrame(ref_time, this.start_time)
   }

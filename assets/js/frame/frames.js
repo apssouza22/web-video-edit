@@ -1,15 +1,11 @@
 import {fps} from '../constants.js';
 import {FrameAdjustHandler} from './frame-adjust.js';
+import {Frame} from './frame.js';
 
 export class FrameService {
   /**
-   * @type {Array<Float32Array>}
-   * @description frames = [x, y, scale, rotation, anchor]
-   * @param {number} x - x position
-   * @param {number} y - y position
-   * @param {number} scale - scale
-   * @param {number} rotation - rotation
-   * @param {boolean} anchor - is this frame an anchor
+   * @type {Array<Frame>}
+   * @description Array of Frame objects containing x, y, scale, rotation, anchor, and frame properties
    */
   frames = [];
   totalTimeInSeconds = 0
@@ -45,12 +41,10 @@ export class FrameService {
 
   initializeFrames() {
     for (let i = 0; i < this.totalTimeInSeconds * fps; ++i) {
-      // x, y, scale, rot, anchor(bool)
-      let f = new Float32Array(5);
-      f[2] = 1; // scale
+      let f = new Frame(null, 0, 0, 1, 0, false);
       this.frames.push(f);
     }
-    this.frames[0][4] = 1; // set first frame as anchor
+    this.frames[0].anchor = true; // set first frame as anchor
   }
 
   getLength() {
@@ -58,7 +52,8 @@ export class FrameService {
   }
 
   push(f) {
-    this.frames.push(f);
+    const frame = f instanceof Frame ? f : Frame.fromArray(f);
+    this.frames.push(frame);
   }
 
   /**
@@ -71,27 +66,33 @@ export class FrameService {
   }
 
   setAnchor(index) {
-    this.frames[index][4] = 1;
+    this.frames[index].anchor = true;
   }
 
   isAnchor(index) {
-    return this.frames[index][4];
+    return this.frames[index].anchor;
   }
 
+  /**
+   * Gets the frame at the specified reference time
+   * @param referenceTime
+   * @param startTime
+   * @returns {Frame|null}
+   */
   getFrame(referenceTime, startTime) {
     this.startTime = startTime
     let index = this.getIndex(referenceTime, startTime);
     if (index < 0 || index >= this.frames.length) {
       return null;
     }
-    let currentFrame = new Float32Array(this.frames[index]);
+    let currentFrame = this.frames[index].clone();
 
     if (index + 1 < this.frames.length) {
       const currentFrameTime = referenceTime - this.getTime(index, startTime);
       const nextFrameTime = this.getTime(index + 1, startTime) - referenceTime;
       let interpolationFactor = nextFrameTime / (currentFrameTime + nextFrameTime);
       let nextFrame = this.frames[index + 1];
-      currentFrame = this.interpolateFrame(currentFrame, nextFrame, interpolationFactor);
+      currentFrame = currentFrame.interpolate(nextFrame, interpolationFactor);
     }
     return currentFrame;
   }
@@ -128,25 +129,13 @@ export class FrameService {
    * Rather than simply jumping to the nearest frame (which would create jerky animations),
    * this function creates a blended transition
    *
-   * @param {Float32Array} f0 - first frame
-   * @param {Float32Array} f1 - second frame
+   * @param {Frame} f0 - first frame
+   * @param {Frame} f1 - second frame
    * @param {number} weight - A value between 0 and 1 that represents the position between the frames
-   * @returns {Float32Array} - interpolated frame
+   * @returns {Frame} - interpolated frame
    */
   interpolateFrame(f0, f1, weight) {
-    if (weight > 1) {
-      weight = 1;
-    }
-    if (weight < 0) {
-      weight = 0;
-    }
-    let f = new Float32Array(5);
-    // Using lerp function for each property
-    f[0] = this.lerp(f0[0], f1[0], weight); // x position
-    f[1] = this.lerp(f0[1], f1[1], weight); // y position
-    f[2] = this.lerp(f0[2], f1[2], weight); // scale
-    f[3] = this.lerp(f0[3], f1[3], weight); // rotation
-    return f;
+    return f0.interpolate(f1, weight);
   }
 
   removeInterval(startTime, endTime) {
@@ -154,10 +143,33 @@ export class FrameService {
   }
 
   copy() {
-    return [...this.frames]
+    return this.frames.map(frame => frame.clone());
   }
 
   update(index, frame) {
-    this.frames[index] = frame
+    this.frames[index] = frame instanceof Frame ? frame : Frame.fromArray(frame);
+  }
+
+  /**
+   * Backward compatibility: Get frame as Float32Array
+   * @param {number} index - Frame index
+   * @returns {Float32Array|null}
+   */
+  getFrameAsArray(index) {
+    if (index < 0 || index >= this.frames.length) {
+      return null;
+    }
+    return this.frames[index].toArray();
+  }
+
+  /**
+   * Backward compatibility: Set frame from Float32Array
+   * @param {number} index - Frame index
+   * @param {Float32Array} array - Frame data as array
+   */
+  setFrameFromArray(index, array) {
+    if (index >= 0 && index < this.frames.length) {
+      this.frames[index] = Frame.fromArray(array);
+    }
   }
 }

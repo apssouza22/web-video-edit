@@ -36,9 +36,9 @@ export class ImageLayer extends FlexibleLayer {
     
     let f = this.getFrame(currentTime);
     if (f) {
-      let scale = f[2];
-      let x = f[0] + this.renderer.width / 2 - this.width / 2;
-      let y = f[1] + this.renderer.height / 2 - this.height / 2;
+      let scale = f.scale;
+      let x = f.x + this.renderer.width / 2 - this.width / 2;
+      let y = f.y + this.renderer.height / 2 - this.height / 2;
       this.renderer.clearRect();
       this.renderer.drawImage(this.img, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
       this.drawScaled(this.ctx, ctx_out);
