@@ -8,7 +8,7 @@ export class VideoLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
     super(file);
     this.framesCollection = createFrameService(0, 0, false);
-    this.videoDemuxer = createDemuxer();
+    this.videoDemuxer = createDemuxer(this.renderer);
     this.#setupDemuxerCallbacks();
 
     // Empty VideoLayers (split() requires this)
@@ -55,15 +55,14 @@ export class VideoLayer extends StandardLayer {
 
   #readFile(file) {
     if(file.uri !== null && file.uri !== undefined) {
-      this.fileSrc = file.uri
-      this.videoDemuxer.initDemux(this.fileSrc, this.renderer);
+      this.videoDemuxer.initDemux(file, this.renderer);
       return;
     }
 
     this.reader = new FileReader();
     this.reader.addEventListener("load", (function () {
-      this.fileSrc = this.reader.result;
-      this.videoDemuxer.initDemux(this.fileSrc, this.renderer);
+      file.uri = this.reader.result;
+      this.videoDemuxer.initDemux(file, this.renderer);
     }).bind(this), false);
 
     this.reader.readAsDataURL(file);

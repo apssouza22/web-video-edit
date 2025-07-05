@@ -1,65 +1,26 @@
 importScripts("https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js");
 
-// Wraps an MP4Box File as a WritableStream underlying sink.
-class MP4FileSink {
-  #setStatus = null;
-  #file = null;
-  #offset = 0;
-
-  constructor(file, setStatus) {
-    this.#file = file;
-    this.#setStatus = setStatus;
-  }
-
-  write(chunk) {
-    // MP4Box.js requires buffers to be ArrayBuffers, but we have a Uint8Array.
-    const buffer = new ArrayBuffer(chunk.byteLength);
-    new Uint8Array(buffer).set(chunk);
-
-    // Inform MP4Box where in the file this chunk is from.
-    buffer.fileStart = this.#offset;
-    this.#offset += buffer.byteLength;
-
-    // Append chunk.
-    this.#setStatus("fetch", (this.#offset / (1024 ** 2)).toFixed(1) + " MiB");
-    this.#file.appendBuffer(buffer);
-  }
-
-  close() {
-    this.#setStatus("fetch", "Done");
-    this.#file.flush();
-  }
-}
-
 // Demuxes the first video track of an MP4 file using MP4Box and decodes it using VideoDecoder,
 // calling `onFrame()` with decoded VideoFrame objects and `onError()` for decode errors.
 class MP4Demuxer {
   #onFrame = null;
   #onError = null;
-  #setStatus = null;
   #file = null;
   #decoder = null;
   #onReadyCallback;
 
-  constructor(uri, {onFrame, onError, setStatus, onReady}) {
+  constructor(uri, {onFrame, onError, onReady}) {
     this.#onFrame = onFrame;
     this.#onError = onError;
-    this.#setStatus = setStatus;
     this.#onReadyCallback = onReady
 
     // Configure an MP4Box File for demuxing.
     this.#file = MP4Box.createFile();
-    this.#file.onError = error => setStatus("demux", error);
+    this.#file.onError = onError
     this.#file.onReady = this.#onReady.bind(this);
     this.#file.onSamples = this.#onSamples.bind(this);
-
-    // Fetch the file and pipe the data through.
-    const fileSink = new MP4FileSink(this.#file, setStatus);
-    fetch(uri).then(response => {
-      // highWaterMark should be large enough for smooth streaming, but lower is
-      // better for memory usage.
-      response.body.pipeTo(new WritableStream(fileSink, {highWaterMark: 2}));
-    });
+    uri.fileStart=0
+    this.#file.appendBuffer(uri);
   }
 
   // Get the appropriate `description` for a specific track. Assumes that the
@@ -102,8 +63,6 @@ class MP4Demuxer {
       codedWidth: track.video.width,
       description: this.#description(track),
     };
-
-    this.#setStatus("decode", `${config.codec} @ ${config.codedWidth}x${config.codedHeight}`);
     this.#decoder.configure(config);
   }
 

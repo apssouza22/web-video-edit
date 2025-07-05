@@ -22,4 +22,10 @@ class Canvas2DRenderer {
   get canvas() {
     return this.#canvas;
   }
+
+  clearRect(x = 0, y = 0, width = null, height = null) {
+    const w = width !== null ? width : this.#canvas.width;
+    const h = height !== null ? height : this.#canvas.height;
+    this.#ctx.clearRect(x, y, w, h);
+  }
 }

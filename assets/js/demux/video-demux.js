@@ -1,12 +1,19 @@
 import {HTMLVideoDemuxer} from "./html-video-demuxer.js";
+import {CodecDemuxer} from "./codec-demuxer.js";
 
 /**
  * Service for video demuxing
  */
 export class VideoDemuxService {
 
-  constructor() {
-    this.htmlVideoDemuxer = new HTMLVideoDemuxer();
+  /**
+   * Create a new VideoDemuxService instance
+   * @param {HTMLVideoDemuxer} htmlVideoDemuxer
+   * @param {CodecDemuxer} codecDemuxer
+   */
+  constructor(htmlVideoDemuxer, codecDemuxer) {
+    this.htmlVideoDemuxer = htmlVideoDemuxer;
+    this.codecDemuxer = codecDemuxer;
   }
 
   /**
@@ -35,17 +42,21 @@ export class VideoDemuxService {
 
   /**
    * Initialize HTML video processing
-   * @param {string} fileSrc - Video file source URL
+   * @param {File} file - Video file source URL
    * @param {Canvas2DRender} renderer - Renderer
    */
-  initDemux(fileSrc, renderer) {
-    this.htmlVideoDemuxer.initialize(fileSrc, renderer);
+  async initDemux(file, renderer) {
+    if (!this.#checkWebCodecsSupport()) {
+      this.htmlVideoDemuxer.initialize(file, renderer);
+      return;
+    }
+    await this.codecDemuxer.initialize(file, renderer);
   }
 
   #checkWebCodecsSupport() {
-    return false;
-    // return typeof VideoDecoder !== 'undefined' &&
-    //     typeof VideoFrame !== 'undefined' &&
-    //     typeof EncodedVideoChunk !== 'undefined';
+    // return false;
+    return typeof VideoDecoder !== 'undefined' &&
+        typeof VideoFrame !== 'undefined' &&
+        typeof EncodedVideoChunk !== 'undefined';
   }
 }

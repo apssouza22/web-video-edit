@@ -42,11 +42,11 @@ export class HTMLVideoDemuxer {
 
   /**
    * Initialize HTML video processing
-   * @param {string} fileSrc - Video file source URL
+   * @param {File} file - Video file source URL
    * @param {Canvas2DRender} renderer - Renderer
    */
-  initialize(fileSrc, renderer) {
-    this.fileSrc = fileSrc;
+  initialize(file, renderer) {
+    this.fileSrc = file.uri;
     this.renderer = renderer;
     this.#createVideoElement();
   }

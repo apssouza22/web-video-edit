@@ -3,10 +3,11 @@ import {dpr} from '../constants.js';
 export class Canvas2DRender {
   #canvas = null;
   #ctx = null;
+  #transferable;
 
   constructor(canvas = null) {
     if (canvas) {
-      this.#canvas = canvas;
+      this.#canvas = canvas.transferControlToOffscreen();
       this.#ctx = canvas.getContext("2d", {willReadFrequently: true});
     } else {
       this.#createCanvas();
@@ -16,11 +17,16 @@ export class Canvas2DRender {
   // Canvas management methods
   #createCanvas() {
     this.#canvas = document.createElement('canvas');
+    this.#transferable = document.createElement('canvas').transferControlToOffscreen();
     this.#ctx = this.#canvas.getContext('2d', {willReadFrequently: true});
   }
 
   get canvas() {
     return this.#canvas;
+  }
+
+  get transferableCanvas() {
+    return this.#transferable;
   }
 
   get context() {
