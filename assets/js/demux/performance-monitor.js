@@ -48,7 +48,7 @@ class PerformanceMonitor {
   #alertThresholds = {
     maxProcessingTime: 50, // ms
     minFrameRate: 20, // fps
-    maxMemoryUsage: 1024, // MB
+    maxMemoryUsage: 2024, // MB
     maxFrameTimeVariance: 10 // ms
   };
 

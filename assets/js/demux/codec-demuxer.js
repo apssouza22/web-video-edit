@@ -1,4 +1,4 @@
-import { Canvas2DRender } from "../common/render-2d.js";
+import {Canvas2DRender} from "../common/render-2d.js";
 
 export class CodecDemuxer {
   #worker = null;
@@ -13,7 +13,7 @@ export class CodecDemuxer {
     this.onCompleteCallback = null;
     this.onMetadataCallback = null;
     this.#setupCleanupHandlers();
-    
+
     // Register with global cleanup manager if available
     if (typeof globalThis.cleanupManager !== 'undefined') {
       globalThis.cleanupManager.registerDemuxer(this);
@@ -32,16 +32,16 @@ export class CodecDemuxer {
 
     window.addEventListener('beforeunload', cleanupHandler);
     window.addEventListener('unload', cleanupHandler);
-    
+
     // Store handlers for later removal
     this.#cleanupHandlers.push(
-      () => window.removeEventListener('beforeunload', cleanupHandler),
-      () => window.removeEventListener('unload', cleanupHandler)
+        () => window.removeEventListener('beforeunload', cleanupHandler),
+        () => window.removeEventListener('unload', cleanupHandler)
     );
   }
 
   setOnProgressCallback(callback) {
-    this.loadUpdateListener = callback;
+    this.onProgressCallback = callback;
   }
 
   setOnCompleteCallback(callback) {
@@ -60,17 +60,36 @@ export class CodecDemuxer {
   #handleWorkerMessage(message) {
     const data = message.data
 
-    if(data["type"] === "frame_processed") {
-      console.log("Frame processed:", data.data);
+    if (data["type"] === "frame_processed") {
+      this.#frames.push(data.data.frameData.frame);
+      const currentTimeMs = data.data.timestamp / 1000; // Convert microseconds to milliseconds
+      const progress = this.totalTimeInMilSeconds > 0 ? Math.min(100, (currentTimeMs / this.totalTimeInMilSeconds) * 100) : 0;
+      this.onProgressCallback(progress);
+      
+      // Complete when we reach 99% or higher
+      if (progress >= 99) {
+        console.log("Processing complete! Total frames:", this.#frames.length);
+        this.onCompleteCallback(this.#frames);
+      }
     }
-    if(data["type"] === "start_processing") {
+    
+    if (data["type"] === "start_processing") {
       console.log("Frame info:", data.data);
-        let width = data.data.videoTracks[0].video.width;
-        let height = data.data.videoTracks[0].video.height;
-        let dur = data[key].duration;
-        console.log("Video dimensions:", width, "x", height, "Duration:", dur / 1000 / 60, "minutes");
-    }
+      let width = data.data.videoTracks[0].video.width;
+      let height = data.data.videoTracks[0].video.height;
+      
+      // Duration from MP4Box is typically in milliseconds
+      this.totalTimeInMilSeconds = data.data.duration;
+      console.log("Video dimensions:", width, "x", height, 
+                  "Duration:", (this.totalTimeInMilSeconds / 1000 / 60).toFixed(2), "minutes");
 
+      this.onMetadataCallback({
+        width: width,
+        height: height,
+        totalTimeInMilSeconds: this.totalTimeInMilSeconds,
+        duration: this.totalTimeInMilSeconds / 1000 // Also provide duration in seconds
+      });
+    }
   }
 
   /**
@@ -82,18 +101,18 @@ export class CodecDemuxer {
     this.#isProcessing = true;
     this.#renderer = renderer;
     this.#frames = [];
-    
+
     // Create worker if not exists
     if (!this.#worker) {
       this.#worker = new Worker(new URL("./worker.js", import.meta.url));
       this.#worker.addEventListener("message", this.#handleWorkerMessage.bind(this));
-      
+
       // Handle worker errors
       this.#worker.addEventListener('error', (error) => {
         console.error('Worker error:', error);
         this.cleanup();
       });
-      
+
       // Register worker with global cleanup manager if available
       if (typeof globalThis.cleanupManager !== 'undefined') {
         globalThis.cleanupManager.registerWorker(this.#worker, 'CodecDemuxer');
@@ -114,7 +133,7 @@ export class CodecDemuxer {
    */
   cleanup() {
     console.log('CodecDemuxer: Starting cleanup...');
-    
+
     try {
       // Stop processing
       this.#isProcessing = false;
@@ -141,8 +160,8 @@ export class CodecDemuxer {
       // Cleanup worker
       if (this.#worker) {
         // Send cleanup message to worker
-        this.#worker.postMessage({ task: 'cleanup' });
-        
+        this.#worker.postMessage({task: 'cleanup'});
+
         // Give worker time to cleanup, then terminate
         setTimeout(() => {
           if (this.#worker) {

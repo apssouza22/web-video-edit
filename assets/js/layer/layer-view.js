@@ -249,6 +249,9 @@ export class LayersSidebarView {
   }
 
   updateLayerThumb(layer, ctx) {
+    if(!this.layerItemsUI[layer.id].ready){
+      return;
+    }
     const thumbCtx = this.layerItemsUI[layer.id].ctx;
     thumbCtx.clearRect(0, 0, thumbCtx.canvas.width, thumbCtx.canvas.height);
     Canvas2DRender.drawScaled(ctx, thumbCtx);

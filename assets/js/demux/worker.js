@@ -32,7 +32,7 @@ class DemuxWorker {
       this.#handleProcessedFrame(frame, metadata);
     });
 
-    this.#frameBufferManager = new FrameBufferManager(200, 1000); // 20 frames max, 100MB limit
+    this.#frameBufferManager = new FrameBufferManager(2000, 10000); // 20 frames max, 100MB limit
     this.#frameBufferManager.setOnMemoryWarning((warning) => {
       this.#handleMemoryWarning(warning);
     });
@@ -287,7 +287,7 @@ class DemuxWorker {
     const memoryUsageMB = stats.memoryUsage / (1024 * 1024);
     
     // Only force cleanup if memory usage is still very high
-    if (memoryUsageMB > 800) { // 800MB threshold for force cleanup
+    if (memoryUsageMB > 8000) { // 800MB threshold for force cleanup
       console.warn("Memory usage still high after gentle cleanup, performing force cleanup");
       this.#frameBufferManager.forceCleanup();
     }
@@ -314,7 +314,7 @@ class DemuxWorker {
    * @private
    */
   #handlePerformanceAlerts(alerts) {
-    console.warn("Performance alerts:", alerts);
+    // console.warn("Performance alerts:", alerts);
     this.#communicationManager.sendMessage('performance_alert', { alerts });
   }
 

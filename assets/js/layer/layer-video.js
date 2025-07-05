@@ -35,22 +35,11 @@ export class VideoLayer extends StandardLayer {
     this.videoDemuxer.setOnMetadataCallback((metadata) => {
       this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
       this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
-      this.#setSize(metadata.duration, metadata.width, metadata.height);
+      console.log("Video metadata:", metadata);
+      this.width = metadata.width;
+      this.height = metadata.height;
       this.#handleVideoRatio();
     });
-  }
-
-
-  #setSize(dur, width, height) {
-    let size = fps * dur * width * height;
-    if (size < max_size) {
-      this.width = width;
-      this.height = height;
-    } else {
-      let scale = Math.sqrt(size / max_size);
-      this.width = Math.floor(width / scale);
-      this.height = Math.floor(height / scale);
-    }
   }
 
   #readFile(file) {
@@ -115,8 +104,8 @@ export class VideoLayer extends StandardLayer {
     }
 
     const frame = this.framesCollection.frames[index];
-    this.renderer.putImageData(frame, 0, 0);
-    this.drawScaled(this.ctx, ctxOut);
+    this.renderer.drawImage(frame, 0, 0);
+    this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
   }
 
