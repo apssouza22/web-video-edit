@@ -22,7 +22,9 @@ export class VideoDemuxService {
    */
   setOnProgressCallback(callback) {
     this.htmlVideoDemuxer.setOnProgressCallback(callback);
+    this.codecDemuxer.setOnProgressCallback(callback);
   }
+
 
   /**
    * Set callback for completion
@@ -30,6 +32,7 @@ export class VideoDemuxService {
    */
   setOnCompleteCallback(callback) {
     this.htmlVideoDemuxer.setOnCompleteCallback(callback);
+    this.codecDemuxer.setOnCompleteCallback(callback);
   }
 
   /**
@@ -38,6 +41,7 @@ export class VideoDemuxService {
    */
   setOnMetadataCallback(callback) {
     this.htmlVideoDemuxer.setOnMetadataCallback(callback);
+    this.codecDemuxer.setOnMetadataCallback(callback);
   }
 
   /**

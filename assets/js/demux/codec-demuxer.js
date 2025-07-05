@@ -1,62 +1,178 @@
 import { Canvas2DRender } from "../common/render-2d.js";
+
 export class CodecDemuxer {
-  #worker;
-  #frames;
+  #worker = null;
+  #isProcessing = false;
+  #cleanupHandlers = [];
+  #frames = [];
   /** @type {Canvas2DRender} */
   #renderer;
 
-
-  constructor(renderer) {
-    this.#frames = [];
-    this.#worker = new Worker(new URL("./worker.js", import.meta.url));
-    this.#worker.addEventListener("message", this.#demuxUpdateListener.bind(this));
-    this.loadUpdateListener = (progress) => {
-      console.log("Load update:", progress);
-    }
-  }
-
-  #demuxUpdateListener(message) {
-    const data = message.data
-
-    for (const key in data) {
-      if (key === "onReady") {
-        console.log("onReady", data[key]);
-
-        let width = data[key].videoTracks[0].video.width;
-        let height = data[key].videoTracks[0].video.height;
-        let dur = data[key].duration;
-        console.log("Video dimensions:", width, "x", height, "Duration:", dur / 1000 / 60, "minutes");
-        this.totalTimeInMilSeconds = dur * 1000;
-      }
-
-      if (key === "onFrame") {
-        const frameData = data[key];
-        this.#frames.push(frameData);
-        console.log("OnFrame. Frame received:", this.#frames.length);
-      }
-
-      if (key === "onComplete") {
-        console.log("Demux completed:", data[key]);
-        console.log(`Processed ${this.#frames.length}frames`);
-        this.loadUpdateListener(this, 100, this.#renderer.context, null);
-        this.ready = true;
-      }
+  constructor() {
+    this.loadUpdateListener = null;
+    this.onCompleteCallback = null;
+    this.onMetadataCallback = null;
+    this.#setupCleanupHandlers();
+    
+    // Register with global cleanup manager if available
+    if (typeof globalThis.cleanupManager !== 'undefined') {
+      globalThis.cleanupManager.registerDemuxer(this);
     }
   }
 
   /**
-   * Initialize the demuxer with a file and renderer
-   * @param {File} file
-   * @param renderer
-   * @returns {Promise<void>}
+   * Setup cleanup handlers for page unload
+   * @private
+   */
+  #setupCleanupHandlers() {
+    // Handle page unload
+    const cleanupHandler = () => {
+      this.cleanup();
+    };
+
+    window.addEventListener('beforeunload', cleanupHandler);
+    window.addEventListener('unload', cleanupHandler);
+    
+    // Store handlers for later removal
+    this.#cleanupHandlers.push(
+      () => window.removeEventListener('beforeunload', cleanupHandler),
+      () => window.removeEventListener('unload', cleanupHandler)
+    );
+  }
+
+  setOnProgressCallback(callback) {
+    this.loadUpdateListener = callback;
+  }
+
+  setOnCompleteCallback(callback) {
+    this.onCompleteCallback = callback;
+  }
+
+  setOnMetadataCallback(callback) {
+    this.onMetadataCallback = callback;
+  }
+
+  /**
+   * Handle messages from worker
+   * @param {MessageEvent} message - Worker message
+   * @private
+   */
+  #handleWorkerMessage(message) {
+    const data = message.data
+
+    if(data["type"] === "frame_processed") {
+      console.log("Frame processed:", data.data);
+    }
+    if(data["type"] === "start_processing") {
+      console.log("Frame info:", data.data);
+        let width = data.data.videoTracks[0].video.width;
+        let height = data.data.videoTracks[0].video.height;
+        let dur = data[key].duration;
+        console.log("Video dimensions:", width, "x", height, "Duration:", dur / 1000 / 60, "minutes");
+    }
+
+  }
+
+  /**
+   * Initialize codec demuxing with worker
+   * @param {File} file - Video file to process
+   * @param {Object} renderer - Renderer object
    */
   async initialize(file, renderer) {
+    this.#isProcessing = true;
+    this.#renderer = renderer;
+    this.#frames = [];
+    
+    // Create worker if not exists
+    if (!this.#worker) {
+      this.#worker = new Worker(new URL("./worker.js", import.meta.url));
+      this.#worker.addEventListener("message", this.#handleWorkerMessage.bind(this));
+      
+      // Handle worker errors
+      this.#worker.addEventListener('error', (error) => {
+        console.error('Worker error:', error);
+        this.cleanup();
+      });
+      
+      // Register worker with global cleanup manager if available
+      if (typeof globalThis.cleanupManager !== 'undefined') {
+        globalThis.cleanupManager.registerWorker(this.#worker, 'CodecDemuxer');
+      }
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     arrayBuffer.fileStart = 0;
     this.#worker.postMessage({
-      task: "init",
+      task: "start",
       arrayBuffer: arrayBuffer,
       canvas: renderer.transferableCanvas
     }, [renderer.transferableCanvas]);
+  }
+
+  /**
+   * Comprehensive cleanup of all resources
+   */
+  cleanup() {
+    console.log('CodecDemuxer: Starting cleanup...');
+    
+    try {
+      // Stop processing
+      this.#isProcessing = false;
+
+      // Cleanup any VideoFrames we have stored
+      if (this.#frames && this.#frames.length > 0) {
+        let closedFrames = 0;
+        this.#frames.forEach((frameData, index) => {
+          try {
+            if (frameData && frameData.frame && typeof frameData.frame.close === 'function') {
+              if (frameData.frame.format !== null) {
+                frameData.frame.close();
+                closedFrames++;
+              }
+            }
+          } catch (error) {
+            console.debug(`Frame ${index} already closed:`, error.message);
+          }
+        });
+        console.log(`CodecDemuxer: Closed ${closedFrames} stored frames`);
+        this.#frames = [];
+      }
+
+      // Cleanup worker
+      if (this.#worker) {
+        // Send cleanup message to worker
+        this.#worker.postMessage({ task: 'cleanup' });
+        
+        // Give worker time to cleanup, then terminate
+        setTimeout(() => {
+          if (this.#worker) {
+            this.#worker.terminate();
+            this.#worker = null;
+          }
+        }, 1000);
+      }
+
+      // Remove event listeners
+      this.#cleanupHandlers.forEach(handler => handler());
+      this.#cleanupHandlers = [];
+
+      // Clear callbacks
+      this.loadUpdateListener = null;
+      this.onCompleteCallback = null;
+      this.onMetadataCallback = null;
+
+      console.log('CodecDemuxer: Cleanup completed');
+
+    } catch (error) {
+      console.error('Error during CodecDemuxer cleanup:', error);
+    }
+  }
+
+  /**
+   * Check if currently processing
+   * @returns {boolean} Processing status
+   */
+  isProcessing() {
+    return this.#isProcessing;
   }
 }
