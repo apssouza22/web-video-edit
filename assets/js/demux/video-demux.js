@@ -57,6 +57,11 @@ export class VideoDemuxService {
     await this.codecDemuxer.initialize(file, renderer);
   }
 
+  cleanup() {
+    this.htmlVideoDemuxer.cleanup();
+    this.codecDemuxer.cleanup();
+  }
+
   #checkWebCodecsSupport() {
     // return false;
     return typeof VideoDecoder !== 'undefined' &&

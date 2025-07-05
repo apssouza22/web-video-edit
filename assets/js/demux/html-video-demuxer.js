@@ -192,7 +192,7 @@ export class HTMLVideoDemuxer {
     await this.#upgradeFrameQuality();
     const elapsed = Date.now() - now;
     this.onCompleteCallback(this.#convertToLegacyFormat());
-    this.#cleanup()
+    this.cleanup()
     console.log('Finished background quality upgrade. Took', elapsed/1000, 'ms. ');
   }
 
@@ -242,7 +242,7 @@ export class HTMLVideoDemuxer {
       }
     }
   }
-  #cleanup() {
+  cleanup() {
     if (this.video) {
       this.video.remove();
       this.video = null;

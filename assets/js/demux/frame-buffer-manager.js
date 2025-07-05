@@ -130,16 +130,6 @@ class FrameBufferManager {
   }
 
   /**
-   * Unmark a frame as in use by other systems
-   * @param {Object} managedFrame - Managed frame to unmark
-   */
-  unmarkFrameInUse(managedFrame) {
-    if (managedFrame && this.#activeFrames.has(managedFrame)) {
-      managedFrame.inUse = false;
-    }
-  }
-
-  /**
    * Estimate the memory size of a VideoFrame
    * @param {VideoFrame} frame - Frame to estimate
    * @returns {number} Estimated size in bytes

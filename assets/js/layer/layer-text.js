@@ -62,7 +62,7 @@ export class TextLayer extends FlexibleLayer {
     this.renderer.textAlign = "center";
     this.renderer.fillText(this.name, 0, 0);
     this.renderer.restore();
-    this.drawScaled(this.ctx, ctxOut);
+    this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(refTime);
   }
 }

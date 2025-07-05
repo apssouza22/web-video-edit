@@ -18,15 +18,10 @@ class DemuxWorker {
   #startTime = 0;
 
   constructor() {
-    console.log("Enhanced Demuxer worker started with 24 FPS optimization");
     this.#initializeComponents();
     this.#setupCleanupHandlers();
   }
 
-  /**
-   * Initialize all frame processing components
-   * @private
-   */
   #initializeComponents() {
     this.#frameRateController = new FrameRateController(this.#targetFPS, (frame, metadata) => {
       this.#handleProcessedFrame(frame, metadata);
@@ -237,11 +232,6 @@ class DemuxWorker {
       quality: metadata.quality || 1.0,
       originalTimestamp: metadata.originalTimestamp,
       adjustedTimestamp: metadata.adjustedTimestamp,
-      processingStats: {
-        totalFramesProcessed: this.#frameRateController.getStats().totalFramesProcessed,
-        totalFramesOutput: this.#frameRateController.getStats().totalFramesOutput,
-        compressionRatio: this.#frameRateController.getStats().compressionRatio
-      }
     };
 
     this.#communicationManager.sendMessage('frame_processed', {
