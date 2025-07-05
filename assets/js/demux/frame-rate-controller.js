@@ -1,6 +1,6 @@
 /**
- * FrameRateController - Manages frame rate conversion and intelligent frame sampling
- * Converts any input frame rate to exactly 24 FPS output with optimal quality
+ * FrameRateController - Intelligent 24 FPS frame rate conversion
+ * Converts any input frame rate to exactly 24 FPS output with optimal timing
  */
 class FrameRateController {
   #targetFPS = 24;
@@ -11,19 +11,19 @@ class FrameRateController {
   #sourceFrameRate = null;
   #totalFramesProcessed = 0;
   #totalFramesOutput = 0;
-  #onFrameCallback = (frame, metadata) => {
+  #onFrameReady = (frame, metadata) => {
   };
+  #startTime = 0;
 
-  constructor(targetFPS = 24, onFrameCallback = null) {
+  constructor(targetFPS = 24, onFrameReady = null) {
     this.#targetFPS = targetFPS;
-    this.#targetFrameInterval = 1000000 / targetFPS;
-    this.#onFrameCallback = onFrameCallback;
+    this.#targetFrameInterval = 1000000 / targetFPS; // Convert to microseconds
+    this.#onFrameReady = onFrameReady;
+    this.#startTime = performance.now();
+
+    console.log(`FrameRateController: Initialized for ${targetFPS} FPS (${this.#targetFrameInterval.toFixed(0)}μs interval)`);
   }
 
-  /**
-   * Set the source frame rate for optimization
-   * @param {number} fps - Source video frame rate
-   */
   setSourceFrameRate(fps) {
     this.#sourceFrameRate = fps;
   }
@@ -31,7 +31,7 @@ class FrameRateController {
   /**
    * Process an incoming frame and determine if it should be output
    * @param {VideoFrame} frame - Input video frame
-   * @param {Object} metadata - Frame metadata including quality info
+   * @param {Object} metadata - Frame metadata
    */
   processFrame(frame, metadata = {}) {
     this.#totalFramesProcessed++;
@@ -43,8 +43,7 @@ class FrameRateController {
     this.#addToBuffer({
       frame,
       timestamp: frameTimestamp,
-      metadata,
-      quality: metadata.quality || 1.0
+      metadata
     });
 
     // Check if it's time to output a frame considering 24 FPS
@@ -92,16 +91,13 @@ class FrameRateController {
     if (!bestFrame) {
       return;
     }
-    bestFrame.inUse = true;
+
     this.#outputFrame(bestFrame);
 
     // Remove frames that are older than the selected frame
     for (let i = 0; i <= bestIndex; i++) {
       const frameData = this.#frameBuffer.shift();
-      // Only close frames that weren't selected and aren't in use
-      if (i !== bestIndex && frameData.frame && typeof frameData.frame.close === 'function') {
-        frameData.frame.close();
-      }
+      frameData.frame.close();
     }
   }
 
@@ -115,15 +111,9 @@ class FrameRateController {
   #calculateFrameScore(frameData, targetTime) {
     const timeDiff = Math.abs(frameData.timestamp - targetTime);
     const maxTimeDiff = this.#targetFrameInterval;
-
     // Normalize time score (closer to target time = higher score)
     const timeScore = Math.max(0, 1 - (timeDiff / maxTimeDiff));
-
-    // Quality score (higher quality = higher score)
-    const qualityScore = frameData.quality || 1.0;
-
-    // Weighted combination: 70% time accuracy, 30% quality
-    return (timeScore * 0.7) + (qualityScore * 0.3);
+    return (timeScore)
   }
 
   /**
@@ -139,8 +129,7 @@ class FrameRateController {
     });
     this.#lastOutputTimestamp = outputTimestamp;
     this.#totalFramesOutput++;
-
-    this.#onFrameCallback(adjustedFrame, {
+    this.#onFrameReady(adjustedFrame, {
       ...frameData.metadata,
       originalTimestamp: frameData.timestamp,
       adjustedTimestamp: outputTimestamp,
@@ -160,7 +149,6 @@ class FrameRateController {
       this.#outputBestFrame();
     }
   }
-
 
   /**
    * Complete cleanup - closes all frames for shutdown

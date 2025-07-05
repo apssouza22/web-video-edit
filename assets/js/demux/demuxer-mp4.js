@@ -1,7 +1,8 @@
 importScripts("https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js");
 
-// Demuxes the first video track of an MP4 file using MP4Box and decodes it using VideoDecoder,
-// calling `onFrame()` with decoded VideoFrame objects and `onError()` for decode errors.
+/**
+ * MP4Demuxer class for demuxing MP4 files using MP4Box.js.
+ */
 class MP4Demuxer {
   #onFrame = null;
   #onError = null;

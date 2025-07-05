@@ -1,15 +1,18 @@
-importScripts("demuxer-mp4.js", "render-2d.js", "frame-rate-controller.js", "frame-buffer-manager.js", "timestamp-calculator.js", "enhanced-frame-quality-manager.js", "worker-communication-manager.js", "performance-monitor.js");
+importScripts("demuxer-mp4.js", "render-2d.js", "frame-rate-controller.js", "frame-buffer-manager.js",  "worker-communication-manager.js", "performance-monitor.js");
 
 /**
  * Enhanced worker class that handles video demuxing, decoding, and rendering with 24 FPS optimization
- * Integrates frame rate control, quality management, and performance monitoring
+ * Integrates frame rate control and performance monitoring
  */
 class DemuxWorker {
   #demuxer = null;
+  /**
+   * FrameRateController instance for managing output at 24 FPS
+   * @type {FrameRateController}
+   */
   #frameRateController = null;
   #frameBufferManager = null;
   #timestampCalculator = null;
-  #qualityManager = null;
   #communicationManager = null;
   #performanceMonitor = null;
   #targetFPS = 24;
@@ -31,13 +34,6 @@ class DemuxWorker {
     this.#frameBufferManager.setOnMemoryWarning((warning) => {
       this.#handleMemoryWarning(warning);
     });
-
-    this.#timestampCalculator = new TimestampCalculator(this.#targetFPS);
-    this.#qualityManager = new EnhancedFrameQualityManager();
-    this.#qualityManager.setOnQualityUpgrade((data) => {
-      this.#handleQualityUpgrade(data);
-    });
-
     this.#communicationManager = new WorkerCommunicationManager();
     this.#communicationManager.registerHandler('get_performance_metrics', () => {
       return this.#getPerformanceMetrics();
@@ -126,7 +122,7 @@ class DemuxWorker {
    */
   #initializeDemuxer(dataUri) {
     const demuxerCallbacks = {
-      onFrame: (frame) => this.#handleIncomingFrame(frame),
+      onFrame: (frame) => this.#frameRateController.processFrame(frame),
       onError: (error) => this.#handleError(error),
       onReady: (info) => {
         this.#handleDemuxerReady(info);
@@ -142,28 +138,21 @@ class DemuxWorker {
    * @private
    */
   #handleDemuxerReady(info) {
-    console.log("Demuxer ready with enhanced frame processing", info);
-    
     // Extract source frame rate if available
     if (info.videoTracks && info.videoTracks[0]) {
       const track = info.videoTracks[0];
       const sourceFPS = track.movie_timescale / track.movie_duration * track.duration || 30;
       
       this.#frameRateController.setSourceFrameRate(sourceFPS);
-      this.#timestampCalculator.setSourceFrameRate(sourceFPS);
-      
       console.log(`Source FPS detected: ${sourceFPS}, Target FPS: ${this.#targetFPS}`);
     }
-    
-    // Initialize timestamp calculator with first frame
-    this.#timestampCalculator.initialize(0);
+
 
     this.#communicationManager.sendMessage('start_processing', {
         ...info,
         enhancedProcessing: true,
         targetFPS: this.#targetFPS,
-        frameRateControlEnabled: true,
-        qualityManagementEnabled: true
+        frameRateControlEnabled: true
     });
   }
 
@@ -173,46 +162,7 @@ class DemuxWorker {
    * @private
    */
   #handleIncomingFrame(frame) {
-    const processingStartTime = performance.now();
-    
-    try {
-      // Create enhanced metadata for the frame (using HIGH_RES quality level)
-      const metadata = this.#qualityManager.createEnhancedMetadata(frame, 3, { // FrameQuality.HIGH_RES = 3
-        sourceTimestamp: frame.timestamp,
-        processingStartTime: processingStartTime
-      });
 
-      // Acquire managed frame from buffer manager
-      const managedFrame = this.#frameBufferManager.acquireFrame(frame, metadata);
-      
-      // Mark frame as in use to prevent premature cleanup
-      this.#frameBufferManager.markFrameInUse(managedFrame);
-
-      // Process frame through rate controller for 24 FPS output
-      this.#frameRateController.processFrame(frame, metadata);
-
-      // Record performance metrics
-      const processingTime = performance.now() - processingStartTime;
-      this.#performanceMonitor.recordFrameProcessing({
-        processed: true,
-        processingTime: processingTime,
-        timestamp: frame.timestamp,
-        quality: this.#qualityManager.evaluateFrameQuality(frame, metadata),
-        memoryUsage: this.#frameBufferManager.getStats().memoryUsage
-      });
-
-    } catch (error) {
-      console.error("Error processing frame:", error);
-      this.#handleError(error);
-      
-      // Record failed processing
-      this.#performanceMonitor.recordFrameProcessing({
-        processed: false,
-        processingTime: performance.now() - processingStartTime,
-        timestamp: frame.timestamp,
-        error: error.message
-      });
-    }
   }
 
   /**
@@ -229,7 +179,6 @@ class DemuxWorker {
       frame: frame,
       timestamp: frame.timestamp / 1e6, // Convert to seconds
       frameIndex: metadata.frameIndex,
-      quality: metadata.quality || 1.0,
       originalTimestamp: metadata.originalTimestamp,
       adjustedTimestamp: metadata.adjustedTimestamp,
     };
@@ -237,7 +186,6 @@ class DemuxWorker {
     this.#communicationManager.sendMessage('frame_processed', {
       frameIndex: this.#frameCount,
       timestamp: frame.timestamp,
-      quality: metadata.quality || 1.0,
       frameRate: this.#calculateCurrentFrameRate(),
       memoryUsage: this.#frameBufferManager.getStats().memoryUsage,
       bufferSize: this.#frameBufferManager.getStats().activeFrames,
@@ -290,15 +238,6 @@ class DemuxWorker {
   }
 
   /**
-   * Handle quality upgrade events
-   * @param {Object} data - Quality upgrade data
-   * @private
-   */
-  #handleQualityUpgrade(data) {
-    this.#communicationManager.sendMessage('quality_update', data);
-  }
-
-  /**
    * Handle performance alerts
    * @param {Array} alerts - Performance alerts
    * @private
@@ -318,8 +257,6 @@ class DemuxWorker {
     return {
       frameRateController: this.#frameRateController.getStats(),
       bufferManager: this.#frameBufferManager.getStats(),
-      timestampCalculator: this.#timestampCalculator.getStats(),
-      qualityManager: this.#qualityManager.getQualityStats(),
       performanceMonitor: this.#performanceMonitor.getPerformanceReport(),
       worker: {
         frameCount: this.#frameCount,
