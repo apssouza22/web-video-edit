@@ -6,10 +6,10 @@ import {Frame} from "../frame/frame.js";
 
 export class VideoLayer extends StandardLayer {
 
-  constructor(file, skipLoading = false) {
+  constructor(file, skipLoading = false, useHtmlDemux = false) {
     super(file);
     this.framesCollection = createFrameService(0, 0, false);
-    this.videoDemuxer = createDemuxer(this.renderer);
+    this.videoDemuxer = createDemuxer(useHtmlDemux);
     this.#setupDemuxerCallbacks();
 
     // Empty VideoLayers (split() requires this)
@@ -43,7 +43,7 @@ export class VideoLayer extends StandardLayer {
   }
 
   #readFile(file) {
-    if(file.uri !== null && file.uri !== undefined) {
+    if (file.uri !== null && file.uri !== undefined) {
       this.videoDemuxer.initDemux(file, this.renderer);
       return;
     }
@@ -110,8 +110,11 @@ export class VideoLayer extends StandardLayer {
     let y = frame.y + this.renderer.height / 2 - this.height / 2;
 
     this.renderer.clearRect();
-    this.renderer.drawImage(frame.frame, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
-
+    if (frame.frame instanceof VideoFrame) {
+      this.renderer.drawImage(frame.frame, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
+    } else {
+      this.renderer.putImageData(frame.frame, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
+    }
     this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
   }

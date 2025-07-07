@@ -20,13 +20,14 @@ export class LayerLoader {
    * Add a layer from a file
    *
    * @param {File} file
+   * @param useHtmlDemux
    * @returns {FlexibleLayer[]} The added layer
    */
-  addLayerFromFile(file) {
+  addLayerFromFile(file, useHtmlDemux = false) {
     let layers = [];
     if (file.type.indexOf('video') >= 0) {
       layers.push(this.studio.addLayer(new AudioLayer(file)));
-      layers.push(this.studio.addLayer(new VideoLayer(file)));
+      layers.push(this.studio.addLayer(new VideoLayer(file, false, useHtmlDemux)));
     }
     if (file.type.indexOf('image') >= 0) {
       layers.push(this.studio.addLayer(new ImageLayer(file)));

@@ -19,18 +19,16 @@ export class RecordingControls {
     this.#stopBtn = document.getElementById('stop-recording-btn');
   }
 
-  // Public initialization method
   init() {
     this.#recordBtn.addEventListener('click', this.#toggleDropdown.bind(this));
     document.addEventListener('click', this.#closeDropdownOnOutsideClick.bind(this));
 
-    // Recording functionality
     this.#recordScreenBtn.addEventListener('click', this.#startScreenRecording.bind(this));
     this.#recordVideoBtn.addEventListener('click', this.#startCameraRecording.bind(this));
     this.#stopBtn.addEventListener('click', this.#stopRecording.bind(this));
 
     this.#userMediaRecorder.addOnVideoFileCreatedListener((videoFile) => {
-      window.studio.addLayerFromFile(videoFile);
+      window.studio.addLayerFromFile(videoFile, true);
     });
   }
 

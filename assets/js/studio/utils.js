@@ -7,9 +7,9 @@ import { TextLayer } from '../layer/index.js';
 export const ext_map = {
   'mp4': 'video/mp4',
   'mpeg4': 'video/mp4',
-  'mpeg': 'video/mpeg',
-  'ogv': 'video/ogg',
-  'webm': 'video/webm',
+  // 'mpeg': 'video/mpeg',
+  // 'ogv': 'video/ogg',
+  // 'webm': 'video/webm',
   'gif': 'image/gif',
   'jpg': 'image/jpeg',
   'jpeg': 'image/jpeg',
@@ -110,6 +110,10 @@ export function uploadSupportedType(files) {
       <br>
       <br>
       ${badFiles}
+      <br><br>
+      Please use one of the following file extensions:
+      <br><br> mp4, mpeg4, gif, jpg, jpeg, png, aac, mp3
+      
       `;
         popup(text);
     }

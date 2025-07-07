@@ -243,8 +243,8 @@ export class VideoStudio {
     filePicker.click();
   }
 
-  addLayerFromFile(file) {
-    const layers = this.layerLoader.addLayerFromFile(file);
+  addLayerFromFile(file, useHtmlDemux = false) {
+    const layers = this.layerLoader.addLayerFromFile(file, useHtmlDemux);
     layers.forEach(layer => {
       layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
       this.loadingPopup.startLoading(layer.id, file.name);

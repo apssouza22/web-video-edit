@@ -1,5 +1,5 @@
 import {RecordingPreview} from './preview.js';
-import {checkBrowserSupport} from "./browser-support.js";
+import {checkBrowserSupport} from "../common/browser-support.js";
 import {fixWebmDuration} from "../common/utils.js";
 
 /**
@@ -146,7 +146,6 @@ export class UserMediaRecordingService {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.isRecording) {
         console.log('Page hidden during recording, continuing...');
-        // Continue recording but note the event
       }
     });
 

@@ -5,15 +5,17 @@ import {CodecDemuxer} from "./codec-demuxer.js";
  * Service for video demuxing
  */
 export class VideoDemuxService {
+  useHtmlDemux;
 
   /**
    * Create a new VideoDemuxService instance
    * @param {HTMLVideoDemuxer} htmlVideoDemuxer
    * @param {CodecDemuxer} codecDemuxer
    */
-  constructor(htmlVideoDemuxer, codecDemuxer) {
+  constructor(htmlVideoDemuxer, codecDemuxer, useHtmlDemux = false) {
     this.htmlVideoDemuxer = htmlVideoDemuxer;
     this.codecDemuxer = codecDemuxer;
+    this.useHtmlDemux = useHtmlDemux;
   }
 
   /**
@@ -63,7 +65,9 @@ export class VideoDemuxService {
   }
 
   #checkWebCodecsSupport() {
-    // return false;
+    if( this.useHtmlDemux) {
+      return false; // Force HTML demuxer if specified
+    }
     return typeof VideoDecoder !== 'undefined' &&
         typeof VideoFrame !== 'undefined' &&
         typeof EncodedVideoChunk !== 'undefined';
