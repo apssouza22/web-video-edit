@@ -62,7 +62,7 @@ export class VideoStudio {
       }
     });
 
-    this.timeline.addLayerUpdateListener((action, layer, oldLayer) => {
+    this.timeline.addLayerUpdateListener((action, layer, oldLayer, reorderData) => {
       if (action === 'select') {
         this.layersSidebarView.setSelectedLayer(layer);
       } else if (action === 'delete') {
@@ -71,6 +71,8 @@ export class VideoStudio {
         this.cloneLayer(layer);
       } else if (action === 'split') {
         this.mediaEditor.split();
+      } else if (action === 'reorder') {
+        this.#handleLayerReorder(layer, reorderData);
       }
     });
 
@@ -297,6 +299,20 @@ export class VideoStudio {
     }
     console.log(`Layer ${layer.name} loading: ${progress}%`);
     this.layersSidebarView.updateLayerName(layer, layer.name);
+  }
+
+  /**
+   * Handle layer reordering from timeline
+   * @param {StandardLayer} layer - The layer that was reordered
+   * @param {Object} reorderData - Contains fromIndex and toIndex
+   * @private
+   */
+  #handleLayerReorder(layer, reorderData) {
+    // Synchronize the sidebar view with the new layer order
+    const timelineLayers = this.timeline.layers;
+    this.layersSidebarView.reorderLayers(timelineLayers);
+    
+    console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
 
 }

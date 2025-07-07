@@ -650,3 +650,62 @@ a:visited {
 #aspect-ratio-dropdown .dropdown-item.active:hover {
   background: #5ba0f2;
 }
+
+/* Timeline Layer Reordering Styles */
+.timeline-drag-feedback {
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.timeline-drop-zone {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 150, 255, 0.3);
+  border: 1px dashed rgba(100, 100, 100, 0.3);
+  transition: all 0.2s ease;
+}
+
+.timeline-drop-zone.active {
+  height: 3px;
+  background: rgba(0, 150, 255, 0.8);
+  border: 1px solid rgba(0, 150, 255, 0.8);
+  box-shadow: 0 0 8px rgba(0, 150, 255, 0.4);
+}
+
+.timeline-layer-preview {
+  position: absolute;
+  background: rgba(0, 150, 255, 0.2);
+  border: 2px dashed rgba(0, 150, 255, 0.6);
+  border-radius: 4px;
+  opacity: 0.8;
+  transition: all 0.1s ease;
+}
+
+.timeline-layer-ghost {
+  opacity: 0.5;
+  transform: scale(0.98);
+  filter: blur(1px);
+}
+
+/* Cursor styles during drag operations */
+.timeline-dragging-vertical {
+  cursor: ns-resize !important;
+}
+
+.timeline-dragging-horizontal {
+  cursor: ew-resize !important;
+}
+
+/* Timeline canvas hover states */
+#timeline_content canvas {
+  transition: cursor 0.1s ease;
+}
+
+#timeline_content canvas:hover {
+  cursor: grab;
+}
+
+#timeline_content canvas:active {
+  cursor: grabbing;
+}

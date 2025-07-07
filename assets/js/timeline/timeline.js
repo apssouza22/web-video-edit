@@ -50,7 +50,7 @@ export class Timeline {
     this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
     this.timeUpdateListener = null;
-    this.layerUpdateListener = null;
+    this.layerUpdateListener = () => {};
 
     this.#addEventListeners();
     this.#setupPinchHandler();
@@ -85,7 +85,7 @@ export class Timeline {
   setSelectedLayer(newSelectedLayer) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
-    if (oldSelectedLayer !== newSelectedLayer && this.layerUpdateListener) {
+    if (oldSelectedLayer !== newSelectedLayer) {
       this.layerUpdateListener('select', newSelectedLayer, oldSelectedLayer);
     }
   }
@@ -191,7 +191,8 @@ export class Timeline {
       return false;
     }
 
-    this.dragHandler.startLayerDrag(this.selectedLayer, this.time);
+    // Pass coordinates for drag mode determination
+    this.dragHandler.startLayerDrag(this.selectedLayer, this.time, ev.offsetX, ev.offsetY);
   }
 
   /**
@@ -207,7 +208,36 @@ export class Timeline {
     let rect = this.timelineCanvas.getBoundingClientRect();
     let time = ev.offsetX / rect.width * this.totalTime;
 
+    // Update cursor based on drag mode and hover state
+    this.#updateCursor(time);
+
+    this.previewHandler.updatePreview(ev, this.timelineHolder, time, this.totalTime);
+    this.dragHandler.updateDrag(time, this.selectedLayer, ev.offsetX, ev.offsetY);
+
+    this.setTime(time);
+  }
+
+  /**
+   * Update cursor based on current state and hover position
+   * @param {number} time - Current time position
+   * @private
+   */
+  #updateCursor(time) {
+    const dragMode = this.dragHandler.dragMode;
+
+    if (dragMode === 'vertical') {
+      document.body.style.cursor = "ns-resize";
+      this.timelineCanvas.className = "timeline-dragging-vertical";
+      return;
+    }
+    if (dragMode === 'horizontal') {
+      document.body.style.cursor = "ew-resize";
+      this.timelineCanvas.className = "timeline-dragging-horizontal";
+      return;
+    }
+    // Default hover behavior
     document.body.style.cursor = "default";
+    this.timelineCanvas.className = "";
 
     if (this.selectedLayer) {
       if (this.intersectsTime(this.selectedLayer.start_time, time)) {
@@ -218,10 +248,6 @@ export class Timeline {
         document.body.style.cursor = "col-resize";
       }
     }
-
-    this.previewHandler.updatePreview(ev, this.timelineHolder, time, this.totalTime);
-    this.dragHandler.dragLayer(time, this.selectedLayer);
-    this.setTime(time);
   }
 
   intersectsTime(time, query) {
@@ -233,9 +259,17 @@ export class Timeline {
    */
   #onPointerLeave() {
     document.body.style.cursor = "default";
+    this.timelineCanvas.className = "";
     this.previewHandler.previewHolder.style.display = "none";
 
-    this.dragHandler.dragging = null;
+    // Finish drag operation and check if reordering occurred
+    const reorderOccurred = this.dragHandler.finishDrag();
+
+    // If reordering occurred, trigger a re-render
+    if (reorderOccurred) {
+      this.render(this.layers);
+    }
+
     this.isHover = false;
   }
 
@@ -279,6 +313,8 @@ export class Timeline {
       this.#renderLineMarker(this.time);
       this.previewHandler.render(this.time, layers);
     }
+
+    this.dragHandler.renderFeedback(this.timelineCtx);
   }
 
   /**
@@ -379,5 +415,16 @@ export class Timeline {
 
     this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     this.timelineCtx.fillText(timeText, textX, textY);
+  }
+
+  /**
+   * Reorder layers in the timeline
+   * @param {StandardLayer} layer - The layer that was reordered
+   * @param {Object} reorderData - Contains fromIndex and toIndex
+   */
+  reorderLayer(layer, reorderData) {
+    // The actual reordering is handled by LayerReorderHandler
+    // This method can be used for additional logic if needed
+    console.log(`Layer "${layer.name}" moved from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
 }

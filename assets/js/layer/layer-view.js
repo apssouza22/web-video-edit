@@ -273,4 +273,39 @@ export class LayersSidebarView {
       ctxOut.scale(dpr, dpr);
     }
   }
+
+  /**
+   * Reorder layers in the sidebar to match timeline order
+   * @param {StandardLayer[]} newLayerOrder - The new layer order from timeline
+   */
+  reorderLayers(newLayerOrder) {
+    // Update internal layers array to match timeline order
+    this.layers = [...newLayerOrder];
+    
+    // Reorder DOM elements to match new layer order
+    const layersContainer = this.layersHolder;
+    const layerElements = [];
+    
+    // Collect all layer elements in new order
+    for (const layer of newLayerOrder) {
+      const layerUI = this.layerItemsUI[layer.id];
+      if (layerUI && layerUI.box) {
+        layerElements.push(layerUI.box);
+      }
+    }
+    
+    // Remove all layer elements from DOM
+    layerElements.forEach(element => {
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    });
+    
+    // Re-append elements in new order
+    layerElements.forEach(element => {
+      layersContainer.appendChild(element);
+    });
+    
+    console.log('Sidebar layers reordered to match timeline');
+  }
 }
