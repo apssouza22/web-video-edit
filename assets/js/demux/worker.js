@@ -1,4 +1,4 @@
-importScripts("demuxer-mp4.js", "render-2d.js", "frame-rate-controller.js");
+importScripts("demuxer-mp4.js", "frame-rate-controller.js");
 
 /**
  * Enhanced worker class that handles video demuxing, decoding, and rendering with 24 FPS optimization

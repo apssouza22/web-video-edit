@@ -6,6 +6,7 @@ import { Frame } from '../frame/frame.js';
  * LayerLoader class responsible for loading layers from JSON data
  */
 export class LayerLoader {
+
   /**
    * Constructor for LayerLoader
    * @param {VideoStudio} studio - The studio instance that will own the layers

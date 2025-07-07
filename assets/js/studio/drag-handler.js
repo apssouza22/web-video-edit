@@ -108,22 +108,4 @@ export class DragItemHandler {
     this.element.addEventListener('pointerdown', this.pointerdown);
     this.element.addEventListener('pointermove', this.pointermove, { passive: false });
   }
-
-  /**
-   * Removes all event listeners
-   */
-  destroy() {
-    this.element.removeEventListener('pointerdown', this.pointerdown);
-    this.element.removeEventListener('pointermove', this.pointermove);
-    window.removeEventListener('pointerup', this.pointerup);
-  }
-
-  /**
-   * Checks if the handler is currently dragging
-   * 
-   * @returns {boolean} True if dragging is in progress
-   */
-  isDragging() {
-    return this.dragging;
-  }
 }
