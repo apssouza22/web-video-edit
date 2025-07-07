@@ -1,4 +1,3 @@
-import {fps, max_size} from '../constants.js';
 import {createDemuxer} from "../demux/index.js";
 import {createFrameService} from '../frame/index.js';
 import {StandardLayer} from './layer-common.js';
@@ -8,6 +7,7 @@ export class VideoLayer extends StandardLayer {
 
   constructor(file, skipLoading = false, useHtmlDemux = false) {
     super(file);
+    this.useHtmlDemux = useHtmlDemux;
     this.framesCollection = createFrameService(0, 0, false);
     this.videoDemuxer = createDemuxer(useHtmlDemux);
     this.#setupDemuxerCallbacks();
@@ -104,7 +104,6 @@ export class VideoLayer extends StandardLayer {
     }
 
     const frame = this.framesCollection.frames[index];
-    // this.renderer.drawImage(frame, 0, 0);
     let scale = frame.scale;
     let x = frame.x + this.renderer.width / 2 - this.width / 2;
     let y = frame.y + this.renderer.height / 2 - this.height / 2;

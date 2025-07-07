@@ -44,7 +44,7 @@ export class LayerService {
       return new TextLayer(cloneName);
     }
     if (layer instanceof VideoLayer) {
-      const videoLayer = new VideoLayer(layer.file,true);
+      const videoLayer = new VideoLayer(layer.file,true, layer.useHtmlDemux);
       videoLayer.name = cloneName;
       return videoLayer;
     }

@@ -32,7 +32,6 @@ export class RecordingControls {
     });
   }
 
-  // Private methods
   #toggleDropdown(event) {
     event.stopPropagation();
     this.#recordMenu.classList.toggle('show');
