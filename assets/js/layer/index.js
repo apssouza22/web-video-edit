@@ -9,7 +9,7 @@ export { VideoLayer } from './layer-video.js';
 export { AudioLayer } from './layer-audio.js';
 export { ImageLayer } from './layer-image.js';
 export { TextLayer } from './layer-text.js';
-export { LayersSidebarView } from './layer-view.js';
+
 
 /**
  * Creates a LayerService instance with the provided listener.

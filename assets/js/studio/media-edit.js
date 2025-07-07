@@ -160,7 +160,7 @@ export class MediaEditor {
     nl.framesCollection.frames = layer.framesCollection.frames.splice(0, split_idx);
 
     nl.totalTimeInMilSeconds = pct * layer.totalTimeInMilSeconds;
-    this.studio.layersSidebarView.addLayer(nl)
+    this.studio.addLayer(nl)
 
     layer.start_time = layer.start_time + nl.totalTimeInMilSeconds;
     layer.totalTimeInMilSeconds = layer.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
@@ -205,7 +205,7 @@ export class MediaEditor {
     layer.totalTimeInMilSeconds = secondBuffer.duration * 1000;
     layer.start_time = layer.start_time + firstLayer.totalTimeInMilSeconds;
 
-    this.studio.layersSidebarView.addLayer(firstLayer);
+    this.studio.addLayer(firstLayer);
 
 
     console.log(`Successfully split AudioLayer: "${layer.name}" at ${layerRelativeTime}s`);

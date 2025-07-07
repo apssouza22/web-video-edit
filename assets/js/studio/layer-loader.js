@@ -1,4 +1,4 @@
-import { FlexibleLayer, LayersSidebarView, AudioLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index.js';
+import { FlexibleLayer, AudioLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index.js';
 import { ext_map } from './index.js';
 import { Frame } from '../frame/frame.js';
 
@@ -9,10 +9,8 @@ export class LayerLoader {
   /**
    * Constructor for LayerLoader
    * @param {VideoStudio} studio - The studio instance that will own the layers
-   * @param {LayersSidebarView} viewHandler - The view handler for layer UI management
    */
-  constructor(studio, viewHandler) {
-    this.viewHandler = viewHandler || new LayersSidebarView(studio);
+  constructor(studio) {
     this.studio = studio;
   }
 
@@ -26,19 +24,15 @@ export class LayerLoader {
   addLayerFromFile(file) {
     let layers = [];
     if (file.type.indexOf('video') >= 0) {
-      layers.push(this.viewHandler.addLayer(new AudioLayer(file)));
-      layers.push(this.viewHandler.addLayer(new VideoLayer(file)));
+      layers.push(this.studio.addLayer(new AudioLayer(file)));
+      layers.push(this.studio.addLayer(new VideoLayer(file)));
     }
     if (file.type.indexOf('image') >= 0) {
-      layers.push(this.viewHandler.addLayer(new ImageLayer(file)));
+      layers.push(this.studio.addLayer(new ImageLayer(file)));
     }
     if (file.type.indexOf('audio') >= 0) {
-      layers.push(this.viewHandler.addLayer(new AudioLayer(file)));
+      layers.push(this.studio.addLayer(new AudioLayer(file)));
     }
-    layers.forEach(layer => {
-      layer.start_time = this.studio.player.time;
-      layer.init(this.studio.player.width, this.studio.player.height, this.studio.player.audioContext);
-    })
     return layers;
   }
 
@@ -116,8 +110,7 @@ export class LayerLoader {
       layersCreated.push(...l);
     }
     if (layer_d.type === "TextLayer") {
-      const layer = this.viewHandler.addLayer(new TextLayer(layer_d.name));
-      layer.init(this.studio.player.width, this.studio.player.height, this.studio.player.audioContext);
+      const layer = this.studio.addLayer(new TextLayer(layer_d.name));
       layersCreated.push(layer);
     }
     if (layer_d.type === "ImageLayer") {

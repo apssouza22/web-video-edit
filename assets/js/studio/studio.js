@@ -1,6 +1,6 @@
 import {createPlayer} from '../player/index.js';
 import {createTimeline} from '../timeline/index.js';
-import {LayersSidebarView, AudioLayer, createLayerService} from '../layer/index.js';
+import {AudioLayer, createLayerService} from '../layer/index.js';
 import {LayerLoader} from './layer-loader.js';
 import {createVideoMuxer} from '../muxer/index.js';
 import {StudioControls} from './controls.js';
@@ -18,13 +18,15 @@ export class VideoStudio {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas');
     this.aspectRatioSelector = new AspectRatioSelector();
-
+    /**
+     * @type {StandardLayer[]}
+     */
+    this.layers = [];
     this.player = createPlayer()
     this.player.mount(this.mainSection);
 
     this.timeline = createTimeline(this);
-    this.layersSidebarView = new LayersSidebarView(this);
-    this.layerLoader = new LayerLoader(this, this.layersSidebarView);
+    this.layerLoader = new LayerLoader(this);
     this.videoExporter = createVideoMuxer(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
@@ -64,7 +66,7 @@ export class VideoStudio {
 
     this.timeline.addLayerUpdateListener((action, layer, oldLayer, reorderData) => {
       if (action === 'select') {
-        this.layersSidebarView.setSelectedLayer(layer);
+        this.setSelectedLayer(layer);
       } else if (action === 'delete') {
         this.remove(layer);
       } else if (action === 'clone') {
@@ -73,18 +75,6 @@ export class VideoStudio {
         this.mediaEditor.split();
       } else if (action === 'reorder') {
         this.#handleLayerReorder(layer, reorderData);
-      }
-    });
-
-    this.layersSidebarView.addLayerUpdateListener((action, layer, oldLayer) => {
-      if (action === 'select') {
-        this.timeline.setSelectedLayer(layer);
-      } else if (action === 'delete') {
-        this.remove(layer);
-      } else if (action === 'clone') {
-        this.cloneLayer(layer);
-      } else if (action === 'split') {
-        // Handle split action (if implemented)
       }
     });
 
@@ -147,7 +137,7 @@ export class VideoStudio {
    * @returns {FlexibleLayer}
    */
   getSelectedLayer() {
-    return this.layersSidebarView.selectedLayer;
+    return this.timeline.selectedLayer;
   }
 
   /**
@@ -155,7 +145,7 @@ export class VideoStudio {
    * @returns {StandardLayer[]}
    */
   getLayers() {
-    return this.layersSidebarView.layers;
+    return this.layers;
   }
 
   /**
@@ -191,9 +181,8 @@ export class VideoStudio {
    */
   cloneLayer(layer) {
     const clonedLayer = this.layerOperations.clone(layer);
-    this.layersSidebarView.addLayer(clonedLayer);
-    this.layersSidebarView.updateLayerName(clonedLayer, clonedLayer.name);
-    this.layersSidebarView.setSelectedLayer(clonedLayer);
+    this.addLayer(clonedLayer);
+    this.setSelectedLayer(clonedLayer);
     console.log(`Successfully cloned layer: ${layer.name}`);
     return clonedLayer;
   }
@@ -201,7 +190,8 @@ export class VideoStudio {
   addLayer(layer) {
     layer.start_time = this.player.time;
     layer.init(this.player.width, this.player.height, this.player.audioContext);
-    return this.layersSidebarView.addLayer(layer);
+    this.layers.push(layer);
+    return layer;
   }
 
   play() {
@@ -215,7 +205,6 @@ export class VideoStudio {
   resize(newRatio = null) {
     this.player.resize(newRatio);
     this.timeline.resize();
-    this.layersSidebarView.resize();
     this.getLayers().forEach(layer => {
       layer.resize(this.player.width, this.player.height);
     })
@@ -232,7 +221,6 @@ export class VideoStudio {
     this.player.addLayers(this.getLayers());
     this.player.render(realtime)
     this.timeline.render(this.getLayers());
-    this.layersSidebarView.render(this.player.time);
 
     window.requestAnimationFrame(this.#loop.bind(this));
   }
@@ -282,23 +270,16 @@ export class VideoStudio {
     let response = await fetch(uri);
     let layers = await response.json();
     await this.layerLoader.loadLayersFromJson(layers);
-
-    // Complete JSON loading
     this.loadingPopup.updateProgress('json-load', 100);
   }
 
   #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
 
-    if (progress < 100) {
-      this.layersSidebarView.updateLayerThumb(layer, ctx)
-      return
-    }
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);
     }
     console.log(`Layer ${layer.name} loading: ${progress}%`);
-    this.layersSidebarView.updateLayerName(layer, layer.name);
   }
 
   /**
@@ -308,11 +289,10 @@ export class VideoStudio {
    * @private
    */
   #handleLayerReorder(layer, reorderData) {
-    // Synchronize the sidebar view with the new layer order
-    const timelineLayers = this.timeline.layers;
-    this.layersSidebarView.reorderLayers(timelineLayers);
-    
     console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
 
+  setSelectedLayer(layer) {
+    this.timeline.setSelectedLayer(layer);
+  }
 }
