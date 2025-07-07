@@ -1,5 +1,5 @@
-import { dpr } from '../constants.js';
-import { AudioLayer } from '../layer/index.js';
+import {dpr} from '../constants.js';
+import {AudioLayer} from '../layer/index.js';
 
 export class VideoPlayer {
 
@@ -10,6 +10,7 @@ export class VideoPlayer {
     this.lastTImestampFrame = null;
     this.time = 0;
     this.lastPausedTime = Number.MAX_SAFE_INTEGER;
+    this.playerHolder = document.getElementById("video-canvas")
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.audioContext = new AudioContext();
@@ -19,7 +20,8 @@ export class VideoPlayer {
      * @type {StandardLayer[]} layers
      */
     this.layers = [];
-    this.timeUpdateListener = (newTime, oldTime) => {};
+    this.timeUpdateListener = (newTime, oldTime) => {
+    };
   }
 
   /**
@@ -59,7 +61,10 @@ export class VideoPlayer {
     this.onend_callback = callback;
   }
 
-  resize() {
+  resize(newRatio) {
+    if(newRatio) {
+      this.playerHolder.style.aspectRatio = newRatio.replace(":", "/");
+    }
     this.canvas.width = this.canvas.clientWidth * dpr;
     this.canvas.height = this.canvas.clientHeight * dpr;
     this.width = this.canvas.width;

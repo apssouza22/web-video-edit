@@ -10,12 +10,14 @@ import {MediaEditor} from './media-edit.js';
 import {createTranscriptionService} from "../transcription/index.js";
 import {uploadSupportedType} from './utils.js';
 import {LoadingPopup} from './loading-popup.js';
+import {AspectRatioSelector} from '../ui/aspect-ratio-selector.js';
 
 export class VideoStudio {
 
   constructor() {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas');
+    this.aspectRatioSelector = new AspectRatioSelector();
 
     this.player = createPlayer()
     this.player.mount(this.mainSection);
@@ -35,6 +37,7 @@ export class VideoStudio {
     this.#setUpComponentListeners();
     this.#setupPinchHandler();
     this.#setupDragHandler();
+    this.#setupAspectRatioSelector();
     this.resize();
   }
 
@@ -126,6 +129,17 @@ export class VideoStudio {
     dragHandler.setupEventListeners()
   }
 
+  #setupAspectRatioSelector() {
+    const header = document.getElementById('header');
+    if (header) {
+      this.aspectRatioSelector.mount(header);
+    }
+
+    this.aspectRatioSelector.onRatioChange((newRatio) => {
+      this.resize(newRatio);
+    });
+  }
+
   /**
    * Gets the currently selected layer
    * @returns {FlexibleLayer}
@@ -184,7 +198,7 @@ export class VideoStudio {
 
   addLayer(layer) {
     layer.start_time = this.player.time;
-    layer.init(this.player.width, null, this.player.audioContext);
+    layer.init(this.player.width, this.player.height, this.player.audioContext);
     return this.layersSidebarView.addLayer(layer);
   }
 
@@ -196,10 +210,13 @@ export class VideoStudio {
     this.player.pause();
   }
 
-  resize() {
-    this.player.resize();
+  resize(newRatio = null) {
+    this.player.resize(newRatio);
     this.timeline.resize();
     this.layersSidebarView.resize();
+    this.getLayers().forEach(layer => {
+      layer.resize(this.player.width, this.player.height);
+    })
   }
 
   #loop(realtime) {
@@ -283,4 +300,3 @@ export class VideoStudio {
   }
 
 }
-

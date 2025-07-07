@@ -236,7 +236,7 @@ text-align: center;
 
 #video-canvas {
   position: relative;
-  width: 90%;
+  max-width: 90%;
   max-height: 90%;
   aspect-ratio: 16/9;
   background-color: #000;
@@ -581,4 +581,72 @@ a:visited {
 
 .dropdown-item:hover {
   background: rgb(53,57,61);
+}
+
+/* Aspect Ratio Selector Dropdown */
+#aspect-ratio-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+#aspect-ratio-dropdown .dropdown-toggle {
+  background: #2b2f33;
+  color: #fff;
+  padding: 8px 12px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+#aspect-ratio-dropdown .dropdown-toggle:hover {
+  background: #3a3f44;
+}
+
+#aspect-ratio-dropdown .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #2b2f33;
+  border: 1px solid #444;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 140px;
+  display: none;
+  margin-top: 2px;
+}
+
+#aspect-ratio-dropdown .dropdown-menu.show {
+  display: block;
+}
+
+#aspect-ratio-dropdown .dropdown-item {
+  padding: 8px 12px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #444;
+}
+
+#aspect-ratio-dropdown .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+#aspect-ratio-dropdown .dropdown-item:hover {
+  background: #3a3f44;
+}
+
+#aspect-ratio-dropdown .dropdown-item.active {
+  background: #4a90e2;
+  color: #fff;
+}
+
+#aspect-ratio-dropdown .dropdown-item.active:hover {
+  background: #5ba0f2;
 }

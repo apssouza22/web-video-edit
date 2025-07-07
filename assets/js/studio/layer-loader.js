@@ -37,7 +37,7 @@ export class LayerLoader {
     }
     layers.forEach(layer => {
       layer.start_time = this.studio.player.time;
-      layer.init(this.studio.player.width, null, this.studio.player.audioContext);
+      layer.init(this.studio.player.width, this.studio.player.height, this.studio.player.audioContext);
     })
     return layers;
   }
@@ -117,7 +117,7 @@ export class LayerLoader {
     }
     if (layer_d.type === "TextLayer") {
       const layer = this.viewHandler.addLayer(new TextLayer(layer_d.name));
-      layer.init(this.studio.player.width, null, this.studio.player.audioContext);
+      layer.init(this.studio.player.width, this.studio.player.height, this.studio.player.audioContext);
       layersCreated.push(layer);
     }
     if (layer_d.type === "ImageLayer") {

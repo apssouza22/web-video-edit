@@ -125,8 +125,13 @@ export class StandardLayer {
   }
 
   init(canvasWidth = 500, canvasHeight = null, audioContext = null) {
-    const height = canvasHeight == null ? (canvasWidth / 16) * 9 : canvasHeight // 16:9 aspect ratio
-    this.renderer.setSize(canvasWidth, height);
+    this.renderer.setSize(canvasWidth, canvasHeight);
+  }
+
+  resize(width, height) {
+    console.log("Resizing layer to width:", width, "height:", height);
+    this.renderer.setSize(width, height);
+    this.#resetRenderCache();
   }
 
   /**
