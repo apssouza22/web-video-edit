@@ -35,6 +35,9 @@ export class WebCodecExporter {
         this.readyForMoreFrames = true;
         this.lastFrameNumber = -1;
         this.frameRate = 30;
+        this.recordingCanvas = null;
+        this.recordingCtx = null;
+        this.currentTime = 0;
     }
 
     /**
@@ -54,47 +57,135 @@ export class WebCodecExporter {
         this.completionCallback = completionCallback;
 
         console.log('🎬 Starting MediaBunny export...');
-        console.log('Canvas dimensions:', this.studio.player.canvas.width, 'x', this.studio.player.canvas.height);
         console.log('Available layers:', this.studio.getLayers().length);
         console.log('Audio layers:', this.#getAudioLayers().length);
 
         this.isEncoding = true;
         this.exportStartTime = performance.now();
+        this.currentTime = 0; // Track current export time
         
         // Calculate total duration and expected frames
         this.totalDuration = this.#getTotalDuration();
-        this.totalFrames = Math.ceil(this.totalDuration * this.frameRate);
+        this.totalFrames = Math.ceil((this.totalDuration / 1000) * this.frameRate); // Convert to seconds
         this.chunks = [];
         
         try {
+            // Create background canvas for rendering
+            this.#createRecordingCanvas();
+            
+            // Set up MediaBunny output and encoders
             await this.#setupMediaBunnyOutput();
             
-            // Set up callback for when playback ends
-            this.studio.player.onend(async (player) => {
-                console.log('🏁 Playback ended, finalizing export...');
-                await this.#finishEncodingAndDownload();
-                player.pause();
-                player.time = 0;
-                this.isEncoding = false;
-                const totalTime = ((performance.now() - this.exportStartTime) / 1000).toFixed(2);
-                console.log(`✅ Export completed in ${totalTime}s`);
-                if (this.completionCallback) this.completionCallback();
-            });
-
-            // Start playback and encoding
-            this.studio.pause();
-            this.studio.player.time = 0;
-
+            // Setup audio for export
             this.#setupAudioForExport();
-            this.#startFrameCapture();
 
-            console.log('▶️ Starting playback for encoding...');
-            this.studio.play();
+            // Start background frame rendering and capture
+            this.#startBackgroundFrameCapture();
+
+            console.log('▶️ Starting background rendering for encoding...');
         } catch (error) {
             console.error('❌ Error starting export:', error);
             this.isEncoding = false;
             if (this.completionCallback) this.completionCallback();
             alert('Failed to start video export: ' + error.message);
+        }
+    }
+
+    /**
+     * Create a separate canvas for recording that matches the player canvas
+     * @private
+     */
+    #createRecordingCanvas() {
+        this.recordingCanvas = document.createElement('canvas');
+        this.recordingCanvas.width = this.studio.player.canvas.width;
+        this.recordingCanvas.height = this.studio.player.canvas.height;
+        this.recordingCtx = this.recordingCanvas.getContext('2d');
+
+        addElementToBackground(this.recordingCanvas);
+        console.log(`📹 Created recording canvas: ${this.recordingCanvas.width}x${this.recordingCanvas.height}`);
+    }
+
+    /**
+     * Start background frame capture and rendering loop
+     * @private
+     */
+    #startBackgroundFrameCapture() {
+        console.log('📸 Starting background frame capture...');
+        this.readyForMoreFrames = true;
+        this.lastFrameNumber = -1;
+        
+        // Start with immediate frame capture
+        this.#addVideoFrameFromBackground();
+        
+        // Set up interval for frame capture
+        this.videoCaptureInterval = setInterval(async () => {
+            await this.#addVideoFrameFromBackground();
+        }, 1000 / this.frameRate);
+    }
+
+    /**
+     * Add a video frame from background rendering to MediaBunny CanvasSource
+     * @private
+     */
+    async #addVideoFrameFromBackground() {
+        if (!this.readyForMoreFrames || !this.isEncoding) {
+            return;
+        }
+
+        // Calculate current time in seconds for MediaBunny
+        const currentTimeSeconds = this.currentTime / 1000;
+        const frameNumber = Math.round(currentTimeSeconds * this.frameRate);
+        
+        if (frameNumber === this.lastFrameNumber) {
+            // Prevent multiple frames with the same timestamp
+            return;
+        }
+
+        // Check if we've reached the end
+        if (this.currentTime >= this.totalDuration) {
+            await this.#finishEncodingAndDownload();
+            return;
+        }
+
+        this.lastFrameNumber = frameNumber;
+        const timestamp = frameNumber / this.frameRate;
+
+        try {
+            this.readyForMoreFrames = false;
+            
+            this.#renderLayersAtTime(this.currentTime);
+            await this.videoSource.add(timestamp, 1 / this.frameRate);
+            this.readyForMoreFrames = true;
+            
+            // Update progress
+            if (this.progressCallback && this.totalDuration > 0) {
+                const progress = Math.min((this.currentTime / this.totalDuration) * 100, 99);
+                this.progressCallback(progress);
+            }
+            
+            this.currentTime += 1000 / this.frameRate; // Advance by frame duration in milliseconds
+            
+            if (frameNumber % 30 === 0) {
+                console.log(`📹 Added frame ${frameNumber} at ${timestamp.toFixed(2)}s (time: ${this.currentTime.toFixed(0)}ms)`);
+            }
+        } catch (error) {
+            console.error('❌ Error adding video frame:', error);
+            this.readyForMoreFrames = true;
+        }
+    }
+
+    /**
+     * Render all layers to the recording canvas at a specific time
+     * @param {number} time - Time in milliseconds
+     * @private
+     */
+    #renderLayersAtTime(time) {
+        this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
+        const layers = this.studio.getLayers();
+
+        for (let layer of layers) {
+            // Pass playing=true to ensure audio layers start at correct time
+            layer.render(this.recordingCtx, time, true);
         }
     }
 
@@ -112,65 +203,6 @@ export class WebCodecExporter {
                 }
             });
             console.log(`✅ Set up ${audioLayers.length} audio layer(s) for export`);
-        }
-    }
-
-    /**
-     * Start frame capture interval for MediaBunny CanvasSource
-     * @private
-     */
-    #startFrameCapture() {
-        console.log('📸 Starting frame capture interval...');
-        this.exportStartTime = performance.now();
-        this.readyForMoreFrames = true;
-        this.lastFrameNumber = -1;
-        
-        // Start with immediate frame capture (following test.js pattern)
-        this.#addVideoFrame();
-        
-        this.videoCaptureInterval = setInterval(async () => {
-            await this.#addVideoFrame();
-        }, 1000 / this.frameRate);
-    }
-
-    /**
-     * Add a video frame to the MediaBunny CanvasSource
-     * @private
-     */
-    async #addVideoFrame() {
-        if (!this.readyForMoreFrames || !this.isEncoding) {
-            return;
-        }
-
-        // Use playback time for frame timing (more accurate than elapsed time)
-        const currentTime = this.studio.player.time; // Time in seconds
-        const frameNumber = Math.round(currentTime * this.frameRate);
-        
-        if (frameNumber === this.lastFrameNumber) {
-            // Prevent multiple frames with the same timestamp
-            return;
-        }
-
-        this.lastFrameNumber = frameNumber;
-        const timestamp = frameNumber / this.frameRate;
-
-        try {
-            this.readyForMoreFrames = false;
-            await this.videoSource.add(timestamp, 1 / this.frameRate);
-            this.readyForMoreFrames = true;
-            
-            // Update progress
-            if (this.progressCallback && this.totalDuration > 0) {
-                const progress = Math.min((currentTime / this.totalDuration) * 100, 99);
-                this.progressCallback(progress);
-            }
-            
-            if (frameNumber % 30 === 0) {
-                console.log(`📹 Added frame ${frameNumber} at ${timestamp.toFixed(2)}s (playback: ${currentTime.toFixed(2)}s)`);
-            }
-        } catch (error) {
-            console.error('❌ Error adding video frame:', error);
-            this.readyForMoreFrames = true;
         }
     }
 
@@ -196,22 +228,25 @@ export class WebCodecExporter {
             console.error('❌ Error finalizing output:', e);
         }
 
-        // Cleanup audio connections
-        this.#cleanupAudio();
-
-        // Convert chunks to a blob using MediaBunny's format
+        this.#cleanupExport();
         const videoData = new Blob(this.chunks, { type: this.output.format.mimeType });
         console.log(`📦 Final blob size: ${(videoData.size / 1024 / 1024).toFixed(2)} MB`);
         console.log(`📦 Final blob type: ${videoData.type}`);
         
         this.#downloadVideo(videoData);
+        
+        // Mark encoding as complete
+        this.isEncoding = false;
+        const totalTime = ((performance.now() - this.exportStartTime) / 1000).toFixed(2);
+        console.log(`✅ Export completed in ${totalTime}s`);
+        if (this.completionCallback) this.completionCallback();
     }
 
     /**
-     * Cleanup audio connections (similar to MediaRecorderExporter)
+     * Cleanup audio connections and background canvas
      * @private
      */
-    #cleanupAudio() {
+    #cleanupExport() {
         const audioLayers = this.#getAudioLayers();
         audioLayers.forEach(layer => {
             layer.audioStreamDestination = null;
@@ -225,31 +260,24 @@ export class WebCodecExporter {
             this.mediaStream = null;
         }
         
-        console.log('✅ Audio connections cleaned up');
-    }
-
-    /**
-     * Create a separate canvas for recording that matches the player canvas
-     * @private
-     */
-    #createRecordingCanvas() {
-        this.recordingCanvas = document.createElement('canvas');
-        this.recordingCanvas.width = this.studio.player.canvas.width;
-        this.recordingCanvas.height = this.studio.player.canvas.height;
-        this.recordingCtx = this.recordingCanvas.getContext('2d');
-
-        addElementToBackground(this.recordingCanvas);
+        if (this.recordingCanvas) {
+            this.recordingCanvas.remove();
+            this.recordingCanvas = null;
+            this.recordingCtx = null;
+        }
+        
+        console.log('✅ Export cleanup completed');
     }
 
     /**
      * Calculate total duration from all layers
-     * @returns {number} Total duration in seconds
+     * @returns {number} Total duration in milliseconds
      * @private
      */
     #getTotalDuration() {
         let maxDuration = 0;
         for (let layer of this.studio.getLayers()) {
-            const layerEnd = layer.start_time + layer.totalTimeInMilSeconds / 1000;
+            const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
             }
@@ -286,18 +314,16 @@ export class WebCodecExporter {
                     this.chunks.push(chunk.data);
                     
                     if (this.progressCallback && this.totalDuration > 0) {
-                        const currentTime = this.studio.player.time;
-                        const progress = Math.min((currentTime / this.totalDuration) * 100, 99);
+                        const progress = Math.min(this.currentTime / this.totalDuration * 100, 99);
                         this.progressCallback(progress);
                     }
                 },
             })),
         });
 
-        const canvas = this.studio.player.canvas;
-        console.log(`📹 Setting up video source - Canvas: ${canvas.width}x${canvas.height}`);
+        console.log(`📹 Setting up video source - Canvas: ${this.recordingCanvas.width}x${this.recordingCanvas.height}`);
         
-        this.videoSource = new CanvasSource(canvas, {
+        this.videoSource = new CanvasSource(this.recordingCanvas, {
             codec: 'vp9', // VP9 for better compatibility
             bitrate: QUALITY_MEDIUM,
             keyFrameInterval: 0.5,
