@@ -7,19 +7,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebM muxer demo</title>
     <link rel="stylesheet" href="https://vanilagy.github.io/webm-muxer/demo/style.css">
-    <script src="https://vanilagy.github.io/webm-muxer/build/webm-muxer.js" defer></script>
-    <script type="module" src="./assets/js/muxer/test.js" defer></script>
+
 </head>
 <body>
-<main>
-    <h1>WebM muxer demo - draw something!</h1>
-    <h2>The live canvas state and your microphone input will be recorded<br>and muxed into a WebM file.</h2>
-    <div id="controls">
-        <button id="start-recording">Start recording</button>
-        <button id="end-recording" style="display: none;">End recording</button>
+<body class="flex flex-col items-center py-10 bg-zinc-50 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 px-2">
+<h1 class="text-3xl font-bold text-orange-500 text-center">Live recording & streaming example</h1>
+<p class="max-w-lg text-center">The live canvas state and your microphone input will be written into a fragmented MP4 file and live-streamed to a <code>&lt;video&gt;</code> element.</p>
+
+<button id="toggle-button" class="rounded-lg bg-zinc-200 dark:bg-zinc-750 hover:bg-zinc-300 dark:hover:bg-zinc-700 px-5 py-2 mt-4">
+    Start recording
+</button>
+
+<hr class="w-full max-w-96 my-4 border-zinc-300 dark:border-zinc-700" style="display: none;">
+
+<p id="error-element" class="text-red-500"></p>
+
+<div class="flex gap-4" id="main-container" style="display: none;">
+    <div class="flex flex-col items-center">
+        <p class="text-xs font-medium mb-1.5">Draw something!</p>
+
+        <canvas width="640" height="480" class="bg-white rounded-xl shadow"></canvas>
     </div>
-    <canvas width="640" height="480"></canvas>
-    <p id="recording-status"></p>
-</main>
+
+    <div class="self-center flex flex-col items-center gap-4">
+        <video class="max-w-96 rounded-lg shadow" controls></video>
+
+        <a id="download-button" class="rounded-lg bg-zinc-200 dark:bg-zinc-750 hover:bg-zinc-300 dark:hover:bg-zinc-700 px-5 py-2" style="display: none;">
+            Download file
+        </a>
+    </div>
+</div>
+
+<a href="/" class="fixed top-0 left-0 flex gap-2 py-2 px-5 items-center">
+    <img src="https://mediabunny.dev/docs/public/mediabunny-logo.svg" class="size-6">
+    <p class="text-sm font-medium">Mediabunny</p>
+</a>
+
+<a
+    href="https://github.com/Vanilagy/mediabunny/tree/main/examples/live-recording"
+    target="_blank"
+    class="flex items-center gap-2 fixed top-0 right-0 py-2 px-5 bg-zinc-200 dark:bg-zinc-750 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded-bl-xl"
+>
+    <img src="https://mediabunny.dev/docs/assets/github-mark.svg" class="size-6 dark:invert">
+    <p>View source code</p>
+</a>
+<script type="module">
+    import webmDurationFix from 'https://cdn.jsdelivr.net/npm/webm-duration-fix@1.0.4/+esm'
+    import * as mediabunny from "https://cdn.jsdelivr.net/npm/mediabunny@1.0.2/+esm"
+    console.log("webmDurationFix version:", webmDurationFix);
+    console.log("mediabunny version:", mediabunny);
+</script>
+    <script type="module" src="./assets/js/muxer/test.js" defer></script>
+</body>
 </body>
 </html>

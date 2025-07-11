@@ -1,213 +1,221 @@
-/***
-  * This is a test script for the WebMMuxer library.
- */
+import {
+	CanvasSource,
+	MediaStreamAudioTrackSource,
+	Mp4OutputFormat,
+	Output,
+	QUALITY_MEDIUM,
+	StreamTarget,
+} from "https://cdn.jsdelivr.net/npm/mediabunny@1.0.2/+esm"
+
+const toggleRecordingButton = document.querySelector('#toggle-button') ;
+const horizontalRule = document.querySelector('hr') ;
+const mainContainer = document.querySelector('#main-container');
+const videoElement = document.querySelector('video') ;
+const downloadButton = document.querySelector('#download-button') ;
+const errorElement = document.querySelector('#error-element');
 
 const canvas = document.querySelector('canvas');
-const ctx = canvas.getContext('2d', { desynchronized: true });
-const startRecordingButton = document.querySelector('#start-recording');
-const endRecordingButton = document.querySelector('#end-recording');
-const recordingStatus = document.querySelector('#recording-status');
+const context = canvas.getContext('2d', { alpha: false, desynchronized: true });
 
-/** RECORDING & MUXING STUFF */
+const frameRate = 30;
 
-let muxer = null;
-let videoEncoder = null;
-let audioEncoder = null;
-let startTime = null;
+const chunks = [];
 let recording = false;
-let audioTrack = null;
-let intervalId = null;
-let lastKeyFrame = null;
-
-function getMuxer(audioSampleRate, audioNumberOfChannels) {
-  // Create a WebM muxer with a video track and maybe an audio track
-  const webmMuxer = new WebMMuxer.Muxer({
-    target: new WebMMuxer.ArrayBufferTarget(),
-    video: {
-      codec: 'V_VP9',
-      width: canvas.width,
-      height: canvas.height,
-      frameRate: 30
-    },
-    audio: audioTrack ? {
-      codec: 'A_OPUS',
-      sampleRate: audioSampleRate,
-      numberOfChannels: audioNumberOfChannels
-    } : undefined,
-    firstTimestampBehavior: 'offset' // Because we're directly piping a MediaStreamTrack's data into it
-  });
-  return webmMuxer
-}
-
-function getVideoEncoder(webmMuxer) {
-  const videoEncoder = new VideoEncoder({
-    output: (chunk, meta) => webmMuxer.addVideoChunk(chunk, meta),
-    error: e => console.error(e)
-  });
-  videoEncoder.configure({
-    codec: 'vp09.00.10.08',
-    width: canvas.width,
-    height: canvas.height,
-    bitrate: 1e6
-  });
-  return videoEncoder
-}
-
-function getAudioEncoder(audioNumberOfChannels, audioSampleRate, webmMuxer) {
-  const audioEncoder = new AudioEncoder({
-    output: (chunk, meta) => webmMuxer.addAudioChunk(chunk, meta),
-    error: e => console.error(e)
-  });
-  audioEncoder.configure({
-    codec: 'opus',
-    numberOfChannels: audioNumberOfChannels,
-    sampleRate: audioSampleRate,
-    bitrate: 64000
-  });
-  return audioEncoder
-}
+let output;
+let videoSource;
+let videoCaptureInterval;
+let mediaStream;
+let startTime;
+let readyForMoreFrames = true;
+let lastFrameNumber = -1;
 
 const startRecording = async () => {
-	// Check for VideoEncoder availability
-	if (typeof VideoEncoder === 'undefined') {
-		alert("Looks like your user agent doesn't support VideoEncoder / WebCodecs API yet.");
+	try {
+		// Reset DOM state
+		recording = true;
+		toggleRecordingButton.textContent = 'Starting...';
+		toggleRecordingButton.disabled = true;
+		mainContainer.style.display = 'none';
+		videoElement.src = '';
+		downloadButton.style.display = 'none';
+
+		// Paint a white background to the canvas
+		context.fillStyle = 'white';
+		context.fillRect(0, 0, canvas.width, canvas.height);
+
+		// Get user microphone
+		mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+		horizontalRule.style.display = '';
+		mainContainer.style.display = '';
+
+		const audioTrack = mediaStream.getAudioTracks()[0];
+
+		// Create a new output file
+		output = new Output({
+			// We're using fragmented MP4 here; streamable WebM would also work
+			format: new Mp4OutputFormat({ fastStart: 'fragmented' }),
+			// We use StreamTarget to pipe the chunks to the SourceBuffer as soon as they are created
+			target: new StreamTarget(new WritableStream({
+				write(chunk) {
+					chunks.push(chunk.data);
+
+					if (sourceBuffer) {
+						appendToSourceBuffer(chunk.data);
+					}
+				},
+			})),
+		});
+
+		const mediaSource = new MediaSource();
+		let sourceBuffer = null;
+		videoElement.src = URL.createObjectURL(mediaSource);
+		void videoElement.play();
+
+		await new Promise(resolve => mediaSource.onsourceopen = resolve);
+
+		let appendPromise = Promise.resolve();
+		const appendToSourceBuffer = (source) => {
+			// Buffer appends must be serialized to avoid errors
+			appendPromise = appendPromise.then(() => {
+				sourceBuffer.appendBuffer(source);
+				return new Promise(resolve => sourceBuffer.onupdateend = () => resolve());
+			});
+		};
+
+		// Add the video track, with the canvas as the source
+		videoSource = new CanvasSource(canvas, {
+			codec: 'vp9',
+			bitrate: QUALITY_MEDIUM,
+			keyFrameInterval: 0.5,
+			latencyMode: 'realtime', // Allow the encoder to skip frames to keep up with real-time constraints
+		});
+		output.addVideoTrack(videoSource, { frameRate });
+
+		if (audioTrack) {
+			// Add the audio track, with the media stream track as the source
+			const audioSource = new MediaStreamAudioTrackSource(audioTrack, {
+				codec: 'opus',
+				bitrate: QUALITY_MEDIUM,
+			});
+			output.addAudioTrack(audioSource);
+		}
+
+		await output.start();
+
+		startTime = Number(document.timeline.currentTime);
+		readyForMoreFrames = true;
+		lastFrameNumber = -1;
+
+		// Start the video frame capture loop
+		void addVideoFrame();
+		videoCaptureInterval = window.setInterval(() => void addVideoFrame(), 1000 / frameRate);
+
+		const mimeType = await output.getMimeType();
+		sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+
+		// Add all chunks that have been queued up until this point
+		chunks.forEach(chunk => appendToSourceBuffer(chunk));
+
+		toggleRecordingButton.textContent = 'Stop recording';
+		toggleRecordingButton.disabled = false;
+	} catch (error) {
+		errorElement.textContent = String(error);
+
+		mainContainer.style.display = 'none';
+		toggleRecordingButton.textContent = 'Start recording';
+		toggleRecordingButton.disabled = false;
+		recording = false;
+	}
+};
+
+const stopRecording = async () => {
+	toggleRecordingButton.textContent = 'Stopping...';
+	toggleRecordingButton.disabled = true;
+
+	clearInterval(videoCaptureInterval);
+	mediaStream.getTracks().forEach(track => track.stop());
+
+	await output.finalize();
+
+	// Show a download button
+	const blob = new Blob(chunks, { type: output.format.mimeType });
+	const url = URL.createObjectURL(blob);
+	downloadButton.style.display = '';
+	downloadButton.href = url;
+	downloadButton.download = 'michelangelo' + output.format.fileExtension;
+
+	toggleRecordingButton.textContent = 'Start recording';
+	toggleRecordingButton.disabled = false;
+	recording = false;
+};
+
+toggleRecordingButton.addEventListener('click', () => {
+	if (!recording) {
+		void startRecording();
+	} else {
+		void stopRecording();
+	}
+});
+
+const addVideoFrame = async () => {
+	if (!readyForMoreFrames) {
+		// The last frame hasn't finished encoding yet; let's drop this frame due to real-time constraints
 		return;
 	}
 
-	startRecordingButton.style.display = 'none';
-
-	// Check for AudioEncoder availability
-	if (typeof AudioEncoder !== 'undefined') {
-		// Try to get access to the user's microphone
-		try {
-			let userMedia = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-			audioTrack = userMedia.getAudioTracks()[0];
-		} catch (e) {}
-		if (!audioTrack) console.warn("Couldn't acquire a user media audio track.");
-	} else {
-		console.warn('AudioEncoder not available; no need to acquire a user media audio track.');
+	const elapsedSeconds = (Number(document.timeline.currentTime) - startTime) / 1000;
+	const frameNumber = Math.round(elapsedSeconds * frameRate);
+	if (frameNumber === lastFrameNumber) {
+		// Prevent multiple frames with the same timestamp
+		return;
 	}
 
-	endRecordingButton.style.display = 'block';
+	lastFrameNumber = frameNumber;
+	const timestamp = frameNumber / frameRate;
 
-	let audioSampleRate = audioTrack?.getSettings().sampleRate;
-	let audioNumberOfChannels = audioTrack?.getSettings().channelCount;
-  muxer = getMuxer(audioSampleRate, audioNumberOfChannels);
-  videoEncoder = getVideoEncoder(muxer);
-
-  if (audioTrack) {
-    audioEncoder = getAudioEncoder(audioNumberOfChannels, audioSampleRate, muxer);
-
-    // Create a MediaStreamTrackProcessor to get AudioData chunks from the audio track
-		let trackProcessor = new MediaStreamTrackProcessor({ track: audioTrack });
-		let consumer = new WritableStream({
-			write(audioData) {
-				if (!recording) return;
-				audioEncoder.encode(audioData);
-				audioData.close();
-			}
-		});
-		trackProcessor.readable.pipeTo(consumer);
-	}
-
-	startTime = document.timeline.currentTime;
-	recording = true;
-	lastKeyFrame = -Infinity;
-
-	encodeVideoFrame();
-	intervalId = setInterval(encodeVideoFrame, 1000/30);
-};
-startRecordingButton.addEventListener('click', startRecording);
-
-const encodeVideoFrame = () => {
-	let elapsedTime = document.timeline.currentTime - startTime;
-	let frame = new VideoFrame(canvas, {
-		timestamp: elapsedTime * 1000
-	});
-
-	// Ensure a video key frame at least every 5 seconds
-	let needsKeyFrame = elapsedTime - lastKeyFrame >= 5000;
-	if (needsKeyFrame) lastKeyFrame = elapsedTime;
-
-	videoEncoder.encode(frame, { keyFrame: needsKeyFrame });
-	frame.close();
-
-	recordingStatus.textContent =
-		`${elapsedTime % 1000 < 500 ? '🔴' : '⚫'} Recording - ${(elapsedTime / 1000).toFixed(1)} s`;
+	readyForMoreFrames = false;
+	await videoSource.add(timestamp, 1 / frameRate);
+	readyForMoreFrames = true;
 };
 
-const endRecording = async () => {
-	endRecordingButton.style.display = 'none';
-	recordingStatus.textContent = '';
-	recording = false;
-
-	clearInterval(intervalId);
-	audioTrack?.stop();
-
-	await videoEncoder?.flush();
-	await audioEncoder?.flush();
-	muxer.finalize();
-
-	let { buffer } = muxer.target;
-	downloadBlob(new Blob([buffer]));
-
-	videoEncoder = null;
-	audioEncoder = null;
-	muxer = null;
-	startTime = null;
-
-	startRecordingButton.style.display = 'block';
-};
-endRecordingButton.addEventListener('click', endRecording);
-
-const downloadBlob = (blob) => {
-	let url = window.URL.createObjectURL(blob);
-	let a = document.createElement('a');
-	a.style.display = 'none';
-	a.href = url;
-	a.download = 'picasso.webm';
-	document.body.appendChild(a);
-	a.click();
-	window.URL.revokeObjectURL(url);
-};
-
-/** CANVAS DRAWING STUFF */
-
-ctx.fillStyle = 'white';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+/* === CANVAS DRAWING STUFF === */
 
 let drawing = false;
-let lastPos = { x: 0, y: 0 };
+let lastPos = new DOMPoint(0, 0);
 
-const getRelativeMousePos = (e) => {
-	let rect = canvas.getBoundingClientRect();
-	return { x: e.clientX - rect.x, y: e.clientY - rect.y };
+const getRelativeMousePos = (event) => {
+	const rect = canvas.getBoundingClientRect();
+	return new DOMPoint(
+			event.clientX - rect.x,
+			event.clientY - rect.y,
+	);
 };
 
 const drawLine = (from, to) => {
-	ctx.beginPath();
-	ctx.moveTo(from.x, from.y);
-	ctx.lineTo(to.x, to.y);
-	ctx.strokeStyle = 'black';
-	ctx.lineWidth = 3;
-	ctx.lineCap = 'round';
-	ctx.stroke();
+	context.beginPath();
+	context.moveTo(from.x, from.y);
+	context.lineTo(to.x, to.y);
+	context.strokeStyle = '#27272a';
+	context.lineWidth = 5;
+	context.lineCap = 'round';
+	context.stroke();
 };
 
-canvas.addEventListener('pointerdown', (e) => {
-	if (e.button !== 0) return;
+canvas.addEventListener('pointerdown', (event) => {
+	if (event.button !== 0) return;
 
 	drawing = true;
-	lastPos = getRelativeMousePos(e);
+	lastPos = getRelativeMousePos(event);
 	drawLine(lastPos, lastPos);
 });
 window.addEventListener('pointerup', () => {
 	drawing = false;
 });
-window.addEventListener('mousemove', (e) => {
+window.addEventListener('pointermove', (event) => {
 	if (!drawing) return;
 
-	let newPos = getRelativeMousePos(e);
+	const newPos = getRelativeMousePos(event);
 	drawLine(lastPos, newPos);
 	lastPos = newPos;
 });

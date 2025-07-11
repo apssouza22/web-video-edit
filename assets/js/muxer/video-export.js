@@ -16,7 +16,7 @@ export class VideoExportService {
 
     #checkCodecSupport() {
         // Disabled codec support check for now
-        return false;
+        // return false;
 
         return 'VideoEncoder' in window && 'AudioEncoder' in window;
     }
