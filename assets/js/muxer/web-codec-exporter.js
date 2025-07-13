@@ -1,17 +1,19 @@
 import { addElementToBackground, AudioLayer } from '../layer/index.js';
 import {
     CanvasSource,
-    MediaStreamAudioTrackSource,
+    AudioBufferSource,
     Mp4OutputFormat,
     Output,
-    QUALITY_MEDIUM,
-    StreamTarget,
+    BufferTarget,
+    QUALITY_HIGH,
+    getFirstEncodableVideoCodec,
+    getFirstEncodableAudioCodec,
 } from "https://cdn.jsdelivr.net/npm/mediabunny@1.0.2/+esm";
 
 /**
  * Class for exporting video using MediaBunny library with Web Codecs API
  *
- * This implementation uses MediaBunny for proper MP4 export with VP9 video and Opus audio
+ * This implementation follows the test2.js approach using BufferTarget and synchronous frame rendering
  */
 export class WebCodecExporter {
     /**
@@ -20,28 +22,24 @@ export class WebCodecExporter {
     constructor(studio) {
         this.studio = studio;
         this.output = null;
-        this.videoSource = null;
-        this.audioSource = null;
-        this.chunks = [];
-        this.frameCounter = 0;
+        this.canvasSource = null;
+        this.audioBufferSource = null;
         this.isEncoding = false;
         this.exportStartTime = 0;
         this.progressCallback = null;
         this.completionCallback = null;
         this.totalFrames = 0;
         this.totalDuration = 0;
-        this.mediaStream = null;
-        this.videoCaptureInterval = null;
-        this.readyForMoreFrames = true;
-        this.lastFrameNumber = -1;
         this.frameRate = 30;
         this.recordingCanvas = null;
         this.recordingCtx = null;
-        this.currentTime = 0;
+        this.audioContext = null;
+        this.numberOfChannels = 2;
+        this.sampleRate = 48000;
     }
 
     /**
-     * Start the export process using MediaBunny library with Web Codecs API
+     * Start the export process using MediaBunny library with BufferTarget approach
      * @param {HTMLElement} exportButton - The button that triggered the export
      * @param {string} tempText - Original button text to restore after export
      * @param {Function} progressCallback - Callback function to report progress (0-100)
@@ -56,217 +54,281 @@ export class WebCodecExporter {
         this.progressCallback = progressCallback;
         this.completionCallback = completionCallback;
 
-        console.log('🎬 Starting MediaBunny export...');
+        console.log('🎬 Starting MediaBunny export with BufferTarget approach...');
         console.log('Available layers:', this.studio.getLayers().length);
         console.log('Audio layers:', this.#getAudioLayers().length);
 
         this.isEncoding = true;
         this.exportStartTime = performance.now();
-        this.currentTime = 0; // Track current export time
         
         // Calculate total duration and expected frames
         this.totalDuration = this.#getTotalDuration();
-        this.totalFrames = Math.ceil((this.totalDuration / 1000) * this.frameRate); // Convert to seconds
-        this.chunks = [];
+        this.totalFrames = Math.ceil((this.totalDuration / 1000) * this.frameRate);
         
         try {
             // Create background canvas for rendering
             this.#createRecordingCanvas();
             
-            // Set up MediaBunny output and encoders
+            // Set up MediaBunny output with BufferTarget
             await this.#setupMediaBunnyOutput();
             
-            // Setup audio for export
-            this.#setupAudioForExport();
+            // Setup audio context for offline rendering
+            await this.#setupAudioContext();
 
-            // Start background frame rendering and capture
-            this.#startBackgroundFrameCapture();
+            // Start synchronous frame-by-frame rendering
+            await this.#renderFramesSynchronously();
 
-            console.log('▶️ Starting background rendering for encoding...');
+            console.log('✅ Export completed successfully');
         } catch (error) {
-            console.error('❌ Error starting export:', error);
+            console.error('❌ Error during export:', error);
             this.isEncoding = false;
             if (this.completionCallback) this.completionCallback();
-            alert('Failed to start video export: ' + error.message);
+            alert('Failed to export video: ' + error.message);
         }
     }
 
     /**
-     * Create a separate canvas for recording that matches the player canvas
+     * Create a separate OffscreenCanvas for recording that matches the player canvas
      * @private
      */
     #createRecordingCanvas() {
-        this.recordingCanvas = document.createElement('canvas');
-        this.recordingCanvas.width = this.studio.player.canvas.width;
-        this.recordingCanvas.height = this.studio.player.canvas.height;
-        this.recordingCtx = this.recordingCanvas.getContext('2d');
+        // Use OffscreenCanvas for better performance (following test2.js approach)
+        this.recordingCanvas = new OffscreenCanvas(
+            this.studio.player.canvas.width,
+            this.studio.player.canvas.height
+        );
+        this.recordingCtx = this.recordingCanvas.getContext('2d', { alpha: false });
 
-        addElementToBackground(this.recordingCanvas);
-        console.log(`📹 Created recording canvas: ${this.recordingCanvas.width}x${this.recordingCanvas.height}`);
+        console.log(`📹 Created OffscreenCanvas: ${this.recordingCanvas.width}x${this.recordingCanvas.height}`);
     }
 
     /**
-     * Start background frame capture and rendering loop
+     * Set up MediaBunny output with BufferTarget and proper codec selection
      * @private
      */
-    #startBackgroundFrameCapture() {
-        console.log('📸 Starting background frame capture...');
-        this.readyForMoreFrames = true;
-        this.lastFrameNumber = -1;
+    async #setupMediaBunnyOutput() {
+        this.output = new Output({
+            target: new BufferTarget(),
+            format: new Mp4OutputFormat(),
+        });
+
+        const canvas = this.studio.player.canvas;
         
-        // Start with immediate frame capture
-        this.#addVideoFrameFromBackground();
-        
-        // Set up interval for frame capture
-        this.videoCaptureInterval = setInterval(async () => {
-            await this.#addVideoFrameFromBackground();
-        }, 1000 / this.frameRate);
-    }
-
-    /**
-     * Add a video frame from background rendering to MediaBunny CanvasSource
-     * @private
-     */
-    async #addVideoFrameFromBackground() {
-        if (!this.readyForMoreFrames || !this.isEncoding) {
-            return;
-        }
-
-        // Calculate current time in seconds for MediaBunny
-        const currentTimeSeconds = this.currentTime / 1000;
-        const frameNumber = Math.round(currentTimeSeconds * this.frameRate);
-        
-        if (frameNumber === this.lastFrameNumber) {
-            // Prevent multiple frames with the same timestamp
-            return;
-        }
-
-        // Check if we've reached the end
-        if (this.currentTime >= this.totalDuration) {
-            await this.#finishEncodingAndDownload();
-            return;
-        }
-
-        this.lastFrameNumber = frameNumber;
-        const timestamp = frameNumber / this.frameRate;
-
-        try {
-            this.readyForMoreFrames = false;
-            
-            this.#renderLayersAtTime(this.currentTime);
-            await this.videoSource.add(timestamp, 1 / this.frameRate);
-            this.readyForMoreFrames = true;
-            
-            // Update progress
-            if (this.progressCallback && this.totalDuration > 0) {
-                const progress = Math.min((this.currentTime / this.totalDuration) * 100, 99);
-                this.progressCallback(progress);
+        // Retrieve the first video codec supported by this browser
+        const videoCodec = await getFirstEncodableVideoCodec(
+            this.output.format.getSupportedVideoCodecs(), 
+            {
+                width: canvas.width,
+                height: canvas.height,
             }
-            
-            this.currentTime += 1000 / this.frameRate; // Advance by frame duration in milliseconds
-            
-            if (frameNumber % 30 === 0) {
-                console.log(`📹 Added frame ${frameNumber} at ${timestamp.toFixed(2)}s (time: ${this.currentTime.toFixed(0)}ms)`);
-            }
-        } catch (error) {
-            console.error('❌ Error adding video frame:', error);
-            this.readyForMoreFrames = true;
+        );
+        
+        if (!videoCodec) {
+            throw new Error('Your browser doesn\'t support video encoding.');
         }
-    }
 
-    /**
-     * Render all layers to the recording canvas at a specific time
-     * @param {number} time - Time in milliseconds
-     * @private
-     */
-    #renderLayersAtTime(time) {
-        this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studio.getLayers();
+        console.log('🎥 Using video codec:', videoCodec);
 
-        for (let layer of layers) {
-            // Pass playing=true to ensure audio layers start at correct time
-            layer.render(this.recordingCtx, time, true);
-        }
-    }
+        // Create canvas source with detected codec
+        this.canvasSource = new CanvasSource(this.recordingCanvas, {
+            codec: videoCodec,
+            bitrate: QUALITY_HIGH,
+        });
+        
+        this.output.addVideoTrack(this.canvasSource, { frameRate: this.frameRate });
 
-    /**
-     * Set up audio for export (similar to MediaRecorderExporter)
-     * @private
-     */
-    #setupAudioForExport() {
+        // Setup audio if available
         const audioLayers = this.#getAudioLayers();
-        if (audioLayers.length > 0 && this.studio.player.audioContext) {
-            this.studio.player.audioContext.resume();
-            audioLayers.forEach(layer => {
-                if (layer.connectAudioSource) {
-                    layer.connectAudioSource(this.studio.player.audioContext);
+        if (audioLayers.length > 0) {
+            // Retrieve the first audio codec supported by this browser
+            const audioCodec = await getFirstEncodableAudioCodec(
+                this.output.format.getSupportedAudioCodecs(),
+                {
+                    numberOfChannels: this.numberOfChannels,
+                    sampleRate: this.sampleRate,
                 }
-            });
-            console.log(`✅ Set up ${audioLayers.length} audio layer(s) for export`);
+            );
+            
+            if (audioCodec) {
+                console.log('🎵 Using audio codec:', audioCodec);
+                this.audioBufferSource = new AudioBufferSource({
+                    codec: audioCodec,
+                    bitrate: QUALITY_HIGH,
+                });
+                this.output.addAudioTrack(this.audioBufferSource);
+            } else {
+                console.warn('No audio codec available, exporting video only');
+            }
         }
+
+        await this.output.start();
     }
 
     /**
-     * Finish encoding and download the video
+     * Setup audio context for offline rendering
      * @private
      */
-    async #finishEncodingAndDownload() {
-        console.log('🔄 Finalizing encoding...');
-        
-        // Stop frame capture
-        if (this.videoCaptureInterval) {
-            clearInterval(this.videoCaptureInterval);
-            this.videoCaptureInterval = null;
-            console.log('✅ Frame capture stopped');
-        }
-        
-        // Finalize the output (not close!)
-        try {
-            await this.output.finalize();
-            console.log('✅ Output finalized');
-        } catch (e) {
-            console.error('❌ Error finalizing output:', e);
+    async #setupAudioContext() {
+        const audioLayers = this.#getAudioLayers();
+        if (audioLayers.length === 0 || !this.audioBufferSource) {
+            return;
         }
 
-        this.#cleanupExport();
-        const videoData = new Blob(this.chunks, { type: this.output.format.mimeType });
-        console.log(`📦 Final blob size: ${(videoData.size / 1024 / 1024).toFixed(2)} MB`);
-        console.log(`📦 Final blob type: ${videoData.type}`);
+        // Create offline audio context for rendering
+        const durationInSeconds = this.totalDuration / 1000;
+        this.audioContext = new OfflineAudioContext(
+            this.numberOfChannels,
+            this.sampleRate * durationInSeconds,
+            this.sampleRate
+        );
+
+        console.log(`🎵 Setting up offline audio context: ${durationInSeconds}s, ${this.sampleRate}Hz`);
+    }
+
+    /**
+     * Render frames synchronously following test2.js approach
+     * @private
+     */
+    async #renderFramesSynchronously() {
+        let currentFrame = 0;
         
-        this.#downloadVideo(videoData);
+        console.log(`🎬 Starting synchronous rendering of ${this.totalFrames} frames...`);
+
+        // Render video frames in a tight loop
+        for (currentFrame = 0; currentFrame < this.totalFrames; currentFrame++) {
+            const currentTime = (currentFrame / this.frameRate) * 1000; // Convert to milliseconds
+            const videoProgress = currentFrame / this.totalFrames;
+            const overallProgress = videoProgress * (this.audioBufferSource ? 0.9 : 0.95);
+            
+            if (this.progressCallback) {
+                this.progressCallback(Math.round(overallProgress * 100));
+            }
+            this.#renderFrameAtTime(currentTime);
+
+            // Add frame to video encoder - await is crucial for backpressure
+            await this.canvasSource.add(currentTime / 1000, 1 / this.frameRate);
+        }
+
+        // Signal no more video frames
+        this.canvasSource.close();
+        console.log('✅ Video frames rendered');
+
+        // Render audio if available
+        if (this.audioBufferSource && this.audioContext) {
+            if (this.progressCallback) {
+                this.progressCallback(90);
+            }
+            
+            await this.#renderAudioOffline();
+        }
+
+        // Finalize the output
+        if (this.progressCallback) {
+            this.progressCallback(95);
+        }
         
-        // Mark encoding as complete
+        console.log('🔄 Finalizing output...');
+        await this.output.finalize();
+        await this.#createAndDownloadFile();
+
+        if (this.progressCallback) {
+            this.progressCallback(100);
+        }
+
         this.isEncoding = false;
-        const totalTime = ((performance.now() - this.exportStartTime) / 1000).toFixed(2);
-        console.log(`✅ Export completed in ${totalTime}s`);
         if (this.completionCallback) this.completionCallback();
     }
 
     /**
-     * Cleanup audio connections and background canvas
+     * Render audio using offline audio context
      * @private
      */
-    #cleanupExport() {
+    async #renderAudioOffline() {
+        console.log('🎵 Rendering audio offline...');
+        
         const audioLayers = this.#getAudioLayers();
-        audioLayers.forEach(layer => {
-            layer.audioStreamDestination = null;
-        });
+        const durationInSeconds = this.totalDuration / 1000;
         
-        if (this.mediaStream) {
-            // Stop all tracks in the media stream
-            this.mediaStream.getTracks().forEach(track => {
-                track.stop();
-            });
-            this.mediaStream = null;
+        // Create gain node for mixing
+        const gainNode = this.audioContext.createGain();
+        gainNode.connect(this.audioContext.destination);
+        
+        // Process each audio layer
+        for (const layer of audioLayers) {
+            if (layer.audioBuffer) {
+                // Create buffer source
+                const source = this.audioContext.createBufferSource();
+                source.buffer = layer.audioBuffer;
+                
+                // Apply layer timing and volume
+                const startTime = (layer.startTime || 0) / 1000;
+                const volume = layer.volume !== undefined ? layer.volume : 1.0;
+                
+                // Create gain for this layer
+                const layerGain = this.audioContext.createGain();
+                layerGain.gain.value = volume;
+                
+                source.connect(layerGain);
+                layerGain.connect(gainNode);
+                
+                // Schedule playback
+                source.start(startTime);
+                
+                console.log(`🎵 Added audio layer: start=${startTime}s, volume=${volume}`);
+            }
         }
         
-        if (this.recordingCanvas) {
-            this.recordingCanvas.remove();
-            this.recordingCanvas = null;
-            this.recordingCtx = null;
-        }
+        // Render the audio
+        const audioBuffer = await this.audioContext.startRendering();
+        await this.audioBufferSource.add(audioBuffer);
+        this.audioBufferSource.close();
         
-        console.log('✅ Export cleanup completed');
+        console.log('✅ Audio rendered');
+    }
+
+    /**
+     * Create and download the final MP4 file
+     * @private
+     */
+    async #createAndDownloadFile() {
+        console.log('📁 Creating final MP4 file...');
+        const videoBlob = new Blob([this.output.target.buffer], { type: 'video/mp4' });
+        
+        // Create download link
+        const url = URL.createObjectURL(videoBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `video-export-${Date.now()}.mp4`;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        
+        const fileSizeMB = (videoBlob.size / (1024 * 1024)).toFixed(2);
+        console.log(`✅ Export complete! File size: ${fileSizeMB} MB`);
+    }
+
+    /**
+     * Render a single frame at the specified time
+     * @param {number} currentTime - Time in milliseconds
+     * @private
+     */
+    #renderFrameAtTime(currentTime) {
+        // Clear canvas
+        this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
+        /**
+         * @type {StandardLayer[]}
+         */
+        const layers = this.studio.getLayers();
+        for (const layer of layers) {
+            if (layer.isLayerVisible(currentTime)) {
+                layer.render(this.recordingCtx, currentTime);
+            }
+        }
     }
 
     /**
@@ -298,134 +360,5 @@ export class WebCodecExporter {
             }
         }
         return layers;
-    }
-
-    /**
-     * Set up MediaBunny output with video and audio sources
-     * @private
-     */
-    async #setupMediaBunnyOutput() {
-        this.chunks = [];
-
-        this.output = new Output({
-            format: new Mp4OutputFormat({ fastStart: 'fragmented' }),
-            target: new StreamTarget(new WritableStream({
-                write: (chunk) => {
-                    this.chunks.push(chunk.data);
-                    
-                    if (this.progressCallback && this.totalDuration > 0) {
-                        const progress = Math.min(this.currentTime / this.totalDuration * 100, 99);
-                        this.progressCallback(progress);
-                    }
-                },
-            })),
-        });
-
-        console.log(`📹 Setting up video source - Canvas: ${this.recordingCanvas.width}x${this.recordingCanvas.height}`);
-        
-        this.videoSource = new CanvasSource(this.recordingCanvas, {
-            codec: 'vp9', // VP9 for better compatibility
-            bitrate: QUALITY_MEDIUM,
-            keyFrameInterval: 0.5,
-            latencyMode: 'realtime',
-        });
-        
-        // Add video track with frame rate
-        this.output.addVideoTrack(this.videoSource, { frameRate: this.frameRate });
-        console.log('✅ Video track added to output');
-
-        // Set up audio if audio layers exist
-        const audioLayers = this.#getAudioLayers();
-        if (audioLayers.length > 0) {
-            await this.#setupAudioSource(audioLayers);
-        } else {
-            console.log('ℹ️ No audio layers found, video only export');
-        }
-
-        // CRITICAL: Start the MediaBunny output processing
-        await this.output.start();
-        console.log('✅ MediaBunny output started');
-    }
-
-    /**
-     * Set up audio source using MediaBunny
-     * @param {Array} audioLayers - Array of audio layers to capture
-     * @private
-     */
-    async #setupAudioSource(audioLayers) {
-        console.log('🔊 Setting up MediaBunny audio source...');
-        
-        try {
-            if (!this.studio.player.audioContext) {
-                console.error('❌ No audio context available');
-                return;
-            }
-
-            const audioContext = this.studio.player.audioContext;
-            const audioStreamDestination = audioContext.createMediaStreamDestination();
-            
-            // Connect audio layers to the stream destination
-            audioLayers.forEach(layer => {
-                layer.audioStreamDestination = audioStreamDestination;
-                // Also connect audio source if available
-                if (layer.connectAudioSource) {
-                    layer.connectAudioSource(audioContext);
-                }
-            });
-            const audioTracks = audioStreamDestination.stream.getAudioTracks();
-            
-            if (audioTracks.length > 0) {
-                const audioTrack = audioTracks[0];
-                this.mediaStream = audioStreamDestination.stream;
-                
-                console.log(`🔊 Found ${audioTracks.length} audio track(s)`);
-                this.audioSource = new MediaStreamAudioTrackSource(audioTrack, {
-                    codec: 'opus',
-                    bitrate: QUALITY_MEDIUM,
-                });
-                this.output.addAudioTrack(this.audioSource);
-            } else {
-                console.warn('⚠️ No audio tracks available from audio stream destination');
-            }
-        } catch (error) {
-            console.error('❌ Error setting up audio source:', error);
-            console.log('ℹ️ Continuing with video-only export');
-        }
-    }
-
-    /**
-     * Download the recorded video
-     * @param {Blob} blob - The video blob to download
-     * @private
-     */
-    #downloadVideo(blob) {
-        console.log("Starting download...");
-        const vid = document.createElement('video');
-        vid.controls = true;
-        vid.src = URL.createObjectURL(blob);
-        addElementToBackground(vid);
-        this.#triggerFileDownload(blob);
-        vid.currentTime = Number.MAX_SAFE_INTEGER;
-    }
-
-    /**
-     * Trigger file download in the browser
-     * @param {Blob} blob - The blob to download
-     * @private
-     */
-    #triggerFileDownload(blob) {
-        const extension = this.output.format.fileExtension.replace('.', ''); // Remove leading dot if present
-        const filename = `video_export_${(new Date()).getTime()}.${extension}`;
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-
-        a.click();
-
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(a.href);
-        }, 100);
     }
 }
