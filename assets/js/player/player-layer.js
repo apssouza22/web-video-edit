@@ -56,7 +56,6 @@ export class PlayerLayer {
   }
 
   set selected(value) {
-    console.log(`Setting selected state to: ${value}`);
     this.#selected = value;
   }
 
@@ -105,14 +104,7 @@ export class PlayerLayer {
    */
   #onPointerDown(event) {
     if (!this.#selected) return;
-
-    const rect = this.#canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    // Convert to canvas coordinates
-    const canvasX = x * (this.#canvas.width / rect.width);
-    const canvasY = y * (this.#canvas.height / rect.height);
+    const {canvasX, canvasY} = this.getPosition(event);
 
     const hitResult = this.#hitTest(canvasX, canvasY);
     
@@ -128,23 +120,29 @@ export class PlayerLayer {
     }
   }
 
+  getPosition(event) {
+    const rect = this.#canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left - (this.#canvas.width / 2 * 0.10);
+    const y = event.clientY - rect.top - (this.#canvas.height / 2 * 0.10);
+
+    // Convert to canvas coordinates
+    const canvasX = x * (this.#canvas.width / rect.width);
+    const canvasY = y * (this.#canvas.height / rect.height);
+    return {canvasX, canvasY};
+  }
+
   /**
    * Handle pointer move events
    * @param {PointerEvent} event
    */
   #onPointerMove(event) {
-    const rect = this.#canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    // Convert to canvas coordinates
-    const canvasX = x * (this.#canvas.width / rect.width);
-    const canvasY = y * (this.#canvas.height / rect.height);
-
+    const {canvasX, canvasY} = this.getPosition(event);
     if (this.#transforming) {
       this.#performTransformation(canvasX, canvasY);
-    } else if (this.#selected) {
-      // Update cursor based on hover
+      return;
+    }
+
+    if (this.#selected) {
       const hitResult = this.#hitTest(canvasX, canvasY);
       this.#canvas.style.cursor = hitResult ? hitResult.cursor : 'default';
     }
@@ -401,9 +399,7 @@ export class PlayerLayer {
    * @param {CanvasRenderingContext2D} ctx
    */
   #markLayerArea(ctx) {
-    console.log('Marking layer area for selection is selected:', this.#selected);
     if (!this.#selected) return;
-    console.log('Marking layer area for selection');
     const bounds = this.#getLayerBounds();
     if (!bounds) return;
 

@@ -152,8 +152,19 @@ export class StandardLayer {
 
     if (change.scale) {
       const newScale = f.scale * change.scale;
+      const canvasWidth = this.renderer.width;
+      const canvasHeight = this.renderer.height;
+
       for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i].scale = newScale;
+        const frame = this.framesCollection.frames[i];
+        const distanceFromCenterX = frame.x - (canvasWidth / 2);
+        const distanceFromCenterY = frame.y - (canvasHeight / 2);
+        const scaleFactor = newScale / frame.scale;
+        const newDistanceFromCenterX = distanceFromCenterX * scaleFactor;
+        const newDistanceFromCenterY = distanceFromCenterY * scaleFactor;
+        frame.x = (canvasWidth / 2) + newDistanceFromCenterX;
+        frame.y = (canvasHeight / 2) + newDistanceFromCenterY;
+        frame.scale = newScale;
       }
       hasChanges = true;
     }

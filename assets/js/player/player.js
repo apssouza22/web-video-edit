@@ -4,6 +4,7 @@ import {PlayerLayer} from './player-layer.js';
 
 export class VideoPlayer {
   #selectedLayer;
+  #contentScaleFactor = 0.9; // Scale content to 90% to create 10% margin
 
   constructor() {
     this.playing = false;
@@ -161,9 +162,26 @@ export class VideoPlayer {
 
   renderLayers() {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    
+    // Save the current transformation matrix
+    this.ctx.save();
+
+    // Calculate the offset to center the scaled content
+    const canvasWidth = this.ctx.canvas.width;
+    const canvasHeight = this.ctx.canvas.height;
+    const offsetX = (canvasWidth * (1 - this.#contentScaleFactor)) / 2;
+    const offsetY = (canvasHeight * (1 - this.#contentScaleFactor)) / 2;
+
+    // Apply transformations: translate to center, then scale
+    this.ctx.translate(offsetX, offsetY);
+    this.ctx.scale(this.#contentScaleFactor, this.#contentScaleFactor);
+
     for (let layer of this.layers) {
       layer.render(this.ctx, this.time, this.playing);
     }
+    
+    // Restore the original transformation matrix
+    this.ctx.restore();
   }
 
   #updateTotalTime() {
