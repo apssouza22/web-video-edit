@@ -1,5 +1,3 @@
-import { FlexibleLayer } from '../layer/index.js';
-
 /**
  * DragHandler class handles drag operations on moveable layers.
  * It provides unified handling for pointer events to enable dragging elements.
@@ -75,7 +73,6 @@ export class DragItemHandler {
    * @param {PointerEvent} e - The pointer event
    */
   pointermove(e) {
-    // Check if any pinch handler is currently gesturing
     if (this.studio.pinchHandler && this.studio.pinchHandler.isGesturing()) {
       return; 
     }
@@ -83,10 +80,9 @@ export class DragItemHandler {
     e.preventDefault();
     e.stopPropagation();
     if (this.dragging) {
-      console.log(`Pointer move: offsetX=${e.offsetX}, offsetY=${e.offsetY}`);
       let dx = e.offsetX * this.get_ratio(e.target) - this.base_x;
       let dy = e.offsetY * this.get_ratio(e.target) - this.base_y;
-      console.log(`Dragging: dx=${dx}, dy=${dy}`);
+
       this.callback(dx, dy);
     }
   }

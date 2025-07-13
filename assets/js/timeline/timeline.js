@@ -273,18 +273,20 @@ export class Timeline {
     this.isHover = false;
   }
 
+  addLayers(layers) {
+    this.layers = layers;
+  }
+
   /**
    * Render all layers in the timeline
-   * @param {FlexibleLayer[]} layers - The layers to render
    */
-  render(layers) {
-    this.layers = layers;
+  render() {
     this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientHeight);
-    this.#updateTotalTime(layers);
+    this.#updateTotalTime(this.layers);
     this.layerRenderer.updateProperties(this.totalTime, this.timelineCanvas.clientWidth);
 
     // Skip rendering if no layers or invalid canvas dimensions
-    if (layers.length === 0 || this.timelineCanvas.clientHeight <= 0 || this.timelineCanvas.clientWidth <= 0) {
+    if (this.layers.length === 0 || this.timelineCanvas.clientHeight <= 0 || this.timelineCanvas.clientWidth <= 0) {
       this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
       return;
     }
@@ -300,7 +302,7 @@ export class Timeline {
 
     let yPos = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
 
-    for (let layer of layers) {
+    for (let layer of this.layers) {
       let selected = this.selectedLayer === layer;
       this.layerRenderer.renderLayer(layer, yPos, this.layerHeight, selected);
       yPos += layerSpacing;
@@ -311,7 +313,7 @@ export class Timeline {
 
     if (this.isHover) {
       this.#renderLineMarker(this.time);
-      this.previewHandler.render(this.time, layers);
+      this.previewHandler.render(this.time, this.layers);
     }
 
     this.dragHandler.renderFeedback(this.timelineCtx);

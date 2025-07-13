@@ -1,7 +1,9 @@
 import {dpr} from '../constants.js';
 import {AudioLayer} from '../layer/index.js';
+import {PlayerLayer} from './player-layer.js';
 
 export class VideoPlayer {
+  #selectedLayer;
 
   constructor() {
     this.playing = false;
@@ -17,11 +19,12 @@ export class VideoPlayer {
     this.width = 0;
     this.height = 0;
     /**
-     * @type {StandardLayer[]} layers
+     * @type {PlayerLayer[]} layers
      */
     this.layers = [];
     this.timeUpdateListener = (newTime, oldTime) => {
     };
+    this.layerTransformedListener = layer => {};
   }
 
   /**
@@ -42,9 +45,45 @@ export class VideoPlayer {
     this.timeUpdateListener = listener
   }
 
-  addLayers(layers) {
-    this.layers = layers;
+  addLayerTransformedListener(listener) {
+    this.layerTransformedListener = listener;
   }
+
+  addLayers(layers) {
+    this.layers = layers.map(layer => {
+      const playerLayer = new PlayerLayer(layer, this.canvas);
+      if (this.#selectedLayer === layer) {
+        playerLayer.selected = true;
+      }
+      playerLayer.setTransformCallback(this.#onLayerTransformed.bind(this));
+      return playerLayer;
+    });
+  }
+
+  /**
+   * Handle layer transformation events
+   * @param {StandardLayer} layer
+   */
+  #onLayerTransformed(layer) {
+    this.layerTransformedListener(layer);
+  }
+
+  /**
+   * Set selected layer for transformation
+   * @param {StandardLayer} layer
+   */
+  setSelectedLayer(layer) {
+    this.layers.forEach(playerLayer => {
+      playerLayer.selected = false;
+    });
+    this.#selectedLayer = layer;
+    if (layer) {
+      const playerLayer = this.layers.find(pl => pl.layer === layer);
+      console.log(`Setting selected layer: ${layer.name}`);
+      playerLayer.selected = true;
+    }
+  }
+
 
   mount(holder) {
     this.playerHolder = holder
@@ -73,7 +112,8 @@ export class VideoPlayer {
   }
 
   refreshAudio() {
-    for (let layer of this.layers) {
+    for (let l of this.layers) {
+      const layer = l.layer;
       if (layer instanceof AudioLayer) {
         layer.connectAudioSource(this.audioContext);
       }
@@ -127,7 +167,8 @@ export class VideoPlayer {
   }
 
   #updateTotalTime() {
-    for (let layer of this.layers) {
+    for (let l of this.layers) {
+      const layer = l.layer;
       if (layer.start_time + layer.totalTimeInMilSeconds > this.total_time) {
         this.total_time = layer.start_time + layer.totalTimeInMilSeconds;
       }

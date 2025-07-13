@@ -88,6 +88,10 @@ export class VideoStudio {
       this.player.setTime(timestamp * 1000);
       this.player.play();
     });
+
+    this.player.addLayerTransformedListener((layer) => {
+      this.#onLayerTransformed(layer);
+    });
   }
 
   dumpToJson() {
@@ -213,14 +217,16 @@ export class VideoStudio {
   #loop(realtime) {
     // Process updates for selected layer
     if (this.getSelectedLayer() && this.update) {
-      console.log('Applying update to layer:', this.getSelectedLayer().name, 'Update:', this.update);
       this.getSelectedLayer().update(this.update, this.player.time);
       this.update = null;
     }
+    if(this.layers.length !== this.player.layers.length) {
+      this.player.addLayers(this.getLayers());
+      this.timeline.addLayers(this.getLayers());
+    }
 
-    this.player.addLayers(this.getLayers());
     this.player.render(realtime)
-    this.timeline.render(this.getLayers());
+    this.timeline.render();
 
     window.requestAnimationFrame(this.#loop.bind(this));
   }
@@ -279,7 +285,6 @@ export class VideoStudio {
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);
     }
-    console.log(`Layer ${layer.name} loading: ${progress}%`);
   }
 
   /**
@@ -294,5 +299,14 @@ export class VideoStudio {
 
   setSelectedLayer(layer) {
     this.timeline.setSelectedLayer(layer);
+    this.player.setSelectedLayer(layer);
+  }
+
+  /**
+   * Handle layer transformation from player
+   * @param {StandardLayer} layer
+   */
+  #onLayerTransformed(layer) {
+    console.log(`Layer "${layer.name}" transformed`);
   }
 }

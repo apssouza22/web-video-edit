@@ -76,14 +76,9 @@ export class LoadingPopup {
     }
 
     const averageProgress = activeLoadCount > 0 ? totalProgress / activeLoadCount : 0;
-    
-    // Update progress bar
     this.progressFill.style.width = `${averageProgress}%`;
-    
-    // Update progress text
     this.progressText.textContent = `${Math.round(averageProgress)}%`;
-    
-    // Update current file text
+
     if (activeLoadCount > 1) {
       this.currentFileText.textContent = `Loading ${activeLoadCount} files... (${currentFileName})`;
     } else {

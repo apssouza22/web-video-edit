@@ -4,6 +4,8 @@ import { TimelineLayerFactory } from './timeline-layer-factory.js';
  * Class responsible for managing timeline layer rendering using the new TimelineLayer system
  */
 export class TimelineLayerRender {
+  #layerRenderers;
+
   /**
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
    * @param {number} totalTime - The total time duration of the timeline
@@ -16,10 +18,6 @@ export class TimelineLayerRender {
     this.#layerRenderers = new Map(); // Cache for layer renderers
   }
 
-  /**
-   * Private field to store layer renderers cache
-   */
-  #layerRenderers;
 
   /**
    * Update the timeline properties for rendering
@@ -39,7 +37,6 @@ export class TimelineLayerRender {
   /**
    * Get or create a timeline layer renderer for the given layer
    * @param {StandardLayer} layer - The layer to get renderer for
-   * @returns {TimelineLayer} - The timeline layer renderer
    */
   #getLayerRenderer(layer) {
     const layerId = layer.id;
