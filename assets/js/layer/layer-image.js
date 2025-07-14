@@ -33,12 +33,9 @@ export class ImageLayer extends FlexibleLayer {
       this.drawScaled(this.ctx, ctx_out);
       return;
     }
-    
-    let f = this.getFrame(currentTime);
+
+    let {f, scale, x, y} = this.getLayerCoordinates(currentTime);
     if (f) {
-      let scale = f.scale;
-      let x = f.x + this.renderer.width / 2 - this.width / 2;
-      let y = f.y + this.renderer.height / 2 - this.height / 2;
       this.renderer.clearRect();
       this.renderer.drawImage(this.img, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
       this.drawScaled(this.ctx, ctx_out);
@@ -46,5 +43,13 @@ export class ImageLayer extends FlexibleLayer {
       // Update the render cache
       this.updateRenderCache(currentTime);
     }
+  }
+
+  getLayerCoordinates(currentTime) {
+    let f = this.getFrame(currentTime);
+    let scale = f.scale;
+    let x = f.x + this.renderer.width / 2 - this.width / 2;
+    let y = f.y + this.renderer.height / 2 - this.height / 2;
+    return {f, scale, x, y};
   }
 }

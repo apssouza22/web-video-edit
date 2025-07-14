@@ -281,7 +281,9 @@ export class VideoStudio {
 
   #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
-
+    if(progress === 100) {
+      this.setSelectedLayer(layer);
+    }
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);
     }
@@ -298,6 +300,7 @@ export class VideoStudio {
   }
 
   setSelectedLayer(layer) {
+    console.log(`Setting selected layer: ${layer.name}`);
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
   }

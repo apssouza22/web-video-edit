@@ -1,4 +1,5 @@
 import { StandardLayer } from '../layer/index.js';
+import {createUserMediaRecordingService} from "../record/index.js";
 
 export class PlayerLayer {
   #layer;
@@ -13,6 +14,7 @@ export class PlayerLayer {
   #rotationHandle = null;
   #onTransformCallback = null;
   #currentTime = 0;
+  #contentScaleFactor = 0.9; // Match the scale factor from VideoPlayer
 
   // Handle types and positions
   static HANDLE_TYPES = {
@@ -46,13 +48,6 @@ export class PlayerLayer {
    */
   get layer() {
     return this.#layer;
-  }
-
-  /**
-   * Get/set selected state
-   */
-  get selected() {
-    return this.#selected;
   }
 
   set selected(value) {
@@ -104,7 +99,7 @@ export class PlayerLayer {
    */
   #onPointerDown(event) {
     if (!this.#selected) return;
-    const {canvasX, canvasY} = this.getPosition(event);
+    const {canvasX, canvasY} = this.#getPosition(event);
 
     const hitResult = this.#hitTest(canvasX, canvasY);
     
@@ -120,15 +115,23 @@ export class PlayerLayer {
     }
   }
 
-  getPosition(event) {
+  #getPosition(event) {
     const rect = this.#canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left - (this.#canvas.width / 2 * 0.10);
-    const y = event.clientY - rect.top - (this.#canvas.height / 2 * 0.10);
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
 
     // Convert to canvas coordinates
     const canvasX = x * (this.#canvas.width / rect.width);
     const canvasY = y * (this.#canvas.height / rect.height);
-    return {canvasX, canvasY};
+    
+    // The layer is scaled down 10%, // so we need to adjust the coordinates accordingly
+    const offsetX = (this.#canvas.width * (1 - this.#contentScaleFactor)) / 2;
+    const offsetY = (this.#canvas.height * (1 - this.#contentScaleFactor)) / 2;
+    
+    const scaledX = (canvasX - offsetX) / this.#contentScaleFactor;
+    const scaledY = (canvasY - offsetY) / this.#contentScaleFactor;
+    
+    return {canvasX: scaledX, canvasY: scaledY};
   }
 
   /**
@@ -136,7 +139,7 @@ export class PlayerLayer {
    * @param {PointerEvent} event
    */
   #onPointerMove(event) {
-    const {canvasX, canvasY} = this.getPosition(event);
+    const {canvasX, canvasY} = this.#getPosition(event);
     if (this.#transforming) {
       this.#performTransformation(canvasX, canvasY);
       return;
@@ -380,7 +383,7 @@ export class PlayerLayer {
 
   /**
    * Get layer bounds in canvas coordinates
-   * @returns {Object|null}
+   * @returns {{ x, y, width, height }}
    */
   #getLayerBounds() {
     const frame = this.#layer.getFrame(this.#currentTime);
@@ -401,9 +404,6 @@ export class PlayerLayer {
   #markLayerArea(ctx) {
     if (!this.#selected) return;
     const bounds = this.#getLayerBounds();
-    if (!bounds) return;
-
-    // Save context state
     ctx.save();
 
     // Draw selection boundary

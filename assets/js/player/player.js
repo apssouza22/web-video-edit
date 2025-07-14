@@ -78,8 +78,8 @@ export class VideoPlayer {
       playerLayer.selected = false;
     });
     this.#selectedLayer = layer;
-    if (layer) {
-      const playerLayer = this.layers.find(pl => pl.layer === layer);
+    const playerLayer = this.layers.find(pl => pl.layer === layer);
+    if (playerLayer) {
       console.log(`Setting selected layer: ${layer.name}`);
       playerLayer.selected = true;
     }
@@ -162,8 +162,20 @@ export class VideoPlayer {
 
   renderLayers() {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    
-    // Save the current transformation matrix
+    this.#addPaddingToCanvas();
+
+    for (let layer of this.layers) {
+      layer.render(this.ctx, this.time, this.playing);
+    }
+
+    this.ctx.restore();
+  }
+
+  /**
+   * Add some buffering to the canvas so we can transform the content
+   * Without this, we can not see the layer boundaries
+   */
+  #addPaddingToCanvas() {
     this.ctx.save();
 
     // Calculate the offset to center the scaled content
@@ -172,16 +184,12 @@ export class VideoPlayer {
     const offsetX = (canvasWidth * (1 - this.#contentScaleFactor)) / 2;
     const offsetY = (canvasHeight * (1 - this.#contentScaleFactor)) / 2;
 
-    // Apply transformations: translate to center, then scale
     this.ctx.translate(offsetX, offsetY);
     this.ctx.scale(this.#contentScaleFactor, this.#contentScaleFactor);
 
-    for (let layer of this.layers) {
-      layer.render(this.ctx, this.time, this.playing);
-    }
-    
-    // Restore the original transformation matrix
-    this.ctx.restore();
+    //paint the background white
+    this.ctx.fillStyle = 'white';
+    this.ctx.fillRect(0, 0, canvasWidth , canvasHeight);
   }
 
   #updateTotalTime() {
