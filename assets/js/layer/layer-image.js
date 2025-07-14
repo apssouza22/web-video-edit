@@ -29,7 +29,6 @@ export class ImageLayer extends FlexibleLayer {
     
     // Check if we need to re-render this frame
     if (!this.shouldReRender(currentTime)) {
-      // If we've already rendered this frame, just draw the cached canvas
       this.drawScaled(this.ctx, ctx_out);
       return;
     }
@@ -39,8 +38,6 @@ export class ImageLayer extends FlexibleLayer {
       this.renderer.clearRect();
       this.renderer.drawImage(this.img, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
       this.drawScaled(this.ctx, ctx_out);
-      
-      // Update the render cache
       this.updateRenderCache(currentTime);
     }
   }

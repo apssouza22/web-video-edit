@@ -300,7 +300,6 @@ export class VideoStudio {
   }
 
   setSelectedLayer(layer) {
-    console.log(`Setting selected layer: ${layer.name}`);
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
   }

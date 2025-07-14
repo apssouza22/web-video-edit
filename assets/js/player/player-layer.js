@@ -389,10 +389,13 @@ export class PlayerLayer {
     const frame = this.#layer.getFrame(this.#currentTime);
     if (!frame) return null;
 
+    // Calculate position using the same logic as layer rendering
+    const x = frame.x + this.#canvas.width / 2 - this.#layer.width / 2;
+    const y = frame.y + this.#canvas.height / 2 - this.#layer.height / 2;
+    
+    // Apply scale to get final dimensions
     const width = this.#layer.width * frame.scale;
     const height = this.#layer.height * frame.scale;
-    const x = frame.x + this.#canvas.width / 2 - width / 2;
-    const y = frame.y + this.#canvas.height / 2 - height / 2;
 
     return { x, y, width, height };
   }
@@ -404,6 +407,8 @@ export class PlayerLayer {
   #markLayerArea(ctx) {
     if (!this.#selected) return;
     const bounds = this.#getLayerBounds();
+    if (!bounds) return;
+
     ctx.save();
 
     // Draw selection boundary

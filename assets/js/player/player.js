@@ -97,10 +97,6 @@ export class VideoPlayer {
     this.resize();
   }
 
-  onend(callback) {
-    this.onend_callback = callback;
-  }
-
   resize(newRatio) {
     if(newRatio) {
       this.playerHolder.style.aspectRatio = newRatio.replace(":", "/");
