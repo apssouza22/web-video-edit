@@ -162,6 +162,7 @@ export class StandardLayer {
         const scaleFactor = newScale / frame.scale;
         const newDistanceFromCenterX = distanceFromCenterX * scaleFactor;
         const newDistanceFromCenterY = distanceFromCenterY * scaleFactor;
+
         frame.x = (canvasWidth / 2) + newDistanceFromCenterX;
         frame.y = (canvasHeight / 2) + newDistanceFromCenterY;
         frame.scale = newScale;

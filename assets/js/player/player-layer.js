@@ -215,57 +215,58 @@ export class PlayerLayer {
   #performResize(dx, dy, handleType) {
     const bounds = this.#getLayerBounds();
     if (!bounds) return;
-
-    let scaleX = 1;
-    let scaleY = 1;
+    const dragDistance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Determine scale direction based on handle type and drag direction
+    let scaleDirection = 1;
     let offsetX = 0;
     let offsetY = 0;
 
-    // Calculate scale based on handle type
     switch (handleType) {
       case PlayerLayer.HANDLE_TYPES.RESIZE_SE:
-        scaleX = Math.max(0.1, (bounds.width + dx) / bounds.width);
-        scaleY = Math.max(0.1, (bounds.height + dy) / bounds.height);
+        // Southeast: positive drag increases size
+        scaleDirection = (dx + dy) > 0 ? 1 : -1;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_NW:
-        scaleX = Math.max(0.1, (bounds.width - dx) / bounds.width);
-        scaleY = Math.max(0.1, (bounds.height - dy) / bounds.height);
-        offsetX = dx * scaleX;
-        offsetY = dy * scaleY;
+        // Northwest: negative drag increases size
+        scaleDirection = (dx + dy) < 0 ? 1 : -1;
+        offsetX = dx * 0.5;
+        offsetY = dy * 0.5;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_NE:
-        scaleX = Math.max(0.1, (bounds.width + dx) / bounds.width);
-        scaleY = Math.max(0.1, (bounds.height - dy) / bounds.height);
-        offsetY = dy * scaleY;
+        // Northeast: mixed direction (dx positive, dy negative increases size)
+        scaleDirection = (dx - dy) > 0 ? 1 : -1;
+        offsetY = dy * 0.5;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_SW:
-        scaleX = Math.max(0.1, (bounds.width - dx) / bounds.width);
-        scaleY = Math.max(0.1, (bounds.height + dy) / bounds.height);
-        offsetX = dx * scaleX;
+        // Southwest: mixed direction (dx negative, dy positive increases size)
+        scaleDirection = (-dx + dy) > 0 ? 1 : -1;
+        offsetX = dx * 0.5;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_E:
-        scaleX = Math.max(0.1, (bounds.width + dx) / bounds.width);
+        // East: positive dx increases size
+        scaleDirection = dx > 0 ? 1 : -1;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_W:
-        scaleX = Math.max(0.1, (bounds.width - dx) / bounds.width);
-        offsetX = dx * scaleX;
+        // West: negative dx increases size
+        scaleDirection = dx < 0 ? 1 : -1;
+        offsetX = dx * 0.5;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_N:
-        scaleY = Math.max(0.1, (bounds.height - dy) / bounds.height);
-        offsetY = dy * scaleY;
+        // North: negative dy increases size
+        scaleDirection = dy < 0 ? 1 : -1;
+        offsetY = dy * 0.5;
         break;
       case PlayerLayer.HANDLE_TYPES.RESIZE_S:
-        scaleY = Math.max(0.1, (bounds.height + dy) / bounds.height);
+        // South: positive dy increases size
+        scaleDirection = dy > 0 ? 1 : -1;
         break;
     }
+    const scaleFactor = 1 + (scaleDirection * dragDistance * 0.00005);
+    let maxScale = scaleFactor > 1? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor); // Prevent zero or negative scale
 
-    // Apply uniform scaling (maintain aspect ratio)
-    const scale = Math.min(scaleX, scaleY);
-    
     this.#layer.update({
-      scale: this.#initialTransform.scale * scale,
-      x: this.#initialTransform.x + offsetX,
-      y: this.#initialTransform.y + offsetY
+      scale: maxScale,
     }, this.#currentTime);
   }
 

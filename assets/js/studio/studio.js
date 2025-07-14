@@ -103,14 +103,15 @@ export class VideoStudio {
   }
 
   #setupPinchHandler() {
+    const callback = (function (scale, rotation) {
+      this.update = {
+        scale: scale,
+        rotation: rotation
+      };
+    }).bind(this);
     this.pinchHandler = new PinchHandler(
         this.mainSection,
-        (function (scale, rotation) {
-          this.update = {
-            scale: scale,
-            rotation: rotation
-          };
-        }).bind(this),
+        callback,
         this
     );
     this.pinchHandler.setupEventListeners();
