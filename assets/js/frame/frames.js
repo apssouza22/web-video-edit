@@ -172,4 +172,46 @@ export class FrameService {
       this.frames[index] = Frame.fromArray(array);
     }
   }
+
+  /**
+   * Gets frame considering speed multiplier from the layer's speed controller
+   * @param {number} referenceTime - The reference time
+   * @param {number} startTime - The start time of the layer
+   * @param {number} speed - Speed multiplier (1.0 = normal speed)
+   * @returns {Frame|null}
+   */
+  getFrameWithSpeed(referenceTime, startTime, speed = 1.0) {
+    if (speed === 1.0) {
+      return this.getFrame(referenceTime, startTime);
+    }
+    
+    // Adjust the reference time based on speed
+    const speedAdjustedTime = startTime + ((referenceTime - startTime) * speed);
+    return this.getFrame(speedAdjustedTime, startTime);
+  }
+
+  /**
+   * Gets the index considering speed multiplier
+   * @param {number} currentTime - The time to get the index for
+   * @param {number} startTime - The start time of the layer
+   * @param {number} speed - Speed multiplier (1.0 = normal speed)
+   * @returns {number} - The speed-adjusted index
+   */
+  getIndexWithSpeed(currentTime, startTime, speed = 1.0) {
+    if (speed === 1.0) {
+      return this.getIndex(currentTime, startTime);
+    }
+    
+    const speedAdjustedTime = startTime + ((currentTime - startTime) * speed);
+    return this.getIndex(speedAdjustedTime, startTime);
+  }
+
+  /**
+   * Gets the effective duration considering speed
+   * @param {number} speed - Speed multiplier (1.0 = normal speed)
+   * @returns {number} - Duration in milliseconds adjusted for speed
+   */
+  getSpeedAdjustedDuration(speed = 1.0) {
+    return Math.floor(this.totalTimeInMilSeconds / speed);
+  }
 }

@@ -18,7 +18,7 @@ export class TranscriptionService {
       const message = event.data;
       switch (message.status) {
         case "progress":
-          console.log("Loading model progress", message.progress)
+          // console.log("Loading model progress", message.progress)
           break;
 
         case "complete":
@@ -94,10 +94,10 @@ export class TranscriptionService {
   }
 
   startTranscription(audioBuffer) {
-    // const data = getMockedData();
-    // this.#onTranscriptionComplete(data);
-    //
-    // return
+    const data = getMockedData();
+    this.#onTranscriptionComplete(data);
+
+    return
     this.transcriptionView.showLoading();
 
     const audio = transformAudioBuffer(audioBuffer);

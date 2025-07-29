@@ -530,6 +530,137 @@ a:visited {
   background: rgb(139, 205, 240);
 }
 
+/* Speed Control Component Styles */
+.speed-control-container {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(37, 37, 40);
+  border-radius: 6px;
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  font-family: 'JupiterSans', sans-serif;
+  min-width: 200px;
+}
+
+.speed-control-container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.speed-control-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.speed-control-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgb(192, 200, 213);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.speed-control-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.speed-control-input {
+  flex: 1;
+  background-color: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 4px;
+  color: rgb(220, 225, 235);
+  font-size: 12px;
+  font-family: 'JupiterSans', monospace;
+  text-align: center;
+  width: 60px;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.speed-control-input:focus {
+  outline: none;
+  border-color: rgb(69, 155, 255);
+  background-color: rgb(58, 58, 63);
+}
+
+.speed-control-input:hover:not(:focus) {
+  background-color: rgb(58, 58, 63);
+}
+
+.speed-control-unit {
+  font-size: 11px;
+  color: rgb(150, 158, 171);
+  font-weight: 500;
+}
+
+.speed-control-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.speed-preset-button {
+  padding: 4px 8px;
+  background-color: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 3px;
+  color: rgb(192, 200, 213);
+  font-size: 10px;
+  font-family: 'JupiterSans', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 32px;
+  text-align: center;
+}
+
+.speed-preset-button:hover {
+  background-color: rgb(63, 63, 68);
+  color: rgb(220, 225, 235);
+}
+
+.speed-preset-button.active {
+  background-color: rgb(69, 155, 255);
+  border-color: rgb(69, 155, 255);
+  color: white;
+}
+
+.speed-preset-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.speed-control-error {
+  padding: 4px 6px;
+  background-color: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  border-radius: 3px;
+  color: rgb(255, 100, 90);
+  font-size: 10px;
+  text-align: center;
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Timeline header integration */
+.timeline_header_item.speed-control-item {
+  padding: 4px 8px;
+  width: auto;
+  min-width: 200px;
+}
+
+.timeline_header_item.speed-control-item .speed-control-container {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
 /* Dropdown Menu Styles */
 .dropdown {
   position: relative;

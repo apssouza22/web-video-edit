@@ -1,5 +1,6 @@
 import {createFrameService} from '../frame/index.js';
 import {Canvas2DRender} from '../common/render-2d.js';
+import {SpeedController} from './speed-controller.js';
 
 export class StandardLayer {
   audioBuffer = null;
@@ -22,6 +23,7 @@ export class StandardLayer {
     this.lastRenderedTime = -1; // Track last rendered time for caching
 
     this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false)
+    this.speedController = new SpeedController(this); // Initialize speed controller
     addElementToBackground(this.renderer.canvas);
     this.updateName(this.name);
   }
@@ -208,6 +210,15 @@ export class StandardLayer {
 
   drawScaled(ctxFrom, ctxOutTo, video = false) {
     Canvas2DRender.drawScaled(ctxFrom, ctxOutTo, video);
+  }
+
+  // Speed control methods
+  setSpeed(speed) {
+    this.speedController.setSpeed(speed);
+  }
+
+  getSpeed() {
+    return this.speedController.getSpeed();
   }
 }
 

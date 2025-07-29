@@ -11,6 +11,7 @@ import {createTranscriptionService} from "../transcription/index.js";
 import {uploadSupportedType} from './utils.js';
 import {LoadingPopup} from './loading-popup.js';
 import {AspectRatioSelector} from '../ui/aspect-ratio-selector.js';
+import {SpeedControlManager} from '../ui/speed-control-manager.js';
 
 export class VideoStudio {
 
@@ -33,6 +34,7 @@ export class VideoStudio {
     this.mediaEditor = new MediaEditor(this);
     this.layerOperations = createLayerService(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
+    this.speedControlManager = new SpeedControlManager(this);
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
@@ -47,6 +49,7 @@ export class VideoStudio {
     this.videoExporter.init();
     this.controls.init();
     this.transcriptionManager.loadModel();
+    this.speedControlManager.init();
   }
 
   #setUpComponentListeners() {
@@ -290,12 +293,7 @@ export class VideoStudio {
     }
   }
 
-  /**
-   * Handle layer reordering from timeline
-   * @param {StandardLayer} layer - The layer that was reordered
-   * @param {Object} reorderData - Contains fromIndex and toIndex
-   * @private
-   */
+
   #handleLayerReorder(layer, reorderData) {
     console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
@@ -303,6 +301,7 @@ export class VideoStudio {
   setSelectedLayer(layer) {
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
+    this.speedControlManager.setLayer(layer);
   }
 
   /**
