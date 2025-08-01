@@ -10,8 +10,8 @@ import {MediaEditor} from './media-edit.js';
 import {createTranscriptionService} from "../transcription/index.js";
 import {uploadSupportedType} from './utils.js';
 import {LoadingPopup} from './loading-popup.js';
-import {AspectRatioSelector} from '../ui/aspect-ratio-selector.js';
-import {SpeedControlManager} from '../ui/speed-control-manager.js';
+import {AspectRatioSelector} from './aspect-ratio-selector.js';
+import {SpeedControlInput} from "./speed-control-input.js";
 
 export class VideoStudio {
 
@@ -34,7 +34,7 @@ export class VideoStudio {
     this.mediaEditor = new MediaEditor(this);
     this.layerOperations = createLayerService(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
-    this.speedControlManager = new SpeedControlManager(this);
+    this.speedControlManager = new SpeedControlInput();
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
@@ -95,6 +95,10 @@ export class VideoStudio {
     this.player.addLayerTransformedListener((layer) => {
       this.#onLayerTransformed(layer);
     });
+
+    this.speedControlManager.onSpeedChange(speed => {
+      console.log(`Speed changed to: ${speed}`);
+    })
   }
 
   dumpToJson() {

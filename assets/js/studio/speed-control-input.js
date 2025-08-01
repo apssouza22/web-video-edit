@@ -3,16 +3,56 @@
  * Provides UI for controlling layer playback speed with validation and presets
  */
 export class SpeedControlInput {
+  /** @type {HTMLElement} */
   #container = null;
+  /** @type {HTMLElement} */
   #input = null;
   /** @type {StandardLayer} */
   #currentLayer = null;
-  #onSpeedChangeCallback = (speed) => {};
+  #onSpeedChangeCallback = (speed) => {
+  };
 
   constructor() {
     this.#createComponent();
     this.#setupEventListeners();
   }
+
+  init() {
+    this.#mount();
+    console.log('Speed Control Input initialized');
+  }
+
+  /**
+   * Set the current layer
+   * @param {StandardLayer} layer
+   */
+  setLayer(layer) {
+    this.#currentLayer = layer;
+    const currentSpeed = layer.getSpeed();
+    this.#setSpeed(currentSpeed, false); // Don't trigger callback
+    this.#setEnabled(true);
+  }
+
+  /**
+   * Set callback for speed changes
+   * @param {Function} callback
+   */
+  onSpeedChange(callback) {
+    this.#onSpeedChangeCallback = callback;
+  }
+
+  /**
+   * Mount the component to a parent element
+   */
+  #mount() {
+    const parent = document.getElementById('speed-control-item');
+    if (!(parent instanceof HTMLElement)) {
+      throw new Error('Parent must be an HTML element');
+    }
+    parent.appendChild(this.#container);
+    this.#setEnabled(false);
+  }
+
 
   /**
    * Create the speed control component HTML structure
@@ -21,7 +61,7 @@ export class SpeedControlInput {
   #createComponent() {
     this.#container = document.createElement('div');
     this.#container.className = 'speed-control-container';
-    
+
     this.#container.innerHTML = `
       <div class="speed-control-header">
         <div class="speed-control-input-group">
@@ -53,7 +93,6 @@ export class SpeedControlInput {
     }
   }
 
-
   #handleInputBlur(event) {
     const value = parseFloat(event.target.value);
     if (!this.#isValidSpeed(value)) {
@@ -78,11 +117,9 @@ export class SpeedControlInput {
     }
   }
 
-
   #isValidSpeed(speed) {
     return !isNaN(speed) && speed >= 0.1 && speed <= 10;
   }
-
 
   #applySpeed(speed) {
     if (this.#currentLayer && this.#isValidSpeed(speed)) {
@@ -99,17 +136,16 @@ export class SpeedControlInput {
 
   #showValidationError(message) {
     this.#clearValidationError();
-    
+
     const errorDiv = document.createElement('div');
     errorDiv.className = 'speed-control-error';
     errorDiv.textContent = message;
-    
+
     this.#container.appendChild(errorDiv);
-    
+
     // Auto-remove after 3 seconds
     setTimeout(() => this.#clearValidationError(), 3000);
   }
-
 
   #clearValidationError() {
     const existingError = this.#container.querySelector('.speed-control-error');
@@ -119,23 +155,11 @@ export class SpeedControlInput {
   }
 
   /**
-   * Set the current layer
-   * @param {StandardLayer} layer
-   */
-  setLayer(layer) {
-    this.#currentLayer = layer;
-    if (layer) {
-      const currentSpeed = layer.getSpeed();
-      this.setSpeed(currentSpeed, false); // Don't trigger callback
-    }
-  }
-
-  /**
    * Set speed value
    * @param {number} speed
    * @param {boolean} applyToLayer - Whether to apply to layer (default: true)
    */
-  setSpeed(speed, applyToLayer = true) {
+  #setSpeed(speed, applyToLayer = true) {
     if (this.#isValidSpeed(speed)) {
       this.#input.value = speed.toFixed(2);
 
@@ -147,36 +171,16 @@ export class SpeedControlInput {
 
 
   /**
-   * Set callback for speed changes
-   * @param {Function} callback
-   */
-  onSpeedChange(callback) {
-    this.#onSpeedChangeCallback = callback;
-  }
-
-  /**
    * Enable or disable the component
    * @param {boolean} enabled
    */
-  setEnabled(enabled) {
+  #setEnabled(enabled) {
     this.#input.disabled = !enabled;
     if (enabled) {
       this.#container.classList.remove('disabled');
     } else {
       this.#container.classList.add('disabled');
     }
-  }
-
-
-  /**
-   * Mount the component to a parent element
-   * @param {HTMLElement} parent
-   */
-  mount(parent) {
-    if (!(parent instanceof HTMLElement)) {
-      throw new Error('Parent must be an HTML element');
-    }
-    parent.appendChild(this.#container);
   }
 
 }
