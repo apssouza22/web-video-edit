@@ -175,8 +175,9 @@ export class VideoPlayer {
     this.ctx.save();
 
     // Calculate the offset to center the scaled content
-    const canvasWidth = this.ctx.canvas.width;
-    const canvasHeight = this.ctx.canvas.height;
+    const canvasWidth = this.ctx.canvas.clientWidth
+    const canvasHeight = this.ctx.canvas.clientHeight
+
     const offsetX = (canvasWidth * (1 - this.#contentScaleFactor)) / 2;
     const offsetY = (canvasHeight * (1 - this.#contentScaleFactor)) / 2;
 

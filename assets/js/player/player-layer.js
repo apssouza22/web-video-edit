@@ -463,13 +463,4 @@ export class PlayerLayer {
     this.#markLayerArea(ctx);
   }
 
-  /**
-   * Cleanup event listeners and resources
-   */
-  destroy() {
-    this.#canvas.removeEventListener('pointerdown', this.#onPointerDown.bind(this));
-    this.#canvas.removeEventListener('pointermove', this.#onPointerMove.bind(this));
-    this.#canvas.removeEventListener('pointerup', this.#onPointerUp.bind(this));
-    this.#canvas.removeEventListener('pointerleave', this.#onPointerUp.bind(this));
-  }
 }
