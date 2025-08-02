@@ -1,5 +1,6 @@
 import {StandardLayer} from './layer-common.js';
 import {AudioContext} from '../constants.js';
+import {PitchPreservationProcessor} from '../audio/pitch-preservation-processor.js';
 
 export class AudioLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
@@ -17,7 +18,7 @@ export class AudioLayer extends StandardLayer {
     this.currentSpeed = 1.0; // Track current playback speed
     this.lastAppliedSpeed = 1.0; // Track last applied speed for change detection
     this.preservePitch = true; // Enable pitch preservation by default
-    this.processedBuffers = new Map(); // Cache for processed audio buffers
+    this.pitchProcessor = new PitchPreservationProcessor(); // Pitch preservation processor
     this.originalTotalTimeInMilSeconds = 0; // Store original duration before speed changes
     if (skipLoading) {
       return
@@ -75,11 +76,8 @@ export class AudioLayer extends StandardLayer {
     this.currentSpeed = this.speedController.getSpeed();
 
     if (this.preservePitch && this.currentSpeed !== 1.0) {
-      // Use pitch-preserved buffer for non-normal speeds
-      const pitchPreservedBuffer = this.#createPitchPreservedBuffer(this.audioBuffer, this.currentSpeed);
-      this.source.buffer = pitchPreservedBuffer;
-      // Don't apply playbackRate since time-stretching handles the speed change
-      this.source.playbackRate.value = 1.0;
+      this.source.buffer = this.pitchProcessor.createPitchPreservedBuffer(this.audioBuffer, this.currentSpeed, this.playerAudioContext);
+      this.source.playbackRate.value = 1.0; // Don't apply playbackRate since time-stretching handles the speed change
     } else {
       this.source.buffer = this.audioBuffer;
       this.source.playbackRate.value = this.currentSpeed;
@@ -145,8 +143,6 @@ export class AudioLayer extends StandardLayer {
     }
 
     try {
-      console.log(`Processing audio layer: "${this.name}"`);
-
       const newBuffer = this.#removeAudioIntervalInternal(startTime, endTime);
 
       if (newBuffer && newBuffer !== this.audioBuffer) {
@@ -241,90 +237,6 @@ export class AudioLayer extends StandardLayer {
 
   }
 
-  /**
-   * Creates a time-stretched audio buffer that preserves pitch
-   * @param {AudioBuffer} originalBuffer - The original audio buffer
-   * @param {number} speed - Speed multiplier (0.5 = half speed, 2.0 = double speed)
-   * @returns {AudioBuffer} - Time-stretched audio buffer with preserved pitch
-   * @private
-   */
-  #createPitchPreservedBuffer(originalBuffer, speed) {
-    if (speed === 1.0) {
-      return originalBuffer;
-    }
-
-    // Check cache first
-    const cacheKey = `${speed}_${originalBuffer.duration}`;
-    if (this.processedBuffers.has(cacheKey)) {
-      return this.processedBuffers.get(cacheKey);
-    }
-
-    const sampleRate = originalBuffer.sampleRate;
-    const numberOfChannels = originalBuffer.numberOfChannels;
-    const originalLength = originalBuffer.length;
-
-    // Calculate new buffer length for time stretching
-    const newLength = Math.floor(originalLength / speed);
-    const newBuffer = this.playerAudioContext.createBuffer(numberOfChannels, newLength, sampleRate);
-
-    // Simple time-stretching algorithm using overlap-add method
-    const frameSize = 1024; // Frame size for processing
-    const hopSize = Math.floor(frameSize / 4); // Overlap factor
-    const stretchedHopSize = Math.floor(hopSize * speed);
-
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const originalData = originalBuffer.getChannelData(channel);
-      const newData = newBuffer.getChannelData(channel);
-
-      // Initialize output buffer
-      newData.fill(0);
-
-      let inputPos = 0;
-      let outputPos = 0;
-
-      while (inputPos + frameSize < originalLength && outputPos + frameSize < newLength) {
-        // Extract frame from original audio
-        const frame = new Float32Array(frameSize);
-        for (let i = 0; i < frameSize; i++) {
-          frame[i] = originalData[inputPos + i] || 0;
-        }
-
-        // Apply window function (Hann window)
-        for (let i = 0; i < frameSize; i++) {
-          const windowValue = 0.5 * (1 - Math.cos(2 * Math.PI * i / (frameSize - 1)));
-          frame[i] *= windowValue;
-        }
-
-        // Overlap-add to output buffer
-        for (let i = 0; i < frameSize && outputPos + i < newLength; i++) {
-          newData[outputPos + i] += frame[i];
-        }
-
-        inputPos += stretchedHopSize;
-        outputPos += hopSize;
-      }
-
-      // Normalize the output to prevent clipping
-      let maxValue = 0;
-      for (let i = 0; i < newLength; i++) {
-        maxValue = Math.max(maxValue, Math.abs(newData[i]));
-      }
-
-      if (maxValue > 1.0) {
-        const normalizationFactor = 0.95 / maxValue;
-        for (let i = 0; i < newLength; i++) {
-          newData[i] *= normalizationFactor;
-        }
-      }
-    }
-
-    // Cache the processed buffer
-    this.processedBuffers.set(cacheKey, newBuffer);
-
-    console.log(`Created pitch-preserved buffer for speed ${speed}: ${originalBuffer.duration}s -> ${newBuffer.duration}s`);
-    return newBuffer;
-  }
-
   #updateTotalTimeForSpeed() {
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this.speedController.getSpeed();
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
@@ -339,7 +251,7 @@ export class AudioLayer extends StandardLayer {
       return;
     }
     this.preservePitch = preserve;
-    this.processedBuffers.clear();
+    this.pitchProcessor.clearCache();
     // If currently playing, reconnect with new settings
     if (this.source && this.playerAudioContext) {
       this.connectAudioSource(this.playerAudioContext);
