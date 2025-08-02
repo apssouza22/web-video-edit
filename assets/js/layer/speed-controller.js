@@ -4,15 +4,13 @@ import { fps } from '../constants.js';
  * Handles speed control calculations and frame manipulation for video layers
  */
 export class SpeedController {
-  /**
-   * @param {StandardLayer} layer - The layer this controller manages
-   */
+  /** @type {StandardLayer} */
+  layer;
+
   constructor(layer) {
     this.layer = layer;
     this.originalFrames = null; // Store original frames for preservation
     this.currentSpeed = 1.0;
-    this.originalFramesChecksum = null; // Integrity checksum for original frames
-    this.originalFramesBackup = null; // Backup of original frames for restoration
   }
 
   /**
@@ -28,11 +26,12 @@ export class SpeedController {
     if (this.originalFrames === null && this.layer.framesCollection) {
       this.#preserveOriginalFrames();
     }
-
-    const previousSpeed = this.currentSpeed;
     this.currentSpeed = speed;
-    this.layer.speed = speed;
 
+    // check if layer is AudioLayer
+    if (this.layer.audioBuffer !== null) {
+      return
+    }
     this.#adjustFramesForSpeed(speed);
     this.#updateLayerDuration(speed);
   }
@@ -44,43 +43,7 @@ export class SpeedController {
   #preserveOriginalFrames() {
     if (this.layer.framesCollection && this.layer.framesCollection.frames) {
       this.originalFrames = this.layer.framesCollection.frames.map(frame => frame.clone());
-      this.originalFramesChecksum = this.#calculateFramesChecksum(this.originalFrames);
-      
-      console.log(`Preserved ${this.originalFrames.length} original frames for layer ${this.layer.name}`);
     }
-  }
-
-  /**
-   * Calculate checksum for frame integrity validation
-   * @param {Array<Frame>} frames - Frames to calculate checksum for
-   * @returns {string} Checksum string
-   * @private
-   */
-  #calculateFramesChecksum(frames) {
-    if (!frames || frames.length === 0) return '';
-    
-    let checksum = '';
-    frames.forEach((frame, index) => {
-      checksum += `${index}:${frame.x}:${frame.y}:${frame.scale}:${frame.rotation}:${frame.anchor};`;
-    });
-    
-    return this.#simpleHash(checksum);
-  }
-
-  /**
-   * Simple hash function for checksums
-   * @param {string} str - String to hash
-   * @returns {string} Hash value
-   * @private
-   */
-  #simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return hash.toString(16);
   }
 
   /**
@@ -133,13 +96,13 @@ export class SpeedController {
   #createSlowMotionFrames(speed, originalFrameCount, newFrames) {
     const expansionFactor = 1 / speed;
     const targetFrameCount = Math.floor(originalFrameCount * expansionFactor);
-    
+
     for (let i = 0; i < targetFrameCount; i++) {
       // Map the new frame index back to original timeline
       const originalPosition = i / expansionFactor;
       const baseIndex = Math.floor(originalPosition);
       const interpolationFactor = originalPosition - baseIndex;
-      
+
       if (baseIndex >= originalFrameCount - 1) {
         // Use last frame if we're beyond the original range
         newFrames.push(this.originalFrames[originalFrameCount - 1].clone());
@@ -166,29 +129,29 @@ export class SpeedController {
   #createFastForwardFrames(speed, originalFrameCount, newFrames) {
     const compressionFactor = speed;
     const targetFrameCount = Math.floor(originalFrameCount / compressionFactor);
-    
+
     for (let i = 0; i < targetFrameCount; i++) {
       // Smart sampling: choose frames that best represent the motion
       const originalIndex = Math.floor(i * compressionFactor);
-      
+
       if (originalIndex < originalFrameCount) {
         // For fast forward, we might want to slightly favor anchor frames
         let selectedIndex = originalIndex;
-        
+
         // Look for nearby anchor frames within a small window
         const searchWindow = Math.min(3, Math.floor(compressionFactor / 2));
-        for (let j = Math.max(0, originalIndex - searchWindow); 
+        for (let j = Math.max(0, originalIndex - searchWindow);
              j <= Math.min(originalFrameCount - 1, originalIndex + searchWindow); j++) {
           if (this.originalFrames[j].anchor) {
             selectedIndex = j;
             break;
           }
         }
-        
+
         newFrames.push(this.originalFrames[selectedIndex].clone());
       }
     }
-    
+
     // Ensure we have at least one frame
     if (newFrames.length === 0 && originalFrameCount > 0) {
       newFrames.push(this.originalFrames[0].clone());

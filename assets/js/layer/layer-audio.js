@@ -1,5 +1,5 @@
-import { StandardLayer } from './index.js';
-import { AudioContext } from '../constants.js';
+import {StandardLayer} from './layer-common.js';
+import {AudioContext} from '../constants.js';
 
 export class AudioLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
@@ -11,8 +11,14 @@ export class AudioLayer extends StandardLayer {
     this.audioBuffer = null;
     this.source = null;
     this.playing = false;
+    /** @type {AudioContext} */
     this.playerAudioContext = null;
     this.audioStreamDestination = null;
+    this.currentSpeed = 1.0; // Track current playback speed
+    this.lastAppliedSpeed = 1.0; // Track last applied speed for change detection
+    this.preservePitch = true; // Enable pitch preservation by default
+    this.processedBuffers = new Map(); // Cache for processed audio buffers
+    this.originalTotalTimeInMilSeconds = 0; // Store original duration before speed changes
     if (skipLoading) {
       return
     }
@@ -23,17 +29,18 @@ export class AudioLayer extends StandardLayer {
   #onAudioLoad() {
     let buffer = this.reader.result;
     this.audioCtx.decodeAudioData(
-      buffer,
-      this.#onAudioLoadSuccess.bind(this),
-      (function (e) {
-        //TODO: On error
-      }).bind(this)
+        buffer,
+        this.#onAudioLoadSuccess.bind(this),
+        (function (e) {
+          //TODO: On error
+        }).bind(this)
     );
   }
 
   #onAudioLoadSuccess(audioBuffer) {
     this.audioBuffer = audioBuffer;
-    this.totalTimeInMilSeconds = this.audioBuffer.duration * 1000;
+    this.originalTotalTimeInMilSeconds = this.audioBuffer.duration * 1000;
+    this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds;
     if (this.totalTimeInMilSeconds === 0) {
       console.warn("Failed to load audio layer: " + this.name + ". Audio buffer duration is 0.");
     }
@@ -57,10 +64,28 @@ export class AudioLayer extends StandardLayer {
     this.playerAudioContext = playerAudioContext;
   }
 
+  setSpeed(speed) {
+    super.setSpeed(speed);
+    this.#updateTotalTimeForSpeed();
+  }
+
   connectAudioSource(playerAudioContext) {
     this.disconnect();
     this.source = playerAudioContext.createBufferSource();
-    this.source.buffer = this.audioBuffer;
+    this.currentSpeed = this.speedController.getSpeed();
+
+    if (this.preservePitch && this.currentSpeed !== 1.0) {
+      // Use pitch-preserved buffer for non-normal speeds
+      const pitchPreservedBuffer = this.#createPitchPreservedBuffer(this.audioBuffer, this.currentSpeed);
+      this.source.buffer = pitchPreservedBuffer;
+      // Don't apply playbackRate since time-stretching handles the speed change
+      this.source.playbackRate.value = 1.0;
+    } else {
+      this.source.buffer = this.audioBuffer;
+      this.source.playbackRate.value = this.currentSpeed;
+    }
+
+    this.lastAppliedSpeed = this.currentSpeed;
 
     if (this.audioStreamDestination) {
       //Used for video exporting
@@ -80,6 +105,15 @@ export class AudioLayer extends StandardLayer {
     }
     if (!playing) {
       return;
+    }
+
+    // Check if speed has changed and recreate audio source if needed
+    const currentSpeed = this.speedController.getSpeed();
+    if (currentSpeed !== this.lastAppliedSpeed && this.source) {
+      // Speed changed, need to recreate audio source
+      console.log(`AudioLayer "${this.name}" speed changed from ${this.lastAppliedSpeed} to ${currentSpeed}. Recreating audio source.`);
+      this.disconnect();
+      this.connectAudioSource(this.playerAudioContext);
     }
 
     let time = currentTime - this.start_time;
@@ -160,8 +194,7 @@ export class AudioLayer extends StandardLayer {
     if (newLength <= 0) {
       console.warn('Removing interval would result in empty audio buffer');
       // Return a minimal buffer with silence
-      const minimalBuffer = this.playerAudioContext.createBuffer(numberOfChannels, 1, sampleRate);
-      return minimalBuffer;
+      return this.playerAudioContext.createBuffer(numberOfChannels, 1, sampleRate);
     }
 
     const newBuffer = this.playerAudioContext.createBuffer(numberOfChannels, newLength, sampleRate);
@@ -200,28 +233,118 @@ export class AudioLayer extends StandardLayer {
       return;
     }
 
-    // Disconnect current audio source
     this.disconnect();
-
-    // Update the audio buffer
     this.audioBuffer = newBuffer;
+    this.originalTotalTimeInMilSeconds = newBuffer.duration * 1000;
+    this.currentSpeed = this.speedController.getSpeed();
+    this.#updateTotalTimeForSpeed();
 
-    // Update total time
-    this.totalTimeInMilSeconds = newBuffer.duration * 1000;
+  }
 
-    // Update studio total time if needed
-    if (window.studio) {
-      window.studio.player.total_time = 0;
-      for (let layer of window.studio.getLayers()) {
-        if (layer.start_time + layer.totalTimeInMilSeconds > window.studio.player.total_time) {
-          window.studio.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
-        }
-      }
-
-      // Refresh audio connections
-      window.studio.player.refreshAudio();
+  /**
+   * Creates a time-stretched audio buffer that preserves pitch
+   * @param {AudioBuffer} originalBuffer - The original audio buffer
+   * @param {number} speed - Speed multiplier (0.5 = half speed, 2.0 = double speed)
+   * @returns {AudioBuffer} - Time-stretched audio buffer with preserved pitch
+   * @private
+   */
+  #createPitchPreservedBuffer(originalBuffer, speed) {
+    if (speed === 1.0) {
+      return originalBuffer;
     }
 
-    console.log(`Updated AudioLayer "${this.name}" with new buffer duration: ${newBuffer.duration}s`);
+    // Check cache first
+    const cacheKey = `${speed}_${originalBuffer.duration}`;
+    if (this.processedBuffers.has(cacheKey)) {
+      return this.processedBuffers.get(cacheKey);
+    }
+
+    const sampleRate = originalBuffer.sampleRate;
+    const numberOfChannels = originalBuffer.numberOfChannels;
+    const originalLength = originalBuffer.length;
+
+    // Calculate new buffer length for time stretching
+    const newLength = Math.floor(originalLength / speed);
+    const newBuffer = this.playerAudioContext.createBuffer(numberOfChannels, newLength, sampleRate);
+
+    // Simple time-stretching algorithm using overlap-add method
+    const frameSize = 1024; // Frame size for processing
+    const hopSize = Math.floor(frameSize / 4); // Overlap factor
+    const stretchedHopSize = Math.floor(hopSize * speed);
+
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const originalData = originalBuffer.getChannelData(channel);
+      const newData = newBuffer.getChannelData(channel);
+
+      // Initialize output buffer
+      newData.fill(0);
+
+      let inputPos = 0;
+      let outputPos = 0;
+
+      while (inputPos + frameSize < originalLength && outputPos + frameSize < newLength) {
+        // Extract frame from original audio
+        const frame = new Float32Array(frameSize);
+        for (let i = 0; i < frameSize; i++) {
+          frame[i] = originalData[inputPos + i] || 0;
+        }
+
+        // Apply window function (Hann window)
+        for (let i = 0; i < frameSize; i++) {
+          const windowValue = 0.5 * (1 - Math.cos(2 * Math.PI * i / (frameSize - 1)));
+          frame[i] *= windowValue;
+        }
+
+        // Overlap-add to output buffer
+        for (let i = 0; i < frameSize && outputPos + i < newLength; i++) {
+          newData[outputPos + i] += frame[i];
+        }
+
+        inputPos += stretchedHopSize;
+        outputPos += hopSize;
+      }
+
+      // Normalize the output to prevent clipping
+      let maxValue = 0;
+      for (let i = 0; i < newLength; i++) {
+        maxValue = Math.max(maxValue, Math.abs(newData[i]));
+      }
+
+      if (maxValue > 1.0) {
+        const normalizationFactor = 0.95 / maxValue;
+        for (let i = 0; i < newLength; i++) {
+          newData[i] *= normalizationFactor;
+        }
+      }
+    }
+
+    // Cache the processed buffer
+    this.processedBuffers.set(cacheKey, newBuffer);
+
+    console.log(`Created pitch-preserved buffer for speed ${speed}: ${originalBuffer.duration}s -> ${newBuffer.duration}s`);
+    return newBuffer;
+  }
+
+  #updateTotalTimeForSpeed() {
+    this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this.speedController.getSpeed();
+    console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
+  }
+
+  /**
+   * Set whether to preserve pitch when changing speed
+   * @param {boolean} preserve - True to preserve pitch, false to allow pitch changes
+   */
+  setPitchPreservation(preserve) {
+    if (this.preservePitch === preserve) {
+      return;
+    }
+    this.preservePitch = preserve;
+    this.processedBuffers.clear();
+    // If currently playing, reconnect with new settings
+    if (this.source && this.playerAudioContext) {
+      this.connectAudioSource(this.playerAudioContext);
+    } else {
+      this.currentSpeed = this.speedController.getSpeed();
+    }
   }
 }
