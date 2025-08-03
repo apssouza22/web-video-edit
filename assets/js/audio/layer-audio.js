@@ -1,25 +1,29 @@
 import {StandardLayer} from '../layer/layer-common.js';
 import {AudioContext} from '../constants.js';
 import {PitchPreservationProcessor} from './pitch-preservation-processor.js';
+import {AudioCutter} from './audio-cutter.js';
 
 export class AudioLayer extends StandardLayer {
+
   constructor(file, skipLoading = false) {
     super(file);
     this.reader = new FileReader();
     this.audioCtx = new AudioContext({
       sampleRate: 16000 // Whisper model requires this
     });
+    /** @type {AudioBuffer} */
     this.audioBuffer = null;
     /** @type {AudioBufferSourceNode} */
     this.source = null;
-    this.playing = false;
-    /** @type {AudioContext} */
+  /** @type {AudioContext} */
     this.playerAudioContext = null;
+    this.playing = false;
     this.audioStreamDestination = null;
     this.currentSpeed = 1.0; // Track current playback speed
     this.lastAppliedSpeed = 1.0; // Track last applied speed for change detection
     this.preservePitch = true; // Enable pitch preservation by default
     this.pitchProcessor = new PitchPreservationProcessor(); // Pitch preservation processor
+    this.audioCutter = new AudioCutter();
     this.originalTotalTimeInMilSeconds = 0; // Store original duration before speed changes
     if (skipLoading) {
       return
@@ -134,7 +138,7 @@ export class AudioLayer extends StandardLayer {
    */
   removeInterval(startTime, endTime) {
     if (!this.audioBuffer || !this.playerAudioContext) {
-      console.log(`Audio layer "${this.name}" missing audioBuffer or playerAudioContext`);
+      console.warn(`Audio layer "${this.name}" missing audioBuffer or playerAudioContext`);
       return false;
     }
 
@@ -144,7 +148,7 @@ export class AudioLayer extends StandardLayer {
     }
 
     try {
-      const newBuffer = this.#removeAudioIntervalInternal(startTime, endTime);
+      const newBuffer = this.audioCutter.removeInterval(this.audioBuffer, this.playerAudioContext, startTime, endTime);
 
       if (newBuffer && newBuffer !== this.audioBuffer) {
         this.#updateBuffer(newBuffer);
@@ -157,66 +161,6 @@ export class AudioLayer extends StandardLayer {
       console.error(`Error removing audio interval from layer "${this.name}":`, error);
       return false;
     }
-  }
-
-  /**
-   * Removes an audio interval from this AudioLayer's buffer and returns a new AudioBuffer
-   * @param {number} startTime - Start time in seconds to remove
-   * @param {number} endTime - End time in seconds to remove
-   * @returns {AudioBuffer} New AudioBuffer with the interval removed
-   * @private
-   */
-  #removeAudioIntervalInternal(startTime, endTime) {
-    if (!this.audioBuffer || startTime >= endTime || startTime < 0) {
-      console.error('Invalid parameters for removeAudioInterval');
-      return this.audioBuffer;
-    }
-
-    const sampleRate = this.audioBuffer.sampleRate;
-    const numberOfChannels = this.audioBuffer.numberOfChannels;
-    const originalLength = this.audioBuffer.length;
-
-    // Convert time to sample indices
-    const startSample = Math.floor(startTime * sampleRate);
-    const endSample = Math.ceil(endTime * sampleRate);
-
-    // Clamp to valid ranges
-    const clampedStartSample = Math.max(0, Math.min(startSample, originalLength));
-    const clampedEndSample = Math.max(clampedStartSample, Math.min(endSample, originalLength));
-
-    // Calculate new buffer length
-    const removedSamples = clampedEndSample - clampedStartSample;
-    const newLength = originalLength - removedSamples;
-
-    if (newLength <= 0) {
-      console.warn('Removing interval would result in empty audio buffer');
-      // Return a minimal buffer with silence
-      return this.playerAudioContext.createBuffer(numberOfChannels, 1, sampleRate);
-    }
-
-    const newBuffer = this.playerAudioContext.createBuffer(numberOfChannels, newLength, sampleRate);
-
-    // Copy audio data for each channel
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const originalChannelData = this.audioBuffer.getChannelData(channel);
-      const newChannelData = newBuffer.getChannelData(channel);
-
-      let writeIndex = 0;
-
-      // Copy data before the removed interval
-      for (let i = 0; i < clampedStartSample; i++) {
-        newChannelData[writeIndex++] = originalChannelData[i];
-      }
-
-      // Skip the removed interval and copy data after
-      for (let i = clampedEndSample; i < originalLength; i++) {
-        newChannelData[writeIndex++] = originalChannelData[i];
-      }
-    }
-
-    console.log(`Removed audio interval ${startTime}s-${endTime}s. Original: ${this.audioBuffer.duration}s, New: ${newBuffer.duration}s`);
-
-    return newBuffer;
   }
 
   /**
@@ -235,6 +179,7 @@ export class AudioLayer extends StandardLayer {
     this.originalTotalTimeInMilSeconds = newBuffer.duration * 1000;
     this.currentSpeed = this.speedController.getSpeed();
     this.#updateTotalTimeForSpeed();
+    this.connectAudioSource(this.playerAudioContext);
 
   }
 
@@ -243,21 +188,4 @@ export class AudioLayer extends StandardLayer {
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
   }
 
-  /**
-   * Set whether to preserve pitch when changing speed
-   * @param {boolean} preserve - True to preserve pitch, false to allow pitch changes
-   */
-  setPitchPreservation(preserve) {
-    if (this.preservePitch === preserve) {
-      return;
-    }
-    this.preservePitch = preserve;
-    this.pitchProcessor.clearCache();
-    // If currently playing, reconnect with new settings
-    if (this.source && this.playerAudioContext) {
-      this.connectAudioSource(this.playerAudioContext);
-    } else {
-      this.currentSpeed = this.speedController.getSpeed();
-    }
-  }
 }
