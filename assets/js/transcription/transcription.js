@@ -94,10 +94,12 @@ export class TranscriptionService {
   }
 
   startTranscription(audioBuffer) {
-    const data = getMockedData();
-    this.#onTranscriptionComplete(data);
-
-    return
+    if(window.location.hostname === "localhost") {
+      console.warn("Using mocked transcription data for local development.");
+      const data = getMockedData();
+      this.#onTranscriptionComplete(data);
+      return
+    }
     this.transcriptionView.showLoading();
 
     const audio = transformAudioBuffer(audioBuffer);
