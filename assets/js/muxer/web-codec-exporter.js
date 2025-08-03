@@ -92,7 +92,7 @@ export class WebCodecExporter {
       alpha: false,
       desynchronized: true, // Better performance
       colorSpace: 'srgb', // Better color space
-      willReadFrequently: false // Optimized for writing
+      willReadFrequently: false
     });
     
     // Set high-quality rendering settings
@@ -116,7 +116,6 @@ export class WebCodecExporter {
     const exportWidth = this.recordingCanvas.width;
     const exportHeight = this.recordingCanvas.height;
 
-    // Enhanced codec selection with quality preferences
     const videoCodec = await getFirstEncodableVideoCodec(
         this.output.format.getSupportedVideoCodecs(),
         {
@@ -247,8 +246,7 @@ export class WebCodecExporter {
     for (const layer of audioLayers) {
       if (layer.audioBuffer) {
         const source = this.audioContext.createBufferSource();
-        source.buffer = layer.audioBuffer;
-
+        layer.setSourceBuffer(source);
         // Apply layer timing and volume
         const startTime = (layer.startTime || 0) / 1000;
         const volume = layer.volume !== undefined ? layer.volume : 1.0;

@@ -1,12 +1,12 @@
 import { VideoLayer } from './layer-video.js';
-import { AudioLayer } from './layer-audio.js';
+import { AudioLayer } from '../audio/layer-audio.js';
 import { ImageLayer } from './layer-image.js';
 import { TextLayer } from './layer-text.js';
 import { LayerService } from './operations.js';
 
 export { StandardLayer, FlexibleLayer, addElementToBackground } from './layer-common.js';
 export { VideoLayer } from './layer-video.js';
-export { AudioLayer } from './layer-audio.js';
+export { AudioLayer } from '../audio/layer-audio.js';
 export { ImageLayer } from './layer-image.js';
 export { TextLayer } from './layer-text.js';
 

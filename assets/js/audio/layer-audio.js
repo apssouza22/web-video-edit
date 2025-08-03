@@ -1,6 +1,6 @@
-import {StandardLayer} from './layer-common.js';
+import {StandardLayer} from '../layer/layer-common.js';
 import {AudioContext} from '../constants.js';
-import {PitchPreservationProcessor} from '../audio/pitch-preservation-processor.js';
+import {PitchPreservationProcessor} from './pitch-preservation-processor.js';
 
 export class AudioLayer extends StandardLayer {
   constructor(file, skipLoading = false) {
@@ -10,6 +10,7 @@ export class AudioLayer extends StandardLayer {
       sampleRate: 16000 // Whisper model requires this
     });
     this.audioBuffer = null;
+    /** @type {AudioBufferSourceNode} */
     this.source = null;
     this.playing = false;
     /** @type {AudioContext} */
@@ -74,14 +75,7 @@ export class AudioLayer extends StandardLayer {
     this.disconnect();
     this.source = playerAudioContext.createBufferSource();
     this.currentSpeed = this.speedController.getSpeed();
-
-    if (this.preservePitch && this.currentSpeed !== 1.0) {
-      this.source.buffer = this.pitchProcessor.createPitchPreservedBuffer(this.audioBuffer, this.currentSpeed, this.playerAudioContext);
-      this.source.playbackRate.value = 1.0; // Don't apply playbackRate since time-stretching handles the speed change
-    } else {
-      this.source.buffer = this.audioBuffer;
-      this.source.playbackRate.value = this.currentSpeed;
-    }
+    this.setSourceBuffer(this.source);
 
     this.lastAppliedSpeed = this.currentSpeed;
 
@@ -92,6 +86,16 @@ export class AudioLayer extends StandardLayer {
       this.source.connect(playerAudioContext.destination);
     }
     this.started = false;
+  }
+
+  setSourceBuffer(source) {
+    if (this.preservePitch && this.currentSpeed !== 1.0) {
+      source.buffer = this.pitchProcessor.createPitchPreservedBuffer(this.audioBuffer, this.currentSpeed, this.playerAudioContext);
+      source.playbackRate.value = 1.0; // Don't apply playbackRate since time-stretching handles the speed change
+    } else {
+      source.buffer = this.audioBuffer;
+      source.playbackRate.value = this.currentSpeed;
+    }
   }
 
   render(ctxOut, currentTime, playing = false) {
@@ -105,11 +109,8 @@ export class AudioLayer extends StandardLayer {
       return;
     }
 
-    // Check if speed has changed and recreate audio source if needed
     const currentSpeed = this.speedController.getSpeed();
     if (currentSpeed !== this.lastAppliedSpeed && this.source) {
-      // Speed changed, need to recreate audio source
-      console.log(`AudioLayer "${this.name}" speed changed from ${this.lastAppliedSpeed} to ${currentSpeed}. Recreating audio source.`);
       this.disconnect();
       this.connectAudioSource(this.playerAudioContext);
     }

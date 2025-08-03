@@ -148,7 +148,6 @@ export class CodecDemuxer {
         }, 1000);
       }
 
-      // Remove event listeners
       this.#cleanupHandlers.forEach(handler => handler());
       this.#cleanupHandlers = [];
 
