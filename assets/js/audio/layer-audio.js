@@ -2,20 +2,18 @@ import {StandardLayer} from '../layer/layer-common.js';
 import {AudioContext} from '../constants.js';
 import {PitchPreservationProcessor} from './pitch-preservation-processor.js';
 import {AudioCutter} from './audio-cutter.js';
+import {AudioLoader} from './audio-loader.js';
 
 export class AudioLayer extends StandardLayer {
 
   constructor(file, skipLoading = false) {
     super(file);
-    this.reader = new FileReader();
-    this.audioCtx = new AudioContext({
-      sampleRate: 16000 // Whisper model requires this
-    });
+    this.audioLoader = new AudioLoader();
     /** @type {AudioBuffer} */
     this.audioBuffer = null;
     /** @type {AudioBufferSourceNode} */
     this.source = null;
-  /** @type {AudioContext} */
+    /** @type {AudioContext} */
     this.playerAudioContext = null;
     this.playing = false;
     this.audioStreamDestination = null;
@@ -25,24 +23,34 @@ export class AudioLayer extends StandardLayer {
     this.pitchProcessor = new PitchPreservationProcessor(); // Pitch preservation processor
     this.audioCutter = new AudioCutter();
     this.originalTotalTimeInMilSeconds = 0; // Store original duration before speed changes
+
     if (skipLoading) {
-      return
+      return;
     }
-    this.reader.addEventListener("load", this.#onAudioLoad.bind(this));
-    this.reader.readAsArrayBuffer(file);
+
+    this.#loadAudioFile(file);
   }
 
-  #onAudioLoad() {
-    let buffer = this.reader.result;
-    this.audioCtx.decodeAudioData(
-        buffer,
-        this.#onAudioLoadSuccess.bind(this),
-        (function (e) {
-          //TODO: On error
-        }).bind(this)
-    );
+  /**
+   * Loads an audio file using the AudioLoader
+   * @param {File} file - The audio file to load
+   * @private
+   */
+  async #loadAudioFile(file) {
+    try {
+      const audioBuffer = await this.audioLoader.loadAudioFile(file);
+      this.#onAudioLoadSuccess(audioBuffer);
+    } catch (error) {
+      console.error(`Failed to load audio layer: ${this.name}`, error);
+      // TODO: Handle error appropriately
+    }
   }
 
+  /**
+   * Handles successful audio loading
+   * @param {AudioBuffer} audioBuffer - The loaded audio buffer
+   * @private
+   */
   #onAudioLoadSuccess(audioBuffer) {
     this.audioBuffer = audioBuffer;
     this.originalTotalTimeInMilSeconds = this.audioBuffer.duration * 1000;
@@ -62,6 +70,17 @@ export class AudioLayer extends StandardLayer {
     if (this.source) {
       this.source.disconnect();
       this.source = null;
+    }
+  }
+
+  /**
+   * Disposes of the audio layer resources
+   */
+  dispose() {
+    this.disconnect();
+    if (this.audioLoader) {
+      this.audioLoader.dispose();
+      this.audioLoader = null;
     }
   }
 
