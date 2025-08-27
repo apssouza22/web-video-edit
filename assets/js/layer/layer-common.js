@@ -212,13 +212,16 @@ export class StandardLayer {
     Canvas2DRender.drawScaled(ctxFrom, ctxOutTo, video);
   }
 
-  // Speed control methods
   setSpeed(speed) {
     this.speedController.setSpeed(speed);
   }
 
   getSpeed() {
     return this.speedController.getSpeed();
+  }
+
+  dispose(){
+    console.log("Closing layer ", this.name);
   }
 }
 

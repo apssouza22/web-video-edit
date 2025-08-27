@@ -166,16 +166,10 @@ export class VideoStudio {
    */
   remove(layer) {
     const idx = this.getLayers().indexOf(layer);
-    const len = this.getLayers().length;
     if (idx > -1) {
       this.getLayers().splice(idx, 1);
-      let layer_picker = document.getElementById('layers');
-      // divs are reversed
-      layer_picker.children[len - idx - 1].remove();
     }
-    if (layer instanceof AudioLayer) {
-      layer.disconnect();
-    }
+    layer.dispose();
     this.player.total_time = 0;
     for (let layer of this.getLayers()) {
       if (layer.start_time + layer.totalTimeInMilSeconds > this.player.total_time) {
