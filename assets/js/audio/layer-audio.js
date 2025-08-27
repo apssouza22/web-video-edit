@@ -1,8 +1,8 @@
-import {StandardLayer} from '../layer/layer-common.js';
+import {StandardLayer} from '../layer/index.js';
 import {AudioContext} from '../constants.js';
-import {PitchPreservationProcessor} from './pitch-preservation-processor.js';
 import {AudioCutter} from './audio-cutter.js';
 import {AudioLoader} from './audio-loader.js';
+import {AudioSource} from "./audio-source.js";
 
 export class AudioLayer extends StandardLayer {
 
@@ -11,7 +11,7 @@ export class AudioLayer extends StandardLayer {
     this.audioLoader = new AudioLoader();
     /** @type {AudioBuffer} */
     this.audioBuffer = null;
-    /** @type {AudioBufferSourceNode} */
+    /** @type {AudioSource} */
     this.source = null;
     /** @type {AudioContext} */
     this.playerAudioContext = null;
@@ -19,8 +19,6 @@ export class AudioLayer extends StandardLayer {
     this.audioStreamDestination = null;
     this.currentSpeed = 1.0; // Track current playback speed
     this.lastAppliedSpeed = 1.0; // Track last applied speed for change detection
-    this.preservePitch = true; // Enable pitch preservation by default
-    this.pitchProcessor = new PitchPreservationProcessor(); // Pitch preservation processor
     this.audioCutter = new AudioCutter();
     this.originalTotalTimeInMilSeconds = 0; // Store original duration before speed changes
 
@@ -96,29 +94,16 @@ export class AudioLayer extends StandardLayer {
 
   connectAudioSource(playerAudioContext) {
     this.disconnect();
-    this.source = playerAudioContext.createBufferSource();
     this.currentSpeed = this.speedController.getSpeed();
-    this.setSourceBuffer(this.source);
-
     this.lastAppliedSpeed = this.currentSpeed;
-
+    this.source = new AudioSource(playerAudioContext);
     if (this.audioStreamDestination) {
       //Used for video exporting
-      this.source.connect(this.audioStreamDestination);
+      this.source.connect(this.audioStreamDestination, this.currentSpeed, this.audioBuffer);
     } else {
-      this.source.connect(playerAudioContext.destination);
+      this.source.connect(playerAudioContext.destination, this.currentSpeed, this.audioBuffer);
     }
     this.started = false;
-  }
-
-  setSourceBuffer(source) {
-    if (this.preservePitch && this.currentSpeed !== 1.0) {
-      source.buffer = this.pitchProcessor.createPitchPreservedBuffer(this.audioBuffer, this.currentSpeed, this.playerAudioContext);
-      source.playbackRate.value = 1.0; // Don't apply playbackRate since time-stretching handles the speed change
-    } else {
-      source.buffer = this.audioBuffer;
-      source.playbackRate.value = this.currentSpeed;
-    }
   }
 
   render(ctxOut, currentTime, playing = false) {
@@ -134,7 +119,6 @@ export class AudioLayer extends StandardLayer {
 
     const currentSpeed = this.speedController.getSpeed();
     if (currentSpeed !== this.lastAppliedSpeed && this.source) {
-      this.disconnect();
       this.connectAudioSource(this.playerAudioContext);
     }
 
@@ -147,6 +131,10 @@ export class AudioLayer extends StandardLayer {
       this.source.start(0, time / 1000);
       this.started = true;
     }
+  }
+
+  playStart(time) {
+    this.source.start(time / 1000);
   }
 
   /**

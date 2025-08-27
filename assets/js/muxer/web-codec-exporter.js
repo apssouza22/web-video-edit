@@ -238,30 +238,13 @@ export class WebCodecExporter {
    */
   async #renderAudioOffline() {
     console.log('🎵 Rendering audio offline...');
-    const audioLayers = this.#getAudioLayers();
-    const gainNode = this.audioContext.createGain();
-    gainNode.connect(this.audioContext.destination);
-
-    // Process each audio layer
-    for (const layer of audioLayers) {
+    for (const layer of this.#getAudioLayers()) {
       if (layer.audioBuffer) {
-        const source = this.audioContext.createBufferSource();
-        layer.setSourceBuffer(source);
-        // Apply layer timing and volume
-        const startTime = (layer.startTime || 0) / 1000;
-        const volume = layer.volume !== undefined ? layer.volume : 1.0;
-        const layerGain = this.audioContext.createGain();
-        layerGain.gain.value = volume;
-
-        source.connect(layerGain);
-        layerGain.connect(gainNode);
-
-        source.start(startTime);
-        console.log(`🎵 Added audio layer: start=${startTime}s, volume=${volume}`);
+        layer.connectAudioSource(this.audioContext);
+        layer.playStart(0)
       }
     }
 
-    // Render the audio
     const audioBuffer = await this.audioContext.startRendering();
     await this.audioBufferSource.add(audioBuffer);
     this.audioBufferSource.close();
