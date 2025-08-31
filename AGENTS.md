@@ -16,7 +16,7 @@ Avoid comments describing functionality ensure self describing code
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `assets/js/`: Core source (ES modules). Domains: `audio/`, `demux/`, `muxer/`, `timeline/`, `studio/`, `record/`, `frame/`, `layer/`, `common/`, `transcription/`.
+- `src/`: Core source (ES modules). Domains: `audio/`, `demux/`, `muxer/`, `timeline/`, `studio/`, `record/`, `frame/`, `layer/`, `common/`, `transcription/`.
 - `assets/css/`: Styles and fonts.  `index.html`: app shell for local dev.
 - `tests/`: Jest tests, setup, and mocks. Key files: `tests/setup.js`, `tests/services/*.test.js`.
 - Config: `package.json` (scripts), `jest.config.js` (jsdom, coverage), `.github/` (automation), `README.md` (usage).
@@ -26,19 +26,19 @@ Avoid comments describing functionality ensure self describing code
 - `npm start`: Serve locally at `http://localhost:8080` using `http-server`.
 - `npm test`: Run Jest once in jsdom.
 - `npm run test:watch`: Re-run tests on change.
-- `npm run test:coverage`: Generate coverage (targets `assets/js/**/*.js`, excluding entry/worker files).
+- `npm run test:coverage`: Generate coverage (targets `src/**/*.{js,ts}`, excluding entry/worker files).
 - Example (single file): `npm test tests/services/frame-service.test.js`.
 
 ## Coding Style & Naming Conventions
-- Language: Vanilla JS (ES modules), browser-first. Avoid Node-only APIs in `assets/js`.
+- Language: Vanilla JS (ES modules), browser-first. Avoid Node-only APIs in `src`.
 - Indentation: 2 spaces; line width ~100 chars.
 - Filenames/dirs: kebab-case (e.g., `layer-image.js`, `video-export.js`).
 - Symbols: `camelCase` for functions/vars, `PascalCase` for classes, `UPPER_SNAKE_CASE` for constants.
-- Module imports: relative from `assets/js`. In tests, `@/` maps to `assets/js/` via Jest.
+- Module imports: relative from `src`. In tests, `@/` maps to `src/` via Jest.
 
 ## Testing Guidelines
 - Framework: Jest with `jsdom` environment.
-- Location: Place new tests under `tests/services/` (or create a subfolder mirroring `assets/js` domain).
+- Location: Place new tests under `tests/services/` (or create a subfolder mirroring `src` domain).
 - Naming: `*.test.js` or `*.spec.js` (matched by Jest config).
 - Coverage: Keep or improve coverage (`npm run test:coverage`). Use `tests/setup.js` mocks for Web APIs (MediaRecorder, Worker, Canvas, etc.).
 
@@ -49,4 +49,4 @@ Avoid comments describing functionality ensure self describing code
 
 ## Security & Configuration Tips
 - Do not commit large media assets; prefer small samples in `assets/` for demos/tests.
-- Keep browser compatibility in mind (see `assets/js/common/browser-support.js`). Gate experimental APIs behind checks and fallbacks.
+- Keep browser compatibility in mind (see `src/common/browser-support.js`). Gate experimental APIs behind checks and fallbacks.

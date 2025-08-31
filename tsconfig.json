@@ -15,17 +15,16 @@
     "checkJs": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["assets/js/*"]
+      "@/*": ["src/*"]
     },
     "types": ["vite/client"]
   },
   "include": [
-    "assets/js/**/*.ts",
-    "assets/js/**/*.js",
+    "src/**/*.ts",
+    "src/**/*.js",
     "env.d.ts",
     "vite.config.ts",
     "index.html"
   ],
   "exclude": ["node_modules", "tests"]
 }
-

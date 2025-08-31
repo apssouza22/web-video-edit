@@ -6,14 +6,15 @@ export default {
     '**/tests/**/*.spec.js'
   ],
   collectCoverageFrom: [
-    'assets/js/**/*.js',
-    '!assets/js/worker.js',
-    '!assets/js/main.js',
+    'src/**/*.js',
+    'src/**/*.ts',
+    '!src/worker.js',
+    '!src/main.js',
     '!**/node_modules/**'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/assets/js/$1'
+    '^@/(.*)$': '<rootDir>/src/$1'
   },
   transform: {}
 };

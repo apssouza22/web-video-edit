@@ -2,7 +2,7 @@
   "name": "video-demux",
   "version": "1.0.0",
   "description": "A video demux application",
-  "main": "assets/js/main.js",
+  "main": "src/main.ts",
   "type": "module",
   "scripts": {
     "start": "vite",
