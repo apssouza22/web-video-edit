@@ -7,7 +7,7 @@ export default defineConfig({
     server: { port: 8001, open: true },
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'assets/js'),
+            '@': path.resolve(__dirname, 'src'),
         },
     },
 });

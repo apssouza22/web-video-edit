@@ -1,5 +1,5 @@
-import { FrameService } from '../../assets/js/frame/frames.js';
-import { Frame } from '../../assets/js/frame/frame.js';
+import { FrameService } from '../../src/frame/frames.js';
+import { Frame } from '../../src/frame/frame.js';
 import { mockFn } from '../utils/mock-fn.js';
 
 // Mock FrameAdjustHandler
