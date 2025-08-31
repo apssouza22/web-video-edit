@@ -1,4 +1,4 @@
-import { TimelineLayerFactory } from './timeline-layer-factory.js';
+import { TimelineLayerFactory } from './timeline-layer-factory';
 
 /**
  * Class responsible for managing timeline layer rendering using the new TimelineLayer system

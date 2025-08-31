@@ -1,4 +1,4 @@
-import { LayerReorderHandler } from './layer-reorder-handler.js';
+import { LayerReorderHandler } from './layer-reorder-handler';
 
 /**
  * Handles layer dragging and scrubbing in the timeline

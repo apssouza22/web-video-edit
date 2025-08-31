@@ -1,7 +1,7 @@
-import { AudioTimelineLayer } from './layers/audio-timeline-layer.js';
-import { VideoTimelineLayer } from './layers/video-timeline-layer.js';
-import { ImageTimelineLayer } from './layers/image-timeline-layer.js';
-import { TextTimelineLayer } from './layers/text-timeline-layer.js';
+import { AudioTimelineLayer } from './layers/audio-timeline-layer';
+import { VideoTimelineLayer } from './layers/video-timeline-layer';
+import { ImageTimelineLayer } from './layers/image-timeline-layer';
+import { TextTimelineLayer } from './layers/text-timeline-layer';
 
 /**
  * Factory class for creating timeline layer renderers

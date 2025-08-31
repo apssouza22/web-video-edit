@@ -1,8 +1,8 @@
-import {TimeMarker} from './time-marker.js';
-import {TimelineZoomHandler} from './zoom.js';
-import {PreviewHandler} from './preview.js';
-import {DragLayerHandler} from './drag.js';
-import {TimelineLayerRender} from './tllayer-render.js';
+import {TimeMarker} from './time-marker';
+import {TimelineZoomHandler} from './zoom';
+import {PreviewHandler} from './preview';
+import {DragLayerHandler} from './drag';
+import {TimelineLayerRender} from './tllayer-render';
 import {PinchHandler} from '../studio/index.js';
 import {dpr} from '../constants.js';
 

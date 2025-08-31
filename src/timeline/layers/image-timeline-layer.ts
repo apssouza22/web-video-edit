@@ -1,4 +1,4 @@
-import { TimelineLayer } from '../timeline-layer.js';
+import { TimelineLayer } from '../timeline-layer';
 
 /**
  * Timeline layer renderer for image layers
