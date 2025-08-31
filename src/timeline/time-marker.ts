@@ -3,15 +3,17 @@
  * Handles rendering of time markers on the timeline
  */
 export class TimeMarker {
+  height: number;
+  spacing: number;
   /**
    * Create a new TimeMarker instance
    * @param {Object} config - Configuration object
    * @param {number} config.height - Height for the time markers at the top
    * @param {number} config.spacing - Pixels between time markers
    */
-  constructor(config = {}) {
-    this.height = config.height || 20;
-    this.spacing = config.spacing || 60;
+  constructor(config: { height?: number; spacing?: number } = {}) {
+    this.height = config.height ?? 20;
+    this.spacing = config.spacing ?? 60;
   }
 
   /**
@@ -21,7 +23,7 @@ export class TimeMarker {
    * @param {number} width - Width of the canvas
    * @param {number} totalTime - Total timeline duration in milliseconds
    */
-  render(ctx, width, totalTime) {
+  render(ctx: CanvasRenderingContext2D, width: number, totalTime: number) {
     ctx.fillStyle = 'rgb(30, 34, 38)';
     ctx.fillRect(0, 0, width, this.height);
     ctx.fillStyle = 'rgb(150, 150, 150)';
@@ -45,7 +47,7 @@ export class TimeMarker {
    * @param {number} totalTime - Total timeline duration in milliseconds
    * @returns {number} Time interval in milliseconds
    */
-  calculateTimeInterval(availableWidth, totalTime) {
+  calculateTimeInterval(availableWidth: number, totalTime: number): number {
     const pixelsPerSecond = availableWidth / (totalTime / 1000);
     
     // Choose an interval that will space the markers nicely with minimum 1 second intervals

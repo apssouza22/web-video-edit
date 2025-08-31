@@ -2,6 +2,8 @@
  * Base class for timeline layer rendering
  * Encapsulates all rendering logic for timeline layers
  */
+import type { StandardLayer } from './types';
+
 export class TimelineLayer {
   /**
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
@@ -9,7 +11,12 @@ export class TimelineLayer {
    * @param {number} totalTime - The total time duration of the timeline
    * @param {number} canvasWidth - The width of the timeline canvas
    */
-  constructor(ctx, layer, totalTime, canvasWidth) {
+  ctx: CanvasRenderingContext2D;
+  layer: StandardLayer;
+  totalTime: number;
+  canvasWidth: number;
+
+  constructor(ctx: CanvasRenderingContext2D, layer: StandardLayer, totalTime: number, canvasWidth: number) {
     this.ctx = ctx;
     this.layer = layer;
     this.totalTime = totalTime;
@@ -21,7 +28,7 @@ export class TimelineLayer {
    * @param {number} totalTime - The total time duration
    * @param {number} canvasWidth - The canvas width
    */
-  updateProperties(totalTime, canvasWidth) {
+  updateProperties(totalTime: number, canvasWidth: number) {
     this.totalTime = totalTime;
     this.canvasWidth = canvasWidth;
   }
@@ -31,7 +38,7 @@ export class TimelineLayer {
    * @param {boolean} selected - Whether the layer is selected
    * @returns {Object} - Object containing fillColor, gradientColor, strokeColor, and shadowColor
    */
-  #getColors(selected) {
+  #getColors(selected: boolean) {
     const colors = this.getLayerColors();
     return {
       fillColor: selected ? colors.selectedColor : colors.baseColor,
@@ -46,7 +53,7 @@ export class TimelineLayer {
    * Must be implemented by subclasses
    * @returns {Object} - Object containing baseColor, gradientColor, selectedColor, selectedGradient
    */
-  getLayerColors() {
+  getLayerColors(): { baseColor: string; gradientColor: string; selectedColor: string; selectedGradient: string } {
     throw new Error('getLayerColors must be implemented by subclasses');
   }
 
@@ -57,7 +64,7 @@ export class TimelineLayer {
    * @param {number} y - Y coordinate for symbol center
    * @param {number} size - Size of the symbol
    */
-  #drawSymbol(x, y, size) {
+  #drawSymbol(x: number, y: number, size: number) {
     this.drawLayerSymbol(x, y, size);
   }
 
@@ -68,7 +75,8 @@ export class TimelineLayer {
    * @param {number} y - Y coordinate for symbol center
    * @param {number} size - Size of the symbol
    */
-  drawLayerSymbol(x, y, size) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  drawLayerSymbol(x: number, y: number, size: number) {
     throw new Error('drawLayerSymbol must be implemented by subclasses');
   }
 
@@ -93,7 +101,7 @@ export class TimelineLayer {
    * @param {Object} colors - Color scheme object
    * @param {boolean} selected - Whether layer is selected
    */
-  #drawTrack(start, length, trackY, height, colors, selected) {
+  #drawTrack(start: number, length: number, trackY: number, height: number, colors: { fillColor: string; gradientColor: string; strokeColor: string; shadowColor: string }, selected: boolean) {
     const radius = height * 0.25;
     const gradientStartY = trackY;
     const gradientEndY = trackY + height;
@@ -126,7 +134,7 @@ export class TimelineLayer {
    * @param {number} height - Height of the track
    * @param {boolean} selected - Whether layer is selected
    */
-  #drawResizeHandles(start, length, y_coord, height, selected) {
+  #drawResizeHandles(start: number, length: number, y_coord: number, height: number, selected: boolean) {
     const handleWidth = 6;
     const handleHeight = height * 1.4;
     const handleY = y_coord - handleHeight / 2;
@@ -156,7 +164,7 @@ export class TimelineLayer {
    * @param {number} y_coord - Y coordinate center
    * @param {number} height - Height of the track
    */
-  #drawLayerName(start, length, y_coord, height) {
+  #drawLayerName(start: number, length: number, y_coord: number, height: number) {
     if (length <= height * 4) return;
 
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -190,7 +198,7 @@ export class TimelineLayer {
    * @param {number} height - The height of the layer track
    * @param {boolean} selected - Whether the layer is selected
    */
-  render(yPos, height, selected = false) {
+  render(yPos: number, height: number, selected = false) {
     if (!isFinite(yPos) || !isFinite(height) || height <= 0) {
       console.warn("Invalid layer coordinates");
       return;

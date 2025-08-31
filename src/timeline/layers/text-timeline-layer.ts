@@ -23,7 +23,7 @@ export class TextTimelineLayer extends TimelineLayer {
    * @param {number} y - Y coordinate for symbol center
    * @param {number} size - Size of the symbol
    */
-  drawLayerSymbol(x, y, size) {
+  drawLayerSymbol(x: number, y: number, size: number) {
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
     this.ctx.lineWidth = 1.5;

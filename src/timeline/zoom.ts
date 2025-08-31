@@ -2,14 +2,16 @@
  * Class to handle timeline zoom functionality using a slider
  */
 export class TimelineZoomHandler {
+  timeline: any;
+  slider: HTMLInputElement | null;
   /**
    * Creates a new TimelineZoomHandler
    * 
    * @param {Timeline} timeline - The timeline instance to control
    */
-  constructor(timeline) {
+  constructor(timeline: any) {
     this.timeline = timeline;
-    this.slider = document.getElementById('timeline_zoom_slider');
+    this.slider = document.getElementById('timeline_zoom_slider') as HTMLInputElement | null;
     this.setupEventListeners();
   }
 
@@ -30,8 +32,9 @@ export class TimelineZoomHandler {
    * 
    * @param {Event} event - The slider input event
    */
-  handleZoomChange(event) {
-    const zoomLevel = parseFloat(event.target.value);
+  handleZoomChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const zoomLevel = parseFloat(target.value);
     
     // Get the current scroll position and center point
     const timelineHolder = this.timeline.timelineHolder;
@@ -57,7 +60,7 @@ export class TimelineZoomHandler {
    */
   updateSliderValue() {
     if (this.slider) {
-      this.slider.value = this.timeline.scale;
+      this.slider.value = String(this.timeline.scale);
     }
   }
 }

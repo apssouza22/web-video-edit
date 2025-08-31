@@ -1,14 +1,26 @@
 import { LayerReorderHandler } from './layer-reorder-handler';
+import type { StandardLayer } from './types';
+import {Timeline} from "./timeline";
 
 /**
  * Handles layer dragging and scrubbing in the timeline
  */
 export class DragLayerHandler {
+  dragging: null | ((time: number, selectedLayer: StandardLayer) => void);
+  time: number;
+  timeline: any; // Avoid circular type; must provide .intersectsTime(), .minLayerSpacing etc.
+  reorderHandler: LayerReorderHandler;
+  dragMode: 'horizontal' | 'vertical' | 'none';
+  dragStartX: number;
+  dragStartY: number;
+  dragThreshold: number;
+  selectedLayer?: StandardLayer | null;
+  initialTime?: number;
 
   /**
    * @param {Timeline} timeline - The timeline instance
    */
-  constructor(timeline) {
+  constructor(timeline: Timeline) {
     this.dragging = null;
     this.time = timeline.time;
     this.timeline = timeline;
@@ -19,7 +31,7 @@ export class DragLayerHandler {
     this.dragThreshold = 10; // Pixels to move before determining drag direction
   }
 
-  dragLayer(time, selectedLayer, currentX, currentY) {
+  dragLayer(time: number, selectedLayer: StandardLayer, currentX: number, currentY: number) {
     if (this.dragMode === 'horizontal' && this.dragging) {
       this.dragging(time, selectedLayer);
       return;
@@ -32,7 +44,7 @@ export class DragLayerHandler {
   /**
    * Handle the layer drag operation based on current time position
    */
-  startLayerDrag(selectedLayer, time, startX, startY) {
+  startLayerDrag(selectedLayer: StandardLayer, time: number, startX: number, startY: number) {
     this.dragStartX = startX;
     this.dragStartY = startY;
     this.dragMode = 'none';
@@ -65,7 +77,7 @@ export class DragLayerHandler {
    * @param {number} currentX - Current X coordinate
    * @param {number} currentY - Current Y coordinate
    */
-  #determineDragMode(currentX, currentY) {
+  #determineDragMode(currentX: number, currentY: number) {
     const deltaX = Math.abs(currentX - this.dragStartX);
     const deltaY = Math.abs(currentY - this.dragStartY);
     
@@ -75,10 +87,10 @@ export class DragLayerHandler {
     
     if (deltaX > deltaY) {
       this.dragMode = 'horizontal';
-      this.dragging = this.#getMoveEntireLayerFn(this.initialTime);
+      this.dragging = this.#getMoveEntireLayerFn(this.initialTime!);
     } else {
       this.dragMode = 'vertical';
-      this.reorderHandler.startReorder(this.selectedLayer, this.dragStartY);
+      this.reorderHandler.startReorder(this.selectedLayer!, this.dragStartY);
     }
   }
 
@@ -89,7 +101,7 @@ export class DragLayerHandler {
    * @param {number} currentX - Current X coordinate
    * @param {number} currentY - Current Y coordinate
    */
-  updateDrag(time, selectedLayer, currentX, currentY) {
+  updateDrag(time: number, selectedLayer: StandardLayer, currentX: number, currentY: number) {
     if (this.dragMode === 'none' && this.selectedLayer) {
       this.#determineDragMode(currentX, currentY);
     }
@@ -101,7 +113,7 @@ export class DragLayerHandler {
    * Finish the current drag operation
    * @returns {boolean} - Whether a reorder operation was completed
    */
-  finishDrag() {
+  finishDrag(): boolean {
     let reorderOccurred = false;
     
     if (this.dragMode === 'vertical') {
@@ -116,7 +128,7 @@ export class DragLayerHandler {
    * Render drag feedback
    * @param {CanvasRenderingContext2D} ctx - Canvas context
    */
-  renderFeedback(ctx) {
+  renderFeedback(ctx: CanvasRenderingContext2D) {
     if (this.dragMode === 'vertical') {
       this.reorderHandler.renderFeedback(ctx);
     }
@@ -135,18 +147,18 @@ export class DragLayerHandler {
     this.dragStartY = 0;
   }
 
-  #getMoveLayerStartFn(selectedLayer) {
+  #getMoveLayerStartFn(selectedLayer: StandardLayer) {
     let baseTime = selectedLayer.start_time;
-    return (time, selectedLayer) => {
+    return (time: number, selectedLayer: StandardLayer) => {
       let diff = time - baseTime;
       baseTime = time;
       selectedLayer.start_time += diff;
     };
   }
 
-  #getMoveEntireLayerFn(time) {
+  #getMoveEntireLayerFn(time: number) {
     let baseTime = time;
-    return  (t, l) => {
+    return  (t: number, l: StandardLayer) => {
       let diff = t - baseTime;
       baseTime = t;
       l.start_time += diff;
@@ -158,10 +170,10 @@ export class DragLayerHandler {
    * @param {StandardLayer} selectedLayer
    * @returns {(function(*, *): void)|*}
    */
-  #getResizeLayerEndFn(selectedLayer) {
+  #getResizeLayerEndFn(selectedLayer: StandardLayer) {
     console.log("Resizing layer:", selectedLayer.name);
     let baseTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
-    return (time, selectedLayer) => {
+    return (time: number, selectedLayer: StandardLayer) => {
       let diff = time - baseTime;
       baseTime = time;
       selectedLayer.adjustTotalTime(diff);

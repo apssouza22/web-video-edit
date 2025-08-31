@@ -1,16 +1,22 @@
 /**
  * Class to handle the preview display for the timeline
  */
+import type { StandardLayer } from './types';
+
 export class PreviewHandler {
+  previewHolder: HTMLElement;
+  previewCanvas: HTMLCanvasElement;
+  previewCtx: CanvasRenderingContext2D;
+  cursorText: HTMLElement;
 
   constructor() {
-    this.previewHolder = document.getElementById('cursor_preview');
-    this.previewCanvas = this.previewHolder.querySelector('canvas');
-    this.previewCtx = this.previewCanvas.getContext('2d');
-    this.cursorText = this.previewHolder.querySelector('div');
+    this.previewHolder = document.getElementById('cursor_preview') as HTMLElement;
+    this.previewCanvas = this.previewHolder.querySelector('canvas') as HTMLCanvasElement;
+    this.previewCtx = this.previewCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this.cursorText = this.previewHolder.querySelector('div') as HTMLElement;
   }
 
-  render(time, layers) {
+  render(time: number, layers: StandardLayer[]) {
     this.previewCtx.clearRect(0, 0, this.previewCtx.canvas.width, this.previewCtx.canvas.height);
     for (let layer of layers) {
       layer.render(this.previewCtx, time);
@@ -18,7 +24,7 @@ export class PreviewHandler {
   }
 
 
-  updatePreview(ev, timelineHolder, time, totalTime) {
+  updatePreview(ev: PointerEvent, timelineHolder: HTMLElement, time: number, totalTime: number) {
     let cursor_x = Math.max(ev.clientX - this.previewCanvas.clientWidth / 2, 0);
     cursor_x = Math.min(cursor_x, timelineHolder.clientWidth - this.previewCanvas.clientWidth);
 

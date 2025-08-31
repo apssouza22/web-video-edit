@@ -5,17 +5,39 @@ import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
 import {PinchHandler} from '../studio/index.js';
 import {dpr} from '../constants.js';
+import type { StandardLayer, LayerUpdateKind } from './types';
 
 /**
  * Class representing a timeline for a video player
  */
 export class Timeline {
+  studio: any;
+  selectedLayer: StandardLayer | null;
+  isHover: boolean;
+  time: number;
+  playerTime: number;
+  layers: StandardLayer[];
+  scale: number;
+  totalTime: number;
+  timelineCanvas: HTMLCanvasElement;
+  timelineCtx: CanvasRenderingContext2D;
+  timelineHolder: HTMLElement;
+  layerHeight: number;
+  minLayerSpacing: number;
+  contentPadding: number;
+  timeMarker: TimeMarker;
+  layerRenderer: TimelineLayerRender;
+  previewHandler: PreviewHandler;
+  dragHandler: DragLayerHandler;
+  timeUpdateListener: ((hoverTime: number, playerTime: number) => void);
+  layerUpdateListener: (kind: LayerUpdateKind, layer: StandardLayer | null, oldLayer?: StandardLayer | null, extra?: any) => void;
+  private zoomHandler: TimelineZoomHandler;
 
   /**
    *
    * @param {VideoStudio} studio
    */
-  constructor(studio) {
+  constructor(studio: any) {
     this.studio = studio;
     this.selectedLayer = null;
     this.isHover = false;
@@ -25,9 +47,9 @@ export class Timeline {
     this.scale = 2.0;
     this.totalTime = 0;
     this.timelineCanvas = document.createElement('canvas');
-    this.timelineCtx = this.timelineCanvas.getContext('2d');
+    this.timelineCtx = this.timelineCanvas.getContext('2d') as CanvasRenderingContext2D;
 
-    this.timelineHolder = document.getElementById('timeline_content');
+    this.timelineHolder = document.getElementById('timeline_content') as HTMLElement;
     this.timelineHolder.appendChild(this.timelineCanvas);
 
     // Configuration for timeline elements
@@ -59,7 +81,7 @@ export class Timeline {
   /**
    * Setter for time property that notifies listeners when time changes
    */
-  setTime(newTime) {
+  setTime(newTime: number) {
     this.time = newTime;
   }
 
@@ -71,7 +93,7 @@ export class Timeline {
    * Add a listener for layer updates
    * @param {Function} listener - Function to call when layer updates occur
    */
-  addLayerUpdateListener(listener) {
+  addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: StandardLayer | null, oldLayer?: StandardLayer | null, extra?: any) => void) {
     if (typeof listener !== 'function') {
       throw new Error('Layer update listener must be a function');
     }
@@ -82,7 +104,7 @@ export class Timeline {
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
    * @param {StandardLayer|null} newSelectedLayer - The new selected layer
    */
-  setSelectedLayer(newSelectedLayer) {
+  setSelectedLayer(newSelectedLayer: StandardLayer | null) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
     if (oldSelectedLayer !== newSelectedLayer) {
@@ -90,7 +112,7 @@ export class Timeline {
     }
   }
 
-  addTimeUpdateListener(listener) {
+  addTimeUpdateListener(listener: (hoverTime: number, playerTime: number) => void) {
     if (typeof listener !== 'function') {
       throw new Error('Time update listener must be a function');
     }
@@ -99,10 +121,6 @@ export class Timeline {
 
   #setupPinchHandler() {
     const callback = (function (scale, rotation) {
-      let new_x = (this.timelineHolder.clientWidth * scale - this.timelineHolder.clientWidth);
-      let old_x = this.timelineHolder.scrollLeft;
-      // this.timelineHolder.scroll(Math.round(old_x + new_x), 0);
-
       this.scale = Math.max(1, this.scale * scale);
       this.resize();
       // Update the zoom slider to match the current scale
@@ -165,8 +183,8 @@ export class Timeline {
    * Resize the timeline canvas based on the scale factor and number of layers
    */
   resize() {
-    this.timelineCanvas.style.width = this.timelineHolder.clientWidth * this.scale;
-    this.timelineCanvas.style.height = this.timelineHolder.clientHeight * this.scale;
+    (this.timelineCanvas.style as any).width = this.timelineHolder.clientWidth * this.scale;
+    (this.timelineCanvas.style as any).height = this.timelineHolder.clientHeight * this.scale;
     this.timelineCanvas.width = this.timelineCanvas.clientWidth * dpr;
     this.timelineCanvas.height = this.timelineCanvas.clientHeight * dpr;
     this.timelineCtx.scale(dpr, dpr);
@@ -177,7 +195,7 @@ export class Timeline {
    * @param {Event} ev - The pointer event
    * @returns {boolean} - Whether a layer was selected
    */
-  #onPointerDown(ev) {
+  #onPointerDown(ev: PointerEvent) {
     window.addEventListener('pointerup', this.#onPointerLeave.bind(this), {
       once: true
     });
@@ -200,7 +218,7 @@ export class Timeline {
    * @param {Event} ev - The pointer event
    * @returns {number} - The current time position
    */
-  #onPointerMove(ev) {
+  #onPointerMove(ev: PointerEvent) {
     ev.preventDefault();
     ev.stopPropagation();
 
@@ -222,7 +240,7 @@ export class Timeline {
    * @param {number} time - Current time position
    * @private
    */
-  #updateCursor(time) {
+  #updateCursor(time: number) {
     const dragMode = this.dragHandler.dragMode;
 
     if (dragMode === 'vertical') {
@@ -250,7 +268,7 @@ export class Timeline {
     }
   }
 
-  intersectsTime(time, query) {
+  intersectsTime(time: number, query: number) {
     return Math.abs(query - time) / this.totalTime < 0.01;
   }
 
@@ -273,7 +291,7 @@ export class Timeline {
     this.isHover = false;
   }
 
-  addLayers(layers) {
+  addLayers(layers: StandardLayer[]) {
     this.layers = layers;
   }
 
@@ -324,7 +342,7 @@ export class Timeline {
    * @param {Event} ev - The pointer event
    * @returns {boolean} - Whether a layer was selected
    */
-  #selectLayer(ev) {
+  #selectLayer(ev: PointerEvent) {
     const layerSpacing = this.minLayerSpacing + this.layerHeight;
     let yPos = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
 
@@ -354,7 +372,7 @@ export class Timeline {
    * @param {StandardLayer} layer - The layer to check
    * @returns {boolean} - Whether the layer can be selected
    */
-  #canSelectLayer(layer) {
+  #canSelectLayer(layer: StandardLayer) {
     if (layer.start_time > (1.01 * this.time)) {
       return false;
     }
@@ -365,7 +383,7 @@ export class Timeline {
     return true;
   }
 
-  #updateTotalTime(layers) {
+  #updateTotalTime(layers: StandardLayer[]) {
     if (layers.length === 0) {
       this.totalTime = 0;
       return;
@@ -380,7 +398,7 @@ export class Timeline {
     }
   }
 
-  #renderLineMarker(time) {
+  #renderLineMarker(time: number) {
     if (this.totalTime === 0) {
       return;
     }
@@ -424,7 +442,7 @@ export class Timeline {
    * @param {StandardLayer} layer - The layer that was reordered
    * @param {Object} reorderData - Contains fromIndex and toIndex
    */
-  reorderLayer(layer, reorderData) {
+  reorderLayer(layer: StandardLayer, reorderData: { fromIndex: number; toIndex: number }) {
     // The actual reordering is handled by LayerReorderHandler
     // This method can be used for additional logic if needed
     console.log(`Layer "${layer.name}" moved from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);

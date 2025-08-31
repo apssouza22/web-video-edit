@@ -2,6 +2,8 @@ import { AudioTimelineLayer } from './layers/audio-timeline-layer';
 import { VideoTimelineLayer } from './layers/video-timeline-layer';
 import { ImageTimelineLayer } from './layers/image-timeline-layer';
 import { TextTimelineLayer } from './layers/text-timeline-layer';
+import type { StandardLayer } from './types';
+import type { TimelineLayer } from './timeline-layer';
 
 /**
  * Factory class for creating timeline layer renderers
@@ -15,7 +17,12 @@ export class TimelineLayerFactory {
    * @param {number} canvasWidth - The width of the timeline canvas
    * @returns {TimelineLayer} - The appropriate timeline layer renderer
    */
-  static createTimelineLayer(ctx, layer, totalTime, canvasWidth) {
+  static createTimelineLayer(
+    ctx: CanvasRenderingContext2D,
+    layer: StandardLayer,
+    totalTime: number,
+    canvasWidth: number
+  ): TimelineLayer {
     const layerType = layer.constructor.name;
 
     switch (layerType) {
