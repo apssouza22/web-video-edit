@@ -24,7 +24,7 @@ Avoid comments describing functionality ensure self describing code
 ## Build, Test, and Development Commands
 - `npm install`: Install dependencies.
 - `npm start`: Serve locally at `http://localhost:8080` using `http-server`.
-- `npm test`: Run Jest once in jsdom.
+- `npm test`: Run Jest tests.
 - `npm run test:watch`: Re-run tests on change.
 - `npm run test:coverage`: Generate coverage (targets `src/**/*.{js,ts}`, excluding entry/worker files).
 - Example (single file): `npm test tests/services/frame-service.test.js`.

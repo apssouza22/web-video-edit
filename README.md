@@ -25,4 +25,4 @@ npm install
 npm start
 ```
 
-3. Open your browser and navigate to http://localhost:8080
+3. Open your browser and navigate to http://localhost:8001

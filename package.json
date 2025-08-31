@@ -8,11 +8,7 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
-    "test:verbose": "node --experimental-vm-modules node_modules/.bin/jest --verbose"
+    "preview": "vite preview"
   },
   "keywords": [
     "video",
