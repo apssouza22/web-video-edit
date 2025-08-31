@@ -1,6 +1,6 @@
 import {RecordingPreview} from './preview.js';
 import {checkBrowserSupport} from "../common/browser-support.js";
-import {fixWebmDuration} from "../common/utils.js";
+import {fixWebmDuration} from "../common/utils.ts";
 
 /**
  * ScreenRecordingService - Handles screen capture and recording functionality

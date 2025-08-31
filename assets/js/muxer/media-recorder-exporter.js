@@ -1,6 +1,6 @@
 import { addElementToBackground, AudioLayer } from '../layer/index.js';
 import { getSupportedMimeTypes, VideoStudio } from '../studio/index.js';
-import {fixWebmDuration} from "../common/utils.js";
+import {fixWebmDuration} from "../common/utils.ts";
 
 /**
  * Class for exporting video using MediaRecorder API without playing in the main player
