@@ -1,44 +1,86 @@
-import {RecordingPreview} from './preview.js';
+import {RecordingPreview} from './preview';
 import {checkBrowserSupport} from "../common/browser-support.js";
-import {fixWebmDuration} from "../common/utils.ts";
+import {fixWebmDuration} from "@/common/utils";
+
+interface RecordingData {
+  isRecording: boolean;
+  duration: number;
+  fileSize: number;
+  mimeType: string | null;
+  mediaStream: MediaStream | null;
+}
+
+interface BrowserSupportResult {
+  isSupported: boolean;
+  features: {
+    getDisplayMedia: boolean;
+    mediaRecorder: boolean;
+    supportedCodecs: string[];
+  };
+  browserInfo: {
+    name: string;
+    version: string;
+  };
+  errors: string[];
+  warnings?: string[];
+  optimizations?: string[];
+  supportDetails?: any;
+}
+
+interface StreamCombination {
+  screen: MediaStream;
+  microphone: MediaStream | null;
+}
+
+interface UserMediaConstraints {
+  video: {
+    width?: number;
+    height?: number;
+    frameRate?: number;
+    mediaSource?: string;
+    facingMode?: string;
+  };
+  audio: {
+    echoCancellation: boolean;
+    noiseSuppression: boolean;
+    sampleRate: number;
+  };
+}
+
+interface MediaRecorderOptions {
+  mimeType: string;
+  videoBitsPerSecond: number;
+  audioBitsPerSecond: number;
+}
+
+interface RecordingError extends Error {
+  userMessage?: string;
+  supportDetails?: BrowserSupportResult;
+}
 
 /**
  * ScreenRecordingService - Handles screen capture and recording functionality
  */
 export class UserMediaRecordingService {
-  #mediaStream = null;
-  #mediaRecorder = null;
-  #recordedChunks = [];
-  #preview = new RecordingPreview();
-  #maxMemoryUsage = 100 * 1024 * 1024; // 100MB max in memory
-  #currentMemoryUsage = 0;
-  #chunkCount = 0;
-  #recordingStartTime = null;
-  #recordingDuration = 0;
-  #totalFileSize = 0;
-  #onVideoFileCreatedCallback = (file) => {
-  }
-  #originalStreams = null;
+  #mediaStream: MediaStream | null = null;
+  #mediaRecorder: MediaRecorder | null = null;
+  #recordedChunks: Blob[] = [];
+  #preview: RecordingPreview = new RecordingPreview();
+  #maxMemoryUsage: number = 100 * 1024 * 1024; // 100MB max in memory
+  #currentMemoryUsage: number = 0;
+  #chunkCount: number = 0;
+  #recordingStartTime: number | null = null;
+  #recordingDuration: number = 0;
+  #totalFileSize: number = 0;
+  #onVideoFileCreatedCallback: (file: File) => void = () => {};
+  #originalStreams: StreamCombination | null = null;
+  
+  public isRecording: boolean = false;
 
   constructor() {
-    /**
-     * @type {MediaStream|null}
-     */
     this.#mediaStream = null;
-
-    /**
-     * @type {MediaRecorder|null}
-     */
     this.#mediaRecorder = null;
-
-    /**
-     * @type {Blob[]}
-     */
     this.#recordedChunks = [];
-
-    /**
-     * @type {number|null}
-     */
     this.#recordingStartTime = null;
     this.isRecording = false;
     this.#maxMemoryUsage = 100 * 1024 * 1024; // 100MB max in memory
@@ -49,32 +91,26 @@ export class UserMediaRecordingService {
     this.#originalStreams = null;
   }
 
-
-  addOnVideoFileCreatedListener(callback) {
+  addOnVideoFileCreatedListener(callback: (file: File) => void): void {
     if (typeof callback !== 'function') {
       throw new Error('Callback must be a function');
     }
     this.#onVideoFileCreatedCallback = callback;
   }
 
-
   /**
    * Request display media and initialize recording
-   * @returns {Promise<void>}
    */
-  async startScreenCapture() {
+  async startScreenCapture(): Promise<void> {
     this.#checkBrowserSupport();
     
     try {
-      // Get screen capture stream
       const screenConstraints = this.#getDefaultUserMediaConstraints();
       screenConstraints.video.mediaSource = 'screen';
       const screenStream = await navigator.mediaDevices.getDisplayMedia(screenConstraints);
-      
-      // Try to get microphone audio stream
-      let microphoneStream = null;
+      let microphoneStream: MediaStream | null = null;
       try {
-        const micConstraints = {
+        const micConstraints: MediaStreamConstraints = {
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
@@ -83,26 +119,22 @@ export class UserMediaRecordingService {
         };
         microphoneStream = await navigator.mediaDevices.getUserMedia(micConstraints);
         console.log('Microphone access granted for screen recording');
-      } catch (micError) {
+      } catch (micError: any) {
         console.warn('Microphone access denied or unavailable, continuing with screen-only recording:', micError.message);
       }
-      
-      // Combine streams
+
       this.#mediaStream = this.#combineStreams(screenStream, microphoneStream);
       await this.#startRecording();
-      
     } catch (error) {
       console.error('Error starting screen capture:', error);
       throw error;
     }
   }
 
-
   /**
    * Request camera media and initialize recording
-   * @returns {Promise<void>}
    */
-  async startCameraCapture() {
+  async startCameraCapture(): Promise<void> {
     this.#checkBrowserSupport();
     const constraints = this.#getDefaultUserMediaConstraints();
     constraints.video.facingMode = 'user';
@@ -113,12 +145,11 @@ export class UserMediaRecordingService {
   /**
    * Set up handlers for recording interruptions
    */
-  #addEventListeners() {
+  #addEventListeners(): void {
     if (!this.#mediaStream) {
       return;
     }
 
-    // Handle video track ending (user stops sharing screen/window)
     const videoTracks = this.#mediaStream.getVideoTracks();
     if (videoTracks.length > 0) {
       videoTracks[0].addEventListener('ended', () => {
@@ -136,9 +167,9 @@ export class UserMediaRecordingService {
     }
 
     if (this.#mediaRecorder) {
-      this.#mediaRecorder.addEventListener('error', (event) => {
-        console.error('MediaRecorder error:', event.error);
-        this.#handleRecordingInterruption('RECORDER_ERROR', event.error);
+      this.#mediaRecorder.addEventListener('error', (event: Event) => {
+        console.error('MediaRecorder error:', (event as any).error);
+        this.#handleRecordingInterruption('RECORDER_ERROR', (event as any).error);
       });
     }
 
@@ -160,10 +191,8 @@ export class UserMediaRecordingService {
 
   /**
    * Handle recording interruptions
-   * @param {string} reason - Reason for interruption
-   * @param {Error} error - Optional error object
    */
-  async #handleRecordingInterruption(reason, error = null) {
+  async #handleRecordingInterruption(reason: string, error: Error | null = null): Promise<void> {
     console.log(`Recording interrupted: ${reason}`, error);
 
     if (!this.isRecording) {
@@ -179,8 +208,8 @@ export class UserMediaRecordingService {
           return; // No data to save
         }
         const partialBlob = await this.#createVideoBlob();
-        this.#onVideoFileCreatedCallback(this.#createVideoFile(partialBlob));
         if (partialBlob) {
+          this.#onVideoFileCreatedCallback(this.#createVideoFile(partialBlob));
           console.log('Partial recording saved:', partialBlob.size, 'bytes');
         }
       }
@@ -191,7 +220,7 @@ export class UserMediaRecordingService {
     }
   }
 
-  #getDefaultUserMediaConstraints() {
+  #getDefaultUserMediaConstraints(): UserMediaConstraints {
     return {
       video: {
         width: 1920,
@@ -206,7 +235,7 @@ export class UserMediaRecordingService {
     };
   }
 
-  async #startRecording() {
+  async #startRecording(): Promise<void> {
     try {
       this.#setupMediaRecorder();
       this.#addEventListeners();
@@ -215,7 +244,7 @@ export class UserMediaRecordingService {
       this.#preview.startUpdates(() => this.#getRecordingData());
       this.#resetMetadata();
       this.#recordingStartTime = Date.now();
-      this.#mediaRecorder.start(1000); // Collect data every 1000ms
+      this.#mediaRecorder!.start(1000); // Collect data every 1000ms
       this.isRecording = true;
 
       console.log('Screen recording started - State: idle → recording', {
@@ -223,40 +252,39 @@ export class UserMediaRecordingService {
         maxMemoryLimit: this.#preview.formatBytes(this.#maxMemoryUsage)
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting user media capture:', error);
       if (error.name === 'NotAllowedError') {
-        const permissionError = new Error('User media capture permission was denied by the user');
+        const permissionError = new Error('User media capture permission was denied by the user') as RecordingError;
         permissionError.name = 'PermissionDeniedError';
         permissionError.userMessage = 'Please allow user media capture to start recording';
         throw permissionError;
       }
       if (error.name === 'NotFoundError') {
-        const sourceError = new Error('No user media is available for capture');
+        const sourceError = new Error('No user media is available for capture') as RecordingError;
         sourceError.name = 'NoSourceError';
         sourceError.userMessage = 'No user media is available for capture';
         throw sourceError;
       }
       if (error.name === 'AbortError') {
-        const cancelError = new Error('Screen capture was canceled by the user');
+        const cancelError = new Error('Screen capture was canceled by the user') as RecordingError;
         cancelError.name = 'UserCanceledError';
         cancelError.userMessage = 'Screen capture was canceled';
         throw cancelError;
       }
       if (error.message.includes('not supported')) {
-        const supportError = new Error('User media capture is not supported in this browser');
+        const supportError = new Error('User media capture is not supported in this browser') as RecordingError;
         supportError.name = 'UnsupportedError';
-        supportError.userMessage = 'Your browser does not User media recording. Please use Chrome, Firefox, or Edge.';
+        supportError.userMessage = 'Your browser does not support user media recording. Please use Chrome, Firefox, or Edge.';
         throw supportError;
       }
 
-      error.userMessage = 'An unexpected error occurred while User media capture';
+      (error as RecordingError).userMessage = 'An unexpected error occurred while starting user media capture';
       throw error;
     }
   }
 
-
-  #resetMetadata() {
+  #resetMetadata(): void {
     this.#recordedChunks = [];
     this.#currentMemoryUsage = 0;
     this.#chunkCount = 0;
@@ -266,9 +294,8 @@ export class UserMediaRecordingService {
 
   /**
    * Stop recording and process the final video
-   * @returns {Promise<void>}
    */
-  async stopRecording() {
+  async stopRecording(): Promise<void> {
     try {
       if (!this.isRecording || !this.#mediaRecorder) {
         console.log('Recording is not active');
@@ -284,11 +311,11 @@ export class UserMediaRecordingService {
         });
       }
 
-      await new Promise((resolve) => {
-        if (this.#mediaRecorder.state === 'inactive') {
+      await new Promise<void>((resolve) => {
+        if (this.#mediaRecorder!.state === 'inactive') {
           resolve();
         } else {
-          this.#mediaRecorder.addEventListener('stop', resolve, {once: true});
+          this.#mediaRecorder!.addEventListener('stop', () => resolve(), {once: true});
         }
       });
       const videoBlob = await this.#createVideoBlob();
@@ -310,11 +337,10 @@ export class UserMediaRecordingService {
 
   /**
    * Handle data available event from MediaRecorder
-   * @param {BlobEvent} event - The data available event
    */
-  #handleDataAvailable(event) {
+  #handleDataAvailable(event: BlobEvent): void {
     if (!event.data || event.data.size < 1) {
-      return
+      return;
     }
     this.#chunkCount++;
     this.#currentMemoryUsage += event.data.size;
@@ -348,7 +374,7 @@ export class UserMediaRecordingService {
   /**
    * Handle memory pressure by optimizing storage
    */
-  #handleMemoryPressure() {
+  #handleMemoryPressure(): void {
     console.log('Handling memory pressure...');
 
     // In a real implementation, you might want to:
@@ -364,9 +390,8 @@ export class UserMediaRecordingService {
 
   /**
    * Get current recording data for preview updates
-   * @returns {Object} Current recording data
    */
-  #getRecordingData() {
+  #getRecordingData(): RecordingData {
     return {
       isRecording: this.isRecording,
       duration: this.#recordingDuration,
@@ -378,9 +403,8 @@ export class UserMediaRecordingService {
 
   /**
    * Combine chunks into final video blob
-   * @returns {Blob} The combined video blob
    */
-  async #createVideoBlob() {
+  async #createVideoBlob(): Promise<Blob | null> {
     if (this.#recordedChunks.length === 0) {
       console.warn('No recorded chunks available');
       return null;
@@ -403,10 +427,8 @@ export class UserMediaRecordingService {
 
   /**
    * Integrate recorded video into the studio's layer system
-   * @param {Blob} videoBlob - The recorded video blob
-   * @returns {File} The created video file object
    */
-  #createVideoFile(videoBlob) {
+  #createVideoFile(videoBlob: Blob): File {
     try {
       const videoUrl = URL.createObjectURL(videoBlob);
 
@@ -419,9 +441,9 @@ export class UserMediaRecordingService {
         type: videoBlob.type
       });
 
-      let file = new File([videoBlob], filename, {type: videoBlob.type});
-      file.uri = videoUrl;
-      return file
+      const file = new File([videoBlob], filename, {type: videoBlob.type});
+      (file as any).uri = videoUrl;
+      return file;
     } catch (error) {
       console.error('Error adding video to layers:', error);
       throw error;
@@ -431,7 +453,7 @@ export class UserMediaRecordingService {
   /**
    * Clean up resources after recording
    */
-  #cleanup() {
+  #cleanup(): void {
     this.isRecording = false;
     this.#resetMetadata();
     this.#recordingStartTime = null;
@@ -456,7 +478,7 @@ export class UserMediaRecordingService {
     console.log('Resources, metadata, and preview elements cleaned up');
   }
 
-  #setupMediaRecorder() {
+  #setupMediaRecorder(): void {
     // Set up MediaRecorder with appropriate codec
     const supportedMimeTypes = [
       'video/webm;codecs=vp9,opus',
@@ -480,14 +502,14 @@ export class UserMediaRecordingService {
       throw new Error('No supported video codec found');
     }
 
-    const options = {
+    const options: MediaRecorderOptions = {
       mimeType: selectedMimeType,
       videoBitsPerSecond: 8000000, // 8 Mbps
       audioBitsPerSecond: 128000   // 128 kbps
     };
 
-    this.#mediaRecorder = new MediaRecorder(this.#mediaStream, options);
-    this.#mediaRecorder.ondataavailable = (event) => this.#handleDataAvailable(event);
+    this.#mediaRecorder = new MediaRecorder(this.#mediaStream!, options);
+    this.#mediaRecorder.ondataavailable = (event: BlobEvent) => this.#handleDataAvailable(event);
     this.#mediaRecorder.onstop = () => {
       console.log('MediaRecorder stopped');
       this.isRecording = false;
@@ -496,11 +518,8 @@ export class UserMediaRecordingService {
 
   /**
    * Combine screen video stream with microphone audio stream
-   * @param {MediaStream} screenStream - Screen capture stream
-   * @param {MediaStream|null} microphoneStream - Microphone audio stream (optional)
-   * @returns {MediaStream} Combined stream
    */
-  #combineStreams(screenStream, microphoneStream) {
+  #combineStreams(screenStream: MediaStream, microphoneStream: MediaStream | null): MediaStream {
     const combinedStream = new MediaStream();
     
     // Add video tracks from screen stream
@@ -531,10 +550,10 @@ export class UserMediaRecordingService {
     return combinedStream;
   }
 
-  #checkBrowserSupport() {
-    const browserSupport = checkBrowserSupport();
+  #checkBrowserSupport(): void {
+    const browserSupport = checkBrowserSupport() as BrowserSupportResult;
     if (!browserSupport.isSupported) {
-      const error = new Error(`Camera recording is not supported: ${browserSupport.errors.join(', ')}`);
+      const error = new Error(`Camera recording is not supported: ${browserSupport.errors.join(', ')}`) as RecordingError;
       error.name = 'UnsupportedBrowserError';
       error.userMessage = `Camera recording is not supported in ${browserSupport.browserInfo.name}. Please use Chrome, Firefox, or Edge.`;
       error.supportDetails = browserSupport;
