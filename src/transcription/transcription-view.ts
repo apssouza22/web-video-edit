@@ -1,15 +1,19 @@
-import {TranscriptionService} from './transcription.js';
+import type { TranscriptionService } from './transcription.js';
+import type { TranscriptionResult, TranscriptionChunk } from './types.js';
 
 export class TranscriptionView {
+  private transcriptionManager: TranscriptionService;
+  private transcriptionElement: HTMLElement | null;
+  private textChunksContainer: HTMLElement | null;
 
   /**
    * Constructor for TranscriptionView
-   * @param {TranscriptionService} manager
+   * @param manager - The transcription service instance
    */
-  constructor(manager) {
+  constructor(manager: TranscriptionService) {
     this.transcriptionManager = manager;
     this.transcriptionElement = document.getElementById('transcription');
-    this.textChunksContainer = this.transcriptionElement.querySelector('.text-chunks');
+    this.textChunksContainer = this.transcriptionElement?.querySelector('.text-chunks') || null;
     
     if (!this.transcriptionElement) {
       console.error('Transcription element not found');
@@ -24,9 +28,9 @@ export class TranscriptionView {
 
   /**
    * Updates the transcription view with new transcription data
-   * @param {Object} transcriptionData - The transcription data with text and chunks
+   * @param transcriptionData - The transcription data with text and chunks
    */
-  updateTranscription(transcriptionData) {
+  updateTranscription(transcriptionData: TranscriptionResult): void {
     if (!transcriptionData || !transcriptionData.chunks) {
       console.error('Invalid transcription data provided');
       return;
@@ -42,7 +46,7 @@ export class TranscriptionView {
   /**
    * Clears all existing text chunks from the view
    */
-  #clearChunks() {
+  #clearChunks(): void {
     if (this.textChunksContainer) {
       this.textChunksContainer.innerHTML = '';
     }
@@ -50,10 +54,10 @@ export class TranscriptionView {
 
   /**
    * Escapes HTML characters to prevent XSS attacks
-   * @param {string} text - The text to escape
-   * @returns {string} The escaped text
+   * @param text - The text to escape
+   * @returns The escaped text
    */
-  #escapeHtml(text) {
+  #escapeHtml(text: string): string {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -61,10 +65,12 @@ export class TranscriptionView {
 
   /**
    * Adds a single text chunk to the view
-   * @param {Object} chunk - The chunk data with text and timestamp
-   * @param {number} index - The index of the chunk
+   * @param chunk - The chunk data with text and timestamp
+   * @param index - The index of the chunk
    */
-  #addTextChunk(chunk, index) {
+  #addTextChunk(chunk: TranscriptionChunk, index: number): void {
+    if (!this.textChunksContainer) return;
+
     // Escape HTML characters in the text to prevent XSS
     const escapedText = this.#escapeHtml(chunk.text);
     
@@ -80,15 +86,17 @@ export class TranscriptionView {
       </span>
     `;
 
-    // Add the HTML to the container
     this.textChunksContainer.insertAdjacentHTML('beforeend', chunkHTML);
 
-    // Get the newly added chunk element to attach event listeners
-    const chunkElement = this.textChunksContainer.lastElementChild;
-    const closeSpan = chunkElement.querySelector('.close');
+    const chunkElement = this.textChunksContainer.lastElementChild as HTMLElement;
+    const closeSpan = chunkElement?.querySelector('.close') as HTMLElement;
 
-    // Attach event listeners after the HTML is inserted
-    closeSpan.addEventListener('click', (e) => {
+    if (!chunkElement || !closeSpan) {
+      console.error('Failed to create chunk element or find close button');
+      return;
+    }
+
+    closeSpan.addEventListener('click', (e: MouseEvent) => {
       e.stopPropagation();
       this.#removeChunk(chunkElement, index);
     });
@@ -100,13 +108,13 @@ export class TranscriptionView {
 
   /**
    * Removes a text chunk from the view
-   * @param {HTMLElement} chunkElement - The chunk element to remove
-   * @param {number} index - The index of the chunk
+   * @param chunkElement - The chunk element to remove
+   * @param index - The index of the chunk
    */
-  #removeChunk(chunkElement, index) {
+  #removeChunk(chunkElement: HTMLElement, index: number): void {
     if (chunkElement && chunkElement.parentNode) {
-      const startTime = parseFloat(chunkElement.getAttribute('data-start-time'));
-      const endTime = parseFloat(chunkElement.getAttribute('data-end-time'));
+      const startTime = parseFloat(chunkElement.getAttribute('data-start-time') || '0');
+      const endTime = parseFloat(chunkElement.getAttribute('data-end-time') || '0');
       const removedDuration = endTime - startTime;
       
       console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s, duration=${removedDuration}s`);
@@ -118,27 +126,26 @@ export class TranscriptionView {
     }
   }
 
-
   /**
    * Updates timestamps of chunks that come after the removed interval
-   * @param {number} removedStartTime - Start time of the removed interval
-   * @param {number} removedDuration - Duration of the removed interval
+   * @param removedStartTime - Start time of the removed interval
+   * @param removedDuration - Duration of the removed interval
    */
-  #updateSubsequentTimestamps(removedStartTime, removedDuration) {
+  #updateSubsequentTimestamps(removedStartTime: number, removedDuration: number): void {
     const allChunks = this.#getCurrentChunks();
     let updatedCount = 0;
     
     allChunks.forEach(chunk => {
-      const chunkStartTime = parseFloat(chunk.getAttribute('data-start-time'));
-      const chunkEndTime = parseFloat(chunk.getAttribute('data-end-time'));
+      const chunkStartTime = parseFloat(chunk.getAttribute('data-start-time') || '0');
+      const chunkEndTime = parseFloat(chunk.getAttribute('data-end-time') || '0');
       
       // Update timestamps for chunks that start after the removed interval
       if (chunkStartTime > removedStartTime) {
         const newStartTime = chunkStartTime - removedDuration;
         const newEndTime = chunkEndTime - removedDuration;
         
-        chunk.setAttribute('data-start-time', newStartTime);
-        chunk.setAttribute('data-end-time', newEndTime);
+        chunk.setAttribute('data-start-time', newStartTime.toString());
+        chunk.setAttribute('data-end-time', newEndTime.toString());
         updatedCount++;
       }
     });
@@ -148,10 +155,10 @@ export class TranscriptionView {
 
   /**
    * Handles chunk click events (can be overridden for seek functionality)
-   * @param {Object} chunk - The chunk data
-   * @param {number} index - The chunk index
+   * @param chunk - The chunk data
+   * @param index - The chunk index
    */
-  #onChunkClick(chunk, index) {
+  #onChunkClick(chunk: TranscriptionChunk, index: number): void {
     console.log(`Chunk clicked: "${chunk.text}" at time ${chunk.timestamp[0]}s`);
     
     if (chunk.timestamp && chunk.timestamp.length > 0) {
@@ -162,20 +169,21 @@ export class TranscriptionView {
 
   /**
    * Gets all current text chunks as an array
-   * @returns {Array} Array of chunk elements
+   * @returns Array of chunk elements
    */
-  #getCurrentChunks() {
-    return Array.from(this.textChunksContainer.querySelectorAll('.text-chunk'));
+  #getCurrentChunks(): HTMLElement[] {
+    if (!this.textChunksContainer) return [];
+    return Array.from(this.textChunksContainer.querySelectorAll('.text-chunk')) as HTMLElement[];
   }
 
   /**
    * Highlights chunks based on current time
-   * @param {number} currentTime - The current playback time in seconds
+   * @param currentTime - The current playback time in seconds
    */
-  highlightChunksByTime(currentTime) {
+  highlightChunksByTime(currentTime: number): void {
     this.#getCurrentChunks().forEach(chunk => {
-      const startTime = parseFloat(chunk.getAttribute('data-start-time'));
-      const endTime = parseFloat(chunk.getAttribute('data-end-time'));
+      const startTime = parseFloat(chunk.getAttribute('data-start-time') || '0');
+      const endTime = parseFloat(chunk.getAttribute('data-end-time') || '0');
       
       if (currentTime >= startTime && currentTime <= endTime) {
         chunk.classList.add('highlighted');
@@ -185,7 +193,9 @@ export class TranscriptionView {
     });
   }
 
-  showLoading() {
-    this.textChunksContainer.innerHTML = 'Transcribing... Please wait.';
+  showLoading(): void {
+    if (this.textChunksContainer) {
+      this.textChunksContainer.innerHTML = 'Transcribing... Please wait.';
+    }
   }
 }

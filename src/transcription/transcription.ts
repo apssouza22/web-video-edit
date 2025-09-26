@@ -1,20 +1,32 @@
 import { TranscriptionView } from './transcription-view.js';
+import type {
+  WorkerResponseMessage,
+  RemoveIntervalCallback,
+  SeekCallback,
+  TranscriptionResult,
+  TranscriptionServiceConfig,
+  AudioTransformResult
+} from './types.js';
 
 export class TranscriptionService {
+  private worker: Worker;
+  private transcriptionView: TranscriptionView;
+  private onRemoveIntervalListener: RemoveIntervalCallback;
+  private onSeekListener: SeekCallback;
 
-  constructor() {
+  constructor(config?: TranscriptionServiceConfig) {
     this.worker = new Worker(new URL("./worker.js", import.meta.url), {
       type: "module",
     });
     this.transcriptionView = new TranscriptionView(this);
-    this.onRemoveIntervalListener = (startTime, endTime) => {}
-    this.onSeekListener = (timestamp) => {}
+    this.onRemoveIntervalListener = (startTime: number, endTime: number) => {};
+    this.onSeekListener = (timestamp: number) => {};
 
     this.#addEventListener();
   }
 
-  #addEventListener() {
-    this.worker.addEventListener("message", ((event) => {
+  #addEventListener(): void {
+    this.worker.addEventListener("message", ((event: MessageEvent<WorkerResponseMessage>) => {
       const message = event.data;
       switch (message.status) {
         case "progress":
@@ -22,7 +34,9 @@ export class TranscriptionService {
           break;
 
         case "complete":
-          this.#onTranscriptionComplete(message.data);
+          if (message.data && typeof message.data === 'object' && 'text' in message.data) {
+            this.#onTranscriptionComplete(message.data as TranscriptionResult);
+          }
           break;
 
         case "initiate":
@@ -32,8 +46,11 @@ export class TranscriptionService {
           console.log("Model ready");
           break;
         case "error":
+          const errorMessage = message.data && typeof message.data === 'object' && 'message' in message.data 
+            ? (message.data as Error).message 
+            : 'Unknown error occurred';
           alert(
-              `${message.data.message} This is most likely because you are using Safari on an M1/M2 Mac. Please try again from Chrome, Firefox, or Edge.\n\nIf this is not the case, please file a bug report.`,
+              `${errorMessage} This is most likely because you are using Safari on an M1/M2 Mac. Please try again from Chrome, Firefox, or Edge.\n\nIf this is not the case, please file a bug report.`,
           );
           break;
         case "done":
@@ -47,7 +64,7 @@ export class TranscriptionService {
     }).bind(this));
   }
 
-  addRemoveIntervalListener(callback) {
+  addRemoveIntervalListener(callback: RemoveIntervalCallback): void {
     if (typeof callback === 'function') {
       this.onRemoveIntervalListener = callback;
     } else {
@@ -57,9 +74,9 @@ export class TranscriptionService {
 
   /**
    * Adds a seek listener callback
-   * @param {Function} callback - Callback function that takes a timestamp parameter
+   * @param callback - Callback function that takes a timestamp parameter
    */
-  addSeekListener(callback) {
+  addSeekListener(callback: SeekCallback): void {
     if (typeof callback === 'function') {
       this.onSeekListener = callback;
     } else {
@@ -69,36 +86,36 @@ export class TranscriptionService {
 
   /**
    * Removes an interval from the transcription
-   * @param startTime
-   * @param endTime
+   * @param startTime - Start time in seconds
+   * @param endTime - End time in seconds
    */
-  removeInterval(startTime, endTime) {
+  removeInterval(startTime: number, endTime: number): void {
     this.onRemoveIntervalListener(startTime, endTime);
   }
 
   /**
    * Seeks to a specific timestamp in the video player
-   * @param {number} timestamp - The timestamp to seek to in seconds
+   * @param timestamp - The timestamp to seek to in seconds
    */
-  seekToTimestamp(timestamp) {
+  seekToTimestamp(timestamp: number): void {
     this.onSeekListener(timestamp);
   }
 
-  #onTranscriptionComplete(data) {
+  #onTranscriptionComplete(data: TranscriptionResult): void {
     console.log("Transcription complete:", data);
     this.transcriptionView.updateTranscription(data);
   }
 
-  loadModel() {
+  loadModel(): void {
     this.worker.postMessage({task: "load-model"});
   }
 
-  startTranscription(audioBuffer) {
+  startTranscription(audioBuffer: AudioBuffer): void {
     if(window.location.hostname === "localhost") {
       console.warn("Using mocked transcription data for local development.");
       const data = getMockedData();
       this.#onTranscriptionComplete(data);
-      return
+      return;
     }
     this.transcriptionView.showLoading();
 
@@ -106,16 +123,16 @@ export class TranscriptionService {
     console.log("Starting transcription with audio data.");
     this.worker.postMessage({audio: audio});
   }
-
 }
 
-function transformAudioBuffer(audioData) {
-  let audio;
+function transformAudioBuffer(audioData: AudioBuffer): Float32Array {
+  let audio: Float32Array;
+  
   if (audioData.numberOfChannels === 2) {
     const SCALING_FACTOR = Math.sqrt(2);
 
-    let left = audioData.getChannelData(0);
-    let right = audioData.getChannelData(1);
+    const left = audioData.getChannelData(0);
+    const right = audioData.getChannelData(1);
 
     audio = new Float32Array(left.length);
     for (let i = 0; i < audioData.length; ++i) {
@@ -125,11 +142,10 @@ function transformAudioBuffer(audioData) {
     // If the audio is not stereo, we can just use the first channel:
     audio = audioData.getChannelData(0);
   }
-  return audio
+  return audio;
 }
 
-
-function getMockedData() {
+function getMockedData(): TranscriptionResult {
   return {
     "text": " Hello, welcome to my course on security architecture. I'm excited to guide you through the world of digital security. In this course, you'll join me on a hands-on journey to master the art of building security systems. I will show you how to leverage powerful open source tools like keyclock, Nginx, Open, and Wasp project, and much more. Together, we will deploy web application firewalls, configure reverse products, implement identity-driven authentication, and enforce robust security policies. Plus, you will implement secure protocols with digital certificates to ensure that integrity and privacy. All that with practical real-world scenarios. Whether you are a software developer, a career professional, or a system architect, this course is for you.",
     "chunks": [
@@ -960,5 +976,5 @@ function getMockedData() {
         ]
       }
     ]
-  }
+  };
 }

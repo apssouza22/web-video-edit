@@ -1,5 +1,5 @@
 export const dpr = window.devicePixelRatio || 1;
-
+console.log(`Device Pixel Ratio: ${dpr}`);
 // Read FPS from localStorage, default to 24 if not found
 const storedFps = localStorage.getItem('video-editor-fps');
 export let fps = storedFps ? parseFloat(storedFps) : 24;
