@@ -2,7 +2,7 @@ import {createPlayer} from '../player/index.js';
 import {createTimeline} from '../timeline/index.js';
 import {AudioLayer, createLayerService} from '../layer/index.js';
 import {LayerLoader} from './layer-loader.js';
-import {createVideoMuxer} from '../muxer/index.js';
+import {createVideoMuxer} from '../muxer/index.ts';
 import {StudioControls} from './controls.js';
 import {PinchHandler} from './pinch-handler.js';
 import {DragItemHandler} from './drag-handler.js';

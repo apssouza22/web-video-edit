@@ -1,31 +1,30 @@
 import { exportToJson } from '../studio/index.js';
 import { MediaRecorderExporter } from './media-recorder-exporter.js';
 import { WebCodecExporter } from './web-codec-exporter.js';
+import type { VideoStudio } from '../studio/index.js';
 
 export class VideoExportService {
+    private readonly studio: VideoStudio;
+    private readonly codecSupported: boolean;
+    private readonly exportId: string = 'video-export'; // Unique ID for loading popup tracking
 
-    /**
-     * 
-     * @param {VideoStudio} studio
-     */
-    constructor(studio) {
+    constructor(studio: VideoStudio) {
         this.studio = studio;
         this.codecSupported = this.#checkCodecSupport();
-        this.exportId = 'video-export'; // Unique ID for loading popup tracking
     }
 
-    #checkCodecSupport() {
-        // Disabled codec support check for now
-        // return false;
-
+    #checkCodecSupport(): boolean {
         return 'VideoEncoder' in window && 'AudioEncoder' in window;
     }
 
-    init() {
-        document.getElementById('export').addEventListener('click', this.export.bind(this));
+    init(): void {
+        const exportButton = document.getElementById('export');
+        if (exportButton) {
+            exportButton.addEventListener('click', this.export.bind(this));
+        }
     }
 
-    export(ev) {
+    export(ev: MouseEvent): void {
         if (ev.shiftKey) {
             exportToJson();
             return;
@@ -35,32 +34,32 @@ export class VideoExportService {
             return;
         }
 
-        // Start the loading popup for export
         this.studio.loadingPopup.startLoading(this.exportId, '', 'Exporting Video...');
 
-        const exportButton = document.getElementById('export');
-        const tempText = exportButton.textContent;
+        const exportButton = document.getElementById('export') as HTMLButtonElement;
+        if (!exportButton) {
+            console.error('Export button not found');
+            return;
+        }
+
+        const tempText = exportButton.textContent || 'Export';
         exportButton.textContent = "Exporting...";
 
-        // Progress callback to update the loading popup
-        const progressCallback = (progress) => {
+        const progressCallback = (progress: number): void => {
             this.studio.loadingPopup.updateProgress(this.exportId, progress);
         };
 
-        // Completion callback to restore button and finalize
-        const completionCallback = () => {
+        const completionCallback = (): void => {
             exportButton.textContent = tempText;
             this.studio.loadingPopup.updateProgress(this.exportId, 100);
         };
 
-        // Check if Web Codecs API is supported
         if (!this.codecSupported) {
             const mediaRecorderExporter = new MediaRecorderExporter(this.studio);
             mediaRecorderExporter.export(exportButton, tempText, progressCallback, completionCallback);
             return;
         }
 
-        // Use the WebCodecExporter
         const webCodecExporter = new WebCodecExporter(this.studio);
         webCodecExporter.export(exportButton, tempText, progressCallback, completionCallback);
     }

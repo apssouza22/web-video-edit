@@ -7,40 +7,40 @@ import {
   QUALITY_HIGH,
   getFirstEncodableAudioCodec,
   getFirstEncodableVideoCodec,
-} from "https://cdn.jsdelivr.net/npm/mediabunny@1.0.2/+esm"
+} from "https://cdn.jsdelivr.net/npm/mediabunny@1.0.2/+esm";
 
-const durationSlider = document.querySelector('#duration-slider');
-const durationValue = document.querySelector('#duration-value')
-const ballsSlider = document.querySelector('#balls-slider');
-const ballsValue = document.querySelector('#balls-value')
-const renderButton = document.querySelector('#render-button')
-const horizontalRule = document.querySelector('hr')
-const progressBarContainer = document.querySelector('#progress-bar-container')
-const progressBar = document.querySelector('#progress-bar')
-const progressText = document.querySelector('#progress-text')
-const resultVideo = document.querySelector('#result-video')
-const videoInfo = document.querySelector('#video-info')
-const errorElement = document.querySelector('#error-element')
+const durationSlider = document.querySelector('#duration-slider') as HTMLInputElement;
+const durationValue = document.querySelector('#duration-value') as HTMLElement;
+const ballsSlider = document.querySelector('#balls-slider') as HTMLInputElement;
+const ballsValue = document.querySelector('#balls-value') as HTMLElement;
+const renderButton = document.querySelector('#render-button') as HTMLButtonElement;
+const horizontalRule = document.querySelector('hr') as HTMLHRElement;
+const progressBarContainer = document.querySelector('#progress-bar-container') as HTMLElement;
+const progressBar = document.querySelector('#progress-bar') as HTMLElement;
+const progressText = document.querySelector('#progress-text') as HTMLElement;
+const resultVideo = document.querySelector('#result-video') as HTMLVideoElement;
+const videoInfo = document.querySelector('#video-info') as HTMLElement;
+const errorElement = document.querySelector('#error-element') as HTMLElement;
 
 // We render using OffscreenCanvas, but a canvas element would also do
 const renderCanvas = new OffscreenCanvas(1280, 720);
-const renderCtx = renderCanvas.getContext('2d', { alpha: false });
+const renderCtx = renderCanvas.getContext('2d', { alpha: false })!;
 
 // Stuff we need for rendering audio
-let audioContext;
-let globalGainNode;
-let dryGain;
-let wetGain;
-let reverbConvolver;
+let audioContext: OfflineAudioContext;
+let globalGainNode: GainNode;
+let dryGain: GainNode;
+let wetGain: GainNode;
+let reverbConvolver: ConvolverNode;
 
 // Scales are defined as semitone offsets from A440
-const scaleProgression = [
+const scaleProgression: number[][] = [
   [-24, -12, -10, -8, -7, -5, -3, -1, 0, 2, 4, 5, 7, 9, 11, 12],
   [-22, -12, -10, -8, -7, -5, -3, -1, 0, 2, 4, 5, 7, 9, 11, 14],
   [-29, -17, -15, -13, -12, -10, -8, -5, -3, -1, 0, 2, 4, 5, 7, 16],
   [-26, -14, -12, -10, -9, -7, -5, -2, 0, 2, 3, 5, 7, 9, 10, 12],
 ];
-const scaleHues = [
+const scaleHues: number[] = [
   215,
   151,
   273,
@@ -52,14 +52,14 @@ const frameRate = 60;
 const numberOfChannels = 2;
 const sampleRate = 48000;
 
-let balls= [];
+let balls: Ball[] = [];
 let currentScaleIndex = 0;
 let collisionCount = 0;
 let collisionsPerScale = 0;
 
 /** === MAIN VIDEO FILE GENERATION LOGIC === */
 
-const generateVideo = async () => {
+const generateVideo = async (): Promise<void> => {
   let progressInterval = -1;
 
   try {
@@ -104,7 +104,7 @@ const generateVideo = async () => {
     output.addVideoTrack(canvasSource, { frameRate });
 
     // For audio, we use ArrayBufferSource, because we'll be creating an ArrayBuffer with OfflineAudioContext
-    let audioBufferSource = null;
+    let audioBufferSource: AudioBufferSource | null = null;
 
     // Retrieve the first audio codec supported by this browser that can be contained in the output format
     const audioCodec = await getFirstEncodableAudioCodec(output.format.getSupportedAudioCodecs(), {
@@ -196,7 +196,7 @@ const generateVideo = async () => {
 
 /** === SCENE SIMULATION LOGIC === */
 
-const initScene = (duration) => {
+const initScene = (duration: number): void => {
   audioContext = new OfflineAudioContext(numberOfChannels, duration * sampleRate, sampleRate);
 
   // Create reverb effect
@@ -258,7 +258,7 @@ const initScene = (duration) => {
   }
 };
 
-const updateScene = (currentTime) => {
+const updateScene = (currentTime: number): void => {
   renderCtx.clearRect(0, 0, renderCanvas.width, renderCanvas.height);
 
   // Draw the walls
@@ -308,15 +308,15 @@ const updateScene = (currentTime) => {
 const ballHitAnimationDuration = 0.2;
 
 class Ball {
-  x;
-  y;
-  scaleIndex;
-  vx;
-  vy;
-  lastHitTime;
-  radius;
+  x: number;
+  y: number;
+  scaleIndex: number;
+  vx: number;
+  vy: number;
+  lastHitTime: number;
+  radius: number;
 
-  constructor(x, y, scaleIndex) {
+  constructor(x: number, y: number, scaleIndex: number) {
     this.x = x;
     this.y = y;
     this.scaleIndex = scaleIndex;
@@ -326,20 +326,20 @@ class Ball {
 
     const baseRadius = 40;
     this.radius = lerp(
-        2 * baseRadius,
-        0.3 * baseRadius,
-        (this.scaleIndex / (scaleProgression[0].length - 1)) ** 0.5,
-  );
+      2 * baseRadius,
+      0.3 * baseRadius,
+      (this.scaleIndex / (scaleProgression[0].length - 1)) ** 0.5,
+    );
   }
 
-  getColorFromScale() {
+  getColorFromScale(): string {
     // Lower indices (bass notes) are darker, higher are brighter
     const hue = scaleHues[currentScaleIndex];
     const lightness = 25 + (this.scaleIndex / 15) * 50;
     return `hsl(${hue}, 50%, ${lightness}%)`;
   }
 
-  update(currentTime, canvasWidth, canvasHeight) {
+  update(currentTime: number, canvasWidth: number, canvasHeight: number): void {
     // Integrate
     this.x += this.vx / frameRate;
     this.y += this.vy / frameRate;
@@ -366,7 +366,7 @@ class Ball {
     }
   }
 
-  draw(ctx, currentTime) {
+  draw(ctx: OffscreenCanvasRenderingContext2D, currentTime: number): void {
     const timeSinceHit = currentTime - this.lastHitTime;
     const progress = clamp(timeSinceHit / ballHitAnimationDuration, 0, 1);
 
@@ -400,14 +400,14 @@ class Ball {
     ctx.globalAlpha = 1;
   }
 
-  checkCollision(other) {
+  checkCollision(other: Ball): boolean {
     const dx = this.x - other.x;
     const dy = this.y - other.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     return distance < (this.radius + other.radius);
   }
 
-  collideWith(other) {
+  collideWith(other: Ball): void {
     const dx = other.x - this.x;
     const dy = other.y - this.y;
     const distance = Math.hypot(dx, dy);
@@ -449,7 +449,7 @@ class Ball {
     }
   }
 
-  scheduleSound(currentTime) {
+  scheduleSound(currentTime: number): void {
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     const pannerNode = audioContext.createStereoPanner();
@@ -479,28 +479,28 @@ class Ball {
 
 /** === UTILS === */
 
-const clamp = (value, min, max) => {
+const clamp = (value: number, min: number, max: number): number => {
   return Math.min(Math.max(value, min), max);
 };
 
-const lerp = (a, b, t) => {
+const lerp = (a: number, b: number, t: number): number => {
   return a + (b - a) * t;
 };
 
-const semitoneToFreq = (semitones) => {
+const semitoneToFreq = (semitones: number): number => {
   return 440 * Math.pow(2, semitones / 12); // Equal temperament
 };
 
-const getCurrentScale = () => {
+const getCurrentScale = (): number[] => {
   return scaleProgression[currentScaleIndex];
 };
 
-const getFrequencyFromScaleIndex = (scaleIndex) => {
+const getFrequencyFromScaleIndex = (scaleIndex: number): number => {
   const currentScale = getCurrentScale();
   return semitoneToFreq(currentScale[scaleIndex]);
 };
 
-const createReverbImpulse = (duration) => {
+const createReverbImpulse = (duration: number): AudioBuffer => {
   const length = sampleRate * duration;
   const impulse = audioContext.createBuffer(numberOfChannels, length, sampleRate);
 
@@ -524,7 +524,7 @@ const createReverbImpulse = (duration) => {
 /** === DOM LOGIC === */
 
 // Update slider displays
-const updateSliderDisplays = () => {
+const updateSliderDisplays = (): void => {
   durationValue.textContent = `${durationSlider.value} seconds`;
   ballsValue.textContent = `${ballsSlider.value} ${ballsSlider.value === '1' ? 'ball' : 'balls'}`;
 };
