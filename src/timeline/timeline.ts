@@ -71,7 +71,7 @@ export class Timeline {
 
     this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
-    this.timeUpdateListener = null;
+    this.zoomHandler = new TimelineZoomHandler(this);
     this.layerUpdateListener = () => {};
 
     this.#addEventListeners();
@@ -120,7 +120,7 @@ export class Timeline {
   }
 
   #setupPinchHandler() {
-    const callback = (function (scale, rotation) {
+    const callback = (function (scale: number, rotation: number) {
       this.scale = Math.max(1, this.scale * scale);
       this.resize();
       // Update the zoom slider to match the current scale
@@ -132,7 +132,6 @@ export class Timeline {
     const pinch = new PinchHandler(this.timelineHolder, callback, this.studio);
     pinch.setupEventListeners();
 
-    this.zoomHandler = new TimelineZoomHandler(this);
   }
 
   #addEventListeners() {
