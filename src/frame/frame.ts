@@ -1,17 +1,27 @@
+import { FrameReference, FrameTransform, FrameData } from './types';
+
 /**
  * Represents a single frame with transformation properties
  */
-export class Frame {
+export class Frame implements FrameData {
+    public x: number;
+    public y: number;
+    public scale: number;
+    public rotation: number;
+    public anchor: boolean;
+    public frame: FrameReference;
+
     /**
      * Creates a new Frame instance
-     * @param {*} frame - Optional frame data/reference (default: null)
-     * @param {number} x - X position (default: 0)
-     * @param {number} y - Y position (default: 0)
-     * @param {number} scale - Scale factor (default: 1)
-     * @param {number} rotation - Rotation in radians (default: 0)
-     * @param {boolean} anchor - Whether this frame is an anchor frame (default: false)
      */
-    constructor(frame = null, x = 0, y = 0, scale = 1, rotation = 0, anchor = false) {
+    constructor(
+        frame: FrameReference = null,
+        x: number = 0,
+        y: number = 0,
+        scale: number = 1,
+        rotation: number = 0,
+        anchor: boolean = false
+    ) {
         this.x = x;
         this.y = y;
         this.scale = scale;
@@ -20,14 +30,10 @@ export class Frame {
         this.frame = frame;
     }
 
-
     /**
      * Creates a Frame from a Float32Array (for backward compatibility)
-     * @param {Float32Array} array - Array with [x, y, scale, rotation, anchor]
-     * @param {*} frame - Optional frame data
-     * @returns {Frame}
      */
-    static fromArray(array, frame = null) {
+    static fromArray(array: Float32Array, frame: FrameReference = null): Frame {
         return new Frame(
             frame,
             array[0] || 0,    // x
@@ -40,9 +46,8 @@ export class Frame {
 
     /**
      * Converts Frame to Float32Array (for backward compatibility)
-     * @returns {Float32Array}
      */
-    toArray() {
+    toArray(): Float32Array {
         const array = new Float32Array(5);
         array[0] = this.x;
         array[1] = this.y;
@@ -54,9 +59,8 @@ export class Frame {
 
     /**
      * Creates a copy of this frame
-     * @returns {Frame}
      */
-    clone() {
+    clone(): Frame {
         return new Frame(
             this.frame,
             this.x,
@@ -69,11 +73,8 @@ export class Frame {
 
     /**
      * Linear interpolation between this frame and another frame
-     * @param {Frame} other - The other frame to interpolate with
-     * @param {number} weight - Interpolation weight (0-1)
-     * @returns {Frame}
      */
-    interpolate(other, weight) {
+    interpolate(other: Frame, weight: number): Frame {
         if (weight > 1) weight = 1;
         if (weight < 0) weight = 0;
 
@@ -89,20 +90,15 @@ export class Frame {
 
     /**
      * Linear interpolation helper
-     * @param {number} a - Start value
-     * @param {number} b - End value
-     * @param {number} t - Interpolation factor (0-1)
-     * @returns {number}
      */
-    #lerp(a, b, t) {
+    #lerp(a: number, b: number, t: number): number {
         return a + (b - a) * t;
     }
 
     /**
      * String representation for debugging
-     * @returns {string}
      */
-    toString() {
+    toString(): string {
         return `Frame(x=${this.x}, y=${this.y}, scale=${this.scale}, rotation=${this.rotation}, anchor=${this.anchor})`;
     }
 }

@@ -1,18 +1,19 @@
-import { fps } from "../constants.js";
-import { FrameService } from "./frames.js";
-import { Frame } from "./frame.js";
+import { fps } from "@/constants";
+import { FrameService } from "./frames";
+import { Frame } from "./frame";
 
 export class FrameAdjustHandler {
-  /**
-   *
-   * @param {FrameService} framesCollection
-   */
-  constructor(framesCollection) {
+  private framesCollection: FrameService;
+
+  constructor(framesCollection: FrameService) {
     this.framesCollection = framesCollection;
   }
 
-  adjust(diff) {
-    this.framesCollection.totalTimeInMilSeconds = Math.max(1000 / fps, this.framesCollection.totalTimeInMilSeconds + diff); // Minimum one frame duration
+  adjust(diff: number): void {
+    this.framesCollection.totalTimeInMilSeconds = Math.max(
+      1000 / fps, 
+      this.framesCollection.totalTimeInMilSeconds + diff
+    ); // Minimum one frame duration
 
     const oldNumFrames = this.framesCollection.getLength();
     const newNumFrames = Math.floor((this.framesCollection.totalTimeInMilSeconds / 1000) * fps);
@@ -27,16 +28,12 @@ export class FrameAdjustHandler {
       return;
     }
     this.#handleRemoveFrame(frameDiff, oldNumFrames, newNumFrames, diff);
-
   }
 
   /**
    * Removes a video interval by removing frames from the layer
-   * @param {number} startTime - Start time in seconds to remove
-   * @param {number} endTime - End time in seconds to remove
-   * @returns {boolean} True if the interval was removed successfully
    */
-  removeInterval(startTime, endTime) {
+  removeInterval(startTime: number, endTime: number): boolean {
     if (!this.framesCollection || startTime >= endTime || startTime < 0) {
       console.error('Invalid parameters for removeInterval on FrameAdjustHandler');
       return false;
@@ -77,45 +74,72 @@ export class FrameAdjustHandler {
     
     // Update the total time
     const removedDuration = (clampedEndTime - clampedStartTime) * 1000;
-    this.framesCollection.totalTimeInMilSeconds = Math.max(0, this.framesCollection.totalTimeInMilSeconds - removedDuration);
+    this.framesCollection.totalTimeInMilSeconds = Math.max(
+      0, 
+      this.framesCollection.totalTimeInMilSeconds - removedDuration
+    );
     
-    console.log(`Removed video interval ${clampedStartTime}s-${clampedEndTime}s. Removed ${framesToRemove} frames. New duration: ${this.framesCollection.totalTimeInMilSeconds / 1000}s`);
+    console.log(
+      `Removed video interval ${clampedStartTime}s-${clampedEndTime}s. ` +
+      `Removed ${framesToRemove} frames. ` +
+      `New duration: ${this.framesCollection.totalTimeInMilSeconds / 1000}s`
+    );
     
     return true;
   }
 
-  #handleRemoveFrame(frameDiff, oldNumFrames, newNumFrames, diff) {
+  #handleRemoveFrame(
+    frameDiff: number, 
+    oldNumFrames: number, 
+    newNumFrames: number, 
+    diff: number
+  ): void {
     const framesToRemove = Math.abs(frameDiff);
     if (framesToRemove >= oldNumFrames) {
       console.warn(`Reducing video would result in empty layer. Keeping one frame.`);
       // Keep only the first frame
       this.framesCollection.frames.splice(1, oldNumFrames - 1);
       this.framesCollection.totalTimeInMilSeconds = 1000 / fps;
-      return
+      return;
     }
 
     this.framesCollection.frames.splice(newNumFrames, framesToRemove);
   }
 
-  #handleAddFrame(oldNumFrames, frameDiff, diff) {
+  #handleAddFrame(oldNumFrames: number, frameDiff: number, diff: number): void {
     const lastFrame = this.framesCollection.frames[oldNumFrames - 1];
-    if (lastFrame instanceof ImageData) {
+    
+    // Check if the last frame is ImageData for special handling
+    if (lastFrame.frame instanceof ImageData) {
       // Create copies of the last frame to extend the video
       for (let i = 0; i < frameDiff; i++) {
-        const newFrame = new ImageData(
-            new Uint8ClampedArray(lastFrame.data),
-            lastFrame.width,
-            lastFrame.height
+        const imageData = lastFrame.frame as ImageData;
+        const newImageData = new ImageData(
+          new Uint8ClampedArray(imageData.data),
+          imageData.width,
+          imageData.height
+        );
+        const newFrame = new Frame(
+          newImageData,
+          lastFrame.x,
+          lastFrame.y,
+          lastFrame.scale,
+          lastFrame.rotation,
+          lastFrame.anchor
         );
         this.framesCollection.frames.push(newFrame);
       }
-      console.log(`Extended video layer by ${diff}ms, added ${frameDiff} frames. New duration: ${this.framesCollection.totalTimeInMilSeconds / 1000}s`);
-      return
+      console.log(
+        `Extended video layer by ${diff}ms, added ${frameDiff} frames. ` +
+        `New duration: ${this.framesCollection.totalTimeInMilSeconds / 1000}s`
+      );
+      return;
     }
+    
+    // Default case: add empty frames
     for (let i = 0; i < frameDiff; ++i) {
-      let f = new Frame(null, 0, 0, 1, 0, false);
+      const f = new Frame(null, 0, 0, 1, 0, false);
       this.framesCollection.push(f);
     }
-
   }
 }
