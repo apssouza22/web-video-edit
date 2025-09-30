@@ -1,56 +1,77 @@
-import {dpr} from '../constants.js';
-import {AudioLayer} from '../layer/index.js';
-import {PlayerLayer} from './player-layer.js';
+import { dpr } from '@/constants';
+import { AudioLayer } from '../layer/index.js';
+import { PlayerLayer } from './player-layer.js';
+import type {
+  TimeUpdateListener,
+  LayerTransformedListener,
+  PlayerEndCallback,
+  CanvasContext2D,
+  CanvasElement,
+  AudioContextType
+} from './types.js';
+import type { StandardLayer } from '@/layer';
 
 export class VideoPlayer {
-  #selectedLayer;
+  #selectedLayer: StandardLayer | null = null;
   #contentScaleFactor = 0.9; // Scale content to 90% to create 10% margin
 
+  public playing = false;
+  public onend_callback: PlayerEndCallback | null = null;
+  public total_time = 0;
+  public lastTImestampFrame: number | null = null;
+  public time = 0;
+  public lastPausedTime = Number.MAX_SAFE_INTEGER;
+  public playerHolder: HTMLElement | null;
+  public canvas: CanvasElement;
+  public ctx: CanvasContext2D;
+  public audioContext: AudioContextType;
+  public width = 0;
+  public height = 0;
+  public layers: PlayerLayer[] = [];
+  public timeUpdateListener: TimeUpdateListener = (newTime: number, oldTime: number) => {
+    // Default empty listener
+  };
+  public layerTransformedListener: LayerTransformedListener = (layer: StandardLayer) => {
+    // Default empty listener
+  };
+
   constructor() {
-    this.playing = false;
-    this.onend_callback = null;
-    this.total_time = 0;
-    this.lastTImestampFrame = null;
-    this.time = 0;
-    this.lastPausedTime = Number.MAX_SAFE_INTEGER;
-    this.playerHolder = document.getElementById("video-canvas")
+    const playerHolder = document.getElementById("video-canvas");
+    this.playerHolder = playerHolder;
+    
     this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
+    const ctx = this.canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Unable to get 2D context from canvas');
+    }
+    this.ctx = ctx;
+    
     this.audioContext = new AudioContext();
-    this.width = 0;
-    this.height = 0;
-    /**
-     * @type {PlayerLayer[]} layers
-     */
-    this.layers = [];
-    this.timeUpdateListener = (newTime, oldTime) => {
-    };
-    this.layerTransformedListener = layer => {};
   }
 
   /**
    * Setter for time property that notifies listeners when time changes
    */
-  setTime(newTime) {
+  setTime(newTime: number): void {
     const oldTime = this.time;
     this.time = newTime;
     if (oldTime !== newTime) {
-      this.timeUpdateListener(newTime, oldTime)
+      this.timeUpdateListener(newTime, oldTime);
     }
   }
 
-  addTimeUpdateListener(listener) {
+  addTimeUpdateListener(listener: TimeUpdateListener): void {
     if (typeof listener !== 'function') {
       throw new Error('Time update listener must be a function');
     }
-    this.timeUpdateListener = listener
+    this.timeUpdateListener = listener;
   }
 
-  addLayerTransformedListener(listener) {
+  addLayerTransformedListener(listener: LayerTransformedListener): void {
     this.layerTransformedListener = listener;
   }
 
-  addLayers(layers) {
+  addLayers(layers: StandardLayer[]): void {
     this.layers = layers.map(layer => {
       const playerLayer = new PlayerLayer(layer, this.canvas);
       if (this.#selectedLayer === layer) {
@@ -63,17 +84,15 @@ export class VideoPlayer {
 
   /**
    * Handle layer transformation events
-   * @param {StandardLayer} layer
    */
-  #onLayerTransformed(layer) {
+  #onLayerTransformed(layer: StandardLayer): void {
     this.layerTransformedListener(layer);
   }
 
   /**
    * Set selected layer for transformation
-   * @param {StandardLayer} layer
    */
-  setSelectedLayer(layer) {
+  setSelectedLayer(layer: StandardLayer): void {
     this.layers.forEach(playerLayer => {
       playerLayer.selected = false;
     });
@@ -85,20 +104,19 @@ export class VideoPlayer {
     }
   }
 
-
-  mount(holder) {
-    this.playerHolder = holder
+  mount(holder: HTMLElement): void {
+    this.playerHolder = holder;
     holder.appendChild(this.canvas);
     this.canvas.width = holder.clientWidth;
-    this.canvas.height = holder.clientHeight
+    this.canvas.height = holder.clientHeight;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
     this.ctx.scale(1, 1); // Reset scale to 1
     this.resize();
   }
 
-  resize(newRatio) {
-    if(newRatio) {
+  resize(newRatio?: string): void {
+    if (newRatio && this.playerHolder) {
       this.playerHolder.style.aspectRatio = newRatio.replace(":", "/");
     }
     this.canvas.width = this.canvas.clientWidth * dpr;
@@ -108,8 +126,8 @@ export class VideoPlayer {
     this.ctx.scale(dpr, dpr);
   }
 
-  refreshAudio() {
-    for (let l of this.layers) {
+  refreshAudio(): void {
+    for (const l of this.layers) {
       const layer = l.layer;
       if (layer instanceof AudioLayer) {
         layer.connectAudioSource(this.audioContext);
@@ -117,7 +135,7 @@ export class VideoPlayer {
     }
   }
 
-  play() {
+  play(): void {
     this.playing = true;
     if (this.lastPausedTime !== this.time) {
       this.refreshAudio();
@@ -125,17 +143,17 @@ export class VideoPlayer {
     this.audioContext.resume();
   }
 
-  pause() {
+  pause(): void {
     this.playing = false;
     this.audioContext.suspend();
     this.lastPausedTime = this.time;
   }
 
-  render(realtime) {
+  render(realtime: number): number {
     if (this.lastTImestampFrame === null) {
       this.lastTImestampFrame = realtime;
     }
-    this.#updateTotalTime()
+    this.#updateTotalTime();
     if (this.isPlaying()) {
       let newTime = this.time + (realtime - this.lastTImestampFrame);
 
@@ -146,21 +164,21 @@ export class VideoPlayer {
       if (newTime >= this.total_time) {
         this.refreshAudio();
       }
-      // // This will make the playback loop
+      // This will make the playback loop
       newTime %= this.total_time;
 
       this.setTime(newTime);
     }
-    this.renderLayers()
+    this.renderLayers();
     this.lastTImestampFrame = realtime;
     return this.time;
   }
 
-  renderLayers() {
+  renderLayers(): void {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.#addPaddingToCanvas();
 
-    for (let layer of this.layers) {
+    for (const layer of this.layers) {
       layer.render(this.ctx, this.time, this.playing);
     }
 
@@ -171,12 +189,12 @@ export class VideoPlayer {
    * Add some buffering to the canvas so we can transform the content
    * Without this, we can not see the layer boundaries
    */
-  #addPaddingToCanvas() {
+  #addPaddingToCanvas(): void {
     this.ctx.save();
 
     // Calculate the offset to center the scaled content
-    const canvasWidth = this.ctx.canvas.clientWidth
-    const canvasHeight = this.ctx.canvas.clientHeight
+    const canvasWidth = this.ctx.canvas.clientWidth;
+    const canvasHeight = this.ctx.canvas.clientHeight;
 
     const offsetX = (canvasWidth * (1 - this.#contentScaleFactor)) / 2;
     const offsetY = (canvasHeight * (1 - this.#contentScaleFactor)) / 2;
@@ -184,13 +202,13 @@ export class VideoPlayer {
     this.ctx.translate(offsetX, offsetY);
     this.ctx.scale(this.#contentScaleFactor, this.#contentScaleFactor);
 
-    //paint the background white
+    // Paint the background white
     this.ctx.fillStyle = 'white';
-    this.ctx.fillRect(0, 0, canvasWidth , canvasHeight);
+    this.ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
-  #updateTotalTime() {
-    for (let l of this.layers) {
+  #updateTotalTime(): void {
+    for (const l of this.layers) {
       const layer = l.layer;
       if (layer.start_time + layer.totalTimeInMilSeconds > this.total_time) {
         this.total_time = layer.start_time + layer.totalTimeInMilSeconds;
@@ -198,7 +216,7 @@ export class VideoPlayer {
     }
   }
 
-  isPlaying() {
+  isPlaying(): boolean {
     return this.playing && this.total_time > 0;
   }
 }

@@ -1,83 +1,88 @@
-import { StandardLayer } from '../layer/index.js';
+import { StandardLayer } from '@/layer';
+import {
+  HandleType, 
+  TransformHandle, 
+  Point2D, 
+  Bounds, 
+  HitTestResult, 
+  DragState, 
+  CanvasPosition, 
+  HandlePosition,
+  LayerTransformedListener,
+  CanvasContext2D,
+  CanvasElement
+} from './types';
+import type { FrameTransform } from '@/frame';
 
 export class PlayerLayer {
-  #layer;
+  #layer: StandardLayer;
   #selected = false;
-  #canvas;
-  #ctx;
+  #canvas: CanvasElement;
+  #ctx: CanvasContext2D;
   #transforming = false;
-  #transformType = null; // 'move', 'resize', 'rotate'
-  #dragStart = { x: 0, y: 0 };
-  #initialTransform = null;
-  #handles = [];
-  #rotationHandle = null;
-  #onTransformCallback = null;
+  #transformType: HandleType | null = null;
+  #dragStart: Point2D = { x: 0, y: 0 };
+  #initialTransform: FrameTransform | null = null;
+  #handles: TransformHandle[] = [];
+  #rotationHandle: TransformHandle | null = null;
+  #onTransformCallback: LayerTransformedListener | null = null;
   #currentTime = 0;
   #contentScaleFactor = 0.9; // Match the scale factor from VideoPlayer
 
-  // Handle types and positions
-  static HANDLE_TYPES = {
-    RESIZE_NW: 'resize-nw',
-    RESIZE_N: 'resize-n', 
-    RESIZE_NE: 'resize-ne',
-    RESIZE_E: 'resize-e',
-    RESIZE_SE: 'resize-se',
-    RESIZE_S: 'resize-s',
-    RESIZE_SW: 'resize-sw',
-    RESIZE_W: 'resize-w',
-    ROTATE: 'rotate'
-  };
-
   /**
    * Class to handle transformations of a layer in the player.
-   * @param {StandardLayer} layer
-   * @param {HTMLCanvasElement} canvas - The player canvas
    */
-  constructor(layer, canvas) {
+  constructor(layer: StandardLayer, canvas: CanvasElement) {
     this.#layer = layer;
     this.#canvas = canvas;
-    this.#ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Unable to get 2D context from canvas');
+    }
+    this.#ctx = ctx;
     this.#initializeHandles();
     this.#setupEventListeners();
   }
 
   /**
    * Returns the layer associated with this PlayerLayer instance.
-   * @returns {StandardLayer}
    */
-  get layer() {
+  get layer(): StandardLayer {
     return this.#layer;
   }
 
-  set selected(value) {
+  set selected(value: boolean) {
     this.#selected = value;
+  }
+
+  get selected(): boolean {
+    return this.#selected;
   }
 
   /**
    * Set transformation callback
-   * @param {Function} callback - Called when layer is transformed
    */
-  setTransformCallback(callback) {
+  setTransformCallback(callback: LayerTransformedListener): void {
     this.#onTransformCallback = callback;
   }
 
   /**
    * Initialize transformation handles
    */
-  #initializeHandles() {
+  #initializeHandles(): void {
     this.#handles = [
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_NW, cursor: 'nw-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_N, cursor: 'n-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_NE, cursor: 'ne-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_E, cursor: 'e-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_SE, cursor: 'se-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_S, cursor: 's-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_SW, cursor: 'sw-resize' },
-      { type: PlayerLayer.HANDLE_TYPES.RESIZE_W, cursor: 'w-resize' }
+      { type: HandleType.RESIZE_NW, cursor: 'nw-resize' },
+      { type: HandleType.RESIZE_N, cursor: 'n-resize' },
+      { type: HandleType.RESIZE_NE, cursor: 'ne-resize' },
+      { type: HandleType.RESIZE_E, cursor: 'e-resize' },
+      { type: HandleType.RESIZE_SE, cursor: 'se-resize' },
+      { type: HandleType.RESIZE_S, cursor: 's-resize' },
+      { type: HandleType.RESIZE_SW, cursor: 'sw-resize' },
+      { type: HandleType.RESIZE_W, cursor: 'w-resize' }
     ];
 
     this.#rotationHandle = {
-      type: PlayerLayer.HANDLE_TYPES.ROTATE,
+      type: HandleType.ROTATE,
       cursor: 'grab'
     };
   }
@@ -85,7 +90,7 @@ export class PlayerLayer {
   /**
    * Setup event listeners for transformation
    */
-  #setupEventListeners() {
+  #setupEventListeners(): void {
     this.#canvas.addEventListener('pointerdown', this.#onPointerDown.bind(this));
     this.#canvas.addEventListener('pointermove', this.#onPointerMove.bind(this));
     this.#canvas.addEventListener('pointerup', this.#onPointerUp.bind(this));
@@ -94,11 +99,10 @@ export class PlayerLayer {
 
   /**
    * Handle pointer down events
-   * @param {PointerEvent} event
    */
-  #onPointerDown(event) {
+  #onPointerDown(event: PointerEvent): void {
     if (!this.#selected) return;
-    const {canvasX, canvasY} = this.#getPosition(event);
+    const { canvasX, canvasY } = this.#getPosition(event);
 
     const hitResult = this.#hitTest(canvasX, canvasY);
     
@@ -114,7 +118,7 @@ export class PlayerLayer {
     }
   }
 
-  #getPosition(event) {
+  #getPosition(event: PointerEvent): CanvasPosition {
     const rect = this.#canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -123,22 +127,21 @@ export class PlayerLayer {
     const canvasX = x * (this.#canvas.width / rect.width);
     const canvasY = y * (this.#canvas.height / rect.height);
     
-    // The layer is scaled down 10%, // so we need to adjust the coordinates accordingly
+    // The layer is scaled down 10%, so we need to adjust the coordinates accordingly
     const offsetX = (this.#canvas.width * (1 - this.#contentScaleFactor)) / 2;
     const offsetY = (this.#canvas.height * (1 - this.#contentScaleFactor)) / 2;
     
     const scaledX = (canvasX - offsetX) / this.#contentScaleFactor;
     const scaledY = (canvasY - offsetY) / this.#contentScaleFactor;
     
-    return {canvasX: scaledX, canvasY: scaledY};
+    return { canvasX: scaledX, canvasY: scaledY };
   }
 
   /**
    * Handle pointer move events
-   * @param {PointerEvent} event
    */
-  #onPointerMove(event) {
-    const {canvasX, canvasY} = this.#getPosition(event);
+  #onPointerMove(event: PointerEvent): void {
+    const { canvasX, canvasY } = this.#getPosition(event);
     if (this.#transforming) {
       this.#performTransformation(canvasX, canvasY);
       return;
@@ -153,7 +156,7 @@ export class PlayerLayer {
   /**
    * Handle pointer up events
    */
-  #onPointerUp() {
+  #onPointerUp(): void {
     if (this.#transforming) {
       this.#transforming = false;
       this.#transformType = null;
@@ -168,22 +171,20 @@ export class PlayerLayer {
 
   /**
    * Perform transformation based on current drag
-   * @param {number} currentX
-   * @param {number} currentY
    */
-  #performTransformation(currentX, currentY) {
+  #performTransformation(currentX: number, currentY: number): void {
     const dx = currentX - this.#dragStart.x;
     const dy = currentY - this.#dragStart.y;
 
     switch (this.#transformType) {
-      case 'move':
+      case HandleType.MOVE:
         this.#performMove(dx, dy);
         break;
-      case PlayerLayer.HANDLE_TYPES.ROTATE:
+      case HandleType.ROTATE:
         this.#performRotation(currentX, currentY);
         break;
       default:
-        if (this.#transformType.startsWith('resize-')) {
+        if (this.#transformType && this.#transformType.startsWith('resize-')) {
           this.#performResize(dx, dy, this.#transformType);
         }
         break;
@@ -192,12 +193,10 @@ export class PlayerLayer {
 
   /**
    * Perform move transformation
-   * @param {number} dx
-   * @param {number} dy
    */
-  #performMove(dx, dy) {
+  #performMove(dx: number, dy: number): void {
     const frame = this.#layer.getFrame(this.#currentTime);
-    if (frame) {
+    if (frame && this.#initialTransform) {
       this.#layer.update({
         x: this.#initialTransform.x + dx,
         y: this.#initialTransform.y + dy
@@ -207,11 +206,8 @@ export class PlayerLayer {
 
   /**
    * Perform resize transformation
-   * @param {number} dx
-   * @param {number} dy
-   * @param {string} handleType
    */
-  #performResize(dx, dy, handleType) {
+  #performResize(dx: number, dy: number, handleType: HandleType): void {
     const bounds = this.#getLayerBounds();
     if (!bounds) return;
     const dragDistance = Math.sqrt(dx * dx + dy * dy);
@@ -222,47 +218,47 @@ export class PlayerLayer {
     let offsetY = 0;
 
     switch (handleType) {
-      case PlayerLayer.HANDLE_TYPES.RESIZE_SE:
+      case HandleType.RESIZE_SE:
         // Southeast: positive drag increases size
         scaleDirection = (dx + dy) > 0 ? 1 : -1;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_NW:
+      case HandleType.RESIZE_NW:
         // Northwest: negative drag increases size
         scaleDirection = (dx + dy) < 0 ? 1 : -1;
         offsetX = dx * 0.5;
         offsetY = dy * 0.5;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_NE:
+      case HandleType.RESIZE_NE:
         // Northeast: mixed direction (dx positive, dy negative increases size)
         scaleDirection = (dx - dy) > 0 ? 1 : -1;
         offsetY = dy * 0.5;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_SW:
+      case HandleType.RESIZE_SW:
         // Southwest: mixed direction (dx negative, dy positive increases size)
         scaleDirection = (-dx + dy) > 0 ? 1 : -1;
         offsetX = dx * 0.5;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_E:
+      case HandleType.RESIZE_E:
         // East: positive dx increases size
         scaleDirection = dx > 0 ? 1 : -1;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_W:
+      case HandleType.RESIZE_W:
         // West: negative dx increases size
         scaleDirection = dx < 0 ? 1 : -1;
         offsetX = dx * 0.5;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_N:
+      case HandleType.RESIZE_N:
         // North: negative dy increases size
         scaleDirection = dy < 0 ? 1 : -1;
         offsetY = dy * 0.5;
         break;
-      case PlayerLayer.HANDLE_TYPES.RESIZE_S:
+      case HandleType.RESIZE_S:
         // South: positive dy increases size
         scaleDirection = dy > 0 ? 1 : -1;
         break;
     }
     const scaleFactor = 1 + (scaleDirection * dragDistance * 0.00005);
-    let maxScale = scaleFactor > 1? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor); // Prevent zero or negative scale
+    const maxScale = scaleFactor > 1 ? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor);
 
     this.#layer.update({
       scale: maxScale,
@@ -271,10 +267,8 @@ export class PlayerLayer {
 
   /**
    * Perform rotation transformation
-   * @param {number} currentX
-   * @param {number} currentY
    */
-  #performRotation(currentX, currentY) {
+  #performRotation(currentX: number, currentY: number): void {
     const bounds = this.#getLayerBounds();
     if (!bounds) return;
 
@@ -292,11 +286,8 @@ export class PlayerLayer {
 
   /**
    * Hit test for transformation handles and layer area
-   * @param {number} x
-   * @param {number} y
-   * @returns {Object|null}
    */
-  #hitTest(x, y) {
+  #hitTest(x: number, y: number): HitTestResult | null {
     if (!this.#selected) return null;
 
     const bounds = this.#getLayerBounds();
@@ -310,7 +301,7 @@ export class PlayerLayer {
     const rotationY = bounds.y - rotationHandleOffset;
     
     if (this.#pointInRect(x, y, rotationX - handleSize/2, rotationY - handleSize/2, handleSize, handleSize)) {
-      return { type: PlayerLayer.HANDLE_TYPES.ROTATE, cursor: 'grab' };
+      return { type: HandleType.ROTATE, cursor: 'grab' };
     }
 
     // Test resize handles
@@ -327,7 +318,7 @@ export class PlayerLayer {
 
     // Test layer content area for move
     if (this.#pointInRect(x, y, bounds.x, bounds.y, bounds.width, bounds.height)) {
-      return { type: 'move', cursor: 'move' };
+      return { type: HandleType.MOVE, cursor: 'move' };
     }
 
     return null;
@@ -335,11 +326,8 @@ export class PlayerLayer {
 
   /**
    * Get handle positions for current layer bounds
-   * @param {Object} bounds
-   * @param {number} handleSize
-   * @returns {Array}
    */
-  #getHandlePositions(bounds, handleSize) {
+  #getHandlePositions(bounds: Bounds, handleSize: number): HandlePosition[] {
     const half = handleSize / 2;
     return [
       { x: bounds.x - half, y: bounds.y - half }, // NW
@@ -355,37 +343,29 @@ export class PlayerLayer {
 
   /**
    * Check if point is within rectangle
-   * @param {number} px
-   * @param {number} py
-   * @param {number} rx
-   * @param {number} ry
-   * @param {number} rw
-   * @param {number} rh
-   * @returns {boolean}
    */
-  #pointInRect(px, py, rx, ry, rw, rh) {
+  #pointInRect(px: number, py: number, rx: number, ry: number, rw: number, rh: number): boolean {
     return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
   }
 
   /**
    * Get current transformation values
-   * @returns {Object}
    */
-  #getCurrentTransform() {
+  #getCurrentTransform(): FrameTransform {
     const frame = this.#layer.getFrame(this.#currentTime);
     return frame ? {
       x: frame.x || 0,
       y: frame.y || 0,
       scale: frame.scale || 1,
-      rotation: frame.rotation || 0
-    } : { x: 0, y: 0, scale: 1, rotation: 0 };
+      rotation: frame.rotation || 0,
+      anchor: frame.anchor || false
+    } : { x: 0, y: 0, scale: 1, rotation: 0, anchor: false };
   }
 
   /**
    * Get layer bounds in canvas coordinates
-   * @returns {{ x, y, width, height }}
    */
-  #getLayerBounds() {
+  #getLayerBounds(): Bounds | null {
     const frame = this.#layer.getFrame(this.#currentTime);
     if (!frame) return null;
 
@@ -402,9 +382,8 @@ export class PlayerLayer {
 
   /**
    * Mark the layer area with visual boundaries and handles
-   * @param {CanvasRenderingContext2D} ctx
    */
-  #markLayerArea(ctx) {
+  #markLayerArea(ctx: CanvasContext2D): void {
     if (!this.#selected) return;
     const bounds = this.#getLayerBounds();
     if (!bounds) return;
@@ -452,14 +431,10 @@ export class PlayerLayer {
 
   /**
    * Render the layer content
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {number} time
-   * @param {boolean} playing
    */
-  render(ctx, time, playing) {
+  render(ctx: CanvasContext2D, time: number, playing: boolean): void {
     this.#currentTime = time;
     this.#layer.render(ctx, time, playing);
     this.#markLayerArea(ctx);
   }
-
 }
