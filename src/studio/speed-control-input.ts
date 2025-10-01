@@ -1,15 +1,19 @@
+interface StandardLayer {
+  getSpeed(): number;
+  setSpeed(speed: number): void;
+}
+
+type SpeedChangeCallback = (speed: number) => void;
+
 /**
  * Speed Control Input Component
  * Provides UI for controlling layer playback speed with validation and presets
  */
 export class SpeedControlInput {
-  /** @type {HTMLElement} */
-  #container = null;
-  /** @type {HTMLElement} */
-  #input = null;
-  /** @type {StandardLayer} */
-  #currentLayer = null;
-  #onSpeedChangeCallback = (speed) => {
+  #container: HTMLDivElement | null = null;
+  #input: HTMLInputElement | null = null;
+  #currentLayer: StandardLayer | null = null;
+  #onSpeedChangeCallback: SpeedChangeCallback = (speed: number) => {
   };
 
   constructor() {
@@ -17,16 +21,15 @@ export class SpeedControlInput {
     this.#setupEventListeners();
   }
 
-  init() {
+  init(): void {
     this.#mount();
     console.log('Speed Control Input initialized');
   }
 
   /**
    * Set the current layer
-   * @param {StandardLayer} layer
    */
-  setLayer(layer) {
+  setLayer(layer: StandardLayer): void {
     this.#currentLayer = layer;
     const currentSpeed = layer.getSpeed();
     this.#setSpeed(currentSpeed, false); // Don't trigger callback
@@ -35,30 +38,27 @@ export class SpeedControlInput {
 
   /**
    * Set callback for speed changes
-   * @param {Function} callback
    */
-  onSpeedChange(callback) {
+  onSpeedChange(callback: SpeedChangeCallback): void {
     this.#onSpeedChangeCallback = callback;
   }
 
   /**
    * Mount the component to a parent element
    */
-  #mount() {
+  #mount(): void {
     const parent = document.getElementById('speed-control-item');
     if (!(parent instanceof HTMLElement)) {
       throw new Error('Parent must be an HTML element');
     }
-    parent.appendChild(this.#container);
+    parent.appendChild(this.#container!);
     this.#setEnabled(false);
   }
 
-
   /**
    * Create the speed control component HTML structure
-   * @private
    */
-  #createComponent() {
+  #createComponent(): void {
     this.#container = document.createElement('div');
     this.#container.className = 'speed-control-container';
 
@@ -77,51 +77,53 @@ export class SpeedControlInput {
       <div class="speed-control-presets"></div>
     `;
 
-    this.#input = this.#container.querySelector('.speed-control-input');
+    this.#input = this.#container.querySelector('.speed-control-input') as HTMLInputElement;
   }
 
-  #setupEventListeners() {
-    this.#input.addEventListener('input', this.#handleInputChange.bind(this));
-    this.#input.addEventListener('blur', this.#handleInputBlur.bind(this));
-    this.#input.addEventListener('keydown', this.#handleInputKeydown.bind(this));
+  #setupEventListeners(): void {
+    this.#input!.addEventListener('input', this.#handleInputChange.bind(this));
+    this.#input!.addEventListener('blur', this.#handleInputBlur.bind(this));
+    this.#input!.addEventListener('keydown', this.#handleInputKeydown.bind(this));
   }
 
-  #handleInputChange(event) {
-    const value = parseFloat(event.target.value);
+  #handleInputChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = parseFloat(target.value);
     if (this.#isValidSpeed(value)) {
       this.#applySpeed(value);
     }
   }
 
-  #handleInputBlur(event) {
-    const value = parseFloat(event.target.value);
+  #handleInputBlur(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = parseFloat(target.value);
     if (!this.#isValidSpeed(value)) {
       const currentSpeed = this.#currentLayer ? this.#currentLayer.getSpeed() : 1.0;
-      this.#input.value = currentSpeed.toFixed(2);
+      this.#input!.value = currentSpeed.toFixed(2);
       this.#showValidationError('Invalid speed value. Must be between 0.1 and 10.');
     }
   }
 
-  #handleInputKeydown(event) {
+  #handleInputKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
-      this.#input.blur(); // Trigger validation
+      this.#input!.blur(); // Trigger validation
       return;
     }
     if (event.key === 'Escape') {
       event.preventDefault();
       // Reset to current layer speed
       const currentSpeed = this.#currentLayer ? this.#currentLayer.getSpeed() : 1.0;
-      this.#input.value = currentSpeed.toFixed(2);
-      this.#input.blur();
+      this.#input!.value = currentSpeed.toFixed(2);
+      this.#input!.blur();
     }
   }
 
-  #isValidSpeed(speed) {
+  #isValidSpeed(speed: number): boolean {
     return !isNaN(speed) && speed >= 0.1 && speed <= 10;
   }
 
-  #applySpeed(speed) {
+  #applySpeed(speed: number): void {
     if (this.#currentLayer && this.#isValidSpeed(speed)) {
       try {
         this.#currentLayer.setSpeed(speed);
@@ -129,26 +131,27 @@ export class SpeedControlInput {
         this.#clearValidationError();
       } catch (error) {
         console.error('Failed to set speed:', error);
-        this.#showValidationError(error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        this.#showValidationError(errorMessage);
       }
     }
   }
 
-  #showValidationError(message) {
+  #showValidationError(message: string): void {
     this.#clearValidationError();
 
     const errorDiv = document.createElement('div');
     errorDiv.className = 'speed-control-error';
     errorDiv.textContent = message;
 
-    this.#container.appendChild(errorDiv);
+    this.#container!.appendChild(errorDiv);
 
     // Auto-remove after 3 seconds
     setTimeout(() => this.#clearValidationError(), 3000);
   }
 
-  #clearValidationError() {
-    const existingError = this.#container.querySelector('.speed-control-error');
+  #clearValidationError(): void {
+    const existingError = this.#container!.querySelector('.speed-control-error');
     if (existingError) {
       existingError.remove();
     }
@@ -156,12 +159,10 @@ export class SpeedControlInput {
 
   /**
    * Set speed value
-   * @param {number} speed
-   * @param {boolean} applyToLayer - Whether to apply to layer (default: true)
    */
-  #setSpeed(speed, applyToLayer = true) {
+  #setSpeed(speed: number, applyToLayer: boolean = true): void {
     if (this.#isValidSpeed(speed)) {
-      this.#input.value = speed.toFixed(2);
+      this.#input!.value = speed.toFixed(2);
 
       if (applyToLayer) {
         this.#applySpeed(speed);
@@ -169,17 +170,15 @@ export class SpeedControlInput {
     }
   }
 
-
   /**
    * Enable or disable the component
-   * @param {boolean} enabled
    */
-  #setEnabled(enabled) {
-    this.#input.disabled = !enabled;
+  #setEnabled(enabled: boolean): void {
+    this.#input!.disabled = !enabled;
     if (enabled) {
-      this.#container.classList.remove('disabled');
+      this.#container!.classList.remove('disabled');
     } else {
-      this.#container.classList.add('disabled');
+      this.#container!.classList.add('disabled');
     }
   }
 

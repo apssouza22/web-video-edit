@@ -1,11 +1,50 @@
 import {AudioLayer, VideoLayer} from "../layer/index.js";
 
+interface FramesCollection {
+  frames: any[];
+}
+
+interface MediaLayer {
+  name: string;
+  start_time: number;
+  totalTimeInMilSeconds: number;
+  ready: boolean;
+  removeInterval(startTime: number, endTime: number): boolean;
+}
+
+interface VideoLayerWithFrames extends MediaLayer {
+  framesCollection: FramesCollection;
+}
+
+interface AudioLayerWithBuffer extends MediaLayer {
+  audioBuffer: AudioBuffer;
+  playerAudioContext: AudioContext;
+}
+
+interface StudioPlayer {
+  time: number;
+}
+
+interface LayerOperations {
+  clone(layer: any): any;
+}
+
+interface MediaStudio {
+  player: StudioPlayer;
+  layerOperations: LayerOperations;
+  getLayers(): any[];
+  getSelectedLayer(): any;
+  addLayer(layer: any): void;
+}
+
 export class MediaEditor {
-  constructor(studio) {
+  private studio: MediaStudio;
+
+  constructor(studio: MediaStudio) {
     this.studio = studio;
   }
 
-  removeInterval(startTime, endTime) {
+  removeInterval(startTime: number, endTime: number): void {
     if (startTime < 0 || endTime <= startTime) {
       console.error('Invalid time interval provided:', startTime, endTime);
       return;
@@ -19,14 +58,9 @@ export class MediaEditor {
 
   /**
    * Removes audio interval from all AudioLayers in the studio
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
    */
-  #removeAudioInterval(startTime, endTime) {
+  #removeAudioInterval(startTime: number, endTime: number): void {
     try {
-      /**
-       * @type {AudioLayer[]}
-       */
       const audioLayers = this.#getAudioLayers();
 
       if (audioLayers.length === 0) {
@@ -48,10 +82,8 @@ export class MediaEditor {
 
   /**
    * Removes video interval from all VideoLayers in the studio
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
    */
-  #removeVideoInterval(startTime, endTime) {
+  #removeVideoInterval(startTime: number, endTime: number): void {
     try {
       const videoLayers = this.#getVideoLayers();
 
@@ -86,18 +118,16 @@ export class MediaEditor {
     }
   }
 
-
   /**
    * Finds VideoLayers in the studio layers
-   * @returns {VideoLayer[]} Array of VideoLayer instances
    */
-  #getVideoLayers() {
-    const videoLayers = [];
+  #getVideoLayers(): VideoLayerWithFrames[] {
+    const videoLayers: VideoLayerWithFrames[] = [];
     const layers = this.studio.getLayers();
 
-    for (let layer of layers) {
+    for (const layer of layers) {
       if (layer instanceof VideoLayer && layer.framesCollection) {
-        videoLayers.push(layer);
+        videoLayers.push(layer as VideoLayerWithFrames);
       }
     }
     return videoLayers;
@@ -105,25 +135,24 @@ export class MediaEditor {
 
   /**
    * Finds AudioLayers in the studio layers
-   * @returns {Array} Array of AudioLayer instances
    */
-  #getAudioLayers() {
-    const audioLayers = [];
+  #getAudioLayers(): AudioLayerWithBuffer[] {
+    const audioLayers: AudioLayerWithBuffer[] = [];
     const layers = this.studio.getLayers();
 
-    for (let layer of layers) {
+    for (const layer of layers) {
       if (layer instanceof AudioLayer && layer.audioBuffer) {
-        audioLayers.push(layer);
+        audioLayers.push(layer as AudioLayerWithBuffer);
       }
     }
     return audioLayers;
   }
 
-  split() {
+  split(): void {
     if (!this.studio.getSelectedLayer()) {
       return;
     }
-    let layer = this.studio.getSelectedLayer();
+    const layer = this.studio.getSelectedLayer();
     
     // Check if layer is VideoLayer or AudioLayer
     if (!(layer instanceof VideoLayer) && !(layer instanceof AudioLayer)) {
@@ -148,10 +177,9 @@ export class MediaEditor {
 
   /**
    * Splits a VideoLayer at the current player time
-   * @param {VideoLayer} layer - The VideoLayer to split
    */
-  #splitVideoLayer(layer) {
-    const nl = this.studio.layerOperations.clone(layer)
+  #splitVideoLayer(layer: VideoLayer): void {
+    const nl = this.studio.layerOperations.clone(layer);
     nl.name = layer.name + " [Split]";
     nl._leave_empty = true;
 
@@ -160,7 +188,7 @@ export class MediaEditor {
     nl.framesCollection.frames = layer.framesCollection.frames.splice(0, split_idx);
 
     nl.totalTimeInMilSeconds = pct * layer.totalTimeInMilSeconds;
-    this.studio.addLayer(nl)
+    this.studio.addLayer(nl);
 
     layer.start_time = layer.start_time + nl.totalTimeInMilSeconds;
     layer.totalTimeInMilSeconds = layer.totalTimeInMilSeconds - nl.totalTimeInMilSeconds;
@@ -168,9 +196,8 @@ export class MediaEditor {
 
   /**
    * Splits an AudioLayer at the current player time
-   * @param {AudioLayer} layer - The AudioLayer to split
    */
-  #splitAudioLayer(layer) {
+  #splitAudioLayer(layer: AudioLayer): void {
     if (!layer.audioBuffer || !layer.playerAudioContext) {
       console.error('AudioLayer missing audioBuffer or playerAudioContext');
       return;
@@ -207,19 +234,13 @@ export class MediaEditor {
 
     this.studio.addLayer(firstLayer);
 
-
     console.log(`Successfully split AudioLayer: "${layer.name}" at ${layerRelativeTime}s`);
   }
 
   /**
    * Creates a new AudioBuffer containing a segment of the original buffer
-   * @param {AudioBuffer} originalBuffer - The original audio buffer
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
-   * @param {AudioContext} audioContext - The audio context to create the buffer with
-   * @returns {AudioBuffer|null} New AudioBuffer segment or null if failed
    */
-  #createAudioBufferSegment(originalBuffer, startTime, endTime, audioContext) {
+  #createAudioBufferSegment(originalBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: AudioContext): AudioBuffer | null {
     if (!originalBuffer || startTime >= endTime || startTime < 0 || endTime > originalBuffer.duration) {
       console.error('Invalid parameters for createAudioBufferSegment');
       return null;

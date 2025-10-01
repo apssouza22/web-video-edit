@@ -1,4 +1,17 @@
+interface LoadInfo {
+  fileName: string;
+  progress: number;
+}
+
 export class LoadingPopup {
+  private popup: HTMLElement | null;
+  private progressFill: HTMLElement | null;
+  private progressText: HTMLElement | null;
+  private currentFileText: HTMLElement | null;
+  private title: HTMLElement | null;
+  private activeLoads: Map<string, LoadInfo>; // Track multiple loading operations
+  private isVisible: boolean;
+
   constructor() {
     this.popup = document.getElementById('loading-popup');
     this.progressFill = document.getElementById('loading-progress-fill');
@@ -6,17 +19,17 @@ export class LoadingPopup {
     this.currentFileText = document.getElementById('loading-current-file');
     this.title = document.getElementById('loading-title');
     
-    this.activeLoads = new Map(); // Track multiple loading operations
+    this.activeLoads = new Map<string, LoadInfo>();
     this.isVisible = false;
   }
 
   /**
    * Start tracking a loading operation
-   * @param {string} layerId - Unique identifier for the layer being loaded
-   * @param {string} fileName - Name of the file being loaded
    */
-  startLoading(layerId, fileName = 'Unknown file', title = 'Loading Media...') {
-    this.title.textContent = title;
+  startLoading(layerId: string, fileName: string = 'Unknown file', title: string = 'Loading Media...'): void {
+    if (this.title) {
+      this.title.textContent = title;
+    }
     this.activeLoads.set(layerId, {
       fileName: fileName,
       progress: 0
@@ -28,12 +41,13 @@ export class LoadingPopup {
 
   /**
    * Update progress for a specific loading operation
-   * @param {string} layerId - Unique identifier for the layer
-   * @param {number} progress - Progress percentage (0-100)
    */
-  updateProgress(layerId, progress) {
+  updateProgress(layerId: string, progress: number): void {
     if (this.activeLoads.has(layerId)) {
-      this.activeLoads.get(layerId).progress = progress;
+      const loadInfo = this.activeLoads.get(layerId);
+      if (loadInfo) {
+        loadInfo.progress = progress;
+      }
       this.#updateDisplay();
       
       // If this operation is complete, remove it
@@ -55,15 +69,15 @@ export class LoadingPopup {
   /**
    * Update the popup display based on current loading operations
    */
-  #updateDisplay() {
+  #updateDisplay(): void {
     if (this.activeLoads.size === 0) {
       return;
     }
 
     // Calculate overall progress (average of all active loads)
-    let totalProgress = 0;
-    let currentFileName = '';
-    let activeLoadCount = 0;
+    let totalProgress: number = 0;
+    let currentFileName: string = '';
+    let activeLoadCount: number = 0;
 
     for (const [layerId, loadInfo] of this.activeLoads) {
       totalProgress += loadInfo.progress;
@@ -76,22 +90,29 @@ export class LoadingPopup {
     }
 
     const averageProgress = activeLoadCount > 0 ? totalProgress / activeLoadCount : 0;
-    this.progressFill.style.width = `${averageProgress}%`;
-    this.progressText.textContent = `${Math.round(averageProgress)}%`;
+    
+    if (this.progressFill) {
+      (this.progressFill as HTMLElement).style.width = `${averageProgress}%`;
+    }
+    if (this.progressText) {
+      this.progressText.textContent = `${Math.round(averageProgress)}%`;
+    }
 
-    if (activeLoadCount > 1) {
-      this.currentFileText.textContent = `Loading ${activeLoadCount} files... (${currentFileName})`;
-    } else {
-      this.currentFileText.textContent = `Loading: ${currentFileName}`;
+    if (this.currentFileText) {
+      if (activeLoadCount > 1) {
+        this.currentFileText.textContent = `Loading ${activeLoadCount} files... (${currentFileName})`;
+      } else {
+        this.currentFileText.textContent = `Loading: ${currentFileName}`;
+      }
     }
   }
 
   /**
    * Show the loading popup
    */
-  #show() {
-    if (!this.isVisible) {
-      this.popup.style.display = 'block';
+  #show(): void {
+    if (!this.isVisible && this.popup) {
+      (this.popup as HTMLElement).style.display = 'block';
       this.isVisible = true;
     }
   }
@@ -99,9 +120,9 @@ export class LoadingPopup {
   /**
    * Hide the loading popup
    */
-  #hide() {
-    if (this.isVisible) {
-      this.popup.style.display = 'none';
+  #hide(): void {
+    if (this.isVisible && this.popup) {
+      (this.popup as HTMLElement).style.display = 'none';
       this.isVisible = false;
       this.activeLoads.clear();
     }

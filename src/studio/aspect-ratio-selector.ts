@@ -1,16 +1,25 @@
+type AspectRatio = '16:9' | '9:16' | '1:1' | '3:4';
+
+interface AspectRatioConfig {
+  display: string;
+  cssValue: string;
+}
+
+type RatioChangeCallback = (ratio: AspectRatio, oldRatio: AspectRatio) => void;
+
 /**
  * AspectRatioSelector - UI component for selecting canvas aspect ratios
  * Provides dropdown interface for choosing between different aspect ratios
  */
 export class AspectRatioSelector {
-  #dropdown = null;
-  #toggle = null;
-  #menu = null;
-  #currentRatio = '16:9';
-  #onRatioChangeCallback = (ratio, oldRatio) => { };
+  #dropdown: HTMLDivElement | null = null;
+  #toggle: HTMLDivElement | null = null;
+  #menu: HTMLDivElement | null = null;
+  #currentRatio: AspectRatio = '16:9';
+  #onRatioChangeCallback: RatioChangeCallback = (ratio, oldRatio) => { };
 
   // Available aspect ratios with display names and CSS values
-  #aspectRatios = {
+  #aspectRatios: Record<AspectRatio, AspectRatioConfig> = {
     '16:9': {display: '16:9 Landscape', cssValue: '16/9'},
     '9:16': {display: '9:16 Portrait', cssValue: '9/16'},
     '1:1': {display: '1:1 Square', cssValue: '1/1'},
@@ -25,7 +34,7 @@ export class AspectRatioSelector {
   /**
    * Create the dropdown HTML structure
    */
-  #createDropdown() {
+  #createDropdown(): void {
     // Create main dropdown container
     this.#dropdown = document.createElement('div');
     this.#dropdown.id = 'aspect-ratio-dropdown';
@@ -43,7 +52,7 @@ export class AspectRatioSelector {
     this.#menu.className = 'dropdown-menu';
 
     // Create menu items for each aspect ratio
-    Object.entries(this.#aspectRatios).forEach(([ratio, config]) => {
+    Object.entries(this.#aspectRatios).forEach(([ratio, config]: [string, AspectRatioConfig]) => {
       const item = document.createElement('div');
       item.className = 'dropdown-item';
       item.textContent = config.display;
@@ -53,7 +62,7 @@ export class AspectRatioSelector {
         item.classList.add('active');
       }
 
-      this.#menu.appendChild(item);
+      this.#menu!.appendChild(item);
     });
 
     // Assemble dropdown
@@ -61,15 +70,16 @@ export class AspectRatioSelector {
     this.#dropdown.appendChild(this.#menu);
   }
 
-  #setupEventListeners() {
-    this.#toggle.addEventListener('click', (e) => {
+  #setupEventListeners(): void {
+    this.#toggle!.addEventListener('click', (e: Event) => {
       e.stopPropagation();
       this.#toggleDropdown();
     });
 
-    this.#menu.addEventListener('click', (e) => {
-      if (e.target.classList.contains('dropdown-item')) {
-        const selectedRatio = e.target.dataset.ratio;
+    this.#menu!.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('dropdown-item')) {
+        const selectedRatio = target.dataset.ratio as AspectRatio;
         this.#selectRatio(selectedRatio);
       }
     });
@@ -80,25 +90,26 @@ export class AspectRatioSelector {
     });
   }
 
-  #toggleDropdown() {
-    this.#menu.classList.toggle('show');
+  #toggleDropdown(): void {
+    this.#menu!.classList.toggle('show');
   }
 
-  #closeDropdown() {
-    this.#menu.classList.remove('show');
+  #closeDropdown(): void {
+    this.#menu!.classList.remove('show');
   }
 
-  #selectRatio(ratio) {
+  #selectRatio(ratio: AspectRatio): void {
     if (ratio === this.#currentRatio) {
       return;
     }
     const oldRatio = this.#currentRatio;
     this.#currentRatio = ratio;
 
-    this.#toggle.textContent = this.#aspectRatios[ratio].display;
+    this.#toggle!.textContent = this.#aspectRatios[ratio].display;
 
-    this.#menu.querySelectorAll('.dropdown-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.ratio === ratio);
+    this.#menu!.querySelectorAll('.dropdown-item').forEach((item: Element) => {
+      const htmlItem = item as HTMLElement;
+      htmlItem.classList.toggle('active', htmlItem.dataset.ratio === ratio);
     });
     this.#closeDropdown();
     this.#onRatioChangeCallback(ratio, oldRatio);
@@ -106,20 +117,18 @@ export class AspectRatioSelector {
 
   /**
    * Set callback for aspect ratio changes
-   * @param {Function} callback - Function to call when ratio changes
    */
-  onRatioChange(callback) {
+  onRatioChange(callback: RatioChangeCallback): void {
     this.#onRatioChangeCallback = callback;
   }
 
   /**
    * Mount the dropdown to a parent element
-   * @param {HTMLElement} parent - Parent element to append dropdown to
    */
-  mount(parent) {
+  mount(parent: HTMLElement): void {
     if (!(parent instanceof HTMLElement)) {
       throw new Error('Parent must be an HTML element');
     }
-    parent.appendChild(this.#dropdown);
+    parent.appendChild(this.#dropdown!);
   }
 }

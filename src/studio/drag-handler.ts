@@ -1,16 +1,46 @@
+interface Frame {
+  x: number;
+  y: number;
+}
+
+interface Layer {
+  getFrame(time: number): Frame | null;
+}
+
+interface Player {
+  width: number;
+  height: number;
+  time: number;
+}
+
+interface PinchHandler {
+  isGesturing(): boolean;
+}
+
+interface Studio {
+  player: Player;
+  pinchHandler?: PinchHandler;
+  getSelectedLayer(): Layer | null;
+}
+
+type DragCallback = (x: number, y: number) => void;
+
 /**
  * DragHandler class handles drag operations on moveable layers.
  * It provides unified handling for pointer events to enable dragging elements.
  */
 export class DragItemHandler {
+  private element: HTMLElement;
+  private callback: DragCallback;
+  private studio: Studio;
+  private dragging: boolean;
+  private base_x: number;
+  private base_y: number;
+
   /**
    * Creates a new DragHandler instance
-   * 
-   * @param {HTMLElement} element - The DOM element to attach the handler to
-   * @param {Function} callback - Callback function that receives x and y movement values
-   * @param {VideoStudio} studio - The studio in which the callback will be executed
    */
-  constructor(element, callback, studio) {
+  constructor(element: HTMLElement, callback: DragCallback, studio: Studio) {
     this.element = element;
     this.callback = callback;
     this.studio = studio;
@@ -26,13 +56,10 @@ export class DragItemHandler {
 
   /**
    * Gets the ratio of player pixels to client pixels
-   * 
-   * @param {HTMLElement} elem - The element to calculate ratio for
-   * @returns {number} The ratio value
    */
-  get_ratio(elem) {
-    let c_ratio = elem.clientWidth / elem.clientHeight;
-    let target_ratio = this.studio.player.width / this.studio.player.height;
+  get_ratio(elem: HTMLElement): number {
+    const c_ratio = elem.clientWidth / elem.clientHeight;
+    const target_ratio = this.studio.player.width / this.studio.player.height;
     // how many player pixels per client pixels
     let ratio = 1;
     if (c_ratio > target_ratio) { // client is wider than player
@@ -45,23 +72,28 @@ export class DragItemHandler {
 
   /**
    * Handles pointer down events
-   * 
-   * @param {PointerEvent} e - The pointer event
    */
-  pointerdown(e) {
+  pointerdown(e: PointerEvent): void {
     if (!this.studio.getSelectedLayer()) {
       console.log('No layer selected');
       return;
     }
 
     e.preventDefault();
-    let f = this.studio.getSelectedLayer().getFrame(this.studio.player.time);
+    const selectedLayer = this.studio.getSelectedLayer();
+    if (!selectedLayer) {
+      return;
+    }
+    
+    const f = selectedLayer.getFrame(this.studio.player.time);
     if (!f) {
       return;
     }
+    
     this.dragging = true;
-    this.base_x = e.offsetX * this.get_ratio(e.target) - f.x;
-    this.base_y = e.offsetY * this.get_ratio(e.target) - f.y;
+    const target = e.target as HTMLElement;
+    this.base_x = e.offsetX * this.get_ratio(target) - f.x;
+    this.base_y = e.offsetY * this.get_ratio(target) - f.y;
     window.addEventListener('pointerup', this.pointerup, {
       once: true
     });
@@ -69,10 +101,8 @@ export class DragItemHandler {
 
   /**
    * Handles pointer move events
-   * 
-   * @param {PointerEvent} e - The pointer event
    */
-  pointermove(e) {
+  pointermove(e: PointerEvent): void {
     if (this.studio.pinchHandler && this.studio.pinchHandler.isGesturing()) {
       return; 
     }
@@ -80,8 +110,9 @@ export class DragItemHandler {
     e.preventDefault();
     e.stopPropagation();
     if (this.dragging) {
-      let dx = e.offsetX * this.get_ratio(e.target) - this.base_x;
-      let dy = e.offsetY * this.get_ratio(e.target) - this.base_y;
+      const target = e.target as HTMLElement;
+      const dx = e.offsetX * this.get_ratio(target) - this.base_x;
+      const dy = e.offsetY * this.get_ratio(target) - this.base_y;
 
       this.callback(dx, dy);
     }
@@ -89,10 +120,8 @@ export class DragItemHandler {
 
   /**
    * Handles pointer up events
-   * 
-   * @param {PointerEvent} e - The pointer event
    */
-  pointerup(e) {
+  pointerup(e: PointerEvent): void {
     this.dragging = false;
     e.preventDefault();
   }
@@ -100,7 +129,7 @@ export class DragItemHandler {
   /**
    * Sets up all event listeners
    */
-  setupEventListeners() {
+  setupEventListeners(): void {
     this.element.addEventListener('pointerdown', this.pointerdown);
     this.element.addEventListener('pointermove', this.pointermove, { passive: false });
   }

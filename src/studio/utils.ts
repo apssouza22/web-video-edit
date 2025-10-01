@@ -1,10 +1,9 @@
-
 import { TextLayer } from '../layer/index.js';
 
 /**
  * File extension to MIME type mapping
  */
-export const ext_map = {
+export const ext_map: Record<string, string> = {
   'mp4': 'video/mp4',
   'mpeg4': 'video/mp4',
   // 'mpeg': 'video/mpeg',
@@ -24,13 +23,13 @@ export const ext_map = {
   'weba': 'audio/webm'
 };
 
-export function popup(text) {
+export function popup(text: HTMLElement): void {
     const div = document.createElement('div');
     div.addEventListener('keydown', function (ev) {
         ev.stopPropagation();
     });
     const close = document.createElement('a');
-    close.addEventListener('click', function () {
+    close.addEventListener('click', function (): void {
         div.remove();
     });
     close.textContent = "[x]";
@@ -41,8 +40,16 @@ export function popup(text) {
     document.body.appendChild(div);
 }
 
+declare global {
+  interface Window {
+    studio: {
+      dumpToJson(): string;
+      addLayer(layer: any): void;
+    };
+  }
+}
 
-export function exportToJson() {
+export function exportToJson(): void {
     const date = new Date().getTime();
     
     const text = document.createElement('div');
@@ -61,9 +68,9 @@ export function exportToJson() {
     a.href = url;
     a.download = date + "_" + Math.floor(Math.random() * 1000) + ".json";
     a.textContent = "[Download JSON]";
-    a.addEventListener('click', function () {
+    a.addEventListener('click', function (): void {
         // After download, revoke the URL to free up memory
-        setTimeout(() => {
+        setTimeout((): void => {
             URL.revokeObjectURL(url);
         }, 100);
     });
@@ -84,25 +91,25 @@ export function exportToJson() {
     popup(text);
 }
 
-export function addText() {
-    let t = prompt("Enter text:");
+export function addText(): void {
+    const t = prompt("Enter text:");
     if (t) {
         window.studio.addLayer(new TextLayer(t));
     }
 }
 
-export function uploadSupportedType(files) {
-    let badUserExtensions = [];
+export function uploadSupportedType(files: FileList): boolean {
+    const badUserExtensions: File[] = [];
 
-    for (let file of files) {
-        let extension = file.name.split('.').pop();
-        if (!(extension in ext_map)) {
-            badUserExtensions.push(file)
+    for (const file of files) {
+        const extension = file.name.split('.').pop();
+        if (extension && !(extension in ext_map)) {
+            badUserExtensions.push(file);
         }
     }
 
     if (badUserExtensions.length) {
-        const badFiles = badUserExtensions.map((ext) => "- " + ext.name).join('<br>');
+        const badFiles = badUserExtensions.map((file: File) => "- " + file.name).join('<br>');
         const text = document.createElement('div');
         text.style.textAlign = "left";
         text.innerHTML = `
@@ -117,19 +124,17 @@ export function uploadSupportedType(files) {
       `;
         popup(text);
     }
-    return !badUserExtensions.length > 0;
+    return badUserExtensions.length === 0;
 }
 
-
-
-export function getSupportedMimeTypes() {
-    const VIDEO_TYPES = [
+export function getSupportedMimeTypes(): string[] {
+    const VIDEO_TYPES: readonly string[] = [
         "webm",
         "ogg",
         "mp4",
         "x-matroska"
     ];
-    const VIDEO_CODECS = [
+    const VIDEO_CODECS: readonly string[] = [
         "vp9",
         "vp9.0",
         "vp8",
@@ -143,20 +148,20 @@ export function getSupportedMimeTypes() {
         "opus",
     ];
 
-    const supportedTypes = [];
-    VIDEO_TYPES.forEach((videoType) => {
+    const supportedTypes: string[] = [];
+    VIDEO_TYPES.forEach((videoType: string) => {
         const type = `video/${videoType}`;
-        VIDEO_CODECS.forEach((codec) => {
-            const variations = [
+        VIDEO_CODECS.forEach((codec: string) => {
+            const variations: string[] = [
                 `${type};codecs=${codec}`,
                 `${type};codecs:${codec}`,
                 `${type};codecs=${codec.toUpperCase()}`,
                 `${type};codecs:${codec.toUpperCase()}`
-            ]
-            variations.forEach(variation => {
+            ];
+            variations.forEach((variation: string) => {
                 if (MediaRecorder.isTypeSupported(variation))
                     supportedTypes.push(variation);
-            })
+            });
         });
         if (MediaRecorder.isTypeSupported(type)) supportedTypes.push(type);
     });

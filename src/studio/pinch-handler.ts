@@ -1,17 +1,27 @@
+// Safari-specific gesture event interface (not part of standard DOM types)
+interface GestureEvent extends Event {
+  rotation: number;
+  scale: number;
+}
+
+type PinchCallback = (scale: number, rotation: number) => void;
+
 /**
  * PinchHandler class handles pinch, zoom, and rotation gestures across browsers.
  * It provides unified handling for both Safari-specific gesture events and standard wheel events.
  */
 export class PinchHandler {
+    private element: HTMLElement;
+    private callback: PinchCallback;
+    private context: any;
+    private gesturing: boolean;
+    private gestureStartRotation: number;
+    private gestureStartScale: number;
 
     /**
      * Creates a new PinchHandler instance
-     * 
-     * @param {HTMLElement} element - The DOM element to attach the handler to
-     * @param {Function} callback - Callback function that receives scale and rotation values
-     * @param {Object} context - The context in which the callback will be executed
      */
-    constructor(element, callback, context) {
+    constructor(element: HTMLElement, callback: PinchCallback, context: any) {
         this.element = element;
         this.callback = callback;
         this.context = context;
@@ -27,10 +37,8 @@ export class PinchHandler {
 
     /**
      * Handles wheel events
-     * 
-     * @param {WheelEvent} e - The wheel event
      */
-    wheel(e) {
+    wheel(e: WheelEvent): void {
         if (e.ctrlKey || e.shiftKey) {
             e.preventDefault();
             let delta = e.deltaY;
@@ -48,17 +56,15 @@ export class PinchHandler {
             if (!Math.abs(delta) && e.deltaX != 0) {
                 delta = e.deltaX * 0.5;
             }
-            let rot = -delta * 0.1;
+            const rot = -delta * 0.1;
             this.callback.call(this.context, 0, rot);
         }
     }
 
     /**
      * Handles gesture start events for Safari
-     * 
-     * @param {GestureEvent} e - The gesture event
      */
-    gesturestart(e) {
+    gesturestart(e: GestureEvent): void {
         this.gesturing = true;
         e.preventDefault();
         this.gestureStartRotation = e.rotation;
@@ -67,14 +73,12 @@ export class PinchHandler {
 
     /**
      * Handles gesture change events for Safari
-     * 
-     * @param {GestureEvent} e - The gesture event
      */
-    gesturechange(e) {
+    gesturechange(e: GestureEvent): void {
         e.preventDefault();
         e.stopPropagation();
-        let rotation = e.rotation - this.gestureStartRotation;
-        let scale = e.scale / this.gestureStartScale;
+        const rotation = e.rotation - this.gestureStartRotation;
+        const scale = e.scale / this.gestureStartScale;
         this.gestureStartRotation = e.rotation;
         this.gestureStartScale = e.scale;
         this.callback.call(this.context, scale, rotation);
@@ -82,10 +86,8 @@ export class PinchHandler {
 
     /**
      * Handles gesture end events for Safari
-     * 
-     * @param {GestureEvent} e - The gesture event
      */
-    gestureend(e) {
+    gestureend(e: GestureEvent): void {
         this.gesturing = false;
         e.preventDefault();
     }
@@ -93,11 +95,11 @@ export class PinchHandler {
     /**
      * Sets up all event listeners
      */
-    setupEventListeners() {
+    setupEventListeners(): void {
         // Safari gesture events
-        this.element.addEventListener('gesturestart', this.gesturestart);
-        this.element.addEventListener('gesturechange', this.gesturechange);
-        this.element.addEventListener('gestureend', this.gestureend);
+        this.element.addEventListener('gesturestart', this.gesturestart as EventListener);
+        this.element.addEventListener('gesturechange', this.gesturechange as EventListener);
+        this.element.addEventListener('gestureend', this.gestureend as EventListener);
 
         // Standard wheel events for other browsers
         this.element.addEventListener('wheel', this.wheel, {
@@ -108,19 +110,17 @@ export class PinchHandler {
     /**
      * Removes all event listeners
      */
-    destroy() {
-        this.element.removeEventListener('gesturestart', this.gesturestart);
-        this.element.removeEventListener('gesturechange', this.gesturechange);
-        this.element.removeEventListener('gestureend', this.gestureend);
+    destroy(): void {
+        this.element.removeEventListener('gesturestart', this.gesturestart as EventListener);
+        this.element.removeEventListener('gesturechange', this.gesturechange as EventListener);
+        this.element.removeEventListener('gestureend', this.gestureend as EventListener);
         this.element.removeEventListener('wheel', this.wheel);
     }
 
     /**
      * Checks if the handler is currently processing a gesture
-     * 
-     * @returns {boolean} True if a gesture is in progress
      */
-    isGesturing() {
+    isGesturing(): boolean {
         return this.gesturing;
     }
 }
