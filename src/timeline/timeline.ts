@@ -3,7 +3,7 @@ import {TimelineZoomHandler} from './zoom';
 import {PreviewHandler} from './preview';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
-import {PinchHandler} from '../studio/index.js';
+import {PinchHandler} from '../studio/index';
 import {dpr} from '../constants.js';
 import type { StandardLayer, LayerUpdateKind } from './types';
 

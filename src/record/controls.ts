@@ -1,4 +1,4 @@
-import {popup} from "../studio/index.js";
+import {popup} from "../studio/index";
 import {createUserMediaRecordingService} from "./index";
 
 // Interface for error objects with user messages

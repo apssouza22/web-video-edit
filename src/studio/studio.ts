@@ -1,31 +1,106 @@
-import {createPlayer} from '../player/index.js';
-import {createTimeline} from '../timeline/index.js';
+import {createPlayer} from '../player/index';
+import {createTimeline} from '../timeline/index';
 import {createLayerService} from '../layer/index';
 import {AudioLayer} from '@/audio/layer-audio';
-import {LayerLoader} from './layer-loader.js';
-import {createVideoMuxer} from '../muxer/index.ts';
-import {StudioControls} from './controls.js';
-import {PinchHandler} from './pinch-handler.js';
-import {DragItemHandler} from './drag-handler.js';
-import {MediaEditor} from './media-edit.js';
-import {createTranscriptionService} from "../transcription/index.js";
-import {uploadSupportedType} from './utils.js';
-import {LoadingPopup} from './loading-popup.js';
-import {AspectRatioSelector} from './aspect-ratio-selector.js';
-import {SpeedControlInput} from "./speed-control-input.js";
+import {LayerLoader} from './layer-loader';
+import {createVideoMuxer} from '../muxer/index';
+import {StudioControls} from './controls';
+import {PinchHandler} from './pinch-handler';
+import {DragItemHandler} from './drag-handler';
+import {MediaEditor} from './media-edit';
+import {createTranscriptionService} from "../transcription/index";
+import {uploadSupportedType} from './utils';
+import {LoadingPopup} from './loading-popup';
+import {AspectRatioSelector} from './aspect-ratio-selector';
+import {SpeedControlInput} from "./speed-control-input";
+import type { StandardLayer, LayerUpdateKind } from '../timeline/types';
+import type { VideoPlayer } from '../player/types';
+
+/**
+ * Update data structure for layer transformations
+ */
+interface LayerUpdate {
+  scale?: number;
+  rotation?: number;
+  x?: number;
+  y?: number;
+}
+
+/**
+ * Reorder data for layer repositioning
+ */
+interface LayerReorderData {
+  fromIndex: number;
+  toIndex: number;
+}
+
+/**
+ * Timeline interface for VideoStudio integration
+ */
+interface Timeline {
+  playerTime: number;
+  selectedLayer: StandardLayer | null;
+  addTimeUpdateListener(listener: (newTime: number, oldTime: number) => void): void;
+  addLayerUpdateListener(listener: (action: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, reorderData?: LayerReorderData) => void): void;
+  setSelectedLayer(layer: StandardLayer): void;
+  addLayers(layers: StandardLayer[]): void;
+  render(): void;
+  resize(): void;
+}
+
+/**
+ * Video Muxer interface for export functionality
+ */
+interface VideoMuxer {
+  init(): void;
+}
+
+/**
+ * Transcription Manager interface
+ */
+interface TranscriptionManager {
+  transcriptionView?: {
+    highlightChunksByTime(time: number): void;
+  };
+  loadModel(): void;
+  startTranscription(audioBuffer: AudioBuffer): void;
+  addRemoveIntervalListener(listener: (startTime: number, endTime: number) => void): void;
+  addSeekListener(listener: (timestamp: number) => void): void;
+}
+
+/**
+ * Layer Operations Service interface
+ */
+interface LayerOperations {
+  clone(layer: StandardLayer): StandardLayer;
+}
 
 export class VideoStudio {
+  update: LayerUpdate | null;
+  mainSection: HTMLElement | null;
+  aspectRatioSelector: AspectRatioSelector;
+  layers: StandardLayer[];
+  player: VideoPlayer;
+  timeline: Timeline;
+  layerLoader: LayerLoader;
+  videoExporter: VideoMuxer;
+  controls: StudioControls;
+  transcriptionManager: TranscriptionManager;
+  mediaEditor: MediaEditor;
+  layerOperations: LayerOperations;
+  loadingPopup: LoadingPopup;
+  speedControlManager: SpeedControlInput;
+  pinchHandler?: PinchHandler;
 
   constructor() {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas');
     this.aspectRatioSelector = new AspectRatioSelector();
-    /**
-     * @type {StandardLayer[]}
-     */
     this.layers = [];
     this.player = createPlayer()
-    this.player.mount(this.mainSection);
+    if (this.mainSection) {
+      this.player.mount(this.mainSection);
+    }
 
     this.timeline = createTimeline(this);
     this.layerLoader = new LayerLoader(this);
@@ -46,15 +121,15 @@ export class VideoStudio {
     this.resize();
   }
 
-  init() {
+  init(): void {
     this.videoExporter.init();
     this.controls.init();
     this.transcriptionManager.loadModel();
     this.speedControlManager.init();
   }
 
-  #setUpComponentListeners() {
-    this.player.addTimeUpdateListener((newTime, oldTime) => {
+  #setUpComponentListeners(): void {
+    this.player.addTimeUpdateListener((newTime: number, oldTime: number) => {
       this.timeline.playerTime = newTime;
 
       if (this.transcriptionManager && this.transcriptionManager.transcriptionView) {
@@ -62,13 +137,13 @@ export class VideoStudio {
       }
     });
 
-    this.timeline.addTimeUpdateListener((newTime, oldTime) => {
+    this.timeline.addTimeUpdateListener((newTime: number, oldTime: number) => {
       if (!this.player.playing) {
         this.player.setTime(newTime);
       }
     });
 
-    this.timeline.addLayerUpdateListener((action, layer, oldLayer, reorderData) => {
+    this.timeline.addLayerUpdateListener((action: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, reorderData?: LayerReorderData) => {
       if (action === 'select') {
         this.setSelectedLayer(layer);
       } else if (action === 'delete') {
@@ -78,40 +153,42 @@ export class VideoStudio {
       } else if (action === 'split') {
         this.mediaEditor.split();
       } else if (action === 'reorder') {
-        this.#handleLayerReorder(layer, reorderData);
+        if (reorderData) {
+          this.#handleLayerReorder(layer, reorderData);
+        }
       }
     });
 
-    this.transcriptionManager.addRemoveIntervalListener((startTime, endTime) => {
+    this.transcriptionManager.addRemoveIntervalListener((startTime: number, endTime: number) => {
       console.log(`TranscriptionManager: Removing interval from ${startTime} to ${endTime}`);
       this.mediaEditor.removeInterval(startTime, endTime);
     });
 
-    this.transcriptionManager.addSeekListener((timestamp) => {
+    this.transcriptionManager.addSeekListener((timestamp: number) => {
       this.player.pause()
       this.player.setTime(timestamp * 1000);
       this.player.play();
     });
 
-    this.player.addLayerTransformedListener((layer) => {
+    this.player.addLayerTransformedListener((layer: StandardLayer) => {
       this.#onLayerTransformed(layer);
     });
 
-    this.speedControlManager.onSpeedChange(speed => {
+    this.speedControlManager.onSpeedChange((speed: number) => {
       console.log(`Speed changed to: ${speed}`);
     })
   }
 
-  dumpToJson() {
-    let out = [];
-    for (let layer of this.getLayers()) {
+  dumpToJson(): string {
+    const out: any[] = [];
+    for (const layer of this.getLayers()) {
       out.push(layer.dump());
     }
     return JSON.stringify(out);
   }
 
-  #setupPinchHandler() {
-    const callback = (function (scale, rotation) {
+  #setupPinchHandler(): void {
+    const callback = ((scale: number, rotation: number) => {
       this.update = {
         scale: scale,
         rotation: rotation
@@ -125,8 +202,8 @@ export class VideoStudio {
     this.pinchHandler.setupEventListeners();
   }
 
-  #setupDragHandler() {
-    let callback = (function (x, y) {
+  #setupDragHandler(): void {
+    const callback = ((x: number, y: number) => {
       this.update = {x: x, y: y};
     }).bind(this);
 
@@ -134,51 +211,53 @@ export class VideoStudio {
     dragHandler.setupEventListeners()
   }
 
-  #setupAspectRatioSelector() {
+  #setupAspectRatioSelector(): void {
     const header = document.getElementById('header');
     if (header) {
       this.aspectRatioSelector.mount(header);
     }
 
-    this.aspectRatioSelector.onRatioChange((newRatio) => {
+    this.aspectRatioSelector.onRatioChange((newRatio: string) => {
       this.resize(newRatio);
     });
   }
 
   /**
    * Gets the currently selected layer
-   * @returns {FlexibleLayer}
    */
-  getSelectedLayer() {
+  getSelectedLayer(): StandardLayer | null {
     return this.timeline.selectedLayer;
   }
 
   /**
    * Get all layers in the studio
-   * @returns {StandardLayer[]}
    */
-  getLayers() {
+  getLayers(): StandardLayer[] {
     return this.layers;
   }
 
   /**
    * Remove a layer from the studio
-   * @param {StandardLayer} layer
    */
-  remove(layer) {
+  remove(layer: StandardLayer): void {
     const idx = this.getLayers().indexOf(layer);
     const len = this.getLayers().length;
     if (idx > -1) {
       this.getLayers().splice(idx, 1);
-      let layer_picker = document.getElementById('layers');
-      // divs are reversed
-      layer_picker.children[len - idx - 1].remove();
+      const layer_picker = document.getElementById('layers');
+      if (layer_picker) {
+        // divs are reversed
+        const childToRemove = layer_picker.children[len - idx - 1];
+        if (childToRemove) {
+          childToRemove.remove();
+        }
+      }
     }
     if (layer instanceof AudioLayer) {
       layer.disconnect();
     }
     this.player.total_time = 0;
-    for (let layer of this.getLayers()) {
+    for (const layer of this.getLayers()) {
       if (layer.start_time + layer.totalTimeInMilSeconds > this.player.total_time) {
         this.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
       }
@@ -190,9 +269,8 @@ export class VideoStudio {
 
   /**
    * Clone a layer by creating a copy with slightly modified properties
-   * @param {StandardLayer} layer - The layer to clone
    */
-  cloneLayer(layer) {
+  cloneLayer(layer: StandardLayer): StandardLayer {
     const clonedLayer = this.layerOperations.clone(layer);
     this.addLayer(clonedLayer);
     this.setSelectedLayer(clonedLayer);
@@ -200,22 +278,22 @@ export class VideoStudio {
     return clonedLayer;
   }
 
-  addLayer(layer) {
+  addLayer(layer: StandardLayer): StandardLayer {
     layer.start_time = this.player.time;
     layer.init(this.player.width, this.player.height, this.player.audioContext);
     this.layers.push(layer);
     return layer;
   }
 
-  play() {
+  play(): void {
     this.player.play();
   }
 
-  pause() {
+  pause(): void {
     this.player.pause();
   }
 
-  resize(newRatio = null) {
+  resize(newRatio?: string | null): void {
     this.player.resize(newRatio);
     this.timeline.resize();
     this.getLayers().forEach(layer => {
@@ -223,10 +301,11 @@ export class VideoStudio {
     })
   }
 
-  #loop(realtime) {
+  #loop(realtime: number): void {
     // Process updates for selected layer
-    if (this.getSelectedLayer() && this.update) {
-      this.getSelectedLayer().update(this.update, this.player.time);
+    const selectedLayer = this.getSelectedLayer();
+    if (selectedLayer && this.update) {
+      selectedLayer.update(this.update, this.player.time);
       this.update = null;
     }
     if (this.layers.length !== this.player.layers.length) {
@@ -240,14 +319,17 @@ export class VideoStudio {
     window.requestAnimationFrame(this.#loop.bind(this));
   }
 
-  upload() {
-    const layers = []
-    let filePicker = document.getElementById('filepicker');
-    filePicker.addEventListener('input', (e) => {
-      if (!uploadSupportedType(e.target.files)) {
+  upload(): void {
+    const layers: StandardLayer[] = []
+    const filePicker = document.getElementById('filepicker') as HTMLInputElement;
+    if (!filePicker) return;
+    
+    filePicker.addEventListener('input', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (!target.files || !uploadSupportedType(target.files)) {
         return
       }
-      for (let file of e.target.files) {
+      for (const file of target.files) {
         this.addLayerFromFile(file)
         .forEach(layer => {
           layers.push(layer);
@@ -258,20 +340,20 @@ export class VideoStudio {
     filePicker.click();
   }
 
-  addLayerFromFile(file, useHtmlDemux = false) {
+  addLayerFromFile(file: File, useHtmlDemux: boolean = false): StandardLayer[] {
     const layers = this.layerLoader.addLayerFromFile(file, useHtmlDemux);
     layers.forEach(layer => {
       layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
-      this.loadingPopup.startLoading(layer.id, file.name);
+      this.loadingPopup.startLoading(layer.id.toString(), file.name);
     })
     return layers;
   }
 
-  async loadLayersFromJson(uri) {
+  async loadLayersFromJson(uri: string): Promise<void> {
     if (!uri) {
       return;
     }
-    const extension = uri.split(/[#?]/)[0].split('.').pop().trim();
+    const extension = uri.split(/[#?]/)[0].split('.').pop()?.trim();
 
     if (extension !== 'json') {
       console.error("File is not a json file");
@@ -282,14 +364,14 @@ export class VideoStudio {
     this.loadingPopup.startLoading('json-load', 'Project JSON');
     this.loadingPopup.updateProgress('json-load', 50);
 
-    let response = await fetch(uri);
-    let layers = await response.json();
+    const response = await fetch(uri);
+    const layers = await response.json();
     await this.layerLoader.loadLayersFromJson(layers);
     this.loadingPopup.updateProgress('json-load', 100);
   }
 
-  #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
-    this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
+  #onLayerLoadUpdate(layer: StandardLayer, progress: number, ctx: CanvasRenderingContext2D | null, audioBuffer?: AudioBuffer): void {
+    this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
     if (progress === 100) {
       this.setSelectedLayer(layer);
     }
@@ -298,11 +380,11 @@ export class VideoStudio {
     }
   }
 
-  #handleLayerReorder(layer, reorderData) {
+  #handleLayerReorder(layer: StandardLayer, reorderData: LayerReorderData): void {
     console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
 
-  setSelectedLayer(layer) {
+  setSelectedLayer(layer: StandardLayer): void {
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
     this.speedControlManager.setLayer(layer);
@@ -310,9 +392,8 @@ export class VideoStudio {
 
   /**
    * Handle layer transformation from player
-   * @param {StandardLayer} layer
    */
-  #onLayerTransformed(layer) {
+  #onLayerTransformed(layer: StandardLayer): void {
     console.log(`Layer "${layer.name}" transformed`);
   }
 }

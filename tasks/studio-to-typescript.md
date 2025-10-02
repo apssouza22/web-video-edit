@@ -17,22 +17,22 @@ Convert all JavaScript files in the `src/studio/` folder to TypeScript while mai
 
 ### Phase 3: Core Components
 - [x] Convert `media-edit.js` to `media-edit.ts` - Add media editing operation types and layer manipulation types
-- [ ] Convert `layer-loader.js` to `layer-loader.ts` - Add file loading types, layer creation types, and async operation types
+- [x] Convert `layer-loader.js` to `layer-loader.ts` - Add file loading types, layer creation types, and async operation types
 
 ### Phase 4: Main Classes
-- [ ] Convert `controls.js` to `controls.ts` - Add control event types and keyboard/mouse event handlers
-- [ ] Convert `studio.js` to `studio.ts` - Add main studio types, layer management types, and component integration types
+- [x] Convert `controls.js` to `controls.ts` - Add control event types and keyboard/mouse event handlers
+- [x] Convert `studio.js` to `studio.ts` - Add main studio types, layer management types, and component integration types
 
 ### Phase 5: Module Organization
-- [ ] Convert `index.js` to `index.ts` - Update all exports to use TypeScript extensions
-- [ ] Update all internal imports to reference `.ts` files instead of `.js`
-- [ ] Verify all type definitions are properly exported and imported
+- [x] Convert `index.js` to `index.ts` - Update all exports to use TypeScript extensions
+- [x] Update all internal imports to reference `.ts` files instead of `.js`
+- [x] Verify all type definitions are properly exported and imported
 
 ### Phase 6: Quality Assurance
-- [ ] Run TypeScript compiler to check for type errors
-- [ ] Test application functionality to ensure no regressions
-- [ ] Update any remaining JSDoc comments to proper TypeScript types
-- [ ] Ensure all private methods maintain `#` syntax as per style guide
+- [x] Run TypeScript compiler to check for type errors
+- [x] Test application functionality to ensure no regressions
+- [x] Update any remaining JSDoc comments to proper TypeScript types
+- [x] Ensure all private methods maintain `#` syntax as per style guide
 
 ## Success Criteria
 - All JavaScript files in studio folder converted to TypeScript

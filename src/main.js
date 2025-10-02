@@ -1,4 +1,4 @@
-import { VideoStudio, addText, popup, updateSettings } from './studio/index.js';
+import { VideoStudio, addText, popup, updateSettings } from './studio/index';
 import {initScreenRecording} from "./record/controls";
 
 const studio = new VideoStudio();

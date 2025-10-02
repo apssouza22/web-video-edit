@@ -1,8 +1,8 @@
 import { addElementToBackground } from '../layer/index';
 import { AudioLayer } from '@/audio/layer-audio';
-import { getSupportedMimeTypes } from '../studio/index.js';
+import { getSupportedMimeTypes } from '../studio/index';
 import { fixWebmDuration } from "@/common/utils";
-import type { VideoStudio } from '../studio/index.js';
+import type { VideoStudio } from '../studio/index';
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
