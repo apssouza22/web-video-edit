@@ -1,5 +1,5 @@
-import { Frame } from '../frame/frame';
-import { FrameService } from '../frame/frames';
+import { Frame } from '@/frame';
+import { FrameService } from '@/frame';
 
 /**
  * Types for file inputs used in layer creation
@@ -7,6 +7,7 @@ import { FrameService } from '../frame/frames';
 export interface LayerFile {
   name: string;
   uri?: string;
+  file?: File;
 }
 
 /**

@@ -1,40 +1,38 @@
-import {StandardLayer} from '../layer/index';
-import {AudioContext} from '../constants.js';
-import {AudioCutter} from './audio-cutter.js';
-import {AudioLoader} from './audio-loader.js';
-import {AudioSource} from "./audio-source.js";
+import { StandardLayer } from '../layer/index';
+import { AudioCutter } from './audio-cutter';
+import { AudioLoader } from './audio-loader';
+import { AudioSource } from './audio-source';
+import type { LayerFile } from '../layer/types';
 
 export class AudioLayer extends StandardLayer {
+  private audioLoader: AudioLoader;
+  public audioBuffer: AudioBuffer | null = null;
+  public source: AudioSource | null = null;
+  public playerAudioContext: AudioContext | null = null;
+  public playing: boolean = false;
+  public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
+  public currentSpeed: number = 1.0; // Track current playback speed
+  public lastAppliedSpeed: number = 1.0; // Track last applied speed for change detection
+  private audioCutter: AudioCutter;
+  public originalTotalTimeInMilSeconds: number = 0; // Store original duration before speed changes
+  public started: boolean = false; // Track if audio source has started playing
 
-  constructor(file, skipLoading = false) {
+  constructor(file: File, skipLoading: boolean = false) {
     super(file);
     this.audioLoader = new AudioLoader();
-    /** @type {AudioBuffer} */
-    this.audioBuffer = null;
-    /** @type {AudioSource} */
-    this.source = null;
-    /** @type {AudioContext} */
-    this.playerAudioContext = null;
-    this.playing = false;
-    this.audioStreamDestination = null;
-    this.currentSpeed = 1.0; // Track current playback speed
-    this.lastAppliedSpeed = 1.0; // Track last applied speed for change detection
     this.audioCutter = new AudioCutter();
-    this.originalTotalTimeInMilSeconds = 0; // Store original duration before speed changes
 
     if (skipLoading) {
       return;
     }
-
     this.#loadAudioFile(file);
   }
 
   /**
    * Loads an audio file using the AudioLoader
-   * @param {File} file - The audio file to load
-   * @private
+   * @param file - The audio file to load
    */
-  async #loadAudioFile(file) {
+  async #loadAudioFile(file: File): Promise<void> {
     try {
       const audioBuffer = await this.audioLoader.loadAudioFile(file);
       this.#onAudioLoadSuccess(audioBuffer);
@@ -46,10 +44,9 @@ export class AudioLayer extends StandardLayer {
 
   /**
    * Handles successful audio loading
-   * @param {AudioBuffer} audioBuffer - The loaded audio buffer
-   * @private
+   * @param audioBuffer - The loaded audio buffer
    */
-  #onAudioLoadSuccess(audioBuffer) {
+  #onAudioLoadSuccess(audioBuffer: AudioBuffer): void {
     this.audioBuffer = audioBuffer;
     this.originalTotalTimeInMilSeconds = this.audioBuffer.duration * 1000;
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds;
@@ -60,11 +57,11 @@ export class AudioLayer extends StandardLayer {
     this.loadUpdateListener(this, 100, null, audioBuffer);
   }
 
-  updateName(name) {
+  updateName(name: string): void {
     this.name = name + " [Audio] ";
   }
 
-  disconnect() {
+  disconnect(): void {
     if (this.source) {
       this.source.disconnect();
       this.source = null;
@@ -74,39 +71,40 @@ export class AudioLayer extends StandardLayer {
   /**
    * Disposes of the audio layer resources
    */
-  dispose() {
+  dispose(): void {
     this.disconnect();
     if (this.audioLoader) {
       this.audioLoader.dispose();
-      this.audioLoader = null;
     }
   }
 
-  init(canvasWidth, canvasHeight, playerAudioContext) {
+  init(canvasWidth: number, canvasHeight: number, playerAudioContext?: AudioContext): void {
     super.init(canvasWidth, canvasHeight);
-    this.playerAudioContext = playerAudioContext;
+    if (playerAudioContext) {
+      this.playerAudioContext = playerAudioContext;
+    }
   }
 
-  setSpeed(speed) {
+  setSpeed(speed: number): void {
     super.setSpeed(speed);
     this.#updateTotalTimeForSpeed();
   }
 
-  connectAudioSource(playerAudioContext) {
+  connectAudioSource(playerAudioContext: AudioContext): void {
     this.disconnect();
     this.currentSpeed = this.speedController.getSpeed();
     this.lastAppliedSpeed = this.currentSpeed;
     this.source = new AudioSource(playerAudioContext);
     if (this.audioStreamDestination) {
       //Used for video exporting
-      this.source.connect(this.audioStreamDestination, this.currentSpeed, this.audioBuffer);
+      this.source.connect(this.audioStreamDestination, this.currentSpeed, this.audioBuffer!);
     } else {
-      this.source.connect(playerAudioContext.destination, this.currentSpeed, this.audioBuffer);
+      this.source.connect(playerAudioContext.destination, this.currentSpeed, this.audioBuffer!);
     }
     this.started = false;
   }
 
-  render(ctxOut, currentTime, playing = false) {
+  render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): void {
     if (!this.ready) {
       return;
     }
@@ -119,7 +117,7 @@ export class AudioLayer extends StandardLayer {
 
     const currentSpeed = this.speedController.getSpeed();
     if (currentSpeed !== this.lastAppliedSpeed && this.source) {
-      this.connectAudioSource(this.playerAudioContext);
+      this.connectAudioSource(this.playerAudioContext!);
     }
 
     let time = currentTime - this.start_time;
@@ -128,22 +126,22 @@ export class AudioLayer extends StandardLayer {
     }
 
     if (!this.started) {
-      this.source.start(0, time / 1000);
+      this.source!.start(0, time / 1000);
       this.started = true;
     }
   }
 
-  playStart(time) {
-    this.source.start(time / 1000);
+  playStart(time: number): void {
+    this.source!.start(time / 1000);
   }
 
   /**
    * Removes an audio interval from this AudioLayer
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
-   * @returns {boolean} - True if the interval was successfully removed, false otherwise
+   * @param startTime - Start time in seconds
+   * @param endTime - End time in seconds
+   * @returns True if the interval was successfully removed, false otherwise
    */
-  removeInterval(startTime, endTime) {
+  removeInterval(startTime: number, endTime: number): boolean {
     if (!this.audioBuffer || !this.playerAudioContext) {
       console.warn(`Audio layer "${this.name}" missing audioBuffer or playerAudioContext`);
       return false;
@@ -172,10 +170,9 @@ export class AudioLayer extends StandardLayer {
 
   /**
    * Updates this AudioLayer with a new AudioBuffer
-   * @param {AudioBuffer} newBuffer - The new AudioBuffer
-   * @private
+   * @param newBuffer - The new AudioBuffer
    */
-  #updateBuffer(newBuffer) {
+  #updateBuffer(newBuffer: AudioBuffer): void {
     if (!newBuffer) {
       console.error('Invalid buffer provided for updateBuffer');
       return;
@@ -186,13 +183,11 @@ export class AudioLayer extends StandardLayer {
     this.originalTotalTimeInMilSeconds = newBuffer.duration * 1000;
     this.currentSpeed = this.speedController.getSpeed();
     this.#updateTotalTimeForSpeed();
-    this.connectAudioSource(this.playerAudioContext);
-
+    this.connectAudioSource(this.playerAudioContext!);
   }
 
-  #updateTotalTimeForSpeed() {
+  #updateTotalTimeForSpeed(): void {
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this.speedController.getSpeed();
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
   }
-
 }

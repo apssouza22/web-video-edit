@@ -61,6 +61,7 @@ export class LayerLoader {
     let name = segs[segs.length - 1];
     let file = new File([data], name, metadata);
     file.uri = uri;
+
     return this.addLayerFromFile(file);
   }
 

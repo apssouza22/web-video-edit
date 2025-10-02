@@ -5,13 +5,13 @@ export class AudioCutter {
 
   /**
    * Removes an audio interval from the provided AudioBuffer
-   * @param {AudioBuffer} audioBuffer - The original audio buffer
-   * @param {AudioContext} audioContext - Audio context for creating new buffer
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
-   * @returns {AudioBuffer|null} - New audio buffer with interval removed, or null on error
+   * @param audioBuffer - The original audio buffer
+   * @param audioContext - Audio context for creating new buffer
+   * @param startTime - Start time in seconds
+   * @param endTime - End time in seconds
+   * @returns New audio buffer with interval removed, or null on error
    */
-  removeInterval(audioBuffer, audioContext, startTime, endTime) {
+  removeInterval(audioBuffer: AudioBuffer, audioContext: AudioContext, startTime: number, endTime: number): AudioBuffer | null {
     if (!this.#validateInputs(audioBuffer, startTime, endTime, audioContext)) {
       return null;
     }
@@ -45,14 +45,13 @@ export class AudioCutter {
 
   /**
    * Validates input parameters for audio interval removal
-   * @param {AudioBuffer} audioBuffer - The audio buffer to validate
-   * @param {number} startTime - Start time in seconds
-   * @param {number} endTime - End time in seconds
-   * @param {AudioContext} audioContext - Audio context to validate
-   * @returns {boolean} - True if inputs are valid, false otherwise
-   * @private
+   * @param audioBuffer - The audio buffer to validate
+   * @param startTime - Start time in seconds
+   * @param endTime - End time in seconds
+   * @param audioContext - Audio context to validate
+   * @returns True if inputs are valid, false otherwise
    */
-  #validateInputs(audioBuffer, startTime, endTime, audioContext) {
+  #validateInputs(audioBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: AudioContext): boolean {
     if (!audioBuffer) {
       console.error('AudioCutter: No audio buffer provided');
       return false;
@@ -73,13 +72,12 @@ export class AudioCutter {
 
   /**
    * Copies audio data from original buffer to new buffer, excluding the specified interval
-   * @param {AudioBuffer} originalBuffer - Source audio buffer
-   * @param {AudioBuffer} newBuffer - Destination audio buffer
-   * @param {number} startSample - Start sample index to exclude
-   * @param {number} endSample - End sample index to exclude
-   * @private
+   * @param originalBuffer - Source audio buffer
+   * @param newBuffer - Destination audio buffer
+   * @param startSample - Start sample index to exclude
+   * @param endSample - End sample index to exclude
    */
-  #copyAudioData(originalBuffer, newBuffer, startSample, endSample) {
+  #copyAudioData(originalBuffer: AudioBuffer, newBuffer: AudioBuffer, startSample: number, endSample: number): void {
     const numberOfChannels = originalBuffer.numberOfChannels;
     const originalLength = originalBuffer.length;
 

@@ -18,7 +18,7 @@ export * from './types';
 // Dynamic import for AudioLayer to avoid circular dependencies
 async function importAudioLayer(): Promise<any> {
   try {
-    const audioModule = await import('../audio/layer-audio.js');
+    const audioModule = await import('../audio/layer-audio');
     return audioModule.AudioLayer;
   } catch (error) {
     console.error('Failed to import AudioLayer:', error);

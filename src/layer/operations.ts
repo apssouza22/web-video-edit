@@ -1,7 +1,8 @@
 import { TextLayer } from "./layer-text";
 import { VideoLayer } from "./layer-video";
 import { ImageLayer } from "./layer-image";
-import { AudioLayerInterface, LayerServiceInterface, LayerLoadUpdateListener } from "./types";
+import { AudioLayer } from "../audio/layer-audio";
+import { LayerServiceInterface, LayerLoadUpdateListener } from "./types";
 
 export class LayerService implements LayerServiceInterface {
   private onLayerLoadUpdate: LayerLoadUpdateListener;
@@ -50,14 +51,13 @@ export class LayerService implements LayerServiceInterface {
     }
     
     if (layer instanceof VideoLayer) {
-      const videoLayer = new VideoLayer(layer.file, true, layer.useHtmlDemux);
+      const videoLayer = new VideoLayer(layer.file!, true, layer.useHtmlDemux);
       videoLayer.name = cloneName;
       return videoLayer;
     }
     
     // Handle AudioLayer (imported from external module)
     if (layer.constructor.name === 'AudioLayer') {
-      const AudioLayer = this.#getAudioLayerClass();
       if (AudioLayer) {
         const audioLayer = new AudioLayer(layer.file, true);
         audioLayer.name = cloneName;
@@ -68,7 +68,7 @@ export class LayerService implements LayerServiceInterface {
     }
 
     if (layer instanceof ImageLayer) {
-      const imageLayer = new ImageLayer(layer.file);
+      const imageLayer = new ImageLayer(layer.file!);
       imageLayer.name = cloneName;
       return imageLayer;
     }
@@ -76,18 +76,4 @@ export class LayerService implements LayerServiceInterface {
     return null;
   }
 
-  /**
-   * Dynamically imports AudioLayer class to avoid circular dependencies
-   */
-  #getAudioLayerClass(): any {
-    try {
-      // This will be resolved at runtime
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const audioModule = require('../audio/layer-audio.js');
-      return audioModule.AudioLayer;
-    } catch (error) {
-      console.error('Failed to import AudioLayer:', error);
-      return null;
-    }
-  }
 }
