@@ -132,7 +132,7 @@ export class AudioLayer extends StandardLayer {
   }
 
   playStart(time: number): void {
-    this.source!.start(time / 1000);
+    this.source!.start(time / 1000, 0);
   }
 
   /**

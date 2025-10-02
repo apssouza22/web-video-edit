@@ -1,5 +1,5 @@
 import {RecordingPreview} from './preview';
-import {checkBrowserSupport} from "../common/browser-support.js";
+import {checkBrowserSupport} from "../common/browser-support";
 import {fixWebmDuration} from "@/common/utils";
 
 interface RecordingData {

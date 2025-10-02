@@ -1,7 +1,7 @@
 import { createFrameService } from '../frame/index';
 import { FrameService } from '../frame/frames';
 import { Frame } from '../frame/frame';
-import { Canvas2DRender } from '../common/render-2d.js';
+import { Canvas2DRender } from '../common/render-2d';
 import { SpeedController } from './speed-controller';
 import { 
   LayerFile,

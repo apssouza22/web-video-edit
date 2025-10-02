@@ -1,6 +1,6 @@
 import {addElementToBackground} from '../layer/index';
 import {fps} from '../constants.js';
-import{Canvas2DRender} from "../common/render-2d.js";
+import{Canvas2DRender} from "../common/render-2d";
 import {FrameQuality, FrameMetadata} from './frame-quality.js';
 
 export class HTMLVideoDemuxer {

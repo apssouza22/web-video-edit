@@ -29,7 +29,7 @@ export class Timeline {
   layerRenderer: TimelineLayerRender;
   previewHandler: PreviewHandler;
   dragHandler: DragLayerHandler;
-  timeUpdateListener: ((hoverTime: number, playerTime: number) => void);
+  timeUpdateListener: ((hoverTime: number, playerTime: number) => void) = () => {};
   layerUpdateListener: (kind: LayerUpdateKind, layer: StandardLayer | null, oldLayer?: StandardLayer | null, extra?: any) => void;
   private zoomHandler: TimelineZoomHandler;
 
@@ -120,18 +120,17 @@ export class Timeline {
   }
 
   #setupPinchHandler() {
-    const callback = (function (scale: number, rotation: number) {
-      this.scale = Math.max(1, this.scale * scale);
-      this.resize();
-      // Update the zoom slider to match the current scale
-      if (this.zoomHandler) {
-        this.zoomHandler.updateSliderValue();
-      }
-    }).bind(this)
-
-    const pinch = new PinchHandler(this.timelineHolder, callback, this.studio);
+    const pinch = new PinchHandler(this.timelineHolder, this.pinchCallback, this.studio);
     pinch.setupEventListeners();
+  }
 
+  private pinchCallback (scale: number, rotation: number) {
+    this.scale = Math.max(1, this.scale * scale);
+    this.resize();
+    // Update the zoom slider to match the current scale
+    if (this.zoomHandler) {
+      this.zoomHandler.updateSliderValue();
+    }
   }
 
   #addEventListeners() {
@@ -149,9 +148,9 @@ export class Timeline {
    */
   #setupTimelineHeaderButtons() {
     // Get buttons by their specific IDs
-    const deleteButton = document.getElementById('delete-button');
-    const splitButton = document.getElementById('split-button');
-    const cloneButton = document.getElementById('clone-button');
+    const deleteButton = document.getElementById('delete-button')!;
+    const splitButton = document.getElementById('split-button')!;
+    const cloneButton = document.getElementById('clone-button')!;
 
     deleteButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
@@ -229,7 +228,7 @@ export class Timeline {
     this.#updateCursor(time);
 
     this.previewHandler.updatePreview(ev, this.timelineHolder, time, this.totalTime);
-    this.dragHandler.updateDrag(time, this.selectedLayer, ev.offsetX, ev.offsetY);
+    this.dragHandler.updateDrag(time, this.selectedLayer!, ev.offsetX, ev.offsetY);
 
     this.setTime(time);
   }
@@ -284,7 +283,7 @@ export class Timeline {
 
     // If reordering occurred, trigger a re-render
     if (reorderOccurred) {
-      this.render(this.layers);
+      this.render();
     }
 
     this.isHover = false;
