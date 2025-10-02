@@ -1,4 +1,4 @@
-import { AudioLayer } from '../layer/index.js';
+import { AudioLayer } from '@/audio/layer-audio';
 import type { VideoStudio } from '../studio/index.js';
 
 

@@ -1,13 +1,16 @@
 import { fps } from '../constants.js';
+import { Frame } from '../frame/frame';
+import { LayerInterface, SpeedControllerInterface } from './types';
 
 /**
  * Handles speed control calculations and frame manipulation for video layers
  */
-export class SpeedController {
-  /** @type {StandardLayer} */
-  layer;
+export class SpeedController implements SpeedControllerInterface {
+  private layer: LayerInterface;
+  private originalFrames: Frame[] | null;
+  private currentSpeed: number;
 
-  constructor(layer) {
+  constructor(layer: LayerInterface) {
     this.layer = layer;
     this.originalFrames = null; // Store original frames for preservation
     this.currentSpeed = 1.0;
@@ -15,9 +18,8 @@ export class SpeedController {
 
   /**
    * Set the playback speed for the layer
-   * @param {number} speed - Speed multiplier (0.5 = half speed, 2.0 = double speed)
    */
-  setSpeed(speed) {
+  setSpeed(speed: number): void {
     if (speed <= 0) {
       throw new Error('Speed must be greater than 0');
     }
@@ -30,7 +32,7 @@ export class SpeedController {
 
     // check if layer is AudioLayer
     if (this.layer.audioBuffer !== null) {
-      return
+      return;
     }
     this.#adjustFramesForSpeed(speed);
     this.#updateLayerDuration(speed);
@@ -38,9 +40,8 @@ export class SpeedController {
 
   /**
    * Preserve the original frames before any speed modifications
-   * @private
    */
-  #preserveOriginalFrames() {
+  #preserveOriginalFrames(): void {
     if (this.layer.framesCollection && this.layer.framesCollection.frames) {
       this.originalFrames = this.layer.framesCollection.frames.map(frame => frame.clone());
     }
@@ -48,24 +49,21 @@ export class SpeedController {
 
   /**
    * Get the current playback speed
-   * @returns {number} Current speed multiplier
    */
-  getSpeed() {
+  getSpeed(): number {
     return this.currentSpeed;
   }
 
   /**
    * Adjust frames collection based on speed
-   * @param {number} speed - Speed multiplier
-   * @private
    */
-  #adjustFramesForSpeed(speed) {
+  #adjustFramesForSpeed(speed: number): void {
     if (!this.originalFrames || !this.layer.framesCollection) {
       return;
     }
 
     const originalFrameCount = this.originalFrames.length;
-    const newFrames = [];
+    const newFrames: Frame[] = [];
 
     if (speed > 1.0) {
       // Fast forward: skip frames with smart sampling
@@ -88,12 +86,8 @@ export class SpeedController {
 
   /**
    * Create frames for slow motion (speed < 1.0) with interpolation
-   * @param {number} speed - Speed multiplier
-   * @param {number} originalFrameCount - Number of original frames
-   * @param {Array} newFrames - Array to populate with new frames
-   * @private
    */
-  #createSlowMotionFrames(speed, originalFrameCount, newFrames) {
+  #createSlowMotionFrames(speed: number, originalFrameCount: number, newFrames: Frame[]): void {
     const expansionFactor = 1 / speed;
     const targetFrameCount = Math.floor(originalFrameCount * expansionFactor);
 
@@ -105,28 +99,30 @@ export class SpeedController {
 
       if (baseIndex >= originalFrameCount - 1) {
         // Use last frame if we're beyond the original range
-        newFrames.push(this.originalFrames[originalFrameCount - 1].clone());
+        if (this.originalFrames) {
+          newFrames.push(this.originalFrames[originalFrameCount - 1].clone());
+        }
       } else if (interpolationFactor === 0) {
         // Exact frame match, use original
-        newFrames.push(this.originalFrames[baseIndex].clone());
+        if (this.originalFrames) {
+          newFrames.push(this.originalFrames[baseIndex].clone());
+        }
       } else {
         // Interpolate between two frames for smooth slow motion
-        const currentFrame = this.originalFrames[baseIndex];
-        const nextFrame = this.originalFrames[baseIndex + 1];
-        const interpolatedFrame = currentFrame.interpolate(nextFrame, interpolationFactor);
-        newFrames.push(interpolatedFrame);
+        if (this.originalFrames) {
+          const currentFrame = this.originalFrames[baseIndex];
+          const nextFrame = this.originalFrames[baseIndex + 1];
+          const interpolatedFrame = currentFrame.interpolate(nextFrame, interpolationFactor);
+          newFrames.push(interpolatedFrame);
+        }
       }
     }
   }
 
   /**
    * Create frames for fast forward (speed > 1.0) with smart sampling
-   * @param {number} speed - Speed multiplier
-   * @param {number} originalFrameCount - Number of original frames
-   * @param {Array} newFrames - Array to populate with new frames
-   * @private
    */
-  #createFastForwardFrames(speed, originalFrameCount, newFrames) {
+  #createFastForwardFrames(speed: number, originalFrameCount: number, newFrames: Frame[]): void {
     const compressionFactor = speed;
     const targetFrameCount = Math.floor(originalFrameCount / compressionFactor);
 
@@ -134,7 +130,7 @@ export class SpeedController {
       // Smart sampling: choose frames that best represent the motion
       const originalIndex = Math.floor(i * compressionFactor);
 
-      if (originalIndex < originalFrameCount) {
+      if (originalIndex < originalFrameCount && this.originalFrames) {
         // For fast forward, we might want to slightly favor anchor frames
         let selectedIndex = originalIndex;
 
@@ -153,17 +149,15 @@ export class SpeedController {
     }
 
     // Ensure we have at least one frame
-    if (newFrames.length === 0 && originalFrameCount > 0) {
+    if (newFrames.length === 0 && originalFrameCount > 0 && this.originalFrames) {
       newFrames.push(this.originalFrames[0].clone());
     }
   }
 
   /**
    * Update layer duration based on speed
-   * @param {number} speed - Speed multiplier
-   * @private
    */
-  #updateLayerDuration(speed) {
+  #updateLayerDuration(speed: number): void {
     if (this.originalFrames) {
       const originalDuration = this.#calculateOriginalDuration();
       this.layer.totalTimeInMilSeconds = Math.floor(originalDuration / speed);
@@ -172,10 +166,8 @@ export class SpeedController {
 
   /**
    * Calculate the original duration before speed adjustments
-   * @returns {number} Original duration in milliseconds
-   * @private
    */
-  #calculateOriginalDuration() {
+  #calculateOriginalDuration(): number {
     if (!this.originalFrames) {
       return this.layer.totalTimeInMilSeconds;
     }

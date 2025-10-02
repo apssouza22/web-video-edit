@@ -1,5 +1,5 @@
 import { dpr } from '@/constants';
-import { AudioLayer } from '../layer/index.js';
+import { AudioLayer } from '@/audio/layer-audio';
 import { PlayerLayer } from './player-layer.js';
 import type {
   TimeUpdateListener,

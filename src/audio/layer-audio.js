@@ -1,4 +1,4 @@
-import {StandardLayer} from '../layer/index.js';
+import {StandardLayer} from '../layer/index';
 import {AudioContext} from '../constants.js';
 import {AudioCutter} from './audio-cutter.js';
 import {AudioLoader} from './audio-loader.js';

@@ -1,11 +1,15 @@
-import {createDemuxer} from "../demux/index.js";
-import {createFrameService} from '../frame/index.js';
-import {StandardLayer} from './layer-common.js';
-import {Frame} from "../frame/frame.js";
+import { createDemuxer } from "../demux/index.js";
+import { createFrameService } from '../frame/index';
+import { StandardLayer } from './layer-common';
+import { Frame } from "../frame/frame";
+import { LayerFile, VideoLayerProperties, VideoDemuxerInterface, DemuxerMetadata } from './types';
 
-export class VideoLayer extends StandardLayer {
+export class VideoLayer extends StandardLayer implements VideoLayerProperties {
+  public useHtmlDemux: boolean;
+  private videoDemuxer: VideoDemuxerInterface;
+  private reader?: FileReader;
 
-  constructor(file, skipLoading = false, useHtmlDemux = false) {
+  constructor(file: LayerFile, skipLoading: boolean = false, useHtmlDemux: boolean = false) {
     super(file);
     this.useHtmlDemux = useHtmlDemux;
     this.framesCollection = createFrameService(0, 0, false);
@@ -20,12 +24,12 @@ export class VideoLayer extends StandardLayer {
     this.#readFile(file);
   }
 
-  #setupDemuxerCallbacks() {
-    this.videoDemuxer.setOnProgressCallback((progress) => {
+  #setupDemuxerCallbacks(): void {
+    this.videoDemuxer.setOnProgressCallback((progress: number) => {
       this.loadUpdateListener(this, progress, this.ctx);
     });
 
-    this.videoDemuxer.setOnCompleteCallback((frames) => {
+    this.videoDemuxer.setOnCompleteCallback((frames: any[]) => {
       frames.forEach((frame, index) => {
         this.framesCollection.update(index, new Frame(frame));
       });
@@ -33,7 +37,7 @@ export class VideoLayer extends StandardLayer {
       this.ready = true;
     });
 
-    this.videoDemuxer.setOnMetadataCallback((metadata) => {
+    this.videoDemuxer.setOnMetadataCallback((metadata: DemuxerMetadata) => {
       this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
       this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
       this.width = metadata.width;
@@ -42,28 +46,27 @@ export class VideoLayer extends StandardLayer {
     });
   }
 
-  #readFile(file) {
+  #readFile(file: LayerFile): void {
     if (file.uri !== null && file.uri !== undefined) {
       this.videoDemuxer.initDemux(file, this.renderer);
       return;
     }
 
     this.reader = new FileReader();
-    this.reader.addEventListener("load", (function () {
-      file.uri = this.reader.result;
-      this.videoDemuxer.initDemux(file, this.renderer);
+    this.reader.addEventListener("load", ((): void => {
+      if (this.reader && typeof this.reader.result === 'string') {
+        file.uri = this.reader.result;
+        this.videoDemuxer.initDemux(file, this.renderer);
+      }
     }).bind(this), false);
 
-    this.reader.readAsDataURL(file);
+    this.reader.readAsDataURL(file as File);
   }
 
   /**
    * Removes a video interval by removing frames from the layer
-   * @param {number} startTime - Start time in seconds to remove
-   * @param {number} endTime - End time in seconds to remove
-   * @returns {boolean} True if the interval was removed successfully
    */
-  removeInterval(startTime, endTime) {
+  removeInterval(startTime: number, endTime: number): boolean {
     const success = this.framesCollection.removeInterval(startTime, endTime);
     if (success) {
       this.totalTimeInMilSeconds = this.framesCollection.getTotalTimeInMilSec();
@@ -71,20 +74,21 @@ export class VideoLayer extends StandardLayer {
     return success;
   }
 
-  #handleVideoRatio() {
+  #handleVideoRatio(): void {
     const playerRatio = this.canvas.width / this.canvas.height;
     const videoRatio = this.width / this.height;
+    
     if (videoRatio > playerRatio) {
-      let scale = videoRatio / playerRatio;
+      const scale = videoRatio / playerRatio;
       this.height *= scale;
     } else {
-      let scale = playerRatio / videoRatio;
+      const scale = playerRatio / videoRatio;
       this.width *= scale;
     }
     this.renderer.setSize(this.width, this.height);
   }
 
-  render(ctxOut, currentTime, playing = false) {
+  render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): void {
     if (!this.ready) {
       return;
     }
@@ -98,24 +102,32 @@ export class VideoLayer extends StandardLayer {
       return;
     }
 
-    let index = this.framesCollection.getIndex(currentTime, this.start_time);
+    const index = this.framesCollection.getIndex(currentTime, this.start_time);
     if (index < 0 || index >= this.framesCollection.getLength()) {
       return;
     }
 
     const frame = this.framesCollection.frames[index];
-    let scale = frame.scale;
-    let x = frame.x + this.renderer.width / 2 - this.width / 2;
-    let y = frame.y + this.renderer.height / 2 - this.height / 2;
+    const scale = frame.scale;
+    const x = frame.x + this.renderer.width / 2 - this.width / 2;
+    const y = frame.y + this.renderer.height / 2 - this.height / 2;
 
     this.renderer.clearRect();
     if (frame.frame instanceof VideoFrame) {
-      this.renderer.drawImage(frame.frame, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
+      this.renderer.drawImage(
+        frame.frame, 
+        0, 0, 
+        this.width, this.height, 
+        x, y, 
+        scale * this.width, 
+        scale * this.height
+      );
     } else {
-      this.renderer.putImageData(frame.frame, 0, 0, this.width, this.height, x, y, scale * this.width, scale * this.height);
+      // Assume it's ImageData
+      const imageData = frame.frame as ImageData;
+      this.renderer.putImageData(imageData, x, y);
     }
     this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
   }
-
 }

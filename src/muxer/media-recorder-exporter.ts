@@ -1,4 +1,5 @@
-import { addElementToBackground, AudioLayer } from '../layer/index.js';
+import { addElementToBackground } from '../layer/index';
+import { AudioLayer } from '@/audio/layer-audio';
 import { getSupportedMimeTypes } from '../studio/index.js';
 import { fixWebmDuration } from "@/common/utils";
 import type { VideoStudio } from '../studio/index.js';

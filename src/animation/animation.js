@@ -2,7 +2,7 @@
 // This is currently not used - WIP
 // ##################################################
 
-import { FrameService } from '../layer/frames.js';
+import { FrameService } from '../frame/frames';
 import { Frame } from '../frame/frame.js';
 import { fps } from '../constants.js';
 

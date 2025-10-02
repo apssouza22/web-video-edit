@@ -1,4 +1,4 @@
-import {addElementToBackground} from '../layer/index.js';
+import {addElementToBackground} from '../layer/index';
 import {fps} from '../constants.js';
 import{Canvas2DRender} from "../common/render-2d.js";
 import {FrameQuality, FrameMetadata} from './frame-quality.js';

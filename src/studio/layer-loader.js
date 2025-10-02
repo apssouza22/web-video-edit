@@ -1,4 +1,5 @@
-import { FlexibleLayer, AudioLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index.js';
+import { FlexibleLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index';
+import { AudioLayer } from '@/audio/layer-audio';
 import { ext_map } from './index.js';
 import { Frame } from '../frame/frame.js';
 

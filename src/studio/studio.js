@@ -1,6 +1,7 @@
 import {createPlayer} from '../player/index.js';
 import {createTimeline} from '../timeline/index.js';
-import {AudioLayer, createLayerService} from '../layer/index.js';
+import {createLayerService} from '../layer/index';
+import {AudioLayer} from '@/audio/layer-audio';
 import {LayerLoader} from './layer-loader.js';
 import {createVideoMuxer} from '../muxer/index.ts';
 import {StudioControls} from './controls.js';
@@ -228,7 +229,7 @@ export class VideoStudio {
       this.getSelectedLayer().update(this.update, this.player.time);
       this.update = null;
     }
-    if(this.layers.length !== this.player.layers.length) {
+    if (this.layers.length !== this.player.layers.length) {
       this.player.addLayers(this.getLayers());
       this.timeline.addLayers(this.getLayers());
     }
@@ -289,14 +290,13 @@ export class VideoStudio {
 
   #onLayerLoadUpdate(layer, progress, ctx, audioBuffer) {
     this.loadingPopup.updateProgress(layer.id || layer.name || 'unknown', progress);
-    if(progress === 100) {
+    if (progress === 100) {
       this.setSelectedLayer(layer);
     }
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);
     }
   }
-
 
   #handleLayerReorder(layer, reorderData) {
     console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);

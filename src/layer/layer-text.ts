@@ -1,52 +1,60 @@
-import { FlexibleLayer } from './index.js';
+import { FlexibleLayer } from './layer-common';
+import { LayerFile, LayerChange, TextLayerProperties } from './types';
+import { Frame } from '../frame/frame';
 
-export class TextLayer extends FlexibleLayer {
-  constructor(text) {
-    let f = {
+export class TextLayer extends FlexibleLayer implements TextLayerProperties {
+  public color: string;
+  public shadow: boolean;
+
+  constructor(text: string) {
+    const fakeFile: LayerFile = {
       name: text
     };
-    super(f);
+    
+    super(fakeFile);
     this.color = "#ffffff";
     this.shadow = true;
     this.ready = true;
+    
     setTimeout(() => {
-      this.loadUpdateListener(this,100, this.ctx, null);
+      this.loadUpdateListener(this, 100, this.ctx, null);
     }, 10);
   }
 
   /**
    * Update the layer's dimensions and text properties
-   *
-   * @param change
-   * @param refTime
    */
-  update(change, refTime) {
-    let rect = this.renderer.measureText(this.name);
+  update(change: LayerChange, refTime: number): void {
+    const rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
     super.update(change, refTime);
   }
 
-  render(ctxOut, refTime, playing = false) {
+  render(ctxOut: CanvasRenderingContext2D, refTime: number, playing: boolean = false): void {
     if (!this.isLayerVisible(refTime)) {
       return;
     }
-    let frame = this.getFrame(refTime);
+    
+    const frame = this.getFrame(refTime);
     if (!frame) {
       return;
     }
-    if (!this.shouldReRender(refTime, playing)) {
+    
+    if (!this.shouldReRender(refTime)) {
       this.drawScaled(this.ctx, ctxOut);
       return;
     }
 
-    let scale = frame.scale;
+    const scale = frame.scale;
     this.renderer.font = Math.floor(scale * 30) + "px sans-serif";
-    let rect = this.renderer.measureText(this.name);
+    const rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
-    let x = frame.x + this.renderer.width / 2;
-    let y = frame.y + this.renderer.height / 2;
+    
+    const x = frame.x + this.renderer.width / 2;
+    const y = frame.y + this.renderer.height / 2;
+    
     if (this.shadow) {
       this.renderer.shadowColor = "black";
       this.renderer.shadowBlur = 7;
@@ -54,11 +62,12 @@ export class TextLayer extends FlexibleLayer {
       this.renderer.shadowColor = null;
       this.renderer.shadowBlur = null;
     }
+    
     this.renderer.fillStyle = this.color;
     this.renderer.clearRect();
     this.renderer.save();
     this.renderer.translate(x, y);
-    this.renderer.rotate(frame[3] * (Math.PI / 180));
+    this.renderer.rotate(frame.rotation * (Math.PI / 180));
     this.renderer.textAlign = "center";
     this.renderer.fillText(this.name, 0, 0);
     this.renderer.restore();
