@@ -2,14 +2,14 @@
  * Player-related type definitions for video editing application
  */
 
-import type { StandardLayer } from '@/layer';
+import type { AbstractMedia } from '@/layer';
 import type { FrameTransform } from '@/frame';
 
 /**
  * Callback function types for player events
  */
 export type TimeUpdateListener = (newTime: number, oldTime: number) => void;
-export type LayerTransformedListener = (layer: StandardLayer) => void;
+export type LayerTransformedListener = (layer: AbstractMedia) => void;
 export type PlayerEndCallback = (player: VideoPlayer) => void;
 
 /**
@@ -110,8 +110,8 @@ export interface VideoPlayer {
   setTime(newTime: number): void;
   addTimeUpdateListener(listener: TimeUpdateListener): void;
   addLayerTransformedListener(listener: LayerTransformedListener): void;
-  addLayers(layers: StandardLayer[]): void;
-  setSelectedLayer(layer: StandardLayer): void;
+  addLayers(layers: AbstractMedia[]): void;
+  setSelectedLayer(layer: AbstractMedia): void;
   mount(holder: HTMLElement): void;
   resize(newRatio?: string): void;
   refreshAudio(): void;
@@ -126,7 +126,7 @@ export interface VideoPlayer {
  * Player Layer interface (forward declaration)
  */
 export interface PlayerLayer {
-  layer: StandardLayer;
+  layer: AbstractMedia;
   selected: boolean;
   
   setTransformCallback(callback: LayerTransformedListener): void;

@@ -1,5 +1,5 @@
 export interface StandardLayer {
-  id: string | number;
+  id: string;
   name?: string;
   start_time: number; // ms
   totalTimeInMilSeconds: number; // ms

@@ -3,9 +3,9 @@ import {TimelineZoomHandler} from './zoom';
 import {PreviewHandler} from './preview';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
-import {PinchHandler} from '../studio/index';
-import {dpr} from '../constants.js';
-import type { StandardLayer, LayerUpdateKind } from './types';
+import {PinchHandler} from '@/studio';
+import {dpr} from '@/constants';
+import type {StandardLayer, LayerUpdateKind} from './types';
 
 /**
  * Class representing a timeline for a video player
@@ -29,8 +29,9 @@ export class Timeline {
   layerRenderer: TimelineLayerRender;
   previewHandler: PreviewHandler;
   dragHandler: DragLayerHandler;
-  timeUpdateListener: ((hoverTime: number, playerTime: number) => void) = () => {};
-  layerUpdateListener: (kind: LayerUpdateKind, layer: StandardLayer | null, oldLayer?: StandardLayer | null, extra?: any) => void;
+  timeUpdateListener: ((hoverTime: number, playerTime: number) => void) = () => {
+  };
+  layerUpdateListener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void;
   private zoomHandler: TimelineZoomHandler;
 
   /**
@@ -72,7 +73,8 @@ export class Timeline {
     this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
     this.zoomHandler = new TimelineZoomHandler(this);
-    this.layerUpdateListener = () => {};
+    this.layerUpdateListener = () => {
+    };
 
     this.#addEventListeners();
     this.#setupPinchHandler();
@@ -93,7 +95,7 @@ export class Timeline {
    * Add a listener for layer updates
    * @param {Function} listener - Function to call when layer updates occur
    */
-  addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: StandardLayer | null, oldLayer?: StandardLayer | null, extra?: any) => void) {
+  addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void) {
     if (typeof listener !== 'function') {
       throw new Error('Layer update listener must be a function');
     }
@@ -104,12 +106,17 @@ export class Timeline {
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
    * @param {StandardLayer|null} newSelectedLayer - The new selected layer
    */
-  setSelectedLayer(newSelectedLayer: StandardLayer | null) {
+  setSelectedLayer(newSelectedLayer: StandardLayer) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
-    if (oldSelectedLayer !== newSelectedLayer) {
-      this.layerUpdateListener('select', newSelectedLayer, oldSelectedLayer);
+    if (oldSelectedLayer === newSelectedLayer) {
+      return;
     }
+    if (oldSelectedLayer) {
+      this.layerUpdateListener('select', newSelectedLayer, oldSelectedLayer);
+      return
+    }
+    this.layerUpdateListener('select', newSelectedLayer);
   }
 
   addTimeUpdateListener(listener: (hoverTime: number, playerTime: number) => void) {
@@ -124,7 +131,7 @@ export class Timeline {
     pinch.setupEventListeners();
   }
 
-  private pinchCallback (scale: number, rotation: number) {
+  private pinchCallback(scale: number, rotation: number) {
     this.scale = Math.max(1, this.scale * scale);
     this.resize();
     // Update the zoom slider to match the current scale
@@ -157,7 +164,7 @@ export class Timeline {
         console.log('No layer selected. Please select a layer first.');
         return;
       }
-      this.layerUpdateListener('delete', this.selectedLayer, null);
+      this.layerUpdateListener('delete', this.selectedLayer);
     });
 
     splitButton.addEventListener('click', () => {
@@ -165,7 +172,7 @@ export class Timeline {
         console.log('No layer selected. Please select a layer first.');
         return;
       }
-      this.layerUpdateListener('split', this.selectedLayer, null);
+      this.layerUpdateListener('split', this.selectedLayer);
     });
 
     cloneButton.addEventListener('click', () => {
@@ -173,7 +180,7 @@ export class Timeline {
         console.log('No layer selected. Please select a layer first.');
         return;
       }
-      this.layerUpdateListener('clone', this.selectedLayer, null);
+      this.layerUpdateListener('clone', this.selectedLayer);
     });
   }
 

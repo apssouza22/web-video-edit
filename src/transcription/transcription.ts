@@ -123,6 +123,10 @@ export class TranscriptionService {
     console.log("Starting transcription with audio data.");
     this.worker.postMessage({audio: audio});
   }
+
+  highlightChunksByTime(number: number) {
+    this.transcriptionView.highlightChunksByTime(number);
+  }
 }
 
 function transformAudioBuffer(audioData: AudioBuffer): Float32Array {

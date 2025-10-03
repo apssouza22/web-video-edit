@@ -1,16 +1,16 @@
 import {fps} from '@/constants';
 import {Frame} from '@/frame';
-import {StandardLayer} from "@/layer/layer-common";
+import {AbstractMedia} from "@/layer/layer-common";
 
 /**
  * Handles speed control calculations and frame manipulation for video layers
  */
 export class SpeedController {
-  private layer: StandardLayer;
+  private layer: AbstractMedia;
   private originalFrames: Frame[] | null;
   private currentSpeed: number;
 
-  constructor(layer: StandardLayer) {
+  constructor(layer: AbstractMedia) {
     this.layer = layer;
     this.originalFrames = null; // Store original frames for preservation
     this.currentSpeed = 1.0;

@@ -9,10 +9,10 @@ import type {
   CanvasElement,
   AudioContextType
 } from './types.js';
-import type { StandardLayer } from '@/layer';
+import type { AbstractMedia } from '@/layer';
 
 export class VideoPlayer {
-  #selectedLayer: StandardLayer | null = null;
+  #selectedLayer: AbstractMedia | null = null;
   #contentScaleFactor = 0.9; // Scale content to 90% to create 10% margin
 
   public playing = false;
@@ -31,7 +31,7 @@ export class VideoPlayer {
   public timeUpdateListener: TimeUpdateListener = (newTime: number, oldTime: number) => {
     // Default empty listener
   };
-  public layerTransformedListener: LayerTransformedListener = (layer: StandardLayer) => {
+  public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {
     // Default empty listener
   };
 
@@ -71,7 +71,7 @@ export class VideoPlayer {
     this.layerTransformedListener = listener;
   }
 
-  addLayers(layers: StandardLayer[]): void {
+  addLayers(layers: AbstractMedia[]): void {
     this.layers = layers.map(layer => {
       const playerLayer = new PlayerLayer(layer, this.canvas);
       if (this.#selectedLayer === layer) {
@@ -85,14 +85,14 @@ export class VideoPlayer {
   /**
    * Handle layer transformation events
    */
-  #onLayerTransformed(layer: StandardLayer): void {
+  #onLayerTransformed(layer: AbstractMedia): void {
     this.layerTransformedListener(layer);
   }
 
   /**
    * Set selected layer for transformation
    */
-  setSelectedLayer(layer: StandardLayer): void {
+  setSelectedLayer(layer: AbstractMedia): void {
     this.layers.forEach(playerLayer => {
       playerLayer.selected = false;
     });

@@ -4,9 +4,9 @@ import { TextLayer } from './layer-text';
 import { AudioLayer } from './layer-audio';
 import { LayerService } from './operations';
 import { LayerType, LayerFile, LayerLoadUpdateListener } from './types';
-import { StandardLayer } from './layer-common';
+import { AbstractMedia } from './layer-common';
 
-export { StandardLayer, FlexibleLayer, addElementToBackground } from './layer-common';
+export { AbstractMedia, FlexibleLayer, addElementToBackground } from './layer-common';
 export { VideoLayer } from './layer-video';
 export { ImageLayer } from './layer-image';
 export { TextLayer } from './layer-text';
@@ -25,7 +25,7 @@ export function createLayerService(onLayerLoadUploadListener: LayerLoadUpdateLis
 /**
  * Creates a layer of the specified type
  */
-export  function createLayer(layerType: LayerType, file: LayerFile, name?: string): StandardLayer {
+export  function createLayer(layerType: LayerType, file: LayerFile, name?: string): AbstractMedia {
   switch (layerType) {
     case 'text':
       return new TextLayer(name || file.name);

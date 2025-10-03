@@ -1,6 +1,6 @@
 import {createPlayer} from '../player/index';
 import {createTimeline} from '../timeline/index';
-import {createLayerService, LayerService} from '../layer/index';
+import {AbstractMedia, createLayerService, LayerService} from '../layer/index';
 import {AudioLayer} from '@/layer/layer-audio';
 import {LayerLoader} from './layer-loader';
 import {createVideoMuxer} from '@/video/muxer/index';
@@ -15,6 +15,8 @@ import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
 import type {StandardLayer, LayerUpdateKind} from '../timeline/types';
 import type {VideoPlayer} from '../player/types';
+import {ESRenderingContext2D} from "@/common/render-2d";
+import {Timeline} from "@/timeline/timeline";
 
 /**
  * Update data structure for layer transformations
@@ -34,25 +36,6 @@ interface LayerReorderData {
   toIndex: number;
 }
 
-/**
- * Timeline interface for VideoStudio integration
- */
-interface Timeline {
-  playerTime: number;
-  selectedLayer: StandardLayer | null;
-
-  addTimeUpdateListener(listener: (newTime: number, oldTime: number) => void): void;
-
-  addLayerUpdateListener(listener: (action: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, reorderData?: LayerReorderData) => void): void;
-
-  setSelectedLayer(layer: StandardLayer): void;
-
-  addLayers(layers: StandardLayer[]): void;
-
-  render(): void;
-
-  resize(): void;
-}
 
 /**
  * Video Muxer interface for export functionality
@@ -63,9 +46,9 @@ interface VideoMuxer {
 
 export class VideoStudio {
   update: LayerUpdate | null;
-  mainSection: HTMLElement | null;
+  mainSection: HTMLElement;
   aspectRatioSelector: AspectRatioSelector;
-  layers: StandardLayer[];
+  layers: AbstractMedia[];
   player: VideoPlayer;
   timeline: Timeline;
   layerLoader: LayerLoader;
@@ -80,7 +63,7 @@ export class VideoStudio {
 
   constructor() {
     this.update = null;
-    this.mainSection = document.getElementById('video-canvas');
+    this.mainSection = document.getElementById('video-canvas')!;
     this.aspectRatioSelector = new AspectRatioSelector();
     this.layers = [];
     this.player = createPlayer()
@@ -114,13 +97,14 @@ export class VideoStudio {
     this.speedControlManager.init();
   }
 
+  private getMediaById(id: string): AbstractMedia | null {
+    return this.layers.find(layer => layer.id === id) || null;
+  }
+
   #setUpComponentListeners(): void {
     this.player.addTimeUpdateListener((newTime: number, oldTime: number) => {
       this.timeline.playerTime = newTime;
-
-      if (this.transcriptionManager && this.transcriptionManager.transcriptionView) {
-        this.transcriptionManager.transcriptionView.highlightChunksByTime(newTime / 1000);
-      }
+      this.transcriptionManager.highlightChunksByTime(newTime / 1000);
     });
 
     this.timeline.addTimeUpdateListener((newTime: number, oldTime: number) => {
@@ -130,17 +114,21 @@ export class VideoStudio {
     });
 
     this.timeline.addLayerUpdateListener((action: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, reorderData?: LayerReorderData) => {
+      const media = this.getMediaById(layer.id);
+      if (!media) {
+        return;
+      }
       if (action === 'select') {
-        this.setSelectedLayer(layer);
+        this.setSelectedLayer(media);
       } else if (action === 'delete') {
-        this.remove(layer);
+        this.remove(media);
       } else if (action === 'clone') {
-        this.cloneLayer(layer);
+        this.cloneLayer(media);
       } else if (action === 'split') {
         this.mediaEditor.split();
       } else if (action === 'reorder') {
         if (reorderData) {
-          this.#handleLayerReorder(layer, reorderData);
+          this.#handleLayerReorder(media, reorderData);
         }
       }
     });
@@ -156,7 +144,7 @@ export class VideoStudio {
       this.player.play();
     });
 
-    this.player.addLayerTransformedListener((layer: StandardLayer) => {
+    this.player.addLayerTransformedListener((layer: AbstractMedia) => {
       this.#onLayerTransformed(layer);
     });
 
@@ -211,21 +199,24 @@ export class VideoStudio {
   /**
    * Gets the currently selected layer
    */
-  getSelectedLayer(): StandardLayer | null {
-    return this.timeline.selectedLayer;
+  getSelectedLayer(): AbstractMedia | null {
+    if (!this.timeline.selectedLayer) {
+      return null;
+    }
+    return this.getMediaById(this.timeline.selectedLayer.id);
   }
 
   /**
    * Get all layers in the studio
    */
-  getLayers(): StandardLayer[] {
+  getLayers(): AbstractMedia[] {
     return this.layers;
   }
 
   /**
    * Remove a layer from the studio
    */
-  remove(layer: StandardLayer): void {
+  remove(layer: AbstractMedia): void {
     const idx = this.getLayers().indexOf(layer);
     const len = this.getLayers().length;
     if (idx > -1) {
@@ -256,7 +247,7 @@ export class VideoStudio {
   /**
    * Clone a layer by creating a copy with slightly modified properties
    */
-  cloneLayer(layer: StandardLayer): StandardLayer {
+  cloneLayer(layer: AbstractMedia): AbstractMedia {
     const clonedLayer = this.layerOperations.clone(layer);
     this.addLayer(clonedLayer);
     this.setSelectedLayer(clonedLayer);
@@ -264,7 +255,7 @@ export class VideoStudio {
     return clonedLayer;
   }
 
-  addLayer(layer: StandardLayer): StandardLayer {
+  addLayer(layer: AbstractMedia): AbstractMedia {
     layer.start_time = this.player.time;
     layer.init(this.player.width, this.player.height, this.player.audioContext);
     this.layers.push(layer);
@@ -279,7 +270,7 @@ export class VideoStudio {
     this.player.pause();
   }
 
-  resize(newRatio?: string | null): void {
+  resize(newRatio?: string): void {
     this.player.resize(newRatio);
     this.timeline.resize();
     this.getLayers().forEach(layer => {
@@ -306,7 +297,7 @@ export class VideoStudio {
   }
 
   upload(): void {
-    const layers: StandardLayer[] = []
+    const layers: AbstractMedia[] = []
     const filePicker = document.getElementById('filepicker') as HTMLInputElement;
     if (!filePicker) return;
 
@@ -326,7 +317,7 @@ export class VideoStudio {
     filePicker.click();
   }
 
-  addLayerFromFile(file: File, useHtmlDemux: boolean = false): StandardLayer[] {
+  addLayerFromFile(file: File, useHtmlDemux: boolean = false): AbstractMedia[] {
     const layers = this.layerLoader.addLayerFromFile(file, useHtmlDemux);
     layers.forEach(layer => {
       layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
@@ -357,9 +348,9 @@ export class VideoStudio {
   }
 
   #onLayerLoadUpdate(
-      layer: StandardLayer,
+      layer: AbstractMedia,
       progress: number,
-      ctx: CanvasRenderingContext2D | null,
+      ctx: ESRenderingContext2D | null,
       audioBuffer?: AudioBuffer
   ): void {
     this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
@@ -371,11 +362,11 @@ export class VideoStudio {
     }
   }
 
-  #handleLayerReorder(layer: StandardLayer, reorderData: LayerReorderData): void {
+  #handleLayerReorder(layer: AbstractMedia, reorderData: LayerReorderData): void {
     console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
 
-  setSelectedLayer(layer: StandardLayer): void {
+  setSelectedLayer(layer: AbstractMedia): void {
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
     this.speedControlManager.setLayer(layer);
@@ -384,7 +375,7 @@ export class VideoStudio {
   /**
    * Handle layer transformation from player
    */
-  #onLayerTransformed(layer: StandardLayer): void {
+  #onLayerTransformed(layer: AbstractMedia): void {
     console.log(`Layer "${layer.name}" transformed`);
   }
 }

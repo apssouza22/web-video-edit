@@ -1,4 +1,5 @@
 import {Frame} from '@/frame';
+import {ESRenderingContext2D} from "@/common/render-2d";
 
 export type LayerFile  = File & { uri?: string }
 export type LayerType = 'text' | 'video' | 'audio' | 'image';
@@ -9,7 +10,7 @@ export type LayerType = 'text' | 'video' | 'audio' | 'image';
 export type LayerLoadUpdateListener = (
   layer: any,
   progress: number,
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null,
+  ctx: ESRenderingContext2D | null,
   audioBuffer?: AudioBuffer | undefined
 ) => void;
 

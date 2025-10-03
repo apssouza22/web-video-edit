@@ -1,3 +1,5 @@
+import {VideoStudio} from "@/studio/studio";
+
 interface Frame {
   x: number;
   y: number;
@@ -32,7 +34,7 @@ type DragCallback = (x: number, y: number) => void;
 export class DragItemHandler {
   private element: HTMLElement;
   private callback: DragCallback;
-  private studio: Studio;
+  private studio: VideoStudio;
   private dragging: boolean;
   private base_x: number;
   private base_y: number;
@@ -40,7 +42,7 @@ export class DragItemHandler {
   /**
    * Creates a new DragHandler instance
    */
-  constructor(element: HTMLElement, callback: DragCallback, studio: Studio) {
+  constructor(element: HTMLElement, callback: DragCallback, studio: VideoStudio) {
     this.element = element;
     this.callback = callback;
     this.studio = studio;

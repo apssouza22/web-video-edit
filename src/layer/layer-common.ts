@@ -10,7 +10,7 @@ import {
   LayerDumpData,
 } from './types';
 
-export class StandardLayer {
+export abstract class AbstractMedia {
   public audioBuffer: AudioBuffer | null = null;
   public file?: LayerFile;
   public name: string;
@@ -241,7 +241,7 @@ export class StandardLayer {
 /**
  * Non-video layers that can be resized and have their total time adjusted.
  */
-export class FlexibleLayer extends StandardLayer {
+export class FlexibleLayer extends AbstractMedia {
   constructor(file?: LayerFile) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;

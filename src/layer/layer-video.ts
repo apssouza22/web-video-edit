@@ -1,12 +1,12 @@
 import {createDemuxer} from "@/video/demux";
 import {createFrameService} from '../frame';
 import {Frame} from "@/frame";
-import {StandardLayer} from './layer-common';
+import {AbstractMedia} from './layer-common';
 import {DemuxerMetadata, LayerFile} from './types';
 import {MediaLayer} from "@/studio/media-edit";
 import {VideoDemuxService} from "@/video/demux/video-demux";
 
-export class VideoLayer extends StandardLayer implements MediaLayer {
+export class VideoLayer extends AbstractMedia implements MediaLayer {
   public useHtmlDemux: boolean;
   private videoDemuxer: VideoDemuxService;
   private reader?: FileReader;

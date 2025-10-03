@@ -1,4 +1,4 @@
-import { StandardLayer } from '@/layer';
+import { AbstractMedia } from '@/layer';
 import {
   HandleType, 
   TransformHandle, 
@@ -15,7 +15,7 @@ import {
 import type { FrameTransform } from '@/frame';
 
 export class PlayerLayer {
-  #layer: StandardLayer;
+  #layer: AbstractMedia;
   #selected = false;
   #canvas: CanvasElement;
   #ctx: CanvasContext2D;
@@ -32,7 +32,7 @@ export class PlayerLayer {
   /**
    * Class to handle transformations of a layer in the player.
    */
-  constructor(layer: StandardLayer, canvas: CanvasElement) {
+  constructor(layer: AbstractMedia, canvas: CanvasElement) {
     this.#layer = layer;
     this.#canvas = canvas;
     const ctx = canvas.getContext('2d');
@@ -47,7 +47,7 @@ export class PlayerLayer {
   /**
    * Returns the layer associated with this PlayerLayer instance.
    */
-  get layer(): StandardLayer {
+  get layer(): AbstractMedia {
     return this.#layer;
   }
 
