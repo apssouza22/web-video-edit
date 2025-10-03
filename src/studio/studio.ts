@@ -1,7 +1,7 @@
 import {createPlayer} from '../player/index';
 import {createTimeline} from '../timeline/index';
 import {createLayerService, LayerService} from '../layer/index';
-import {AudioLayer} from '@/audio/layer-audio';
+import {AudioLayer} from '@/layer/layer-audio';
 import {LayerLoader} from './layer-loader';
 import {createVideoMuxer} from '@/video/muxer/index';
 import {StudioControls} from './controls';

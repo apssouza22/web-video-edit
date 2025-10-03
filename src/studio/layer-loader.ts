@@ -1,14 +1,16 @@
-import { FlexibleLayer, VideoLayer, ImageLayer, TextLayer } from '../layer/index';
-import { AudioLayer } from '@/audio/layer-audio';
-import { ext_map } from './index';
-import { Frame } from '../frame/frame';
-import type { LayerInterface, LayerDumpData } from '../layer/types';
+import {StandardLayer} from '@/layer';
+import {ImageLayer} from '@/layer';
+import {VideoLayer} from '@/layer';
+import {TextLayer} from '@/layer';
+import {AudioLayer} from '@/layer/layer-audio';
+import {ext_map} from './index';
+import {Frame} from '@/frame';
 
 /**
  * Interface for VideoStudio class used by LayerLoader
  */
 interface VideoStudio {
-  addLayer(layer: LayerInterface): LayerInterface;
+  addLayer(layer: StandardLayer): StandardLayer;
 }
 
 /**
@@ -47,8 +49,8 @@ export class LayerLoader {
    * @param useHtmlDemux - Whether to use HTML demuxing for video
    * @returns The added layers
    */
-  addLayerFromFile(file: File, useHtmlDemux: boolean = false): LayerInterface[] {
-    const layers: LayerInterface[] = [];
+  addLayerFromFile(file: File, useHtmlDemux: boolean = false): StandardLayer[] {
+    const layers: StandardLayer[] = [];
     if (file.type.indexOf('video') >= 0) {
       layers.push(this.studio.addLayer(new AudioLayer(file)));
       layers.push(this.studio.addLayer(new VideoLayer(file, false, useHtmlDemux)));
@@ -68,7 +70,7 @@ export class LayerLoader {
    * @param uri - The URI to load the layer from
    * @returns Promise that resolves to the added layers
    */
-  async loadLayerFromURI(uri: string): Promise<LayerInterface[] | undefined> {
+  async loadLayerFromURI(uri: string): Promise<StandardLayer[] | undefined> {
     if (!uri) {
       return;
     }
@@ -96,8 +98,8 @@ export class LayerLoader {
    * @param layers - Array of layer data objects
    * @returns Promise that resolves when all layers are loaded
    */
-  async loadLayersFromJson(layers: LayerJsonData[]): Promise<LayerInterface[]> {
-    const allLayers: LayerInterface[] = [];
+  async loadLayersFromJson(layers: LayerJsonData[]): Promise<StandardLayer[]> {
+    const allLayers: StandardLayer[] = [];
     for (const layer_d of layers) {
       const layersCreated = await this.#loadLayerType(layer_d);
 
@@ -111,7 +113,7 @@ export class LayerLoader {
     return allLayers;
   }
 
-  #addOnLoadUpdateListener(layersCreated: LayerInterface[], layer_d: LayerJsonData): void {
+  #addOnLoadUpdateListener(layersCreated: StandardLayer[], layer_d: LayerJsonData): void {
     layersCreated.forEach(layer => {
       layer.addLoadUpdateListener((l, progress, ctx, audioBuffer) => {
         if (progress < 100) {
@@ -133,8 +135,8 @@ export class LayerLoader {
     })
   }
 
-  async #loadLayerType(layer_d: LayerJsonData): Promise<LayerInterface[]> {
-    const layersCreated: LayerInterface[] = [];
+  async #loadLayerType(layer_d: LayerJsonData): Promise<StandardLayer[]> {
+    const layersCreated: StandardLayer[] = [];
     if (layer_d.type === "VideoLayer") {
       if (layer_d.uri) {
         const l = await this.loadLayerFromURI(layer_d.uri);

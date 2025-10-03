@@ -5,14 +5,12 @@ import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
 import { SpeedController } from './speed-controller';
 import { 
   LayerFile,
-  LayerInterface,
   LayerLoadUpdateListener,
   LayerChange,
   LayerDumpData,
-  Canvas2DRenderInterface
 } from './types';
 
-export class StandardLayer implements LayerInterface {
+export class StandardLayer {
   public audioBuffer: AudioBuffer | null = null;
   public file?: LayerFile;
   public name: string;
@@ -24,7 +22,7 @@ export class StandardLayer implements LayerInterface {
   public start_time: number;
   public width: number;
   public height: number;
-  public renderer: Canvas2DRenderInterface;
+  public renderer: Canvas2DRender;
   public loadUpdateListener: LayerLoadUpdateListener;
   public lastRenderedTime: number;
   public framesCollection: FrameService;

@@ -1,8 +1,9 @@
-import { StandardLayer } from '@/layer/layer-common';
-import { AudioCutter } from './audio-cutter';
-import { AudioLoader } from './audio-loader';
-import { AudioSource } from './audio-source';
-import { MediaLayer } from "@/studio/media-edit";
+import {StandardLayer} from '@/layer/layer-common';
+import {AudioCutter} from '@/audio/audio-cutter';
+import {AudioLoader} from '@/audio/audio-loader';
+import {AudioSource} from '@/audio/audio-source';
+import {MediaLayer} from "@/studio/media-edit";
+import type {LayerFile} from "@/layer/types";
 
 export class AudioLayer extends StandardLayer implements MediaLayer {
   private audioLoader: AudioLoader;
@@ -17,7 +18,7 @@ export class AudioLayer extends StandardLayer implements MediaLayer {
   public originalTotalTimeInMilSeconds: number = 0; // Store original duration before speed changes
   public started: boolean = false; // Track if audio source has started playing
 
-  constructor(file: File, skipLoading: boolean = false) {
+  constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
     this.audioLoader = new AudioLoader();
     this.audioCutter = new AudioCutter();

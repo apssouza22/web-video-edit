@@ -1,12 +1,11 @@
-import { dpr } from '@/constants';
-import { Canvas2DRenderInterface } from "@/layer/types";
+import {dpr} from '@/constants';
 
 export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 /**
  * Canvas 2D rendering wrapper class with TypeScript support
  */
-export class Canvas2DRender implements Canvas2DRenderInterface{
+export class Canvas2DRender{
   // @ts-ignore
   #canvas: HTMLCanvasElement | OffscreenCanvas;
   // @ts-ignore

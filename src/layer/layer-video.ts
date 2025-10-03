@@ -1,13 +1,14 @@
-import { createDemuxer } from "@/video/demux";
-import { createFrameService } from '../frame';
-import { Frame } from "@/frame";
-import { StandardLayer } from './layer-common';
-import { LayerFile, VideoDemuxerInterface, DemuxerMetadata } from './types';
-import { MediaLayer } from "@/studio/media-edit";
+import {createDemuxer} from "@/video/demux";
+import {createFrameService} from '../frame';
+import {Frame} from "@/frame";
+import {StandardLayer} from './layer-common';
+import {DemuxerMetadata, LayerFile} from './types';
+import {MediaLayer} from "@/studio/media-edit";
+import {VideoDemuxService} from "@/video/demux/video-demux";
 
 export class VideoLayer extends StandardLayer implements MediaLayer {
   public useHtmlDemux: boolean;
-  private videoDemuxer: VideoDemuxerInterface;
+  private videoDemuxer: VideoDemuxService;
   private reader?: FileReader;
 
   constructor(file: LayerFile, skipLoading: boolean = false, useHtmlDemux: boolean = false) {

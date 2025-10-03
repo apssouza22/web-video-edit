@@ -1,10 +1,10 @@
-import { TextLayer } from "./layer-text";
-import { VideoLayer } from "./layer-video";
-import { ImageLayer } from "./layer-image";
-import { AudioLayer } from "../audio/layer-audio";
-import { LayerServiceInterface, LayerLoadUpdateListener } from "./types";
+import {TextLayer} from "./layer-text";
+import {VideoLayer} from "./layer-video";
+import {ImageLayer} from "./layer-image";
+import {AudioLayer} from "./layer-audio";
+import {LayerLoadUpdateListener} from "./types";
 
-export class LayerService implements LayerServiceInterface {
+export class LayerService  {
   private onLayerLoadUpdate: LayerLoadUpdateListener;
 
   constructor(onLayerLoadUploadListener: LayerLoadUpdateListener) {
@@ -31,7 +31,7 @@ export class LayerService implements LayerServiceInterface {
     newLayer.canvas.height = layer.canvas.height;
     newLayer.framesCollection.frames = [...layer.framesCollection.frames];
     newLayer.ready = true;
-    newLayer.addLoadUpdateListener((l: any, progress: number, ctx: CanvasRenderingContext2D | null, audioBuffer?: AudioBuffer | null) => {
+    newLayer.addLoadUpdateListener((l: any, progress: number, ctx: CanvasRenderingContext2D | null, audioBuffer?: AudioBuffer) => {
       this.onLayerLoadUpdate(l, progress, ctx, audioBuffer);
     });
     newLayer.loadUpdateListener(newLayer, 100, newLayer.ctx, newLayer.audioBuffer);
