@@ -1,8 +1,7 @@
-import { FlexibleLayer } from './layer-common';
-import { LayerFile, LayerChange, TextLayerProperties } from './types';
-import { Frame } from '../frame/frame';
+import {FlexibleLayer} from './layer-common';
+import {LayerChange, LayerFile} from './types';
 
-export class TextLayer extends FlexibleLayer implements TextLayerProperties {
+export class TextLayer extends FlexibleLayer {
   public color: string;
   public shadow: boolean;
 
@@ -17,7 +16,7 @@ export class TextLayer extends FlexibleLayer implements TextLayerProperties {
     this.ready = true;
     
     setTimeout(() => {
-      this.loadUpdateListener(this, 100, this.ctx, null);
+      this.loadUpdateListener(this, 100, this.ctx);
     }, 10);
   }
 

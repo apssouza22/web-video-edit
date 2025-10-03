@@ -1,30 +1,34 @@
-import { dpr } from '../constants.js';
+import { dpr } from '@/constants';
+import { Canvas2DRenderInterface } from "@/layer/types";
+
+export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 /**
  * Canvas 2D rendering wrapper class with TypeScript support
  */
-export class Canvas2DRender {
-  #canvas: HTMLCanvasElement | OffscreenCanvas | null = null;
-  #ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+export class Canvas2DRender implements Canvas2DRenderInterface{
+  // @ts-ignore
+  #canvas: HTMLCanvasElement | OffscreenCanvas;
+  // @ts-ignore
+  #ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
   #transferable: OffscreenCanvas | null = null;
 
-  constructor(canvas: HTMLCanvasElement | null = null) {
+  constructor(canvas?: HTMLCanvasElement) {
     if (canvas) {
       this.#canvas = canvas.transferControlToOffscreen();
-      this.#ctx = canvas.getContext("2d", { willReadFrequently: true });
+      this.#ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     } else {
       this.#createCanvas();
     }
   }
 
-  // Canvas management methods
   #createCanvas(): void {
     this.#canvas = document.createElement('canvas');
     this.#transferable = document.createElement('canvas').transferControlToOffscreen();
-    this.#ctx = this.#canvas.getContext('2d', { willReadFrequently: true });
+    this.#ctx = this.#canvas.getContext('2d', { willReadFrequently: true })!;
   }
 
-  get canvas(): HTMLCanvasElement | OffscreenCanvas | null {
+  get canvas(): HTMLCanvasElement | OffscreenCanvas {
     return this.#canvas;
   }
 
@@ -32,7 +36,7 @@ export class Canvas2DRender {
     return this.#transferable;
   }
 
-  get context(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null {
+  get context(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
     return this.#ctx;
   }
 
@@ -109,8 +113,7 @@ export class Canvas2DRender {
     return this.#ctx.getImageData(sx, sy, w, h);
   }
 
-  measureText(text: string): TextMetrics | null {
-    if (!this.#ctx) return null;
+  measureText(text: string): TextMetrics{
     return this.#ctx.measureText(text);
   }
 
@@ -202,11 +205,11 @@ export class Canvas2DRender {
 
   // Static method for standalone usage (maintains backward compatibility)
   static drawScaled(
-    ctxFrom: HTMLVideoElement | Canvas2DRender, 
+    ctxFrom: HTMLVideoElement | ESRenderingContext2D,
     ctxOutTo: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, 
     video: boolean = false
   ): void {
-    const width = video && ctxFrom instanceof HTMLVideoElement 
+    const width = video && ctxFrom instanceof HTMLVideoElement
       ? ctxFrom.videoWidth 
       : ctxFrom instanceof Canvas2DRender 
         ? ctxFrom.clientWidth 
@@ -246,9 +249,8 @@ export class Canvas2DRender {
       ratio = outLogicalHeight / height;
       offset_width = (outLogicalWidth - (ratio * width)) / 2;
     }
-    
     ctxOutTo.drawImage(
-        video ? ctxFrom as HTMLVideoElement : (ctxFrom as Canvas2DRender).canvas as CanvasImageSource,
+        video ? ctxFrom as HTMLVideoElement : (ctxFrom as ESRenderingContext2D).canvas as CanvasImageSource,
         0, 0, width, height,
         offset_width, offset_height, ratio * width, ratio * height
     );

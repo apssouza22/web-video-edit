@@ -1,5 +1,5 @@
-import { fps } from '../constants.js';
-import { Frame } from '../frame/frame';
+import { fps } from '@/constants';
+import { Frame } from '@/frame';
 import { LayerInterface, SpeedControllerInterface } from './types';
 
 /**

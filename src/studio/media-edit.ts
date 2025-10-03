@@ -5,7 +5,7 @@ interface FramesCollection {
   frames: any[];
 }
 
-interface MediaLayer {
+export interface MediaLayer {
   name: string;
   start_time: number;
   totalTimeInMilSeconds: number;

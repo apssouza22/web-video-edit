@@ -1,10 +1,10 @@
-import { StandardLayer } from '../layer/index';
+import { StandardLayer } from '@/layer/layer-common';
 import { AudioCutter } from './audio-cutter';
 import { AudioLoader } from './audio-loader';
 import { AudioSource } from './audio-source';
-import type { LayerFile } from '../layer/types';
+import { MediaLayer } from "@/studio/media-edit";
 
-export class AudioLayer extends StandardLayer {
+export class AudioLayer extends StandardLayer implements MediaLayer {
   private audioLoader: AudioLoader;
   public audioBuffer: AudioBuffer | null = null;
   public source: AudioSource | null = null;

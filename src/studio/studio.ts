@@ -1,6 +1,6 @@
 import {createPlayer} from '../player/index';
 import {createTimeline} from '../timeline/index';
-import {createLayerService} from '../layer/index';
+import {createLayerService, LayerService} from '../layer/index';
 import {AudioLayer} from '@/audio/layer-audio';
 import {LayerLoader} from './layer-loader';
 import {createVideoMuxer} from '@/video/muxer/index';
@@ -8,13 +8,13 @@ import {StudioControls} from './controls';
 import {PinchHandler} from './pinch-handler';
 import {DragItemHandler} from './drag-handler';
 import {MediaEditor} from './media-edit';
-import {createTranscriptionService} from "../transcription/index";
+import {createTranscriptionService, TranscriptionService} from "../transcription/index";
 import {uploadSupportedType} from './utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
-import type { StandardLayer, LayerUpdateKind } from '../timeline/types';
-import type { VideoPlayer } from '../player/types';
+import type {StandardLayer, LayerUpdateKind} from '../timeline/types';
+import type {VideoPlayer} from '../player/types';
 
 /**
  * Update data structure for layer transformations
@@ -40,11 +40,17 @@ interface LayerReorderData {
 interface Timeline {
   playerTime: number;
   selectedLayer: StandardLayer | null;
+
   addTimeUpdateListener(listener: (newTime: number, oldTime: number) => void): void;
+
   addLayerUpdateListener(listener: (action: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, reorderData?: LayerReorderData) => void): void;
+
   setSelectedLayer(layer: StandardLayer): void;
+
   addLayers(layers: StandardLayer[]): void;
+
   render(): void;
+
   resize(): void;
 }
 
@@ -53,26 +59,6 @@ interface Timeline {
  */
 interface VideoMuxer {
   init(): void;
-}
-
-/**
- * Transcription Manager interface
- */
-interface TranscriptionManager {
-  transcriptionView?: {
-    highlightChunksByTime(time: number): void;
-  };
-  loadModel(): void;
-  startTranscription(audioBuffer: AudioBuffer): void;
-  addRemoveIntervalListener(listener: (startTime: number, endTime: number) => void): void;
-  addSeekListener(listener: (timestamp: number) => void): void;
-}
-
-/**
- * Layer Operations Service interface
- */
-interface LayerOperations {
-  clone(layer: StandardLayer): StandardLayer;
 }
 
 export class VideoStudio {
@@ -85,9 +71,9 @@ export class VideoStudio {
   layerLoader: LayerLoader;
   videoExporter: VideoMuxer;
   controls: StudioControls;
-  transcriptionManager: TranscriptionManager;
+  transcriptionManager: TranscriptionService;
   mediaEditor: MediaEditor;
-  layerOperations: LayerOperations;
+  layerOperations: LayerService;
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
@@ -323,7 +309,7 @@ export class VideoStudio {
     const layers: StandardLayer[] = []
     const filePicker = document.getElementById('filepicker') as HTMLInputElement;
     if (!filePicker) return;
-    
+
     filePicker.addEventListener('input', (e: Event) => {
       const target = e.target as HTMLInputElement;
       if (!target.files || !uploadSupportedType(target.files)) {
@@ -370,7 +356,12 @@ export class VideoStudio {
     this.loadingPopup.updateProgress('json-load', 100);
   }
 
-  #onLayerLoadUpdate(layer: StandardLayer, progress: number, ctx: CanvasRenderingContext2D | null, audioBuffer?: AudioBuffer): void {
+  #onLayerLoadUpdate(
+      layer: StandardLayer,
+      progress: number,
+      ctx: CanvasRenderingContext2D | null,
+      audioBuffer?: AudioBuffer
+  ): void {
     this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
     if (progress === 100) {
       this.setSelectedLayer(layer);

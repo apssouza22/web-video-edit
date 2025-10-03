@@ -1,7 +1,7 @@
-import { createFrameService } from '../frame/index';
-import { FrameService } from '../frame/frames';
-import { Frame } from '../frame/frame';
-import { Canvas2DRender } from '../common/render-2d';
+import { createFrameService } from '@/frame';
+import { FrameService } from '@/frame';
+import { Frame } from '@/frame';
+import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
 import { SpeedController } from './speed-controller';
 import { 
   LayerFile,
@@ -53,16 +53,16 @@ export class StandardLayer implements LayerInterface {
 
     this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
     this.speedController = new SpeedController(this);
-    addElementToBackground(this.renderer.canvas);
+    addElementToBackground(this.renderer.canvas as HTMLElement);
     this.updateName(this.name);
   }
 
   // Getters for backward compatibility
-  get canvas(): HTMLCanvasElement {
+  get canvas(): HTMLCanvasElement | OffscreenCanvas {
     return this.renderer.canvas;
   }
 
-  get ctx(): CanvasRenderingContext2D {
+  get ctx(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
     return this.renderer.context;
   }
 
@@ -146,7 +146,7 @@ export class StandardLayer implements LayerInterface {
     this.lastRenderedTime = -1;
   }
 
-  init(canvasWidth: number = 500, canvasHeight: number | null = null, audioContext: AudioContext | null = null): void {
+  init(canvasWidth: number = 500, canvasHeight: number = 500, audioContext?: AudioContext): void {
     this.renderer.setSize(canvasWidth, canvasHeight);
   }
 
@@ -223,7 +223,10 @@ export class StandardLayer implements LayerInterface {
     return this.framesCollection.getFrame(ref_time, this.start_time);
   }
 
-  drawScaled(ctxFrom: CanvasRenderingContext2D, ctxOutTo: CanvasRenderingContext2D, video: boolean = false): void {
+  drawScaled(
+      ctxFrom: HTMLVideoElement | ESRenderingContext2D,
+      ctxOutTo: CanvasRenderingContext2D, video: boolean = false
+  ): void {
     Canvas2DRender.drawScaled(ctxFrom, ctxOutTo, video);
   }
 

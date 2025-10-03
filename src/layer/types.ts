@@ -1,5 +1,6 @@
 import { Frame } from '@/frame';
 import { FrameService } from '@/frame';
+import { ESRenderingContext2D} from "@/common/render-2d";
 
 /**
  * Types for file inputs used in layer creation
@@ -16,30 +17,13 @@ export interface LayerFile {
 export type LayerType = 'text' | 'video' | 'audio' | 'image';
 
 /**
- * Base layer properties shared by all layers
- */
-export interface BaseLayerProperties {
-  file?: LayerFile;
-  name: string;
-  id: string;
-  description: string | null;
-  uri?: string;
-  ready: boolean;
-  totalTimeInMilSeconds: number;
-  start_time: number;
-  width: number;
-  height: number;
-  lastRenderedTime: number;
-}
-
-/**
  * Layer load update listener function signature
  */
 export type LayerLoadUpdateListener = (
   layer: any,
   progress: number,
-  ctx: CanvasRenderingContext2D | null,
-  audioBuffer?: AudioBuffer | null
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null,
+  audioBuffer?: AudioBuffer | undefined
 ) => void;
 
 /**
@@ -85,13 +69,6 @@ export interface TextLayerProperties {
 }
 
 /**
- * Video layer specific properties
- */
-export interface VideoLayerProperties {
-  useHtmlDemux: boolean;
-}
-
-/**
  * Speed controller interface
  */
 export interface SpeedControllerInterface {
@@ -103,8 +80,8 @@ export interface SpeedControllerInterface {
  * Canvas2D Render interface (matches the JavaScript implementation)
  */
 export interface Canvas2DRenderInterface {
-  readonly canvas: HTMLCanvasElement;
-  readonly context: CanvasRenderingContext2D;
+  readonly canvas: HTMLCanvasElement | OffscreenCanvas;
+  readonly context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
   readonly width: number;
   readonly height: number;
   readonly clientWidth: number;
@@ -124,7 +101,7 @@ export interface Canvas2DRenderInterface {
     dHeight?: number | null
   ): void;
   putImageData(imageData: ImageData, dx: number, dy: number): void;
-  getImageData(sx?: number, sy?: number, sw?: number | null, sh?: number | null): ImageData;
+  getImageData(sx?: number, sy?: number, sw?: number | null, sh?: number | null): ImageData | null;
   measureText(text: string): TextMetrics;
   fillText(text: string, x: number, y: number, maxWidth?: number | null): void;
   save(): void;
@@ -139,23 +116,6 @@ export interface Canvas2DRenderInterface {
   shadowColor: string | null;
   shadowBlur: number | null;
   textAlign: CanvasTextAlign;
-}
-
-/**
- * Audio layer interface for dependency injection
- */
-export interface AudioLayerInterface {
-  file: LayerFile;
-  name: string;
-  id: string;
-  ready: boolean;
-  audioBuffer: AudioBuffer | null;
-  totalTimeInMilSeconds: number;
-  start_time: number;
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
-  framesCollection: FrameService;
-  playerAudioContext: AudioContext | null;
 }
 
 /**
@@ -178,11 +138,6 @@ export interface VideoDemuxerInterface {
 }
 
 /**
- * Layer factory function type
- */
-export type LayerFactory = (layerType: LayerType, file: LayerFile, name: string) => any | null;
-
-/**
  * Layer service interface
  */
 export interface LayerServiceInterface {
@@ -192,10 +147,22 @@ export interface LayerServiceInterface {
 /**
  * Generic layer interface that all layers should implement
  */
-export interface LayerInterface extends BaseLayerProperties {
+export interface LayerInterface {
   framesCollection: FrameService;
   renderer: Canvas2DRenderInterface;
   loadUpdateListener: LayerLoadUpdateListener;
+  audioBuffer : AudioBuffer | null;
+  file?: LayerFile;
+  name: string;
+  id: string;
+  description: string | null;
+  uri?: string;
+  ready: boolean;
+  totalTimeInMilSeconds: number;
+  start_time: number;
+  width: number;
+  height: number;
+  lastRenderedTime: number;
 
   // Methods that all layers should implement
   addLoadUpdateListener(listener: LayerLoadUpdateListener): void;
@@ -208,7 +175,7 @@ export interface LayerInterface extends BaseLayerProperties {
   resize(width: number, height: number): void;
   update(change: LayerChange, referenceTime: number): void;
   getFrame(ref_time: number): Frame | null;
-  drawScaled(ctxFrom: CanvasRenderingContext2D, ctxOutTo: CanvasRenderingContext2D, video?: boolean): void;
+  drawScaled(ctxFrom: HTMLVideoElement | ESRenderingContext2D, ctxOutTo: CanvasRenderingContext2D, video?: boolean): void;
   isLayerVisible(time: number): boolean;
   adjustTotalTime(diff: number): void;
 

@@ -1,6 +1,6 @@
-import { FlexibleLayer } from './layer-common';
-import { LayerFile, LayerCoordinates } from './types';
-import { Frame } from '../frame/frame';
+import {FlexibleLayer} from './layer-common';
+import {LayerCoordinates, LayerFile} from './types';
+import {Frame} from '@/frame';
 
 export class ImageLayer extends FlexibleLayer {
   private img: HTMLImageElement;
@@ -19,7 +19,7 @@ export class ImageLayer extends FlexibleLayer {
           this.width = this.img.naturalWidth;
           this.height = this.img.naturalHeight;
           this.ready = true;
-          this.loadUpdateListener(this, 100, this.ctx, null);
+          this.loadUpdateListener(this, 100, this.ctx);
         }).bind(this));
       }
     }).bind(this), false);

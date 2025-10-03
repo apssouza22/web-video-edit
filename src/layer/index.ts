@@ -1,4 +1,4 @@
-import { VideoLayer } from '../video/layer-video';
+import { VideoLayer } from '@/layer/layer-video';
 import { ImageLayer } from './layer-image';
 import { TextLayer } from './layer-text';
 import { LayerService } from './operations';
@@ -6,7 +6,7 @@ import { LayerType, LayerFile, LayerLoadUpdateListener, LayerInterface } from '.
 
 // Re-export base classes and utility function
 export { StandardLayer, FlexibleLayer, addElementToBackground } from './layer-common';
-export { VideoLayer } from '../video/layer-video';
+export { VideoLayer } from './layer-video';
 export { ImageLayer } from './layer-image';
 export { TextLayer } from './layer-text';
 export { LayerService } from './operations';

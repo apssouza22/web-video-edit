@@ -1,5 +1,5 @@
 import { TextLayer } from "./layer-text";
-import { VideoLayer } from "../video/layer-video";
+import { VideoLayer } from "./layer-video";
 import { ImageLayer } from "./layer-image";
 import { AudioLayer } from "../audio/layer-audio";
 import { LayerServiceInterface, LayerLoadUpdateListener } from "./types";
