@@ -1,7 +1,7 @@
-import { exportToJson } from '../studio/index';
+import { exportToJson } from '../../studio';
 import { MediaRecorderExporter } from './media-recorder-exporter.js';
 import { WebCodecExporter } from './web-codec-exporter.js';
-import type { VideoStudio } from '../studio/index';
+import type { VideoStudio } from '../../studio';
 
 export class VideoExportService {
     private readonly studio: VideoStudio;

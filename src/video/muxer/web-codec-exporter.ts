@@ -1,5 +1,5 @@
 import { AudioLayer } from '@/audio/layer-audio';
-import type { VideoStudio } from '../studio/index';
+import type { VideoStudio } from '../../studio';
 
 
 import {

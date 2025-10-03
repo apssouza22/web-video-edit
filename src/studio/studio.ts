@@ -3,7 +3,7 @@ import {createTimeline} from '../timeline/index';
 import {createLayerService} from '../layer/index';
 import {AudioLayer} from '@/audio/layer-audio';
 import {LayerLoader} from './layer-loader';
-import {createVideoMuxer} from '../muxer/index';
+import {createVideoMuxer} from '@/video/muxer/index';
 import {StudioControls} from './controls';
 import {PinchHandler} from './pinch-handler';
 import {DragItemHandler} from './drag-handler';

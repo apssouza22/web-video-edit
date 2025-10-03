@@ -1,8 +1,8 @@
-import { createDemuxer } from "../demux/index.js";
-import { createFrameService } from '../frame/index';
-import { StandardLayer } from './layer-common';
+import { createDemuxer } from "@/video/demux";
+import { createFrameService } from '../frame';
+import { StandardLayer } from '../layer/layer-common';
 import { Frame } from "../frame/frame";
-import { LayerFile, VideoLayerProperties, VideoDemuxerInterface, DemuxerMetadata } from './types';
+import { LayerFile, VideoLayerProperties, VideoDemuxerInterface, DemuxerMetadata } from '../layer/types';
 
 export class VideoLayer extends StandardLayer implements VideoLayerProperties {
   public useHtmlDemux: boolean;
@@ -61,17 +61,6 @@ export class VideoLayer extends StandardLayer implements VideoLayerProperties {
     }).bind(this), false);
 
     this.reader.readAsDataURL(file as File);
-  }
-
-  /**
-   * Removes a video interval by removing frames from the layer
-   */
-  removeInterval(startTime: number, endTime: number): boolean {
-    const success = this.framesCollection.removeInterval(startTime, endTime);
-    if (success) {
-      this.totalTimeInMilSeconds = this.framesCollection.getTotalTimeInMilSec();
-    }
-    return success;
   }
 
   #handleVideoRatio(): void {
