@@ -18,7 +18,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "mediabunny": "^1.0.2",
+    "mp4box": "^0.5.2"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

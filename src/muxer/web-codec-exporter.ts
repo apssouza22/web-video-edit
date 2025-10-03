@@ -11,7 +11,7 @@ import {
   QUALITY_HIGH,
   getFirstEncodableVideoCodec,
   getFirstEncodableAudioCodec,
-} from "https://cdn.jsdelivr.net/npm/mediabunny@1.0.2/+esm";
+} from "mediabunny";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
