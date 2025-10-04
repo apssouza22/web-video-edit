@@ -9,6 +9,7 @@ import type {
   CanvasElement,
   AudioContextType
 } from './types.js';
+import {StudioState} from "@/common/studio-state";
 
 export class VideoPlayer {
   #selectedLayer: AbstractMedia | null = null;
@@ -33,8 +34,10 @@ export class VideoPlayer {
   public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {
     // Default empty listener
   };
+  private studioState: StudioState;
 
-  constructor() {
+  constructor(studioState: StudioState) {
+    this.studioState = studioState;
     const playerHolder = document.getElementById("video-canvas");
     this.playerHolder = playerHolder;
     
@@ -136,6 +139,7 @@ export class VideoPlayer {
 
   play(): void {
     this.playing = true;
+    this.studioState.setPlaying(true);
     if (this.lastPausedTime !== this.time) {
       this.refreshAudio();
     }
@@ -144,6 +148,7 @@ export class VideoPlayer {
 
   pause(): void {
     this.playing = false;
+    this.studioState.setPlaying(false);
     this.audioContext.suspend();
     this.lastPausedTime = this.time;
   }

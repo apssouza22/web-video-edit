@@ -1,11 +1,12 @@
 import { VideoPlayer } from './player.js';
 import type { CreatePlayerFunction } from './types.js';
+import {StudioState} from "@/common/studio-state";
 
 /**
  * Creates a VideoPlayer instance.
  */
-export const createPlayer: CreatePlayerFunction = (): VideoPlayer => {
-  return new VideoPlayer();
+export function createPlayer(studioState: StudioState): VideoPlayer {
+  return new VideoPlayer(studioState);
 }
 
 // Export the VideoPlayer class for direct usage

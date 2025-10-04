@@ -17,6 +17,7 @@ import type {StandardLayer, LayerUpdateKind} from '../timeline/types';
 import type {VideoPlayer} from '../player/types';
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {Timeline} from "@/timeline/timeline";
+import {StudioState} from "@/common/studio-state";
 
 /**
  * Update data structure for layer transformations
@@ -60,13 +61,15 @@ export class VideoStudio {
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
+  studioState: StudioState;
 
   constructor() {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas')!;
     this.aspectRatioSelector = new AspectRatioSelector();
     this.layers = [];
-    this.player = createPlayer()
+    this.studioState = StudioState.getInstance();
+    this.player = createPlayer(this.studioState);
     if (this.mainSection) {
       this.player.mount(this.mainSection);
     }
@@ -77,7 +80,7 @@ export class VideoStudio {
     this.videoExporter = createVideoMuxer(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
-    this.mediaEditor = new MediaEditor(this, this.mediaService);
+    this.mediaEditor = new MediaEditor(this, this.mediaService, this.studioState);
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
 
@@ -103,12 +106,14 @@ export class VideoStudio {
 
   #setUpComponentListeners(): void {
     this.player.addTimeUpdateListener((newTime: number, oldTime: number) => {
+      this.studioState.setPlayingTime(newTime);
       this.timeline.playerTime = newTime;
       this.transcriptionManager.highlightChunksByTime(newTime / 1000);
     });
 
     this.timeline.addTimeUpdateListener((newTime: number, oldTime: number) => {
       if (!this.player.playing) {
+        this.studioState.setPlayingTime(newTime);
         this.player.setTime(newTime);
       }
     });
@@ -139,8 +144,10 @@ export class VideoStudio {
     });
 
     this.transcriptionManager.addSeekListener((timestamp: number) => {
+      const newTime = timestamp * 1000;
+      this.studioState.setPlayingTime(newTime);
       this.player.pause()
-      this.player.setTime(timestamp * 1000);
+      this.player.setTime(newTime);
       this.player.play();
     });
 
@@ -251,7 +258,6 @@ export class VideoStudio {
     const clonedLayer = this.mediaService.clone(layer);
     this.addLayer(clonedLayer);
     this.setSelectedLayer(clonedLayer);
-    console.log(`Successfully cloned layer: ${layer.name}`);
     return clonedLayer;
   }
 
@@ -261,6 +267,7 @@ export class VideoStudio {
       layer.init(this.player.width, this.player.height, this.player.audioContext);
     }
     this.layers.push(layer);
+    this.studioState.addMedia(layer);
     return layer;
   }
 
@@ -372,6 +379,7 @@ export class VideoStudio {
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
     this.speedControlManager.setLayer(layer);
+    this.studioState.setSelectedMedia(layer);
   }
 
   /**

@@ -1,11 +1,14 @@
-import {AbstractMedia, isMediaAudio, isMediaVideo, MediaService} from "@/media";
+import {isMediaAudio, isMediaVideo, MediaService} from "@/media";
 import {VideoStudio} from "@/studio/studio";
+import {StudioState} from "@/common/studio-state";
 
 export class MediaEditor {
+  private studioState: StudioState;
   private studio: VideoStudio;
   private mediaService: MediaService;
 
-  constructor(studio: VideoStudio, mediaService: MediaService) {
+  constructor(studio: VideoStudio, mediaService: MediaService, studioState: StudioState) {
+    this.studioState = studioState;
     this.studio = studio;
     this.mediaService = mediaService;
   }
@@ -16,46 +19,16 @@ export class MediaEditor {
       return;
     }
     console.log(`Removing interval from ${startTime} to ${endTime} seconds`);
-    this.mediaService.removeAudioInterval(startTime, endTime, this.#getAudioLayers());
-    this.mediaService.removeVideoInterval(startTime, endTime, this.#getVideoLayers());
+    this.mediaService.removeAudioInterval(startTime, endTime, this.studioState.getMediaAudio());
+    this.mediaService.removeVideoInterval(startTime, endTime, this.studioState.getMediaVideo());
   }
 
-
-  /**
-   * Finds VideoLayers in the studio layers
-   */
-  #getVideoLayers(): AbstractMedia[] {
-    const videoLayers: AbstractMedia[] = [];
-    const layers = this.studio.getLayers();
-
-    for (const layer of layers) {
-      if (isMediaVideo(layer) && layer.framesCollection) {
-        videoLayers.push(layer);
-      }
-    }
-    return videoLayers;
-  }
-
-  /**
-   * Finds AudioLayers in the studio layers
-   */
-  #getAudioLayers(): AbstractMedia[] {
-    const audioLayers: AbstractMedia[] = [];
-    const layers = this.studio.getLayers();
-
-    for (const layer of layers) {
-      if (isMediaAudio(layer) && layer.audioBuffer) {
-        audioLayers.push(layer);
-      }
-    }
-    return audioLayers;
-  }
 
   split(): void {
-    if (!this.studio.getSelectedLayer()) {
+    if (!this.studioState.getSelectedMedia()) {
       return;
     }
-    const layer = this.studio.getSelectedLayer()!;
+    const layer = this.studioState.getSelectedMedia()!;
 
     // Check if layer is VideoLayer or AudioLayer
     if (!(isMediaVideo(layer)) && !(isMediaAudio(layer))) {
@@ -64,14 +37,14 @@ export class MediaEditor {
     if (!layer.ready) {
       return;
     }
-    if (layer.start_time > this.studio.player.time) {
+    if (layer.start_time > this.studioState.getPlayingTime()) {
       return;
     }
-    if (layer.start_time + layer.totalTimeInMilSeconds < this.studio.player.time) {
+    if (layer.start_time + layer.totalTimeInMilSeconds < this.studioState.getPlayingTime()) {
       return;
     }
 
-    const newMedia = this.mediaService.splitMedia(layer, this.studio.player.time);
+    const newMedia = this.mediaService.splitMedia(layer, this.studioState.getPlayingTime());
     this.studio.addLayer(newMedia, true);
   }
 
