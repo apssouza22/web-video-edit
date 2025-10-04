@@ -2,10 +2,9 @@ import {AbstractMedia} from './media-common';
 import {AudioCutter} from '@/audio/audio-cutter';
 import {AudioLoader} from '@/audio/audio-loader';
 import {AudioSource} from '@/audio/audio-source';
-import {MediaLayer} from "@/studio/media-edit";
 import type {LayerFile} from "./types";
 
-export class AudioLayer extends AbstractMedia implements MediaLayer {
+export class AudioLayer extends AbstractMedia {
   private audioLoader: AudioLoader;
   public audioBuffer: AudioBuffer | null = null;
   public source: AudioSource | null = null;

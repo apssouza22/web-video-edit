@@ -1,11 +1,10 @@
-import {createFrameService} from '../frame';
+import {createFrameService} from '@/frame';
 import {Frame} from "@/frame";
 import {AbstractMedia} from './media-common';
-import {VideoMetadata, LayerFile} from './types';
-import {MediaLayer} from "@/studio/media-edit";
+import {LayerFile, VideoMetadata} from './types';
 import {MediaVideoLoader} from "@/media/media-video-loader";
 
-export class VideoLayer extends AbstractMedia implements MediaLayer {
+export class VideoLayer extends AbstractMedia {
 
   constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
@@ -44,6 +43,7 @@ export class VideoLayer extends AbstractMedia implements MediaLayer {
     const success = this.framesCollection.removeInterval(startTime, endTime);
     if (success) {
       this.totalTimeInMilSeconds = this.framesCollection.getTotalTimeInMilSec();
+      console.log("Video clipping successful");
     }
     return success;
   }

@@ -10,9 +10,11 @@ import {
   LayerDumpData,
 } from './types';
 
+export type ESAudioContext = AudioContext | OfflineAudioContext;
+
 export abstract class AbstractMedia {
   public audioBuffer: AudioBuffer | null = null;
-  public playerAudioContext: AudioContext | OfflineAudioContext | null = null;
+  public playerAudioContext: ESAudioContext | null = null;
   public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
 
   public file?: LayerFile;
@@ -242,6 +244,11 @@ export abstract class AbstractMedia {
 
   getSpeed(): number {
     return this.speedController.getSpeed();
+  }
+
+  removeInterval(startTime: number, endTime: number) {
+    // This is a no-op for non-video layers
+    return false;
   }
 }
 

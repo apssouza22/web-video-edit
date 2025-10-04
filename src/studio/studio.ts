@@ -56,7 +56,7 @@ export class VideoStudio {
   controls: StudioControls;
   transcriptionManager: TranscriptionService;
   mediaEditor: MediaEditor;
-  layerOperations: MediaService;
+  mediaService: MediaService;
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
@@ -72,12 +72,12 @@ export class VideoStudio {
     }
 
     this.timeline = createTimeline(this);
-    this.layerOperations = createMediaService(this.#onLayerLoadUpdate.bind(this));
-    this.layerLoader = new LayerLoader(this, this.layerOperations);
+    this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this));
+    this.layerLoader = new LayerLoader(this, this.mediaService);
     this.videoExporter = createVideoMuxer(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
-    this.mediaEditor = new MediaEditor(this);
+    this.mediaEditor = new MediaEditor(this, this.mediaService);
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
 
@@ -248,16 +248,18 @@ export class VideoStudio {
    * Clone a layer by creating a copy with slightly modified properties
    */
   cloneLayer(layer: AbstractMedia): AbstractMedia {
-    const clonedLayer = this.layerOperations.clone(layer);
+    const clonedLayer = this.mediaService.clone(layer);
     this.addLayer(clonedLayer);
     this.setSelectedLayer(clonedLayer);
     console.log(`Successfully cloned layer: ${layer.name}`);
     return clonedLayer;
   }
 
-  addLayer(layer: AbstractMedia): AbstractMedia {
-    layer.start_time = this.player.time;
-    layer.init(this.player.width, this.player.height, this.player.audioContext);
+  addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
+    if (!skipInit) {
+      layer.start_time = this.player.time;
+      layer.init(this.player.width, this.player.height, this.player.audioContext);
+    }
     this.layers.push(layer);
     return layer;
   }
