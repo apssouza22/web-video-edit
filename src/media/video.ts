@@ -1,68 +1,40 @@
-import {createDemuxer} from "@/video/demux";
 import {createFrameService} from '../frame';
 import {Frame} from "@/frame";
 import {AbstractMedia} from './media-common';
-import {DemuxerMetadata, LayerFile} from './types';
+import {VideoMetadata, LayerFile} from './types';
 import {MediaLayer} from "@/studio/media-edit";
-import {VideoDemuxService} from "@/video/demux/video-demux";
+import {MediaVideoLoader} from "@/media/media-video-loader";
 
 export class VideoLayer extends AbstractMedia implements MediaLayer {
-  public useHtmlDemux: boolean;
-  private videoDemuxer: VideoDemuxService;
-  private reader?: FileReader;
 
-  constructor(file: LayerFile, skipLoading: boolean = false, useHtmlDemux: boolean = false) {
+  constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
-    this.useHtmlDemux = useHtmlDemux;
     this.framesCollection = createFrameService(0, 0, false);
-    this.videoDemuxer = createDemuxer(useHtmlDemux);
-    this.#setupDemuxerCallbacks();
 
     // Empty VideoLayers (split() requires this)
     if (skipLoading) {
       return;
     }
 
-    this.#readFile(file);
+    MediaVideoLoader.loadVideo(file, this.onVideoLoadUpdateCallback.bind(this));
   }
 
-  #setupDemuxerCallbacks(): void {
-    this.videoDemuxer.setOnProgressCallback((progress: number) => {
-      this.loadUpdateListener(this, progress, this.ctx);
-    });
-
-    this.videoDemuxer.setOnCompleteCallback((frames: any[]) => {
-      frames.forEach((frame, index) => {
-        this.framesCollection.update(index, new Frame(frame));
-      });
-      this.loadUpdateListener(this, 100, this.ctx);
-      this.ready = true;
-    });
-
-    this.videoDemuxer.setOnMetadataCallback((metadata: DemuxerMetadata) => {
-      this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
-      this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
-      this.width = metadata.width;
-      this.height = metadata.height;
-      this.#handleVideoRatio();
-    });
-  }
-
-  #readFile(file: LayerFile): void {
-    if (file.uri !== null && file.uri !== undefined) {
-      this.videoDemuxer.initDemux(file, this.renderer);
+  private onVideoLoadUpdateCallback(progress: number, metadata: VideoMetadata | null) {
+    this.loadUpdateListener(this, progress, this.ctx);
+    if (progress < 100 || !metadata) {
       return;
     }
+    this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
+    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
+    this.width = metadata.width;
+    this.height = metadata.height;
+    this.#handleVideoRatio();
 
-    this.reader = new FileReader();
-    this.reader.addEventListener("load", ((): void => {
-      if (this.reader && typeof this.reader.result === 'string') {
-        file.uri = this.reader.result;
-        this.videoDemuxer.initDemux(file, this.renderer);
-      }
-    }).bind(this), false);
-
-    this.reader.readAsDataURL(file as File);
+    metadata.frames.forEach((frame, index) => {
+      this.framesCollection.update(index, new Frame(frame));
+    });
+    this.ready = true;
+    this.loadUpdateListener(this, 100, this.ctx);
   }
 
   /**
@@ -79,7 +51,7 @@ export class VideoLayer extends AbstractMedia implements MediaLayer {
   #handleVideoRatio(): void {
     const playerRatio = this.canvas.width / this.canvas.height;
     const videoRatio = this.width / this.height;
-    
+
     if (videoRatio > playerRatio) {
       const scale = videoRatio / playerRatio;
       this.height *= scale;
@@ -117,12 +89,12 @@ export class VideoLayer extends AbstractMedia implements MediaLayer {
     this.renderer.clearRect();
     if (frame.frame instanceof VideoFrame) {
       this.renderer.drawImage(
-        frame.frame, 
-        0, 0, 
-        this.width, this.height, 
-        x, y, 
-        scale * this.width, 
-        scale * this.height
+          frame.frame,
+          0, 0,
+          this.width, this.height,
+          x, y,
+          scale * this.width,
+          scale * this.height
       );
     } else {
       // Assume it's ImageData

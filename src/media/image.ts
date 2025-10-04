@@ -8,7 +8,6 @@ export class ImageLayer extends FlexibleLayer {
 
   constructor(file: LayerFile) {
     super(file);
-    // assume images are 10 seconds
     this.img = new Image();
     this.reader = new FileReader();
 
@@ -57,7 +56,7 @@ export class ImageLayer extends FlexibleLayer {
     }
   }
 
-  getLayerCoordinates(currentTime: number): LayerCoordinates {
+  private getLayerCoordinates(currentTime: number): LayerCoordinates {
     const f = this.getFrame(currentTime);
     if (!f) {
       return {

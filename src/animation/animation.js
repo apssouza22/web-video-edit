@@ -217,7 +217,7 @@ export class AnimationHandler {
     /**
      * Render anchor points in the timeline for animated layers
      *
-     * @param {FlexibleLayer} layer - The layer whose anchors to render
+     * @param {AbstractMedia} layer - The layer whose anchors to render
      * @param {number} y_coord - The y coordinate to render at
      * @param {number} baseWidth - The width of the layer track
      * @param {number} scale - The time to pixel scale

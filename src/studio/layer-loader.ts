@@ -1,7 +1,9 @@
-import {AbstractMedia, ImageLayer, VideoLayer, TextLayer, AudioLayer} from '@/media';
+import {AbstractMedia, ImageLayer, VideoLayer, TextLayer, AudioLayer, MediaService} from '@/media';
 
 import {ext_map} from './index';
 import {Frame} from '@/frame';
+import {ESRenderingContext2D} from "@/common/render-2d";
+import {LayerLoadUpdateListener} from "@/media/types";
 
 /**
  * Interface for VideoStudio class used by LayerLoader
@@ -29,13 +31,15 @@ interface LayerJsonData {
  */
 export class LayerLoader {
   private studio: VideoStudio;
+  private mediaService: MediaService;
 
   /**
    * Constructor for LayerLoader
    * @param studio - The studio instance that will own the layers
    */
-  constructor(studio: VideoStudio) {
+  constructor(studio: VideoStudio, mediaService: MediaService) {
     this.studio = studio;
+    this.mediaService = mediaService;
   }
 
 
@@ -43,21 +47,16 @@ export class LayerLoader {
    * Add a layer from a file
    *
    * @param file - The file to add as a layer
-   * @param useHtmlDemux - Whether to use HTML demuxing for video
+   * @param onMediaLoadUpdate - Whether to use HTML demuxing for video
    * @returns The added layers
    */
-  addLayerFromFile(file: File, useHtmlDemux: boolean = false): AbstractMedia[] {
+  addLayerFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
     const layers: AbstractMedia[] = [];
-    if (file.type.indexOf('video') >= 0) {
-      layers.push(this.studio.addLayer(new AudioLayer(file)));
-      layers.push(this.studio.addLayer(new VideoLayer(file, false, useHtmlDemux)));
-    }
-    if (file.type.indexOf('image') >= 0) {
-      layers.push(this.studio.addLayer(new ImageLayer(file)));
-    }
-    if (file.type.indexOf('audio') >= 0) {
-      layers.push(this.studio.addLayer(new AudioLayer(file)));
-    }
+    this.mediaService
+    .createFromFile(file, onMediaLoadUpdate)
+    .forEach(layer => {
+      layers.push(this.studio.addLayer(layer));
+    });
     return layers;
   }
 
@@ -87,7 +86,7 @@ export class LayerLoader {
     const file = new File([data], name, metadata) as File & { uri?: string };
     file.uri = uri;
 
-    return this.addLayerFromFile(file);
+    return this.addLayerFromFile(file, (l, progress, ctx, audioBuffer) => {});
   }
 
   /**

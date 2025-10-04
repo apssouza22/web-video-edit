@@ -72,12 +72,12 @@ export class VideoStudio {
     }
 
     this.timeline = createTimeline(this);
-    this.layerLoader = new LayerLoader(this);
+    this.layerOperations = createMediaService(this.#onLayerLoadUpdate.bind(this));
+    this.layerLoader = new LayerLoader(this, this.layerOperations);
     this.videoExporter = createVideoMuxer(this);
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
     this.mediaEditor = new MediaEditor(this);
-    this.layerOperations = createMediaService(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
 
@@ -317,10 +317,10 @@ export class VideoStudio {
     filePicker.click();
   }
 
-  addLayerFromFile(file: File, useHtmlDemux: boolean = false): AbstractMedia[] {
-    const layers = this.layerLoader.addLayerFromFile(file, useHtmlDemux);
+  private addLayerFromFile(file: File, useHtmlDemux: boolean = false): AbstractMedia[] {
+    const layers = this.layerLoader.addLayerFromFile(file, this.#onLayerLoadUpdate.bind(this));
+
     layers.forEach(layer => {
-      layer.addLoadUpdateListener(this.#onLayerLoadUpdate.bind(this))
       this.loadingPopup.startLoading(layer.id.toString(), file.name);
     })
     return layers;

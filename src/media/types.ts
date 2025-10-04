@@ -48,9 +48,10 @@ export interface LayerDumpData {
   frames?: Float32Array[];
 }
 
-export interface DemuxerMetadata {
+export interface VideoMetadata {
   totalTimeInMilSeconds: number;
   width: number;
   height: number;
+  frames: Frame[];
 }
 

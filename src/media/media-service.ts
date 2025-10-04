@@ -3,6 +3,7 @@ import {VideoLayer} from "./video";
 import {ImageLayer} from "./image";
 import {AudioLayer} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
+import {AbstractMedia} from "./media-common";
 
 export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener;
@@ -11,8 +12,30 @@ export class MediaService {
     this.onLayerLoadUpdate = onLayerLoadUploadListener;
   }
 
+  createFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {
+    const layers: AbstractMedia[] = [];
+    if (file.type.indexOf('video') >= 0) {
+      layers.push(new AudioLayer(file));
+      layers.push(new VideoLayer(file, false));
+    }
+    if (file.type.indexOf('image') >= 0) {
+      layers.push(new ImageLayer(file));
+    }
+    if (file.type.indexOf('audio') >= 0) {
+      layers.push(new AudioLayer(file));
+    }
+    layers.forEach(layer => {
+      layer.addLoadUpdateListener(onLoadUpdateListener);
+    });
+    return layers;
+  }
+
+  createText(text: string, onLoadUpdateListener: LayerLoadUpdateListener): TextLayer {
+    return new TextLayer(text)
+  }
+
   clone(layer: any): any | null {
-    const newLayer = this.#create(layer);
+    const newLayer = this.createClone(layer);
     if (!newLayer) {
       console.error('Cannot clone layer of type:', layer.constructor.name);
       return null;
@@ -38,7 +61,7 @@ export class MediaService {
     return newLayer;
   }
 
-  #create(layer: any): any | null {
+  private createClone(layer: any): any | null {
     if (!layer.ready) {
       console.error('Cannot clone VideoLayer that is not ready');
       return null;
@@ -51,7 +74,7 @@ export class MediaService {
     }
     
     if (layer instanceof VideoLayer) {
-      const videoLayer = new VideoLayer(layer.file!, true, layer.useHtmlDemux);
+      const videoLayer = new VideoLayer(layer.file!, true);
       videoLayer.name = cloneName;
       return videoLayer;
     }

@@ -61,7 +61,7 @@ export abstract class AbstractMedia {
     return this.renderer.canvas;
   }
 
-  get ctx(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
+  get ctx(): ESRenderingContext2D{
     return this.renderer.context;
   }
 
