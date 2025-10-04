@@ -1,20 +1,14 @@
-import { VideoLayer } from './video';
-import { ImageLayer } from './image';
-import { TextLayer } from './text';
-import { AudioLayer } from './audio';
-import { MediaService } from './media-service';
-import { LayerType, LayerFile, LayerLoadUpdateListener } from './types';
-import { AbstractMedia } from './media-common';
+import {VideoLayer} from './video';
+import {ImageLayer} from './image';
+import {AudioLayer} from './audio';
+import {MediaService} from './media-service';
+import {LayerLoadUpdateListener} from './types';
+import {AbstractMedia} from './media-common';
+import {TextLayer} from "@/media/text";
 
-export { AbstractMedia, FlexibleLayer, addElementToBackground } from './media-common';
-export { VideoLayer } from './video';
-export { ImageLayer } from './image';
-export { TextLayer } from './text';
-export { AudioLayer } from './audio';
-export { MediaService } from './media-service';
-export { SpeedController } from './speed-controller';
-
-
+export {AbstractMedia, FlexibleLayer, addElementToBackground} from './media-common';
+export {MediaService} from './media-service';
+export {SpeedController} from './speed-controller';
 
 /**
  * Creates a LayerService instance with the provided listener.
@@ -23,26 +17,32 @@ export function createMediaService(onLayerLoadUploadListener: LayerLoadUpdateLis
   return new MediaService(onLayerLoadUploadListener);
 }
 
-/**
- * Creates a layer of the specified type
- */
-export  function createLayer(layerType: LayerType, file: LayerFile, name?: string): AbstractMedia {
-  switch (layerType) {
-    case 'text':
-      return new TextLayer(name || file.name);
-    
-    case 'video':
-      return new VideoLayer(file);
-    
-    case 'audio': {
-        return new AudioLayer(file);
-    }
-    
-    case 'image':
-      return new ImageLayer(file);
-    
-    default:
-      throw new Error('Unknown layer type: ' + layerType);
+export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {
+  const layers: AbstractMedia[] = [];
+  if (file.type.indexOf('video') >= 0) {
+    layers.push(new AudioLayer(file));
+    layers.push(new VideoLayer(file, false));
   }
+  if (file.type.indexOf('image') >= 0) {
+    layers.push(new ImageLayer(file));
+  }
+  if (file.type.indexOf('audio') >= 0) {
+    layers.push(new AudioLayer(file));
+  }
+  layers.forEach(layer => {
+    layer.addLoadUpdateListener(onLoadUpdateListener);
+  });
+  return layers;
 }
 
+export function createMediaText(text: string, onLoadUpdateListener: LayerLoadUpdateListener): AbstractMedia {
+  return new TextLayer(text)
+}
+
+export function isMediaAudio(layer: AbstractMedia):boolean {
+  return layer instanceof AudioLayer;
+}
+
+export function isMediaVideo(layer: AbstractMedia):boolean {
+  return layer instanceof VideoLayer;
+}

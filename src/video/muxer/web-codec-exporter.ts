@@ -1,5 +1,4 @@
-import { AudioLayer } from '@/media/audio';
-import type { VideoStudio } from '../../studio';
+import type { VideoStudio } from '@/studio';
 
 
 import {
@@ -12,6 +11,7 @@ import {
   getFirstEncodableVideoCodec,
   getFirstEncodableAudioCodec,
 } from "mediabunny";
+import {AbstractMedia, isMediaAudio} from "@/media";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
@@ -329,10 +329,10 @@ export class WebCodecExporter {
     /**
      * Get audio layers from the studio
      */
-    #getAudioLayers(): AudioLayer[] {
-        const layers: AudioLayer[] = [];
+    #getAudioLayers(): AbstractMedia[] {
+        const layers: AbstractMedia[] = [];
         for (const layer of this.studio.getLayers()) {
-            if (layer instanceof AudioLayer) {
+            if (isMediaAudio(layer)) {
                 layers.push(layer);
             }
         }

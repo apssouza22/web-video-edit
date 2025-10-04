@@ -1,5 +1,5 @@
 import { dpr } from '@/constants';
-import { AudioLayer, AbstractMedia } from '@/media';
+import {AbstractMedia, isMediaAudio} from '@/media';
 import { PlayerLayer } from './player-layer.js';
 import type {
   TimeUpdateListener,
@@ -128,7 +128,7 @@ export class VideoPlayer {
   refreshAudio(): void {
     for (const l of this.layers) {
       const layer = l.layer;
-      if (layer instanceof AudioLayer) {
+      if (isMediaAudio(layer)) {
         layer.connectAudioSource(this.audioContext);
       }
     }

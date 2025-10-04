@@ -1,4 +1,4 @@
-import {AbstractMedia, ImageLayer, VideoLayer, TextLayer, AudioLayer, MediaService} from '@/media';
+import {AbstractMedia, MediaService, createMediaFromFile, createMediaText} from '@/media';
 
 import {ext_map} from './index';
 import {Frame} from '@/frame';
@@ -52,8 +52,7 @@ export class LayerLoader {
    */
   addLayerFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
     const layers: AbstractMedia[] = [];
-    this.mediaService
-    .createFromFile(file, onMediaLoadUpdate)
+    createMediaFromFile(file, onMediaLoadUpdate)
     .forEach(layer => {
       layers.push(this.studio.addLayer(layer));
     });
@@ -142,7 +141,7 @@ export class LayerLoader {
       }
     }
     if (layer_d.type === "TextLayer") {
-      const layer = this.studio.addLayer(new TextLayer(layer_d.name));
+      const layer = this.studio.addLayer(createMediaText(layer_d.name, (l, progress, ctx, audioBuffer) => {}));
       layersCreated.push(layer);
     }
     if (layer_d.type === "ImageLayer") {

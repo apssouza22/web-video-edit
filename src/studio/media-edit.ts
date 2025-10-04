@@ -1,4 +1,5 @@
-import {VideoLayer, AudioLayer} from "@/media";
+import {AbstractMedia, isMediaAudio, isMediaVideo} from "@/media";
+
 
 interface FramesCollection {
   frames: any[];
@@ -126,7 +127,7 @@ export class MediaEditor {
     const layers = this.studio.getLayers();
 
     for (const layer of layers) {
-      if (layer instanceof VideoLayer && layer.framesCollection) {
+      if (isMediaVideo(layer) && layer.framesCollection) {
         videoLayers.push(layer as VideoLayerWithFrames);
       }
     }
@@ -141,7 +142,7 @@ export class MediaEditor {
     const layers = this.studio.getLayers();
 
     for (const layer of layers) {
-      if (layer instanceof AudioLayer && layer.audioBuffer) {
+      if (isMediaAudio(layer) && layer.audioBuffer) {
         audioLayers.push(layer as AudioLayerWithBuffer);
       }
     }
@@ -155,7 +156,7 @@ export class MediaEditor {
     const layer = this.studio.getSelectedLayer();
     
     // Check if layer is VideoLayer or AudioLayer
-    if (!(layer instanceof VideoLayer) && !(layer instanceof AudioLayer)) {
+    if (!(isMediaVideo(layer)) && !(isMediaAudio(layer))) {
       return;
     }
     if (!layer.ready) {
@@ -168,9 +169,10 @@ export class MediaEditor {
       return;
     }
 
-    if (layer instanceof VideoLayer) {
+    if (isMediaVideo(layer)) {
       this.#splitVideoLayer(layer);
-    } else if (layer instanceof AudioLayer) {
+    }
+    if (isMediaAudio(layer)) {
       this.#splitAudioLayer(layer);
     }
   }
@@ -178,7 +180,7 @@ export class MediaEditor {
   /**
    * Splits a VideoLayer at the current player time
    */
-  #splitVideoLayer(layer: VideoLayer): void {
+  #splitVideoLayer(layer: AbstractMedia): void {
     const nl = this.studio.layerOperations.clone(layer);
     nl.name = layer.name + " [Split]";
     nl._leave_empty = true;
@@ -197,7 +199,7 @@ export class MediaEditor {
   /**
    * Splits an AudioLayer at the current player time
    */
-  #splitAudioLayer(layer: AudioLayer): void {
+  #splitAudioLayer(layer: AbstractMedia): void {
     if (!layer.audioBuffer || !layer.playerAudioContext) {
       console.error('AudioLayer missing audioBuffer or playerAudioContext');
       return;
@@ -271,8 +273,7 @@ export class MediaEditor {
       for (let channel = 0; channel < numberOfChannels; channel++) {
         const originalChannelData = originalBuffer.getChannelData(channel);
         const newChannelData = newBuffer.getChannelData(channel);
-        
-        // Copy the segment
+
         for (let i = 0; i < segmentLength; i++) {
           newChannelData[i] = originalChannelData[clampedStartSample + i];
         }

@@ -1,4 +1,5 @@
-import { TextLayer } from '../media/index';
+import {createMediaText} from "@/media";
+
 
 /**
  * File extension to MIME type mapping
@@ -94,7 +95,7 @@ export function exportToJson(): void {
 export function addText(): void {
     const t = prompt("Enter text:");
     if (t) {
-        window.studio.addLayer(new TextLayer(t));
+        window.studio.addLayer(createMediaText(t, (l, progress, ctx, audioBuffer) => {}));
     }
 }
 

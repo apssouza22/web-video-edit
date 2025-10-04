@@ -1,5 +1,4 @@
-import { addElementToBackground } from '@/media';
-import { AudioLayer } from '@/media';
+import {AbstractMedia, addElementToBackground, isMediaAudio} from '@/media';
 import { getSupportedMimeTypes } from '@/studio';
 import { fixWebmDuration } from "@/common/utils";
 import type { VideoStudio } from '@/studio';
@@ -149,7 +148,7 @@ export class MediaRecorderExporter {
     #setupAudioForExport(): void {
         this.audioContext.resume();
         for (const layer of this.studio.getLayers()) {
-            if (layer instanceof AudioLayer) {
+            if (layer.constructor.name === 'AudioLayer') {
                 layer.connectAudioSource(this.audioContext);
             }
         }
@@ -204,10 +203,10 @@ export class MediaRecorderExporter {
     /**
      * Get audio layers from the studio
      */
-    #getAudioLayers(): AudioLayer[] {
-        const layers: AudioLayer[] = [];
+    #getAudioLayers(): AbstractMedia[] {
+        const layers: AbstractMedia[] = [];
         for (const layer of this.studio.getLayers()) {
-            if (layer instanceof AudioLayer) {
+            if (isMediaAudio(layer)) {
                 layers.push(layer);
             }
         }

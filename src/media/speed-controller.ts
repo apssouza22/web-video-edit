@@ -54,9 +54,6 @@ export class SpeedController {
     return this.currentSpeed;
   }
 
-  /**
-   * Adjust frames collection based on speed
-   */
   #adjustFramesForSpeed(speed: number): void {
     if (!this.originalFrames || !this.layer.framesCollection) {
       return;

@@ -3,35 +3,12 @@ import {VideoLayer} from "./video";
 import {ImageLayer} from "./image";
 import {AudioLayer} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
-import {AbstractMedia} from "./media-common";
 
 export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener;
 
   constructor(onLayerLoadUploadListener: LayerLoadUpdateListener) {
     this.onLayerLoadUpdate = onLayerLoadUploadListener;
-  }
-
-  createFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {
-    const layers: AbstractMedia[] = [];
-    if (file.type.indexOf('video') >= 0) {
-      layers.push(new AudioLayer(file));
-      layers.push(new VideoLayer(file, false));
-    }
-    if (file.type.indexOf('image') >= 0) {
-      layers.push(new ImageLayer(file));
-    }
-    if (file.type.indexOf('audio') >= 0) {
-      layers.push(new AudioLayer(file));
-    }
-    layers.forEach(layer => {
-      layer.addLoadUpdateListener(onLoadUpdateListener);
-    });
-    return layers;
-  }
-
-  createText(text: string, onLoadUpdateListener: LayerLoadUpdateListener): TextLayer {
-    return new TextLayer(text)
   }
 
   clone(layer: any): any | null {

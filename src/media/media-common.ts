@@ -12,6 +12,9 @@ import {
 
 export abstract class AbstractMedia {
   public audioBuffer: AudioBuffer | null = null;
+  public playerAudioContext: AudioContext | OfflineAudioContext | null = null;
+  public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
+
   public file?: LayerFile;
   public name: string;
   public id: string;
@@ -27,7 +30,6 @@ export abstract class AbstractMedia {
   public lastRenderedTime: number;
   public framesCollection: FrameService;
   public speedController: SpeedController;
-  public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
 
   constructor(file?: LayerFile) {
     this.file = file;
@@ -82,6 +84,10 @@ export abstract class AbstractMedia {
     this.#resetRenderCache();
   }
 
+  connectAudioSource(audioContext: AudioContext |OfflineAudioContext): void {
+    // This is a no-op for non-audio layers
+  }
+
   /**
    * Checks if the layer is visible at the given time
    */
@@ -115,7 +121,7 @@ export abstract class AbstractMedia {
     };
   }
 
-  render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): void {
+  render(ctxOut: ESRenderingContext2D, currentTime: number, playing: boolean = false): void {
     // This is the base render method that subclasses should override
     // It now includes caching logic to avoid redundant rendering
     console.log("render not implemented");
