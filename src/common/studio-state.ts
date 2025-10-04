@@ -56,6 +56,11 @@ class StudioState {
   setSelectedMedia(media: AbstractMedia): void {
     this.selectedMedia = media;
   }
+
+  getMediaById(id: string): AbstractMedia | null {
+    const media = this.medias.find(media => media.id === id);
+    return media? media : null;
+  }
 }
 
 export const studioState = StudioState.getInstance();

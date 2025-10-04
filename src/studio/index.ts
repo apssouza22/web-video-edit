@@ -5,7 +5,7 @@ export { ext_map, popup, exportToJson, addText, uploadSupportedType, getSupporte
 export { updateSettings } from './settings';
 export { PinchHandler } from './pinch-handler';
 export { StudioControls } from './controls';
-export { MediaEditor } from './media-edit';
+export { ControlsHandler } from './control-handler';
 export { AspectRatioSelector } from './aspect-ratio-selector';
 export { SpeedControlInput } from './speed-control-input';
 export { DragItemHandler } from './drag-handler';

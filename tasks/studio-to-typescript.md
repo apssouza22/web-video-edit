@@ -16,7 +16,7 @@ Convert all JavaScript files in the `src/studio/` folder to TypeScript while mai
 - [x] Convert `drag-handler.js` to `drag-handler.ts` - Add drag event types and position calculation types
 
 ### Phase 3: Core Components
-- [x] Convert `media-edit.js` to `media-edit.ts` - Add media editing operation types and layer manipulation types
+- [x] Convert `media-edit.js` to `control-handler.ts` - Add media editing operation types and layer manipulation types
 - [x] Convert `layer-loader.js` to `layer-loader.ts` - Add file loading types, layer creation types, and async operation types
 
 ### Phase 4: Main Classes
