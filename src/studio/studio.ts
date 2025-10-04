@@ -3,21 +3,31 @@ import {createTimeline} from '@/timeline';
 import {AbstractMedia, createMediaService, MediaService} from '@/media';
 import {AudioLayer} from '@/media/audio';
 import {LayerLoader} from './layer-loader';
-import {createVideoMuxer} from '@/video/muxer/index';
+import {createVideoMuxer} from '@/video/muxer';
 import {StudioControls} from './controls';
 import {PinchHandler} from './pinch-handler';
 import {DragItemHandler} from './drag-handler';
 import {MediaEditor} from './media-edit';
-import {createTranscriptionService, TranscriptionService} from "../transcription/index";
+import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {uploadSupportedType} from './utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
-import type {StandardLayer, LayerUpdateKind} from '../timeline/types';
-import type {VideoPlayer} from '../player/types';
+import type {VideoPlayer} from '@/player/types';
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {Timeline} from "@/timeline/timeline";
 import {StudioState} from "@/common/studio-state";
+import {
+  getEventBus,
+  PlayerLayerTransformedEvent,
+  PlayerTimeUpdateEvent,
+  TimelineLayerUpdateEvent,
+  TimelineTimeUpdateEvent,
+  TranscriptionRemoveIntervalEvent,
+  TranscriptionSeekEvent,
+  UiSpeedChangeEvent
+} from '@/common/event-bus';
+import {VideoExportService} from "@/video/muxer/video-export";
 
 /**
  * Update data structure for layer transformations
@@ -38,13 +48,6 @@ interface LayerReorderData {
 }
 
 
-/**
- * Video Muxer interface for export functionality
- */
-interface VideoMuxer {
-  init(): void;
-}
-
 export class VideoStudio {
   update: LayerUpdate | null;
   mainSection: HTMLElement;
@@ -53,7 +56,7 @@ export class VideoStudio {
   player: VideoPlayer;
   timeline: Timeline;
   layerLoader: LayerLoader;
-  videoExporter: VideoMuxer;
+  videoExporter: VideoExportService;
   controls: StudioControls;
   transcriptionManager: TranscriptionService;
   mediaEditor: MediaEditor;
@@ -62,6 +65,8 @@ export class VideoStudio {
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
   studioState: StudioState;
+  #eventBus = getEventBus();
+  #eventUnsubscribers: (() => void)[] = [];
 
   constructor() {
     this.update = null;
@@ -86,7 +91,7 @@ export class VideoStudio {
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
-    this.#setUpComponentListeners();
+    this.#setupEventBusListeners();
     this.#setupPinchHandler();
     this.#setupDragHandler();
     this.#setupAspectRatioSelector();
@@ -104,60 +109,80 @@ export class VideoStudio {
     return this.layers.find(layer => layer.id === id) || null;
   }
 
-  #setUpComponentListeners(): void {
-    this.player.addTimeUpdateListener((newTime: number, oldTime: number) => {
-      this.studioState.setPlayingTime(newTime);
-      this.timeline.playerTime = newTime;
-      this.transcriptionManager.highlightChunksByTime(newTime / 1000);
-    });
 
-    this.timeline.addTimeUpdateListener((newTime: number, oldTime: number) => {
-      if (!this.player.playing) {
-        this.studioState.setPlayingTime(newTime);
-        this.player.setTime(newTime);
-      }
-    });
+  #setupEventBusListeners(): void {
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(PlayerTimeUpdateEvent, (event) => {
+        this.studioState.setPlayingTime(event.newTime);
+        this.timeline.playerTime = event.newTime;
+        this.transcriptionManager.highlightChunksByTime(event.newTime / 1000);
+      })
+    );
 
-    this.timeline.addLayerUpdateListener((action: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, reorderData?: LayerReorderData) => {
-      const media = this.getMediaById(layer.id);
-      if (!media) {
-        return;
-      }
-      if (action === 'select') {
-        this.setSelectedLayer(media);
-      } else if (action === 'delete') {
-        this.remove(media);
-      } else if (action === 'clone') {
-        this.cloneLayer(media);
-      } else if (action === 'split') {
-        this.mediaEditor.split();
-      } else if (action === 'reorder') {
-        if (reorderData) {
-          this.#handleLayerReorder(media, reorderData);
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(TimelineTimeUpdateEvent, (event) => {
+        if (!this.player.playing) {
+          this.studioState.setPlayingTime(event.newTime);
+          this.player.setTime(event.newTime);
         }
-      }
-    });
+      })
+    );
 
-    this.transcriptionManager.addRemoveIntervalListener((startTime: number, endTime: number) => {
-      console.log(`TranscriptionManager: Removing interval from ${startTime} to ${endTime}`);
-      this.mediaEditor.removeInterval(startTime, endTime);
-    });
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(TimelineLayerUpdateEvent, (event) => {
+        const media = this.getMediaById(event.layer.id);
+        if (!media) {
+          return;
+        }
+        if (event.action === 'select') {
+          this.setSelectedLayer(media);
+        } else if (event.action === 'delete') {
+          this.remove(media);
+        } else if (event.action === 'clone') {
+          this.cloneLayer(media);
+        } else if (event.action === 'split') {
+          this.mediaEditor.split();
+        } else if (event.action === 'reorder') {
+          if (event.extra) {
+            this.#handleLayerReorder(media, event.extra);
+          }
+        }
+      })
+    );
 
-    this.transcriptionManager.addSeekListener((timestamp: number) => {
-      const newTime = timestamp * 1000;
-      this.studioState.setPlayingTime(newTime);
-      this.player.pause()
-      this.player.setTime(newTime);
-      this.player.play();
-    });
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(TranscriptionRemoveIntervalEvent, (event) => {
+        console.log(`TranscriptionManager: Removing interval from ${event.startTime} to ${event.endTime}`);
+        this.mediaEditor.removeInterval(event.startTime, event.endTime);
+      })
+    );
 
-    this.player.addLayerTransformedListener((layer: AbstractMedia) => {
-      this.#onLayerTransformed(layer);
-    });
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(TranscriptionSeekEvent, (event) => {
+        const newTime = event.timestamp * 1000;
+        this.studioState.setPlayingTime(newTime);
+        this.player.pause();
+        this.player.setTime(newTime);
+        this.player.play();
+      })
+    );
 
-    this.speedControlManager.onSpeedChange((speed: number) => {
-      console.log(`Speed changed to: ${speed}`);
-    })
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(PlayerLayerTransformedEvent, (event) => {
+        this.#onLayerTransformed(event.layer);
+      })
+    );
+
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(UiSpeedChangeEvent, (event) => {
+        console.log(`Speed changed to: ${event.speed}`);
+      })
+    );
+  }
+
+  destroy(): void {
+    this.#eventUnsubscribers.forEach(unsubscribe => unsubscribe());
+    this.#eventUnsubscribers = [];
   }
 
   dumpToJson(): string {

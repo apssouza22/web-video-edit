@@ -10,10 +10,12 @@ import type {
   AudioContextType
 } from './types.js';
 import {StudioState} from "@/common/studio-state";
+import { getEventBus, PlayerTimeUpdateEvent, PlayerLayerTransformedEvent } from '@/common/event-bus';
 
 export class VideoPlayer {
   #selectedLayer: AbstractMedia | null = null;
   #contentScaleFactor = 0.9; // Scale content to 90% to create 10% margin
+  #eventBus = getEventBus();
 
   public playing = false;
   public onend_callback: PlayerEndCallback | null = null;
@@ -59,9 +61,13 @@ export class VideoPlayer {
     this.time = newTime;
     if (oldTime !== newTime) {
       this.timeUpdateListener(newTime, oldTime);
+      this.#eventBus.emit(new PlayerTimeUpdateEvent(newTime, oldTime));
     }
   }
 
+  /**
+   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.PLAYER_TIME_UPDATE, handler)
+   */
   addTimeUpdateListener(listener: TimeUpdateListener): void {
     if (typeof listener !== 'function') {
       throw new Error('Time update listener must be a function');
@@ -69,6 +75,9 @@ export class VideoPlayer {
     this.timeUpdateListener = listener;
   }
 
+  /**
+   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.PLAYER_LAYER_TRANSFORMED, handler)
+   */
   addLayerTransformedListener(listener: LayerTransformedListener): void {
     this.layerTransformedListener = listener;
   }
@@ -89,6 +98,7 @@ export class VideoPlayer {
    */
   #onLayerTransformed(layer: AbstractMedia): void {
     this.layerTransformedListener(layer);
+    this.#eventBus.emit(new PlayerLayerTransformedEvent(layer));
   }
 
   /**

@@ -1,3 +1,5 @@
+import { getEventBus, UiSpeedChangeEvent } from '@/common/event-bus';
+
 interface StandardLayer {
   getSpeed(): number;
   setSpeed(speed: number): void;
@@ -15,6 +17,7 @@ export class SpeedControlInput {
   #currentLayer: StandardLayer | null = null;
   #onSpeedChangeCallback: SpeedChangeCallback = (speed: number) => {
   };
+  #eventBus = getEventBus();
 
   constructor() {
     this.#createComponent();
@@ -38,6 +41,7 @@ export class SpeedControlInput {
 
   /**
    * Set callback for speed changes
+   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.UI_SPEED_CHANGE, handler)
    */
   onSpeedChange(callback: SpeedChangeCallback): void {
     this.#onSpeedChangeCallback = callback;
@@ -128,6 +132,7 @@ export class SpeedControlInput {
       try {
         this.#currentLayer.setSpeed(speed);
         this.#onSpeedChangeCallback(speed);
+        this.#eventBus.emit(new UiSpeedChangeEvent(speed));
         this.#clearValidationError();
       } catch (error) {
         console.error('Failed to set speed:', error);

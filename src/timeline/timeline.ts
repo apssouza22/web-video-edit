@@ -6,6 +6,7 @@ import {TimelineLayerRender} from './tllayer-render';
 import {PinchHandler} from '@/studio';
 import {dpr} from '@/constants';
 import type {StandardLayer, LayerUpdateKind} from './types';
+import { getEventBus, TimelineTimeUpdateEvent, TimelineLayerUpdateEvent } from '@/common/event-bus';
 
 /**
  * Class representing a timeline for a video player
@@ -33,6 +34,7 @@ export class Timeline {
   };
   layerUpdateListener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void;
   private zoomHandler: TimelineZoomHandler;
+  #eventBus = getEventBus();
 
   /**
    *
@@ -88,11 +90,13 @@ export class Timeline {
 
   #onClick() {
     this.timeUpdateListener(this.time, this.playerTime);
+    this.#eventBus.emit(new TimelineTimeUpdateEvent(this.time, this.playerTime));
   }
 
   /**
    * Add a listener for layer updates
    * @param {Function} listener - Function to call when layer updates occur
+   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, handler)
    */
   addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void) {
     if (typeof listener !== 'function') {
@@ -113,11 +117,16 @@ export class Timeline {
     }
     if (oldSelectedLayer) {
       this.layerUpdateListener('select', newSelectedLayer, oldSelectedLayer);
+      this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer, oldSelectedLayer));
       return
     }
     this.layerUpdateListener('select', newSelectedLayer);
+    this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer, oldSelectedLayer));
   }
 
+  /**
+   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TIMELINE_TIME_UPDATE, handler)
+   */
   addTimeUpdateListener(listener: (hoverTime: number, playerTime: number) => void) {
     if (typeof listener !== 'function') {
       throw new Error('Time update listener must be a function');
@@ -164,6 +173,7 @@ export class Timeline {
         return;
       }
       this.layerUpdateListener('delete', this.selectedLayer);
+      this.#eventBus.emit(new TimelineLayerUpdateEvent('delete', this.selectedLayer));
     });
 
     splitButton.addEventListener('click', () => {
@@ -172,6 +182,7 @@ export class Timeline {
         return;
       }
       this.layerUpdateListener('split', this.selectedLayer);
+      this.#eventBus.emit(new TimelineLayerUpdateEvent('split', this.selectedLayer));
     });
 
     cloneButton.addEventListener('click', () => {
@@ -180,6 +191,7 @@ export class Timeline {
         return;
       }
       this.layerUpdateListener('clone', this.selectedLayer);
+      this.#eventBus.emit(new TimelineLayerUpdateEvent('clone', this.selectedLayer));
     });
   }
 
