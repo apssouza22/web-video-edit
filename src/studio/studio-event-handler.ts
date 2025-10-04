@@ -53,7 +53,7 @@ export class StudioEventHandler {
           this.#studio.mediaEditor.split();
         } else if (event.action === 'reorder') {
           if (event.extra) {
-            this.#studio.handleLayerReorder(media, event.extra);
+            console.log(`Layer "${media.name}" reordered from index ${event.extra.fromIndex} to ${event.extra.toIndex}`);
           }
         }
       })
@@ -78,7 +78,7 @@ export class StudioEventHandler {
 
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(PlayerLayerTransformedEvent, (event) => {
-        this.#studio.onLayerTransformed(event.layer);
+        console.log(`Layer "${event.layer.name}" transformed`);
       })
     );
 

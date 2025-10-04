@@ -2,7 +2,7 @@ import {createFrameService} from '@/frame';
 import {Frame} from "@/frame";
 import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
-import {MediaVideoLoader} from "@/media/media-video-loader";
+import {MediaVideoLoader} from "@/video/media-video-loader";
 
 export class VideoLayer extends AbstractMedia {
 

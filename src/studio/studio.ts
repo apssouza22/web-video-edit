@@ -1,4 +1,4 @@
-import {createPlayer} from '@/player';
+import {createPlayer, VideoPlayer} from '@/player';
 import {createTimeline} from '@/timeline';
 import {AbstractMedia, createMediaService, MediaService} from '@/media';
 import {AudioLayer} from '@/media/audio';
@@ -13,7 +13,6 @@ import {uploadSupportedType} from './utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
-import type {VideoPlayer} from '@/player/types';
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {Timeline} from "@/timeline/timeline";
 import {StudioState} from "@/common/studio-state";
@@ -27,14 +26,6 @@ interface LayerUpdate {
   rotation?: number;
   x?: number;
   y?: number;
-}
-
-/**
- * Reorder data for layer repositioning
- */
-interface LayerReorderData {
-  fromIndex: number;
-  toIndex: number;
 }
 
 
@@ -307,18 +298,10 @@ export class VideoStudio {
     }
   }
 
-  handleLayerReorder(layer: AbstractMedia, reorderData: LayerReorderData): void {
-    console.log(`Layer "${layer.name}" reordered from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
-  }
-
   setSelectedLayer(layer: AbstractMedia): void {
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
-    this.speedControlManager.setLayer(layer);
     this.studioState.setSelectedMedia(layer);
-  }
-
-  onLayerTransformed(layer: AbstractMedia): void {
-    console.log(`Layer "${layer.name}" transformed`);
+    this.speedControlManager.setLayer(layer);
   }
 }

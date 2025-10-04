@@ -1,5 +1,4 @@
-import { VideoPlayer } from './player.js';
-import type { CreatePlayerFunction } from './types.js';
+import {VideoPlayer} from './player.js';
 import {StudioState} from "@/common/studio-state";
 
 /**
@@ -9,7 +8,6 @@ export function createPlayer(studioState: StudioState): VideoPlayer {
   return new VideoPlayer(studioState);
 }
 
-// Export the VideoPlayer class for direct usage
 export { VideoPlayer } from './player.js';
 export { PlayerLayer } from './player-layer.js';
 
@@ -26,8 +24,6 @@ export type {
   DragState,
   CanvasPosition,
   HandlePosition,
-  VideoPlayer as VideoPlayerInterface,
-  PlayerLayer as PlayerLayerInterface,
   CanvasContext2D,
   CanvasElement,
   AudioContextType,

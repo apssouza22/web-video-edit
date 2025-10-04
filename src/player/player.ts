@@ -2,7 +2,6 @@ import { dpr } from '@/constants';
 import {AbstractMedia, isMediaAudio} from '@/media';
 import { PlayerLayer } from './player-layer.js';
 import type {
-  TimeUpdateListener,
   LayerTransformedListener,
   PlayerEndCallback,
   CanvasContext2D,
@@ -30,26 +29,17 @@ export class VideoPlayer {
   public width = 0;
   public height = 0;
   public layers: PlayerLayer[] = [];
-  public timeUpdateListener: TimeUpdateListener = (newTime: number, oldTime: number) => {
-    // Default empty listener
-  };
-  public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {
-    // Default empty listener
-  };
+  public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {};
   private studioState: StudioState;
 
   constructor(studioState: StudioState) {
     this.studioState = studioState;
-    const playerHolder = document.getElementById("video-canvas");
-    this.playerHolder = playerHolder;
-    
+    this.playerHolder = document.getElementById("video-canvas");
     this.canvas = document.createElement('canvas');
-    const ctx = this.canvas.getContext('2d');
-    if (!ctx) {
+    this.ctx = this.canvas.getContext('2d')!;
+    if (!this.ctx) {
       throw new Error('Unable to get 2D context from canvas');
     }
-    this.ctx = ctx;
-    
     this.audioContext = new AudioContext();
   }
 
@@ -60,26 +50,8 @@ export class VideoPlayer {
     const oldTime = this.time;
     this.time = newTime;
     if (oldTime !== newTime) {
-      this.timeUpdateListener(newTime, oldTime);
       this.#eventBus.emit(new PlayerTimeUpdateEvent(newTime, oldTime));
     }
-  }
-
-  /**
-   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.PLAYER_TIME_UPDATE, handler)
-   */
-  addTimeUpdateListener(listener: TimeUpdateListener): void {
-    if (typeof listener !== 'function') {
-      throw new Error('Time update listener must be a function');
-    }
-    this.timeUpdateListener = listener;
-  }
-
-  /**
-   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.PLAYER_LAYER_TRANSFORMED, handler)
-   */
-  addLayerTransformedListener(listener: LayerTransformedListener): void {
-    this.layerTransformedListener = listener;
   }
 
   addLayers(layers: AbstractMedia[]): void {

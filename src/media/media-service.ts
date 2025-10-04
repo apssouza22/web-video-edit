@@ -4,7 +4,7 @@ import {ImageLayer} from "./image";
 import {AudioLayer} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 import {AbstractMedia} from "@/media/media-common";
-import {AudioSplitHandler} from "@/media/AudioSplitHandler";
+import {AudioSplitHandler} from "@/audio/AudioSplitHandler";
 
 export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener;

@@ -1,6 +1,14 @@
 import type { AbstractMedia } from '@/media';
 import type { StandardLayer, LayerUpdateKind } from '@/timeline/types';
-import type { LayerReorderData } from '@/timeline/layer-reorder-handler';
+
+/**
+ * Reorder data for layer repositioning
+ */
+interface LayerReorderData {
+  fromIndex: number;
+  toIndex: number;
+}
+
 
 export abstract class BaseEvent {
   abstract readonly name: string;

@@ -1,4 +1,4 @@
-import {AbstractMedia, isMediaAudio, isMediaVideo} from "@/media/index";
+import {AbstractMedia, isMediaAudio, isMediaVideo} from "@/media";
 import {ESAudioContext} from "@/media/media-common";
 
 export class AudioSplitHandler {

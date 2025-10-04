@@ -4,6 +4,7 @@
 
 import type { AbstractMedia } from '@/media';
 import type { FrameTransform } from '@/frame';
+import {VideoPlayer} from "@/player/player";
 
 /**
  * Callback function types for player events
@@ -88,41 +89,6 @@ export interface HandlePosition extends Point2D {
 }
 
 /**
- * Video Player interface (forward declaration to avoid circular dependency)
- */
-export interface VideoPlayer {
-  playing: boolean;
-  onend_callback: PlayerEndCallback | null;
-  total_time: number;
-  lastTImestampFrame: number | null;
-  time: number;
-  lastPausedTime: number;
-  playerHolder: HTMLElement | null;
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
-  audioContext: AudioContext;
-  width: number;
-  height: number;
-  layers: PlayerLayer[];
-  timeUpdateListener: TimeUpdateListener;
-  layerTransformedListener: LayerTransformedListener;
-
-  setTime(newTime: number): void;
-  addTimeUpdateListener(listener: TimeUpdateListener): void;
-  addLayerTransformedListener(listener: LayerTransformedListener): void;
-  addLayers(layers: AbstractMedia[]): void;
-  setSelectedLayer(layer: AbstractMedia): void;
-  mount(holder: HTMLElement): void;
-  resize(newRatio?: string): void;
-  refreshAudio(): void;
-  play(): void;
-  pause(): void;
-  render(realtime: number): number;
-  renderLayers(): void;
-  isPlaying(): boolean;
-}
-
-/**
  * Player Layer interface (forward declaration)
  */
 export interface PlayerLayer {
@@ -144,7 +110,3 @@ export type CanvasElement = HTMLCanvasElement;
  */
 export type AudioContextType = AudioContext;
 
-/**
- * Player factory function type
- */
-export type CreatePlayerFunction = () => VideoPlayer;
