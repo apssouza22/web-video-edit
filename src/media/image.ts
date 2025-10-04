@@ -1,4 +1,4 @@
-import {FlexibleLayer} from './layer-common';
+import {FlexibleLayer} from './media-common';
 import {LayerCoordinates, LayerFile} from './types';
 import {Frame} from '@/frame';
 

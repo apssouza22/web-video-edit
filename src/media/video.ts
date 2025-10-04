@@ -1,7 +1,7 @@
 import {createDemuxer} from "@/video/demux";
 import {createFrameService} from '../frame';
 import {Frame} from "@/frame";
-import {AbstractMedia} from './layer-common';
+import {AbstractMedia} from './media-common';
 import {DemuxerMetadata, LayerFile} from './types';
 import {MediaLayer} from "@/studio/media-edit";
 import {VideoDemuxService} from "@/video/demux/video-demux";

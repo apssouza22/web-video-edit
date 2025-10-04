@@ -1,6 +1,6 @@
-import {TextLayer} from "./layer-text";
-import {VideoLayer} from "./layer-video";
-import {ImageLayer} from "./layer-image";
+import {TextLayer} from "./text";
+import {VideoLayer} from "./video";
+import {ImageLayer} from "./image";
 import {AudioLayer} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 
@@ -55,16 +55,13 @@ export class MediaService {
       videoLayer.name = cloneName;
       return videoLayer;
     }
-    
-    // Handle AudioLayer (imported from external module)
-    if (layer.constructor.name === 'AudioLayer') {
-      if (AudioLayer) {
-        const audioLayer = new AudioLayer(layer.file, true);
+
+    if (layer instanceof AudioLayer) {
+        const audioLayer = new AudioLayer(layer.file!, true);
         audioLayer.name = cloneName;
         audioLayer.playerAudioContext = layer.playerAudioContext;
         audioLayer.audioBuffer = layer.audioBuffer;
         return audioLayer;
-      }
     }
 
     if (layer instanceof ImageLayer) {

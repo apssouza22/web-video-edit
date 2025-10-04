@@ -1,17 +1,17 @@
-import { VideoLayer } from './layer-video';
-import { ImageLayer } from './layer-image';
-import { TextLayer } from './layer-text';
+import { VideoLayer } from './video';
+import { ImageLayer } from './image';
+import { TextLayer } from './text';
 import { AudioLayer } from './audio';
-import { MediaService } from './operations';
+import { MediaService } from './media-service';
 import { LayerType, LayerFile, LayerLoadUpdateListener } from './types';
-import { AbstractMedia } from './layer-common';
+import { AbstractMedia } from './media-common';
 
-export { AbstractMedia, FlexibleLayer, addElementToBackground } from './layer-common';
-export { VideoLayer } from './layer-video';
-export { ImageLayer } from './layer-image';
-export { TextLayer } from './layer-text';
+export { AbstractMedia, FlexibleLayer, addElementToBackground } from './media-common';
+export { VideoLayer } from './video';
+export { ImageLayer } from './image';
+export { TextLayer } from './text';
 export { AudioLayer } from './audio';
-export { MediaService } from './operations';
+export { MediaService } from './media-service';
 export { SpeedController } from './speed-controller';
 
 

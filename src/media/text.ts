@@ -1,4 +1,4 @@
-import {FlexibleLayer} from './layer-common';
+import {FlexibleLayer} from './media-common';
 import {LayerChange, LayerFile} from './types';
 
 export class TextLayer extends FlexibleLayer {

@@ -1,4 +1,4 @@
-import {AbstractMedia} from './layer-common';
+import {AbstractMedia} from './media-common';
 import {AudioCutter} from '@/audio/audio-cutter';
 import {AudioLoader} from '@/audio/audio-loader';
 import {AudioSource} from '@/audio/audio-source';

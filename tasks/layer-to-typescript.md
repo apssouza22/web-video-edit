@@ -29,11 +29,11 @@ Convert all JavaScript files in the `/src/media/` folder to TypeScript, maintain
 
 ## Files to Convert
 1. `index.js` → `index.ts`
-2. `layer-common.js` → `layer-common.ts`
-3. `layer-image.js` → `layer-image.ts`
-4. `layer-text.js` → `layer-text.ts`
-5. `layer-video.js` → `layer-video.ts`
-6. `operations.js` → `operations.ts`
+2. `layer-common.js` → `media-common.ts`
+3. `layer-image.js` → `image.ts`
+4. `layer-text.js` → `text.ts`
+5. `layer-video.js` → `video.ts`
+6. `operations.js` → `media-service.ts`
 7. `speed-controller.js` → `speed-controller.ts`
 
 ## Dependencies to Consider
