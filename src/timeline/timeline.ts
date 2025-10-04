@@ -63,7 +63,6 @@ export class Timeline {
       spacing: 60
     });
 
-    // Initialize layer renderer
     this.layerRenderer = new TimelineLayerRender(
         this.timelineCtx,
         this.totalTime,

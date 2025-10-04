@@ -2,7 +2,7 @@
  * Player-related type definitions for video editing application
  */
 
-import type { AbstractMedia } from '@/layer';
+import type { AbstractMedia } from '@/media';
 import type { FrameTransform } from '@/frame';
 
 /**

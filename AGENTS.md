@@ -16,7 +16,7 @@ Avoid comments describing functionality ensure self describing code
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/`: Core source (ES modules). Domains: `audio/`, `demux/`, `muxer/`, `timeline/`, `studio/`, `record/`, `frame/`, `layer/`, `common/`, `transcription/`.
+- `src/`: Core source (ES modules). Domains: `audio/`, `demux/`, `muxer/`, `timeline/`, `studio/`, `record/`, `frame/`, `media/`, `common/`, `transcription/`.
 - `assets/css/`: Styles and fonts.  `index.html`: app shell for local dev.
 - `tests/`: Jest tests, setup, and mocks. Key files: `tests/setup.js`, `tests/services/*.test.js`.
 - Config: `package.json` (scripts), `jest.config.js` (jsdom, coverage), `.github/` (automation), `README.md` (usage).

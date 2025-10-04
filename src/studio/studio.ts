@@ -1,7 +1,7 @@
-import {createPlayer} from '../player/index';
-import {createTimeline} from '../timeline/index';
-import {AbstractMedia, createLayerService, LayerService} from '../layer/index';
-import {AudioLayer} from '@/layer/layer-audio';
+import {createPlayer} from '@/player';
+import {createTimeline} from '@/timeline';
+import {AbstractMedia, createMediaService, MediaService} from '@/media';
+import {AudioLayer} from '@/media/audio';
 import {LayerLoader} from './layer-loader';
 import {createVideoMuxer} from '@/video/muxer/index';
 import {StudioControls} from './controls';
@@ -56,7 +56,7 @@ export class VideoStudio {
   controls: StudioControls;
   transcriptionManager: TranscriptionService;
   mediaEditor: MediaEditor;
-  layerOperations: LayerService;
+  layerOperations: MediaService;
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
@@ -77,7 +77,7 @@ export class VideoStudio {
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
     this.mediaEditor = new MediaEditor(this);
-    this.layerOperations = createLayerService(this.#onLayerLoadUpdate.bind(this));
+    this.layerOperations = createMediaService(this.#onLayerLoadUpdate.bind(this));
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
 

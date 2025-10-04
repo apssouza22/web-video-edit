@@ -1,4 +1,4 @@
-import { AbstractMedia } from '@/layer';
+import { AbstractMedia } from '@/media';
 import {
   HandleType, 
   TransformHandle, 

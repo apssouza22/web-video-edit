@@ -1,8 +1,8 @@
-import { addElementToBackground } from '../../layer';
-import { AudioLayer } from '@/layer/layer-audio';
-import { getSupportedMimeTypes } from '../../studio';
+import { addElementToBackground } from '@/media';
+import { AudioLayer } from '@/media';
+import { getSupportedMimeTypes } from '@/studio';
 import { fixWebmDuration } from "@/common/utils";
-import type { VideoStudio } from '../../studio';
+import type { VideoStudio } from '@/studio';
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;

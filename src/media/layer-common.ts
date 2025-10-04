@@ -27,6 +27,7 @@ export abstract class AbstractMedia {
   public lastRenderedTime: number;
   public framesCollection: FrameService;
   public speedController: SpeedController;
+  public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
 
   constructor(file?: LayerFile) {
     this.file = file;

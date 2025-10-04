@@ -1,8 +1,5 @@
-import {AbstractMedia} from '@/layer';
-import {ImageLayer} from '@/layer';
-import {VideoLayer} from '@/layer';
-import {TextLayer} from '@/layer';
-import {AudioLayer} from '@/layer/layer-audio';
+import {AbstractMedia, ImageLayer, VideoLayer, TextLayer, AudioLayer} from '@/media';
+
 import {ext_map} from './index';
 import {Frame} from '@/frame';
 

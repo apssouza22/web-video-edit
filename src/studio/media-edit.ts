@@ -1,5 +1,5 @@
-import {VideoLayer} from "../layer/index";
-import { AudioLayer } from '@/layer/layer-audio';
+import {VideoLayer} from "../media/index";
+import { AudioLayer } from '@/media/audio';
 
 interface FramesCollection {
   frames: any[];

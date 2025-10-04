@@ -43,8 +43,8 @@ Convert all JavaScript files in the src/player folder to TypeScript while mainta
 - [ ] Ensure linting passes
 
 ## Dependencies and Type Imports
-- StandardLayer from '../layer/index.js'
-- AudioLayer from '../layer/index.js' 
+- StandardLayer from '../media/index.js'
+- AudioLayer from '../media/index.js' 
 - FrameData, FrameTransform from '../frame/types.ts'
 - dpr constant from '../constants.js'
 - Canvas2D and AudioContext web APIs

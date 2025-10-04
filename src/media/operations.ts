@@ -1,10 +1,10 @@
 import {TextLayer} from "./layer-text";
 import {VideoLayer} from "./layer-video";
 import {ImageLayer} from "./layer-image";
-import {AudioLayer} from "./layer-audio";
+import {AudioLayer} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 
-export class LayerService  {
+export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener;
 
   constructor(onLayerLoadUploadListener: LayerLoadUpdateListener) {

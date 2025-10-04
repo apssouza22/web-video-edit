@@ -1,8 +1,8 @@
-import { VideoLayer } from '@/layer/layer-video';
+import { VideoLayer } from './layer-video';
 import { ImageLayer } from './layer-image';
 import { TextLayer } from './layer-text';
-import { AudioLayer } from './layer-audio';
-import { LayerService } from './operations';
+import { AudioLayer } from './audio';
+import { MediaService } from './operations';
 import { LayerType, LayerFile, LayerLoadUpdateListener } from './types';
 import { AbstractMedia } from './layer-common';
 
@@ -10,7 +10,8 @@ export { AbstractMedia, FlexibleLayer, addElementToBackground } from './layer-co
 export { VideoLayer } from './layer-video';
 export { ImageLayer } from './layer-image';
 export { TextLayer } from './layer-text';
-export { LayerService } from './operations';
+export { AudioLayer } from './audio';
+export { MediaService } from './operations';
 export { SpeedController } from './speed-controller';
 
 
@@ -18,8 +19,8 @@ export { SpeedController } from './speed-controller';
 /**
  * Creates a LayerService instance with the provided listener.
  */
-export function createLayerService(onLayerLoadUploadListener: LayerLoadUpdateListener): LayerService {
-  return new LayerService(onLayerLoadUploadListener);
+export function createMediaService(onLayerLoadUploadListener: LayerLoadUpdateListener): MediaService {
+  return new MediaService(onLayerLoadUploadListener);
 }
 
 /**

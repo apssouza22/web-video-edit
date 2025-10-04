@@ -1,5 +1,5 @@
 import { dpr } from '@/constants';
-import { AudioLayer } from '@/layer/layer-audio';
+import { AudioLayer, AbstractMedia } from '@/media';
 import { PlayerLayer } from './player-layer.js';
 import type {
   TimeUpdateListener,
@@ -9,7 +9,6 @@ import type {
   CanvasElement,
   AudioContextType
 } from './types.js';
-import type { AbstractMedia } from '@/layer';
 
 export class VideoPlayer {
   #selectedLayer: AbstractMedia | null = null;

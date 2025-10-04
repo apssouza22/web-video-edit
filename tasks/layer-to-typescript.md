@@ -1,7 +1,7 @@
 # Convert Layer Folder from JavaScript to TypeScript
 
 ## Overview
-Convert all JavaScript files in the `/src/layer/` folder to TypeScript, maintaining functionality and improving type safety.
+Convert all JavaScript files in the `/src/media/` folder to TypeScript, maintaining functionality and improving type safety.
 
 ## Implementation Steps
 
