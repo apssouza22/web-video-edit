@@ -2,7 +2,7 @@
 
 ## ✅ What's Been Completed
 
-### 1. Player Component (`src/player/player.ts`)
+### 1. Player Component (`src/player/canvas.ts`)
 **Status:** ✅ Migrated
 
 **Changes:**
@@ -17,7 +17,7 @@
 this.#eventBus.emit(EVENT_NAMES.PLAYER_TIME_UPDATE, { newTime, oldTime });
 
 // Layer transformations
-this.#eventBus.emit(EVENT_NAMES.PLAYER_LAYER_TRANSFORMED, { layer });
+this.#eventBus.emit(EVENT_NAMES.PLAYER_LAYER_TRANSFORMED, { media });
 ```
 
 ---
@@ -40,7 +40,7 @@ this.#eventBus.emit(EVENT_NAMES.TIMELINE_TIME_UPDATE, { newTime, oldTime });
 // Layer actions
 this.#eventBus.emit(EVENT_NAMES.TIMELINE_LAYER_UPDATE, {
   action: 'select' | 'delete' | 'clone' | 'split' | 'reorder',
-  layer: StandardLayer,
+  media: StandardLayer,
   oldLayer?: StandardLayer,
   extra?: LayerReorderData
 });
@@ -102,15 +102,15 @@ PLAYER_TIME_UPDATE → Update state, timeline, transcription highlights
 // Timeline time updates
 TIMELINE_TIME_UPDATE → Update player time when not playing
 
-// Timeline layer actions
+// Timeline media actions
 TIMELINE_LAYER_UPDATE → Handle select/delete/clone/split/reorder
 
 // Transcription actions
 TRANSCRIPTION_REMOVE_INTERVAL → Remove media intervals
 TRANSCRIPTION_SEEK → Seek to timestamp
 
-// Player layer transformation
-PLAYER_LAYER_TRANSFORMED → Handle layer transform
+// Player media transformation
+PLAYER_LAYER_TRANSFORMED → Handle media transform
 
 // UI speed change
 UI_SPEED_CHANGE → Log speed changes
@@ -145,8 +145,8 @@ eventBus.subscribe(EVENT_NAMES.PLAYER_TIME_UPDATE, ({ newTime }) => {
   analytics.track('video_time_update', { time: newTime });
 });
 
-eventBus.subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, ({ action, layer }) => {
-  analytics.track('layer_action', { action, layerId: layer.id });
+eventBus.subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, ({ action, media }) => {
+  analytics.track('layer_action', { action, layerId: media.id });
 });
 ```
 
@@ -258,7 +258,7 @@ eventBus.emit(EVENT_NAMES.MY_NEW_EVENT, { myData: 'hello' });
 - ✅ `tests/setup.js` - NEW (Test infrastructure)
 - ✅ `jest.config.js` - NEW (Jest configuration)
 - ✅ `package.json` - UPDATED (Test scripts, @types/jest dependency)
-- ✅ `src/player/player.ts` - UPDATED (EventBus integration)
+- ✅ `src/player/canvas.ts` - UPDATED (EventBus integration)
 - ✅ `src/timeline/timeline.ts` - UPDATED (EventBus integration)
 - ✅ `src/transcription/transcription.ts` - UPDATED (EventBus integration)
 - ✅ `src/studio/speed-control-input.ts` - UPDATED (EventBus integration)

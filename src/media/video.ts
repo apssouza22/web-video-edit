@@ -36,7 +36,7 @@ export class VideoLayer extends AbstractMedia {
   }
 
   /**
-   * Removes a video interval by removing frames from the layer
+   * Removes a video interval by removing frames from the media
    */
   removeInterval(startTime: number, endTime: number): boolean {
     const success = this.framesCollection.removeInterval(startTime, endTime);

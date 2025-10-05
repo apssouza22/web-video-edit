@@ -7,7 +7,7 @@ import { Frame } from '../frame/frame.js';
 import { fps } from '../constants.js';
 
 /**
- * Class that handles animation logic for moveable layers
+ * Class that handles animation logic for moveable medias
  */
 export class AnimationHandler {
     /**
@@ -215,11 +215,11 @@ export class AnimationHandler {
     }
 
     /**
-     * Render anchor points in the timeline for animated layers
+     * Render anchor points in the timeline for animated medias
      *
-     * @param {AbstractMedia} layer - The layer whose anchors to render
+     * @param {AbstractMedia} layer - The media whose anchors to render
      * @param {number} y_coord - The y coordinate to render at
-     * @param {number} baseWidth - The width of the layer track
+     * @param {number} baseWidth - The width of the media track
      * @param {number} scale - The time to pixel scale
      */
     #renderAnchors(layer, y_coord, baseWidth, scale) {

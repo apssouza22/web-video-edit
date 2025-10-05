@@ -21,7 +21,7 @@ export class TextLayer extends FlexibleLayer {
   }
 
   /**
-   * Update the layer's dimensions and text properties
+   * Update the media's dimensions and text properties
    */
   update(change: LayerChange, refTime: number): void {
     const rect = this.renderer.measureText(this.name);

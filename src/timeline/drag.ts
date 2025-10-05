@@ -3,7 +3,7 @@ import type { StandardLayer } from './types';
 import {Timeline} from "./timeline";
 
 /**
- * Handles layer dragging and scrubbing in the timeline
+ * Handles media dragging and scrubbing in the timeline
  */
 export class DragLayerHandler {
   dragging: null | ((time: number, selectedLayer: StandardLayer) => void);
@@ -42,7 +42,7 @@ export class DragLayerHandler {
   }
 
   /**
-   * Handle the layer drag operation based on current time position
+   * Handle the media drag operation based on current time position
    */
   startLayerDrag(selectedLayer: StandardLayer, time: number, startX: number, startY: number) {
     this.dragStartX = startX;
@@ -51,21 +51,21 @@ export class DragLayerHandler {
     
     const endTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
     
-    // If the click is at the layer's end time, adjust the total time. Change the width of the layer
+    // If the click is at the media's end time, adjust the total time. Change the width of the media
     if (this.timeline.intersectsTime(endTime, time)) {
       this.dragging = this.#getResizeLayerEndFn(selectedLayer);
       this.dragMode = 'horizontal';
       return;
     }
 
-    // If the click is at the layer's start time, adjust the total time. Change the width of the layer
+    // If the click is at the media's start time, adjust the total time. Change the width of the media
     if (this.timeline.intersectsTime(selectedLayer.start_time, time)) {
       this.dragging = this.#getMoveLayerStartFn(selectedLayer);
       this.dragMode = 'horizontal';
       return;
     }
 
-    // If the click is within the layer's time, determine drag mode based on movement
+    // If the click is within the media's time, determine drag mode based on movement
     if (time < endTime && time > selectedLayer.start_time) {
       this.selectedLayer = selectedLayer;
       this.initialTime = time;
@@ -97,7 +97,7 @@ export class DragLayerHandler {
   /**
    * Update drag operation with current coordinates
    * @param {number} time - Current time
-   * @param {StandardLayer} selectedLayer - Selected layer
+   * @param {StandardLayer} selectedLayer - Selected media
    * @param {number} currentX - Current X coordinate
    * @param {number} currentY - Current Y coordinate
    */
@@ -166,12 +166,12 @@ export class DragLayerHandler {
   }
 
   /**
-   * Get the function to resize the layer based on the end time
+   * Get the function to resize the media based on the end time
    * @param {StandardLayer} selectedLayer
    * @returns {(function(*, *): void)|*}
    */
   #getResizeLayerEndFn(selectedLayer: StandardLayer) {
-    console.log("Resizing layer:", selectedLayer.name);
+    console.log("Resizing media:", selectedLayer.name);
     let baseTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
     return (time: number, selectedLayer: StandardLayer) => {
       let diff = time - baseTime;

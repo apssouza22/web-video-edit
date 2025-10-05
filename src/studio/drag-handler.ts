@@ -28,7 +28,7 @@ interface Studio {
 type DragCallback = (x: number, y: number) => void;
 
 /**
- * DragHandler class handles drag operations on moveable layers.
+ * DragHandler class handles drag operations on moveable medias.
  * It provides unified handling for pointer events to enable dragging elements.
  */
 export class DragItemHandler {
@@ -77,7 +77,7 @@ export class DragItemHandler {
    */
   pointerdown(e: PointerEvent): void {
     if (!this.studio.getSelectedLayer()) {
-      console.log('No layer selected');
+      console.log('No media selected');
       return;
     }
 

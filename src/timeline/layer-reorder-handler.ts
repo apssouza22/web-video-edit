@@ -1,5 +1,5 @@
 /**
- * Handles layer reordering through vertical drag operations in the timeline
+ * Handles media reordering through vertical drag operations in the timeline
  */
 import type { StandardLayer } from './types';
 import {Timeline} from "./timeline";
@@ -27,8 +27,8 @@ export class LayerReorderHandler {
   }
 
   /**
-   * Start vertical layer reordering drag operation
-   * @param {StandardLayer} layer - The layer being dragged
+   * Start vertical media reordering drag operation
+   * @param {StandardLayer} layer - The media being dragged
    * @param {number} startY - Initial Y coordinate
    */
   startReorder(layer: StandardLayer, startY: number) {
@@ -104,7 +104,7 @@ export class LayerReorderHandler {
       isTop: true
     });
 
-    // Add drop zones between layers
+    // Add drop zones between medias
     for (let i = 0; i < layers.length; i++) {
       yPos += layerSpacing;
       if (i < layers.length - 1) {
@@ -152,8 +152,8 @@ export class LayerReorderHandler {
   }
 
   /**
-   * Find the current index of a layer in the timeline
-   * @param {StandardLayer} layer - The layer to find
+   * Find the current index of a media in the timeline
+   * @param {StandardLayer} layer - The media to find
    * @returns {number} - Layer index
    * @private
    */
@@ -205,7 +205,7 @@ export class LayerReorderHandler {
   }
 
   /**
-   * Render preview of the dragged layer
+   * Render preview of the dragged media
    * @param {CanvasRenderingContext2D} ctx - Canvas context
    * @private
    */

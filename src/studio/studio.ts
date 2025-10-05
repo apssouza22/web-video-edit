@@ -1,4 +1,4 @@
-import {createPlayer, VideoPlayer} from '@/player';
+import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline} from '@/timeline';
 import {AbstractMedia, createMediaService, MediaService} from '@/media';
 import {AudioLayer} from '@/media/audio';
@@ -19,7 +19,7 @@ import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 
 /**
- * Update data structure for layer transformations
+ * Update data structure for media transformations
  */
 interface LayerUpdate {
   scale?: number;
@@ -33,8 +33,8 @@ export class VideoStudio {
   update: LayerUpdate | null;
   mainSection: HTMLElement;
   aspectRatioSelector: AspectRatioSelector;
-  layers: AbstractMedia[];
-  player: VideoPlayer;
+  medias: AbstractMedia[];
+  player: VideoCanvas;
   timeline: Timeline;
   layerLoader: LayerLoader;
   videoExporter: VideoExportService;
@@ -51,9 +51,9 @@ export class VideoStudio {
     this.update = null;
     this.mainSection = document.getElementById('video-canvas')!;
     this.aspectRatioSelector = new AspectRatioSelector();
-    this.layers = [];
+    this.medias = [];
     this.studioState = StudioState.getInstance();
-    this.player = createPlayer(this.studioState);
+    this.player = createVideoCanvas(this.studioState);
     if (this.mainSection) {
       this.player.mount(this.mainSection);
     }
@@ -94,7 +94,7 @@ export class VideoStudio {
         exportToJson();
         return;
       }
-      if (this.getLayers().length === 0) {
+      if (this.getMedias().length === 0) {
         alert("Nothing to export.");
         return;
       }
@@ -129,7 +129,7 @@ export class VideoStudio {
 
   dumpToJson(): string {
     const out: any[] = [];
-    for (const layer of this.getLayers()) {
+    for (const layer of this.getMedias()) {
       out.push(layer.dump());
     }
     return JSON.stringify(out);
@@ -171,7 +171,7 @@ export class VideoStudio {
   }
 
   /**
-   * Gets the currently selected layer
+   * Gets the currently selected media
    */
   getSelectedLayer(): AbstractMedia | null {
     if (!this.timeline.selectedLayer) {
@@ -181,20 +181,20 @@ export class VideoStudio {
   }
 
   /**
-   * Get all layers in the studio
+   * Get all medias in the studio
    */
-  getLayers(): AbstractMedia[] {
-    return this.layers;
+  getMedias(): AbstractMedia[] {
+    return this.medias;
   }
 
   /**
-   * Remove a layer from the studio
+   * Remove a media from the studio
    */
   remove(layer: AbstractMedia): void {
-    const idx = this.getLayers().indexOf(layer);
-    const len = this.getLayers().length;
+    const idx = this.getMedias().indexOf(layer);
+    const len = this.getMedias().length;
     if (idx > -1) {
-      this.getLayers().splice(idx, 1);
+      this.getMedias().splice(idx, 1);
       const layer_picker = document.getElementById('layers');
       if (layer_picker) {
         // divs are reversed
@@ -208,7 +208,7 @@ export class VideoStudio {
       layer.disconnect();
     }
     this.player.total_time = 0;
-    for (const layer of this.getLayers()) {
+    for (const layer of this.getMedias()) {
       if (layer.start_time + layer.totalTimeInMilSeconds > this.player.total_time) {
         this.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
       }
@@ -219,7 +219,7 @@ export class VideoStudio {
   }
 
   /**
-   * Clone a layer by creating a copy with slightly modified properties
+   * Clone a media by creating a copy with slightly modified properties
    */
   cloneLayer(layer: AbstractMedia): AbstractMedia {
     const clonedLayer = this.mediaService.clone(layer);
@@ -233,7 +233,7 @@ export class VideoStudio {
       layer.start_time = this.player.time;
       layer.init(this.player.width, this.player.height, this.player.audioContext);
     }
-    this.layers.push(layer);
+    this.medias.push(layer);
     this.studioState.addMedia(layer);
     return layer;
   }
@@ -249,21 +249,21 @@ export class VideoStudio {
   resize(newRatio?: string): void {
     this.player.resize(newRatio);
     this.timeline.resize();
-    this.getLayers().forEach(layer => {
+    this.getMedias().forEach(layer => {
       layer.resize(this.player.width, this.player.height);
     })
   }
 
   #loop(realtime: number): void {
-    // Process updates for selected layer
+    // Process updates for selected media
     const selectedLayer = this.getSelectedLayer();
     if (selectedLayer && this.update) {
       selectedLayer.update(this.update, this.player.time);
       this.update = null;
     }
-    if (this.layers.length !== this.player.layers.length) {
-      this.player.addLayers(this.getLayers());
-      this.timeline.addLayers(this.getLayers());
+    if (this.medias.length !== this.player.layers.length) {
+      this.player.addMedias(this.getMedias());
+      this.timeline.addLayers(this.getMedias());
     }
 
     this.player.render(realtime)

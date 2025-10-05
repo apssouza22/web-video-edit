@@ -2,7 +2,7 @@ import type { AbstractMedia } from '@/media';
 import type { StandardLayer, LayerUpdateKind } from '@/timeline/types';
 
 /**
- * Reorder data for layer repositioning
+ * Reorder data for media repositioning
  */
 interface LayerReorderData {
   fromIndex: number;

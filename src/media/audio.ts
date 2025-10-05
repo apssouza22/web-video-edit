@@ -51,7 +51,7 @@ export class AudioLayer extends AbstractMedia {
     this.originalTotalTimeInMilSeconds = this.audioBuffer.duration * 1000;
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds;
     if (this.totalTimeInMilSeconds === 0) {
-      console.warn("Failed to load audio layer: " + this.name + ". Audio buffer duration is 0.");
+      console.warn("Failed to load audio media: " + this.name + ". Audio buffer duration is 0.");
     }
     this.ready = true;
     this.loadUpdateListener(this, 100, null, audioBuffer);
@@ -69,7 +69,7 @@ export class AudioLayer extends AbstractMedia {
   }
 
   /**
-   * Disposes of the audio layer resources
+   * Disposes of the audio media resources
    */
   dispose(): void {
     this.disconnect();

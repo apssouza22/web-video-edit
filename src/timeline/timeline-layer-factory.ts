@@ -6,16 +6,16 @@ import type { StandardLayer } from './types';
 import type { TimelineLayer } from './timeline-layer';
 
 /**
- * Factory class for creating timeline layer renderers
+ * Factory class for creating timeline media renderers
  */
 export class TimelineLayerFactory {
   /**
-   * Create a timeline layer renderer based on the layer type
+   * Create a timeline media renderer based on the media type
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
-   * @param {StandardLayer} layer - The layer data to render
+   * @param {StandardLayer} layer - The media data to render
    * @param {number} totalTime - The total time duration of the timeline
    * @param {number} canvasWidth - The width of the timeline canvas
-   * @returns {TimelineLayer} - The appropriate timeline layer renderer
+   * @returns {TimelineLayer} - The appropriate timeline media renderer
    */
   static createTimelineLayer(
     ctx: CanvasRenderingContext2D,
@@ -41,8 +41,8 @@ export class TimelineLayerFactory {
   }
 
   /**
-   * Get all available timeline layer types
-   * @returns {Array<string>} - Array of supported layer type names
+   * Get all available timeline media types
+   * @returns {Array<string>} - Array of supported media type names
    */
   static getSupportedLayerTypes() {
     return ['AudioLayer', 'VideoLayer', 'ImageLayer', 'TextLayer'];

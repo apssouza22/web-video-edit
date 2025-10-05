@@ -64,8 +64,8 @@ export class WebCodecExporter {
         this.completionCallback = completionCallback;
 
         console.log('🎬 Starting MediaBunny export with BufferTarget approach...');
-        console.log('Available layers:', this.studio.getLayers().length);
-        console.log('Audio layers:', this.#getAudioLayers().length);
+        console.log('Available medias:', this.studio.getMedias().length);
+        console.log('Audio medias:', this.#getAudioLayers().length);
 
         this.isEncoding = true;
         this.totalDuration = this.#getTotalDuration();
@@ -307,18 +307,18 @@ export class WebCodecExporter {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studio.getLayers();
+        const layers = this.studio.getMedias();
         for (const layer of layers) {
             layer.render(this.recordingCtx, currentTime);
         }
     }
 
     /**
-     * Calculate total duration from all layers
+     * Calculate total duration from all medias
      */
     #getTotalDuration(): number {
         let maxDuration = 0;
-        for (const layer of this.studio.getLayers()) {
+        for (const layer of this.studio.getMedias()) {
             const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
@@ -328,11 +328,11 @@ export class WebCodecExporter {
     }
 
     /**
-     * Get audio layers from the studio
+     * Get audio medias from the studio
      */
     #getAudioLayers(): AbstractMedia[] {
         const layers: AbstractMedia[] = [];
-        for (const layer of this.studio.getLayers()) {
+        for (const layer of this.studio.getMedias()) {
             if (isMediaAudio(layer)) {
                 layers.push(layer);
             }

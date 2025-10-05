@@ -61,7 +61,7 @@ export abstract class AbstractMedia {
   }
 
   playStart(time: number): void {
-    // This is a no-op for non-audio layers
+    // This is a no-op for non-audio medias
   }
 
   // Getters for backward compatibility
@@ -74,7 +74,7 @@ export abstract class AbstractMedia {
   }
 
   /**
-   * Adjusts the total time of the video layer by adding or removing frames
+   * Adjusts the total time of the video media by adding or removing frames
    */
   adjustTotalTime(diff: number): void {
     if (!this.ready || !this.framesCollection) {
@@ -82,7 +82,7 @@ export abstract class AbstractMedia {
       return;
     }
     if (this.audioBuffer) {
-      console.log("Audio layer cannot adjust total time");
+      console.log("Audio media cannot adjust total time");
       return;
     }
     this.framesCollection.adjustTotalTime(diff);
@@ -91,18 +91,18 @@ export abstract class AbstractMedia {
   }
 
   connectAudioSource(audioContext: AudioContext |OfflineAudioContext): void {
-    // This is a no-op for non-audio layers
+    // This is a no-op for non-audio medias
   }
 
   /**
-   * Checks if the layer is visible at the given time
+   * Checks if the media is visible at the given time
    */
   isLayerVisible(time: number): boolean {
     return time >= this.start_time && time < this.start_time + this.totalTimeInMilSeconds;
   }
 
   /**
-   * Listens for the load event and calls the provided function when the layer is ready
+   * Listens for the load event and calls the provided function when the media is ready
    */
   addLoadUpdateListener(listener: LayerLoadUpdateListener): void {
     if (typeof listener !== 'function') {
@@ -134,7 +134,7 @@ export abstract class AbstractMedia {
   }
 
   /**
-   * Checks if the layer needs to be rendered again based on time and playing state
+   * Checks if the media needs to be rendered again based on time and playing state
    */
   shouldReRender(currentTime: number): boolean {
     // Only re-render if time has changed
@@ -162,7 +162,7 @@ export abstract class AbstractMedia {
   }
 
   resize(width: number, height: number): void {
-    console.log("Resizing layer to width:", width, "height:", height);
+    console.log("Resizing media to width:", width, "height:", height);
     this.renderer.setSize(width, height);
     this.#resetRenderCache();
   }
@@ -251,13 +251,13 @@ export abstract class AbstractMedia {
   }
 
   removeInterval(startTime: number, endTime: number) {
-    // This is a no-op for non-video layers
+    // This is a no-op for non-video medias
     return false;
   }
 }
 
 /**
- * Non-video layers that can be resized and have their total time adjusted.
+ * Non-video medias that can be resized and have their total time adjusted.
  */
 export class FlexibleLayer extends AbstractMedia {
   constructor(file?: LayerFile) {

@@ -145,7 +145,7 @@ export class MediaRecorderExporter {
      */
     #setupAudioForExport(): void {
         this.audioContext.resume();
-        for (const layer of this.studio.getLayers()) {
+        for (const layer of this.studio.getMedias()) {
             if (layer.constructor.name === 'AudioLayer') {
                 layer.connectAudioSource(this.audioContext);
             }
@@ -153,16 +153,16 @@ export class MediaRecorderExporter {
     }
 
     /**
-     * Render all layers to the recording canvas at a specific time
+     * Render all medias to the recording canvas at a specific time
      */
     #renderLayersAtTime(time: number): void {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studio.getLayers();
+        const layers = this.studio.getMedias();
 
         for (const layer of layers) {
-            // Pass playing=true to ensure audio layers start at correct time
+            // Pass playing=true to ensure audio medias start at correct time
             layer.render(this.recordingCtx, time, true);
         }
     }
@@ -173,7 +173,7 @@ export class MediaRecorderExporter {
     #stopBackgroundRecording(): void {
         this.isRecording = false;
         this.#stopProgressTracking();
-        this.studio.getLayers().forEach(layer => {
+        this.studio.getMedias().forEach(layer => {
             layer.audioStreamDestination = null;
         });
 
@@ -185,11 +185,11 @@ export class MediaRecorderExporter {
     }
 
     /**
-     * Calculate total duration from all layers
+     * Calculate total duration from all medias
      */
     #getTotalDuration(): number {
         let maxDuration = 0;
-        for (const layer of this.studio.getLayers()) {
+        for (const layer of this.studio.getMedias()) {
             const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
@@ -199,11 +199,11 @@ export class MediaRecorderExporter {
     }
 
     /**
-     * Get audio layers from the studio
+     * Get audio medias from the studio
      */
     #getAudioLayers(): AbstractMedia[] {
         const layers: AbstractMedia[] = [];
-        for (const layer of this.studio.getLayers()) {
+        for (const layer of this.studio.getMedias()) {
             if (isMediaAudio(layer)) {
                 layers.push(layer);
             }

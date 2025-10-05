@@ -14,7 +14,7 @@ export type LayerLoadUpdateListener = (
 ) => void;
 
 /**
- * Coordinates and transformation data for layer positioning
+ * Coordinates and transformation data for media positioning
  */
 export interface LayerCoordinates {
   f: Frame;
@@ -24,7 +24,7 @@ export interface LayerCoordinates {
 }
 
 /**
- * Changes that can be applied to a layer
+ * Changes that can be applied to a media
  */
 export interface LayerChange {
   scale?: number;

@@ -1,11 +1,11 @@
 import {TimelineLayer} from '../timeline-layer';
 
 /**
- * Timeline layer renderer for audio layers
+ * Timeline media renderer for audio medias
  */
 export class AudioTimelineLayer extends TimelineLayer {
   /**
-   * Get the color scheme for audio layers
+   * Get the color scheme for audio medias
    * @returns {Object} - Object containing baseColor, gradientColor, selectedColor, selectedGradient
    */
   getLayerColors() {

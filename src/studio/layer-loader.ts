@@ -13,7 +13,7 @@ interface VideoStudio {
 }
 
 /**
- * Interface for layer data from JSON
+ * Interface for media data from JSON
  */
 interface LayerJsonData {
   type: string;
@@ -27,7 +27,7 @@ interface LayerJsonData {
 }
 
 /**
- * LayerLoader class responsible for loading layers from JSON data
+ * LayerLoader class responsible for loading medias from JSON data
  */
 export class LayerLoader {
   private studio: VideoStudio;
@@ -35,7 +35,7 @@ export class LayerLoader {
 
   /**
    * Constructor for LayerLoader
-   * @param studio - The studio instance that will own the layers
+   * @param studio - The studio instance that will own the medias
    */
   constructor(studio: VideoStudio, mediaService: MediaService) {
     this.studio = studio;
@@ -44,11 +44,11 @@ export class LayerLoader {
 
 
   /**
-   * Add a layer from a file
+   * Add a media from a file
    *
-   * @param file - The file to add as a layer
+   * @param file - The file to add as a media
    * @param onMediaLoadUpdate - Whether to use HTML demuxing for video
-   * @returns The added layers
+   * @returns The added medias
    */
   addLayerFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
     const layers: AbstractMedia[] = [];
@@ -60,10 +60,10 @@ export class LayerLoader {
   }
 
   /**
-   * Load a layer from a URI
+   * Load a media from a URI
    *
-   * @param uri - The URI to load the layer from
-   * @returns Promise that resolves to the added layers
+   * @param uri - The URI to load the media from
+   * @returns Promise that resolves to the added medias
    */
   async loadLayerFromURI(uri: string): Promise<AbstractMedia[] | undefined> {
     if (!uri) {
@@ -89,9 +89,9 @@ export class LayerLoader {
   }
 
   /**
-   * Load layers from JSON data
-   * @param layers - Array of layer data objects
-   * @returns Promise that resolves when all layers are loaded
+   * Load medias from JSON data
+   * @param layers - Array of media data objects
+   * @returns Promise that resolves when all medias are loaded
    */
   async loadLayersFromJson(layers: LayerJsonData[]): Promise<AbstractMedia[]> {
     const allLayers: AbstractMedia[] = [];

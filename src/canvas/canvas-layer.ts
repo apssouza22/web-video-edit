@@ -1,20 +1,19 @@
-import { AbstractMedia } from '@/media';
+import {AbstractMedia} from '@/media';
 import {
-  HandleType, 
-  TransformHandle, 
-  Point2D, 
-  Bounds, 
-  HitTestResult,
-  CanvasPosition, 
-  HandlePosition,
-  LayerTransformedListener,
+  Bounds,
   CanvasContext2D,
-  CanvasElement
+  CanvasElement,
+  CanvasPosition,
+  HandleType,
+  HitTestResult,
+  LayerTransformedListener,
+  Point2D,
+  TransformHandle
 } from './types';
-import type { FrameTransform } from '@/frame';
+import type {FrameTransform} from '@/frame';
 
-export class PlayerLayer {
-  #layer: AbstractMedia;
+export class CanvasLayer {
+  private readonly _media: AbstractMedia;
   #selected = false;
   #canvas: CanvasElement;
   #transforming = false;
@@ -27,20 +26,20 @@ export class PlayerLayer {
   #currentTime = 0;
 
   /**
-   * Class to handle transformations of a layer in the player.
+   * Class to handle transformations of a media in the player.
    */
-  constructor(layer: AbstractMedia, canvas: CanvasElement) {
-    this.#layer = layer;
+  constructor(media: AbstractMedia, canvas: CanvasElement) {
+    this._media = media;
     this.#canvas = canvas;
     this.#initializeHandles();
     this.#setupEventListeners();
   }
 
   /**
-   * Returns the layer associated with this PlayerLayer instance.
+   * Returns the media associated with this PlayerLayer instance.
    */
-  get layer(): AbstractMedia {
-    return this.#layer;
+  get media(): AbstractMedia {
+    return this._media;
   }
 
   set selected(value: boolean) {
@@ -144,7 +143,7 @@ export class PlayerLayer {
       
       // Notify callback of transformation completion
       if (this.#onTransformCallback) {
-        this.#onTransformCallback(this.#layer);
+        this.#onTransformCallback(this._media);
       }
     }
   }
@@ -175,9 +174,9 @@ export class PlayerLayer {
    * Perform move transformation
    */
   #performMove(dx: number, dy: number): void {
-    const frame = this.#layer.getFrame(this.#currentTime);
+    const frame = this._media.getFrame(this.#currentTime);
     if (frame && this.#initialTransform) {
-      this.#layer.update({
+      this._media.update({
         x: this.#initialTransform.x + dx,
         y: this.#initialTransform.y + dy
       }, this.#currentTime);
@@ -240,7 +239,7 @@ export class PlayerLayer {
     const scaleFactor = 1 + (scaleDirection * dragDistance * 0.00005);
     const maxScale = scaleFactor > 1 ? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor);
 
-    this.#layer.update({
+    this._media.update({
       scale: maxScale,
     }, this.#currentTime);
   }
@@ -259,13 +258,13 @@ export class PlayerLayer {
     const currentAngle = Math.atan2(currentY - centerY, currentX - centerX);
     const deltaAngle = currentAngle - startAngle;
 
-    this.#layer.update({
+    this._media.update({
       rotation: deltaAngle * (180 / Math.PI) // Convert to degrees
     }, this.#currentTime);
   }
 
   /**
-   * Hit test for transformation handles and layer area
+   * Hit test for transformation handles and media area
    */
   #hitTest(x: number, y: number): HitTestResult | null {
     if (!this.#selected) return null;
@@ -296,7 +295,7 @@ export class PlayerLayer {
       }
     }
 
-    // Test layer content area for move
+    // Test media content area for move
     if (this.#pointInRect(x, y, bounds.x, bounds.y, bounds.width, bounds.height)) {
       return { type: HandleType.MOVE, cursor: 'move' };
     }
@@ -305,9 +304,9 @@ export class PlayerLayer {
   }
 
   /**
-   * Get handle positions for current layer bounds
+   * Get handle positions for current media bounds
    */
-  #getHandlePositions(bounds: Bounds, handleSize: number): HandlePosition[] {
+  #getHandlePositions(bounds: Bounds, handleSize: number): Point2D[] {
     const half = handleSize / 2;
     return [
       { x: bounds.x - half, y: bounds.y - half }, // NW
@@ -332,7 +331,7 @@ export class PlayerLayer {
    * Get current transformation values
    */
   #getCurrentTransform(): FrameTransform {
-    const frame = this.#layer.getFrame(this.#currentTime);
+    const frame = this._media.getFrame(this.#currentTime);
     return frame ? {
       x: frame.x || 0,
       y: frame.y || 0,
@@ -343,25 +342,25 @@ export class PlayerLayer {
   }
 
   /**
-   * Get layer bounds in canvas coordinates
+   * Get media bounds in canvas coordinates
    */
   #getLayerBounds(): Bounds | null {
-    const frame = this.#layer.getFrame(this.#currentTime);
+    const frame = this._media.getFrame(this.#currentTime);
     if (!frame) return null;
 
-    // Calculate position using the same logic as layer rendering
-    const x = frame.x + this.#canvas.width / 2 - this.#layer.width / 2;
-    const y = frame.y + this.#canvas.height / 2 - this.#layer.height / 2;
+    // Calculate position using the same logic as media rendering
+    const x = frame.x + this.#canvas.width / 2 - this._media.width / 2;
+    const y = frame.y + this.#canvas.height / 2 - this._media.height / 2;
     
     // Apply scale to get final dimensions
-    const width = this.#layer.width * frame.scale;
-    const height = this.#layer.height * frame.scale;
+    const width = this._media.width * frame.scale;
+    const height = this._media.height * frame.scale;
 
     return { x, y, width, height };
   }
 
   /**
-   * Mark the layer area with visual boundaries and handles
+   * Mark the media area with visual boundaries and handles
    */
   #markLayerArea(ctx: CanvasContext2D): void {
     if (!this.#selected) return;
@@ -399,7 +398,7 @@ export class PlayerLayer {
     ctx.fill();
     ctx.stroke();
 
-    // Draw line connecting rotation handle to layer
+    // Draw line connecting rotation handle to media
     ctx.beginPath();
     ctx.moveTo(bounds.x + bounds.width / 2, bounds.y);
     ctx.lineTo(rotationX + handleSize/2, rotationY + handleSize);
@@ -410,11 +409,11 @@ export class PlayerLayer {
   }
 
   /**
-   * Render the layer content
+   * Render the media content
    */
   render(ctx: CanvasContext2D, time: number, playing: boolean): void {
     this.#currentTime = time;
-    this.#layer.render(ctx, time, playing);
+    this._media.render(ctx, time, playing);
     this.#markLayerArea(ctx);
   }
 }

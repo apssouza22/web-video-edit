@@ -48,14 +48,14 @@ eventBus.emit(new UiSpeedChangeEvent(2.0));
 | Event Class | Properties | Description |
 |------------|-----------|-------------|
 | `PlayerTimeUpdateEvent` | `newTime`, `oldTime` | Player time position changes |
-| `PlayerLayerTransformedEvent` | `layer` | Layer transformed (position/scale/rotation) |
+| `PlayerLayerTransformedEvent` | `media` | Layer transformed (position/scale/rotation) |
 | `TimelineTimeUpdateEvent` | `newTime`, `oldTime` | Timeline scrubbing |
-| `TimelineLayerUpdateEvent` | `action`, `layer`, `oldLayer?`, `extra?` | Layer actions (select/delete/clone/split/reorder) |
+| `TimelineLayerUpdateEvent` | `action`, `media`, `oldLayer?`, `extra?` | Layer actions (select/delete/clone/split/reorder) |
 | `TranscriptionRemoveIntervalEvent` | `startTime`, `endTime` | Remove time interval |
 | `TranscriptionSeekEvent` | `timestamp` | Seek to timestamp |
 | `UiSpeedChangeEvent` | `speed` | Playback speed change |
 | `UiAspectRatioChangeEvent` | `ratio`, `oldRatio?` | Aspect ratio change |
-| `MediaLoadUpdateEvent` | `layer`, `progress`, `ctx?`, `audioBuffer?` | Media loading progress |
+| `MediaLoadUpdateEvent` | `media`, `progress`, `ctx?`, `audioBuffer?` | Media loading progress |
 
 ## Complete Example
 
@@ -97,7 +97,7 @@ export class MyFeature {
 
   #onLayerUpdate(event: TimelineLayerUpdateEvent) {
     if (event.action === 'select') {
-      console.log('Layer selected:', event.layer.name);
+      console.log('Layer selected:', event.media.name);
     }
   }
 
@@ -118,7 +118,7 @@ eventBus.subscribe(TimelineLayerUpdateEvent, (event) => {
   // Only handle specific actions
   if (event.action !== 'select') return;
   
-  console.log('Layer selected:', event.layer.name);
+  console.log('Layer selected:', event.media.name);
 });
 ```
 

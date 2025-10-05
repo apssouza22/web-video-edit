@@ -31,7 +31,7 @@ export class FrameAdjustHandler {
   }
 
   /**
-   * Removes a video interval by removing frames from the layer
+   * Removes a video interval by removing frames from the media
    */
   removeInterval(startTime: number, endTime: number): boolean {
     if (!this.framesCollection || startTime >= endTime || startTime < 0) {

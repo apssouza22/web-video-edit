@@ -1,6 +1,6 @@
 import { dpr } from '@/constants';
 import {AbstractMedia, isMediaAudio} from '@/media';
-import { PlayerLayer } from './player-layer.js';
+import { CanvasLayer } from './canvas-layer.js';
 import type {
   LayerTransformedListener,
   PlayerEndCallback,
@@ -11,7 +11,7 @@ import type {
 import {StudioState} from "@/common/studio-state";
 import { getEventBus, PlayerTimeUpdateEvent, PlayerLayerTransformedEvent } from '@/common/event-bus';
 
-export class VideoPlayer {
+export class VideoCanvas {
   #selectedLayer: AbstractMedia | null = null;
   #eventBus = getEventBus();
 
@@ -27,7 +27,7 @@ export class VideoPlayer {
   public audioContext: AudioContextType;
   public width = 0;
   public height = 0;
-  public layers: PlayerLayer[] = [];
+  public layers: CanvasLayer[] = [];
   public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {};
   private studioState: StudioState;
 
@@ -53,9 +53,9 @@ export class VideoPlayer {
     }
   }
 
-  addLayers(layers: AbstractMedia[]): void {
-    this.layers = layers.map(layer => {
-      const playerLayer = new PlayerLayer(layer, this.canvas);
+  addMedias(medias: AbstractMedia[]): void {
+    this.layers = medias.map(layer => {
+      const playerLayer = new CanvasLayer(layer, this.canvas);
       if (this.#selectedLayer === layer) {
         playerLayer.selected = true;
       }
@@ -65,7 +65,7 @@ export class VideoPlayer {
   }
 
   /**
-   * Handle layer transformation events
+   * Handle media transformation events
    */
   #onLayerTransformed(layer: AbstractMedia): void {
     this.layerTransformedListener(layer);
@@ -73,14 +73,14 @@ export class VideoPlayer {
   }
 
   /**
-   * Set selected layer for transformation
+   * Set selected media for transformation
    */
   setSelectedLayer(layer: AbstractMedia): void {
     this.layers.forEach(playerLayer => {
       playerLayer.selected = false;
     });
     this.#selectedLayer = layer;
-    const playerLayer = this.layers.find(pl => pl.layer === layer);
+    const playerLayer = this.layers.find(pl => pl.media === layer);
     if (playerLayer) {
       console.log(`Setting selected layer: ${layer.name}`);
       playerLayer.selected = true;
@@ -111,7 +111,7 @@ export class VideoPlayer {
 
   refreshAudio(): void {
     for (const l of this.layers) {
-      const layer = l.layer;
+      const layer = l.media;
       if (isMediaAudio(layer)) {
         layer.connectAudioSource(this.audioContext);
       }
@@ -171,7 +171,7 @@ export class VideoPlayer {
 
   #updateTotalTime(): void {
     for (const l of this.layers) {
-      const layer = l.layer;
+      const layer = l.media;
       if (layer.start_time + layer.totalTimeInMilSeconds > this.total_time) {
         this.total_time = layer.start_time + layer.totalTimeInMilSeconds;
       }

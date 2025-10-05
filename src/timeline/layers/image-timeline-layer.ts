@@ -1,11 +1,11 @@
 import { TimelineLayer } from '../timeline-layer';
 
 /**
- * Timeline layer renderer for image layers
+ * Timeline media renderer for image medias
  */
 export class ImageTimelineLayer extends TimelineLayer {
   /**
-   * Get the color scheme for image layers
+   * Get the color scheme for image medias
    * @returns {Object} - Object containing baseColor, gradientColor, selectedColor, selectedGradient
    */
   getLayerColors() {

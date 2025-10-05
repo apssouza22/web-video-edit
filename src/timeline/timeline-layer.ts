@@ -1,13 +1,13 @@
 /**
- * Base class for timeline layer rendering
- * Encapsulates all rendering logic for timeline layers
+ * Base class for timeline media rendering
+ * Encapsulates all rendering logic for timeline medias
  */
 import type { StandardLayer } from './types';
 
 export class TimelineLayer {
   /**
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
-   * @param {StandardLayer} layer - The layer data to render
+   * @param {StandardLayer} media - The media data to render
    * @param {number} totalTime - The total time duration of the timeline
    * @param {number} canvasWidth - The width of the timeline canvas
    */
@@ -34,8 +34,8 @@ export class TimelineLayer {
   }
 
   /**
-   * Get the color scheme for this layer type
-   * @param {boolean} selected - Whether the layer is selected
+   * Get the color scheme for this media type
+   * @param {boolean} selected - Whether the media is selected
    * @returns {Object} - Object containing fillColor, gradientColor, strokeColor, and shadowColor
    */
   #getColors(selected: boolean) {
@@ -49,7 +49,7 @@ export class TimelineLayer {
   }
 
   /**
-   * Abstract method to get layer-specific colors
+   * Abstract method to get media-specific colors
    * Must be implemented by subclasses
    * @returns {Object} - Object containing baseColor, gradientColor, selectedColor, selectedGradient
    */
@@ -58,7 +58,7 @@ export class TimelineLayer {
   }
 
   /**
-   * Abstract method to draw layer-specific symbol
+   * Abstract method to draw media-specific symbol
    * Must be implemented by subclasses
    * @param {number} x - X coordinate for symbol center
    * @param {number} y - Y coordinate for symbol center
@@ -69,7 +69,7 @@ export class TimelineLayer {
   }
 
   /**
-   * Abstract method for drawing layer symbol
+   * Abstract method for drawing media symbol
    * Must be implemented by subclasses
    * @param {number} x - X coordinate for symbol center
    * @param {number} y - Y coordinate for symbol center
@@ -81,7 +81,7 @@ export class TimelineLayer {
   }
 
   /**
-   * Calculate layer position and dimensions
+   * Calculate media position and dimensions
    * @returns {Object} - Object containing start, length, scale
    */
   #calculateDimensions() {
@@ -93,13 +93,13 @@ export class TimelineLayer {
   }
 
   /**
-   * Draw the main layer track with gradient and styling
+   * Draw the main media track with gradient and styling
    * @param {number} start - Start x position
-   * @param {number} length - Width of the layer
+   * @param {number} length - Width of the media
    * @param {number} trackY - Y position of track
    * @param {number} height - Height of the track
    * @param {Object} colors - Color scheme object
-   * @param {boolean} selected - Whether layer is selected
+   * @param {boolean} selected - Whether media is selected
    */
   #drawTrack(start: number, length: number, trackY: number, height: number, colors: { fillColor: string; gradientColor: string; strokeColor: string; shadowColor: string }, selected: boolean) {
     const radius = height * 0.25;
@@ -115,7 +115,7 @@ export class TimelineLayer {
     this.ctx.roundRect(start + 2, trackY + 2, length, height, radius);
     this.ctx.fill();
 
-    // Draw the main layer track with gradient
+    // Draw the main media track with gradient
     this.ctx.fillStyle = gradient;
     this.ctx.strokeStyle = colors.strokeColor;
     this.ctx.lineWidth = selected ? 3 : 1.5;
@@ -127,12 +127,12 @@ export class TimelineLayer {
   }
 
   /**
-   * Draw resize handles on the layer
+   * Draw resize handles on the media
    * @param {number} start - Start x position
-   * @param {number} length - Width of the layer
+   * @param {number} length - Width of the media
    * @param {number} y_coord - Y coordinate center
    * @param {number} height - Height of the track
-   * @param {boolean} selected - Whether layer is selected
+   * @param {boolean} selected - Whether media is selected
    */
   #drawResizeHandles(start: number, length: number, y_coord: number, height: number, selected: boolean) {
     const handleWidth = 6;
@@ -158,9 +158,9 @@ export class TimelineLayer {
   }
 
   /**
-   * Draw layer name text
+   * Draw media name text
    * @param {number} start - Start x position
-   * @param {number} length - Width of the layer
+   * @param {number} length - Width of the media
    * @param {number} y_coord - Y coordinate center
    * @param {number} height - Height of the track
    */
@@ -193,21 +193,21 @@ export class TimelineLayer {
   }
 
   /**
-   * Main render method for the timeline layer
+   * Main render method for the timeline media
    * @param {number} yPos - The y coordinate to render at
-   * @param {number} height - The height of the layer track
-   * @param {boolean} selected - Whether the layer is selected
+   * @param {number} height - The height of the media track
+   * @param {boolean} selected - Whether the media is selected
    */
   render(yPos: number, height: number, selected = false) {
     if (!isFinite(yPos) || !isFinite(height) || height <= 0) {
-      console.warn("Invalid layer coordinates");
+      console.warn("Invalid media coordinates");
       return;
     }
 
     const { start, length } = this.#calculateDimensions();
 
     if (!isFinite(start) || !isFinite(length) || length <= 0) {
-      console.warn("Invalid layer position details");
+      console.warn("Invalid media position details");
       return;
     }
 
@@ -216,7 +216,7 @@ export class TimelineLayer {
     this.#drawTrack(start, length, trackY, height, colors, selected);
     this.#drawResizeHandles(start, length, yPos, height, selected);
 
-    // Draw layer type symbol if the layer is wide enough
+    // Draw media type symbol if the media is wide enough
     if (length > height * 2.5) {
       const symbolX = start + height * 0.8;
       const symbolY = yPos;

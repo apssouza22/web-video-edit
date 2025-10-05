@@ -7,7 +7,7 @@ Convert all JavaScript files in the `src/muxer/` folder to TypeScript while main
 
 ### Phase 1: Analysis & Type Definitions
 - [x] Analyze external dependencies and create type definitions for MediaBunny library
-- [x] Identify internal dependencies from studio, layer, and common modules
+- [x] Identify internal dependencies from studio, media, and common modules
 - [ ] Create interface definitions for configuration objects and callback functions
 - [ ] Set up proper import/export type declarations
 
@@ -34,7 +34,7 @@ Convert all JavaScript files in the `src/muxer/` folder to TypeScript while main
 ### Type Definitions
 - Web API types: `MediaRecorder`, `Canvas`, `AudioContext`, `MediaStream`
 - External library types: MediaBunny components and interfaces
-- Internal types: `VideoStudio`, `AudioLayer`, and other layer types
+- Internal types: `VideoStudio`, `AudioLayer`, and other media types
 - Configuration object interfaces
 - Callback function type definitions
 

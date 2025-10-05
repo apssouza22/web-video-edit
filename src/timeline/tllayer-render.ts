@@ -3,7 +3,7 @@ import type { StandardLayer } from './types';
 import type { TimelineLayer } from './timeline-layer';
 
 /**
- * Class responsible for managing timeline layer rendering using the new TimelineLayer system
+ * Class responsible for managing timeline media rendering using the new TimelineLayer system
  */
 export class TimelineLayerRender {
   ctx: CanvasRenderingContext2D;
@@ -20,7 +20,7 @@ export class TimelineLayerRender {
     this.ctx = ctx;
     this.totalTime = totalTime;
     this.canvasWidth = canvasWidth;
-    this.#layerRenderers = new Map(); // Cache for layer renderers
+    this.#layerRenderers = new Map(); // Cache for media renderers
   }
 
 
@@ -40,8 +40,8 @@ export class TimelineLayerRender {
   }
 
   /**
-   * Get or create a timeline layer renderer for the given layer
-   * @param {StandardLayer} layer - The layer to get renderer for
+   * Get or create a timeline media renderer for the given media
+   * @param {StandardLayer} layer - The media to get renderer for
    */
   #getLayerRenderer(layer: StandardLayer) {
     const layerId = layer.id;
@@ -60,11 +60,11 @@ export class TimelineLayerRender {
   }
 
   /**
-   * Render a single layer in the timeline
-   * @param {StandardLayer} layer - The layer to render
+   * Render a single media in the timeline
+   * @param {StandardLayer} layer - The media to render
    * @param {number} yPos - The y coordinate to render at
-   * @param {number} height - The height of the layer track
-   * @param {boolean} selected - Whether the layer is selected
+   * @param {number} height - The height of the media track
+   * @param {boolean} selected - Whether the media is selected
    */
   renderLayer(layer: StandardLayer, yPos: number, height: number, selected = false) {
     const renderer = this.#getLayerRenderer(layer);

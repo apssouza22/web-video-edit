@@ -25,7 +25,7 @@ export class MediaService {
   removeAudioInterval(startTime: number, endTime: number, audioLayers: AbstractMedia[]): void {
     try {
       if (audioLayers.length === 0) {
-        console.log('No audio layers found to remove interval from');
+        console.log('No audio medias found to remove interval from');
         return;
       }
       audioLayers.forEach((audioLayer, index) => {
@@ -73,7 +73,7 @@ export class MediaService {
   removeVideoInterval(startTime: number, endTime: number, videoLayers: AbstractMedia[]): void {
     try {
       if (videoLayers.length === 0) {
-        console.log('No video layers found to remove interval from');
+        console.log('No video medias found to remove interval from');
         return;
       }
       videoLayers.forEach((videoLayer, index) => {
@@ -88,7 +88,7 @@ export class MediaService {
   clone(layer: any): any | null {
     const newLayer = this.createClone(layer);
     if (!newLayer) {
-      console.error('Cannot clone layer of type:', layer.constructor.name);
+      console.error('Cannot clone media of type:', layer.constructor.name);
       return null;
     }
 

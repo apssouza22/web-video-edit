@@ -56,8 +56,8 @@ export class Timeline {
     this.timelineHolder.appendChild(this.timelineCanvas);
 
     // Configuration for timeline elements
-    this.layerHeight = 35; // Height per layer
-    this.minLayerSpacing = 10; // Minimum space between layers
+    this.layerHeight = 35; // Height per media
+    this.minLayerSpacing = 10; // Minimum space between medias
     this.contentPadding = 15; // Padding around content
 
     this.timeMarker = new TimeMarker({
@@ -94,8 +94,8 @@ export class Timeline {
   }
 
   /**
-   * Add a listener for layer updates
-   * @param {Function} listener - Function to call when layer updates occur
+   * Add a listener for media updates
+   * @param {Function} listener - Function to call when media updates occur
    * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, handler)
    */
   addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void) {
@@ -107,7 +107,7 @@ export class Timeline {
 
   /**
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
-   * @param {StandardLayer|null} newSelectedLayer - The new selected layer
+   * @param {StandardLayer|null} newSelectedLayer - The new selected media
    */
   setSelectedLayer(newSelectedLayer: StandardLayer) {
     const oldSelectedLayer = this.selectedLayer;
@@ -169,7 +169,7 @@ export class Timeline {
 
     deleteButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
-        console.log('No layer selected. Please select a layer first.');
+        console.log('No media selected. Please select a media first.');
         return;
       }
       this.layerUpdateListener('delete', this.selectedLayer);
@@ -178,7 +178,7 @@ export class Timeline {
 
     splitButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
-        console.log('No layer selected. Please select a layer first.');
+        console.log('No media selected. Please select a media first.');
         return;
       }
       this.layerUpdateListener('split', this.selectedLayer);
@@ -187,7 +187,7 @@ export class Timeline {
 
     cloneButton.addEventListener('click', () => {
       if (!this.selectedLayer) {
-        console.log('No layer selected. Please select a layer first.');
+        console.log('No media selected. Please select a media first.');
         return;
       }
       this.layerUpdateListener('clone', this.selectedLayer);
@@ -196,7 +196,7 @@ export class Timeline {
   }
 
   /**
-   * Resize the timeline canvas based on the scale factor and number of layers
+   * Resize the timeline canvas based on the scale factor and number of medias
    */
   resize() {
     (this.timelineCanvas.style as any).width = this.timelineHolder.clientWidth * this.scale;
@@ -209,7 +209,7 @@ export class Timeline {
   /**
    * Start scrubbing at a specific event position
    * @param {Event} ev - The pointer event
-   * @returns {boolean} - Whether a layer was selected
+   * @returns {boolean} - Whether a media was selected
    */
   #onPointerDown(ev: PointerEvent) {
     window.addEventListener('pointerup', this.#onPointerLeave.bind(this), {
@@ -312,14 +312,14 @@ export class Timeline {
   }
 
   /**
-   * Render all layers in the timeline
+   * Render all medias in the timeline
    */
   render() {
     this.timelineCtx.clearRect(0, 0, this.timelineCanvas.clientWidth, this.timelineCanvas.clientHeight);
     this.#updateTotalTime(this.layers);
     this.layerRenderer.updateProperties(this.totalTime, this.timelineCanvas.clientWidth);
 
-    // Skip rendering if no layers or invalid canvas dimensions
+    // Skip rendering if no medias or invalid canvas dimensions
     if (this.layers.length === 0 || this.timelineCanvas.clientHeight <= 0 || this.timelineCanvas.clientWidth <= 0) {
       this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
       return;
@@ -354,9 +354,9 @@ export class Timeline {
   }
 
   /**
-   * Select a layer based on the event position with updated top-down positioning
+   * Select a media based on the event position with updated top-down positioning
    * @param {Event} ev - The pointer event
-   * @returns {boolean} - Whether a layer was selected
+   * @returns {boolean} - Whether a media was selected
    */
   #selectLayer(ev: PointerEvent) {
     const layerSpacing = this.minLayerSpacing + this.layerHeight;
@@ -368,7 +368,7 @@ export class Timeline {
         continue;
       }
 
-      // Check if click is within the layer's vertical bounds
+      // Check if click is within the media's vertical bounds
       const layerTop = yPos - this.layerHeight / 2;
       const layerBottom = yPos + this.layerHeight / 2;
 
@@ -383,10 +383,10 @@ export class Timeline {
   }
 
   /**
-   * Ensures that only layers overlapping or near the current time (with a small margin of 1%)
+   * Ensures that only medias overlapping or near the current time (with a small margin of 1%)
    * are considered for further processing. Layers outside this range are ignored.
-   * @param {StandardLayer} layer - The layer to check
-   * @returns {boolean} - Whether the layer can be selected
+   * @param {StandardLayer} layer - The media to check
+   * @returns {boolean} - Whether the media can be selected
    */
   #canSelectLayer(layer: StandardLayer) {
     if (layer.start_time > (1.01 * this.time)) {
@@ -454,8 +454,8 @@ export class Timeline {
   }
 
   /**
-   * Reorder layers in the timeline
-   * @param {StandardLayer} layer - The layer that was reordered
+   * Reorder medias in the timeline
+   * @param {StandardLayer} layer - The media that was reordered
    * @param {Object} reorderData - Contains fromIndex and toIndex
    */
   reorderLayer(layer: StandardLayer, reorderData: { fromIndex: number; toIndex: number }) {

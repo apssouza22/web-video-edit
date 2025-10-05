@@ -3,7 +3,7 @@ import {Frame} from '@/frame';
 import {AbstractMedia} from "@/media/media-common";
 
 /**
- * Handles speed control calculations and frame manipulation for video layers
+ * Handles speed control calculations and frame manipulation for video medias
  */
 export class SpeedController {
   private layer: AbstractMedia;
@@ -17,7 +17,7 @@ export class SpeedController {
   }
 
   /**
-   * Set the playback speed for the layer
+   * Set the playback speed for the media
    */
   setSpeed(speed: number): void {
     if (speed <= 0) {
@@ -30,7 +30,7 @@ export class SpeedController {
     }
     this.currentSpeed = speed;
 
-    // check if layer is AudioLayer
+    // check if media is AudioLayer
     if (this.layer.audioBuffer !== null) {
       return;
     }
@@ -152,7 +152,7 @@ export class SpeedController {
   }
 
   /**
-   * Update layer duration based on speed
+   * Update media duration based on speed
    */
   #updateLayerDuration(speed: number): void {
     if (this.originalFrames) {

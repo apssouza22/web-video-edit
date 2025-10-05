@@ -1,11 +1,11 @@
 import { TimelineLayer } from '../timeline-layer';
 
 /**
- * Timeline layer renderer for text layers
+ * Timeline media renderer for text medias
  */
 export class TextTimelineLayer extends TimelineLayer {
   /**
-   * Get the color scheme for text layers
+   * Get the color scheme for text medias
    * @returns {Object} - Object containing baseColor, gradientColor, selectedColor, selectedGradient
    */
   getLayerColors() {

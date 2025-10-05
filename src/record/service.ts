@@ -426,7 +426,7 @@ export class UserMediaRecordingService {
   }
 
   /**
-   * Integrate recorded video into the studio's layer system
+   * Integrate recorded video into the studio's media system
    */
   #createVideoFile(videoBlob: Blob): File {
     try {
@@ -445,7 +445,7 @@ export class UserMediaRecordingService {
       (file as any).uri = videoUrl;
       return file;
     } catch (error) {
-      console.error('Error adding video to layers:', error);
+      console.error('Error adding video to medias:', error);
       throw error;
     }
   }

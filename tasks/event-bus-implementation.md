@@ -27,11 +27,11 @@ Based on codebase analysis, the following events need to be supported:
 
 ### Player Events
 - `player:timeUpdate` - Time position changes (newTime, oldTime)
-- `player:layerTransformed` - Layer transformation (layer)
+- `player:layerTransformed` - Layer transformation (media)
 
 ### Timeline Events
 - `timeline:timeUpdate` - Timeline scrubbing (newTime, oldTime)
-- `timeline:layerUpdate` - Layer actions (action, layer, oldLayer, extra)
+- `timeline:layerUpdate` - Layer actions (action, media, oldLayer, extra)
 
 ### Transcription Events
 - `transcription:removeInterval` - Remove time interval (startTime, endTime)
@@ -42,7 +42,7 @@ Based on codebase analysis, the following events need to be supported:
 - `ui:aspectRatioChange` - Aspect ratio change (ratio, oldRatio)
 
 ### Media Events
-- `media:loadUpdate` - Layer loading progress (layer, progress, ctx, audioBuffer)
+- `media:loadUpdate` - Layer loading progress (media, progress, ctx, audioBuffer)
 
 ## Notes
 - Follow repository coding style (PascalCase for classes, camelCase for methods, # for private)

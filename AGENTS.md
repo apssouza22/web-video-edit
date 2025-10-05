@@ -32,7 +32,7 @@ Avoid comments describing functionality ensure self describing code
 ## Coding Style & Naming Conventions
 - Language: Vanilla JS (ES modules), browser-first. Avoid Node-only APIs in `src`.
 - Indentation: 2 spaces; line width ~100 chars.
-- Filenames/dirs: kebab-case (e.g., `layer-image.js`, `video-export.js`).
+- Filenames/dirs: kebab-case (e.g., `media-image.js`, `video-export.js`).
 - Symbols: `camelCase` for functions/vars, `PascalCase` for classes, `UPPER_SNAKE_CASE` for constants.
 - Module imports: relative from `src`. In tests, `@/` maps to `src/` via Jest.
 

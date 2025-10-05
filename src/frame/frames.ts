@@ -144,7 +144,7 @@ export class FrameService {
   }
 
   /**
-   * Gets frame considering speed multiplier from the layer's speed controller
+   * Gets frame considering speed multiplier from the media's speed controller
    */
   getFrameWithSpeed(referenceTime: number, startTime: number, speed: number = 1.0): Frame | null {
     if (speed === 1.0) {

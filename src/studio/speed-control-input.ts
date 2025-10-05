@@ -9,7 +9,7 @@ type SpeedChangeCallback = (speed: number) => void;
 
 /**
  * Speed Control Input Component
- * Provides UI for controlling layer playback speed with validation and presets
+ * Provides UI for controlling media playback speed with validation and presets
  */
 export class SpeedControlInput {
   #container: HTMLDivElement | null = null;
@@ -30,7 +30,7 @@ export class SpeedControlInput {
   }
 
   /**
-   * Set the current layer
+   * Set the current media
    */
   setLayer(layer: StandardLayer): void {
     this.#currentLayer = layer;
@@ -116,7 +116,7 @@ export class SpeedControlInput {
     }
     if (event.key === 'Escape') {
       event.preventDefault();
-      // Reset to current layer speed
+      // Reset to current media speed
       const currentSpeed = this.#currentLayer ? this.#currentLayer.getSpeed() : 1.0;
       this.#input!.value = currentSpeed.toFixed(2);
       this.#input!.blur();

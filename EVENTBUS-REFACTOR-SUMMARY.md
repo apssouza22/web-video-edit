@@ -67,7 +67,7 @@ export class TimelineLayerUpdateEvent extends BaseEvent {
   readonly name = 'timeline:layerUpdate';
   constructor(
     public action: LayerUpdateKind,
-    public layer: StandardLayer,
+    public media: StandardLayer,
     public oldLayer?: StandardLayer,
     public extra?: LayerReorderData
   ) {
@@ -119,14 +119,14 @@ class EventBus {
 | Event Class | Constructor Parameters | Use Case |
 |------------|----------------------|----------|
 | `PlayerTimeUpdateEvent` | `newTime`, `oldTime` | Player time changes |
-| `PlayerLayerTransformedEvent` | `layer` | Layer transformation |
+| `PlayerLayerTransformedEvent` | `media` | Layer transformation |
 | `TimelineTimeUpdateEvent` | `newTime`, `oldTime` | Timeline scrubbing |
-| `TimelineLayerUpdateEvent` | `action`, `layer`, `oldLayer?`, `extra?` | Layer actions |
+| `TimelineLayerUpdateEvent` | `action`, `media`, `oldLayer?`, `extra?` | Layer actions |
 | `TranscriptionRemoveIntervalEvent` | `startTime`, `endTime` | Remove interval |
 | `TranscriptionSeekEvent` | `timestamp` | Seek to time |
 | `UiSpeedChangeEvent` | `speed` | Speed change |
 | `UiAspectRatioChangeEvent` | `ratio`, `oldRatio?` | Aspect ratio change |
-| `MediaLoadUpdateEvent` | `layer`, `progress`, `ctx?`, `audioBuffer?` | Media loading |
+| `MediaLoadUpdateEvent` | `media`, `progress`, `ctx?`, `audioBuffer?` | Media loading |
 
 ---
 
@@ -232,7 +232,7 @@ eventBus.subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, (payload) => {
 eventBus.subscribe(TimelineLayerUpdateEvent, (event) => {
   // Hover over event to see all properties
   event.action
-  event.layer
+  event.media
   event.oldLayer
   event.extra
 });
@@ -372,7 +372,7 @@ This allows us to:
 ### Files Modified
 - ✅ `src/common/event-bus.ts` - Refactored to use event classes
 - ✅ `src/common/index.ts` - Export event classes
-- ✅ `src/player/player.ts` - Emit event classes
+- ✅ `src/player/canvas.ts` - Emit event classes
 - ✅ `src/timeline/timeline.ts` - Emit event classes
 - ✅ `src/transcription/transcription.ts` - Emit event classes
 - ✅ `src/studio/speed-control-input.ts` - Emit event classes

@@ -1,7 +1,7 @@
 import { FrameService } from './frames';
 
 /**
- * Creates a FrameService instance for managing frames in a video layer.
+ * Creates a FrameService instance for managing frames in a video media.
  */
 export function createFrameService(
   startTime: number,
