@@ -5,7 +5,7 @@ import {Canvas2DRender} from "@/common/render-2d";
 
 type Callback = (progress: number, metadata: VideoMetadata | null) => void;
 
-export class MediaVideoLoader {
+export class VideoLoader {
   private videoDemuxer: VideoDemuxService;
   private reader?: FileReader;
   private callback: Callback = (progress: number, metadata: VideoMetadata | null) => {};
@@ -32,7 +32,7 @@ export class MediaVideoLoader {
     });
   }
 
-  private loadVideo(file: LayerFile, callback: Callback): void {
+  loadVideo(file: LayerFile, callback: Callback): void {
     this.callback = callback;
     if (file.uri !== null && file.uri !== undefined) {
       this.videoDemuxer.initDemux(file, this.renderer);
@@ -50,7 +50,4 @@ export class MediaVideoLoader {
     this.reader.readAsDataURL(file as File);
   }
 
-  static loadVideo(file: LayerFile, callback: OmitThisParameter<(progress: number, metadata: (VideoMetadata | null)) => void>) {
-    new this().loadVideo(file, callback);
-  }
 }

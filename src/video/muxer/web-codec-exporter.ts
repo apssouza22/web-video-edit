@@ -1,15 +1,15 @@
-import type { VideoStudio } from '@/studio';
+import type {VideoStudio} from '@/studio';
 
 
 import {
-  CanvasSource,
-  AudioBufferSource,
-  Mp4OutputFormat,
-  Output,
-  BufferTarget,
-  QUALITY_HIGH,
-  getFirstEncodableVideoCodec,
-  getFirstEncodableAudioCodec,
+    AudioBufferSource,
+    BufferTarget,
+    CanvasSource,
+    getFirstEncodableAudioCodec,
+    getFirstEncodableVideoCodec,
+    Mp4OutputFormat,
+    Output,
+    QUALITY_HIGH,
 } from "mediabunny";
 import {AbstractMedia, isMediaAudio} from "@/media";
 
@@ -25,7 +25,7 @@ export class WebCodecExporter {
     private readonly exportWidth: number = 1920;
     private readonly exportHeight: number = 1080;
     private readonly studio: VideoStudio;
-    private output: Output | null = null;
+    private output:  Output<Mp4OutputFormat, BufferTarget> | null = null;
     private canvasSource: CanvasSource | null = null;
     private audioBufferSource: AudioBufferSource | null = null;
     private isEncoding: boolean = false;
@@ -42,14 +42,16 @@ export class WebCodecExporter {
 
     constructor(studio: VideoStudio) {
         this.studio = studio;
+        this.output = new Output({
+            target: new BufferTarget(),
+            format: new Mp4OutputFormat(),
+        });
     }
 
     /**
      * Start the export process using MediaBunny library with BufferTarget approach
      */
     async export(
-        exportButton: HTMLElement,
-        tempText: string,
         progressCallback: ProgressCallback | null = null,
         completionCallback: CompletionCallback | null = null
     ): Promise<void> {
@@ -124,14 +126,14 @@ export class WebCodecExporter {
         const exportWidth = this.recordingCanvas.width;
         const exportHeight = this.recordingCanvas.height;
 
+        const options = {
+            width: exportWidth,
+            height: exportHeight,
+            bitrate: QUALITY_HIGH
+        };
         const videoCodec = await getFirstEncodableVideoCodec(
             this.output.format.getSupportedVideoCodecs(),
-            {
-                width: exportWidth,
-                height: exportHeight,
-                framerate: this.frameRate,
-                bitrate: QUALITY_HIGH
-            }
+            options
         );
 
         if (!videoCodec) {
@@ -141,7 +143,6 @@ export class WebCodecExporter {
         console.log('🎥 Using video codec:', videoCodec);
         console.log(`🎥 Export resolution: ${exportWidth}x${exportHeight}`);
 
-        // Create canvas source with detected codec
         this.canvasSource = new CanvasSource(this.recordingCanvas, {
             codec: videoCodec,
             bitrate: QUALITY_HIGH,
@@ -279,7 +280,7 @@ export class WebCodecExporter {
         }
 
         console.log('📁 Creating final MP4 file...');
-        const videoBlob = new Blob([this.output.target.buffer], { type: 'video/mp4' });
+        const videoBlob = new Blob([this.output.target.buffer!], { type: 'video/mp4' });
 
         // Create download link
         const url = URL.createObjectURL(videoBlob);

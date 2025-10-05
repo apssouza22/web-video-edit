@@ -1,8 +1,7 @@
-import {createFrameService} from '@/frame';
-import {Frame} from "@/frame";
+import {createFrameService, Frame} from '@/frame';
 import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
-import {MediaVideoLoader} from "@/video/media-video-loader";
+import {loadVideo} from "@/video";
 
 export class VideoLayer extends AbstractMedia {
 
@@ -15,7 +14,7 @@ export class VideoLayer extends AbstractMedia {
       return;
     }
 
-    MediaVideoLoader.loadVideo(file, this.onVideoLoadUpdateCallback.bind(this));
+    loadVideo(file, this.onVideoLoadUpdateCallback.bind(this));
   }
 
   private onVideoLoadUpdateCallback(progress: number, metadata: VideoMetadata | null) {

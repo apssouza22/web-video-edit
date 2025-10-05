@@ -52,7 +52,6 @@ declare global {
 
 export function exportToJson(): void {
     const date = new Date().getTime();
-    
     const text = document.createElement('div');
     const preamble = document.createElement('span');
     preamble.textContent = "Click on the link below to download the json file:";

@@ -9,14 +9,14 @@ import {PinchHandler} from './pinch-handler';
 import {DragItemHandler} from './drag-handler';
 import {ControlsHandler} from './control-handler';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
-import {uploadSupportedType} from './utils';
+import {exportToJson, uploadSupportedType} from './utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {Timeline} from "@/timeline/timeline";
 import {StudioState} from "@/common/studio-state";
-import {VideoExportService} from "@/video/muxer/video-export";
+import {VideoExportService} from "@/video/muxer/video-export-service";
 
 /**
  * Update data structure for layer transformations
@@ -77,10 +77,50 @@ export class VideoStudio {
   }
 
   init(): void {
-    this.videoExporter.init();
+    this.setUpVideoExport()
     this.controls.init();
     this.transcriptionManager.loadModel();
     this.speedControlManager.init();
+  }
+
+  private setUpVideoExport() {
+    const exportButton = document.getElementById('export');
+    if (!exportButton) {
+      return;
+    }
+    const exportId = 'video-export';
+    exportButton.addEventListener('click', (ev: MouseEvent) => {
+      if (ev.shiftKey) {
+        exportToJson();
+        return;
+      }
+      if (this.getLayers().length === 0) {
+        alert("Nothing to export.");
+        return;
+      }
+
+      this.loadingPopup.startLoading(exportId, '', 'Exporting Video...');
+
+      const exportButton = document.getElementById('export') as HTMLButtonElement;
+      if (!exportButton) {
+        console.error('Export button not found');
+        return;
+      }
+
+      const tempText = exportButton.textContent || 'Export';
+      exportButton.textContent = "Exporting...";
+
+      const progressCallback = (progress: number): void => {
+        this.loadingPopup.updateProgress(exportId, progress);
+      };
+
+      const completionCallback = (): void => {
+        exportButton.textContent = tempText;
+        this.loadingPopup.updateProgress(exportId, 100);
+      };
+
+      this.videoExporter.export(progressCallback, completionCallback);
+    });
   }
 
   getMediaById(id: string): AbstractMedia | null {

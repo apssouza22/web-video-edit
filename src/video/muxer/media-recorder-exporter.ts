@@ -31,8 +31,6 @@ export class MediaRecorderExporter {
      * Start the export process using MediaRecorder without playing in the main player
      */
     export(
-        exportButton: HTMLElement,
-        tempText: string,
         progressCallback: ProgressCallback | null = null,
         completionCallback: CompletionCallback | null = null
     ): void {

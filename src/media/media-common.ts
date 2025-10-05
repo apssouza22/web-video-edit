@@ -60,6 +60,10 @@ export abstract class AbstractMedia {
     this.updateName(this.name);
   }
 
+  playStart(time: number): void {
+    // This is a no-op for non-audio layers
+  }
+
   // Getters for backward compatibility
   get canvas(): HTMLCanvasElement | OffscreenCanvas {
     return this.renderer.canvas;

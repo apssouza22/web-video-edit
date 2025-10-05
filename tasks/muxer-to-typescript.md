@@ -13,7 +13,7 @@ Convert all JavaScript files in the `src/muxer/` folder to TypeScript while main
 
 ### Phase 2: Core File Conversions
 - [x] Convert `index.js` to `index.ts` - Simple factory function
-- [x] Convert `video-export.js` to `video-export.ts` - Main service coordinator class
+- [x] Convert `video-export.js` to `video-export-service.ts` - Main service coordinator class
 - [x] Convert `media-recorder-exporter.js` to `media-recorder-exporter.ts` - MediaRecorder API implementation
 - [x] Convert `web-codec-exporter.js` to `web-codec-exporter.ts` - MediaBunny library implementation
 
@@ -53,7 +53,7 @@ Convert all JavaScript files in the `src/muxer/` folder to TypeScript while main
 ## Files to Convert
 
 1. **index.js** → **index.ts** (3 lines) - Export factory function
-2. **video-export.js** → **video-export.ts** (67 lines) - Main export service
+2. **video-export.js** → **video-export-service.ts** (67 lines) - Main export service
 3. **media-recorder-exporter.js** → **media-recorder-exporter.ts** (294 lines) - MediaRecorder implementation
 4. **web-codec-exporter.js** → **web-codec-exporter.ts** (324 lines) - MediaBunny implementation
 5. **test.js** → **test.ts** (221 lines) - MediaRecorder demo
@@ -72,7 +72,7 @@ All JavaScript files in the muxer folder have been successfully converted to Typ
 
 ### Files Converted:
 1. **index.js** → **index.ts** ✅ - Factory function with type-safe VideoStudio parameter
-2. **video-export.js** → **video-export.ts** ✅ - Main service with proper event handling types
+2. **video-export.js** → **video-export-service.ts** ✅ - Main service with proper event handling types
 3. **media-recorder-exporter.js** → **media-recorder-exporter.ts** ✅ - MediaRecorder API with comprehensive typing
 4. **web-codec-exporter.js** → **web-codec-exporter.ts** ✅ - MediaBunny integration with custom type definitions
 5. **test.js** → **test.ts** ✅ - MediaRecorder demo with full DOM typing
