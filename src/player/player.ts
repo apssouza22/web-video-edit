@@ -13,7 +13,6 @@ import { getEventBus, PlayerTimeUpdateEvent, PlayerLayerTransformedEvent } from 
 
 export class VideoPlayer {
   #selectedLayer: AbstractMedia | null = null;
-  #contentScaleFactor = 0.9; // Scale content to 90% to create 10% margin
   #eventBus = getEventBus();
 
   public playing = false;
@@ -162,35 +161,12 @@ export class VideoPlayer {
 
   renderLayers(): void {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.#addPaddingToCanvas();
 
     for (const layer of this.layers) {
       layer.render(this.ctx, this.time, this.playing);
     }
 
     this.ctx.restore();
-  }
-
-  /**
-   * Add some buffering to the canvas so we can transform the content
-   * Without this, we can not see the layer boundaries
-   */
-  #addPaddingToCanvas(): void {
-    this.ctx.save();
-
-    // Calculate the offset to center the scaled content
-    const canvasWidth = this.ctx.canvas.clientWidth;
-    const canvasHeight = this.ctx.canvas.clientHeight;
-
-    const offsetX = (canvasWidth * (1 - this.#contentScaleFactor)) / 2;
-    const offsetY = (canvasHeight * (1 - this.#contentScaleFactor)) / 2;
-
-    this.ctx.translate(offsetX, offsetY);
-    this.ctx.scale(this.#contentScaleFactor, this.#contentScaleFactor);
-
-    // Paint the background white
-    this.ctx.fillStyle = 'white';
-    this.ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
   #updateTotalTime(): void {

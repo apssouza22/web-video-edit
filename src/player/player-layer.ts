@@ -4,8 +4,7 @@ import {
   TransformHandle, 
   Point2D, 
   Bounds, 
-  HitTestResult, 
-  DragState, 
+  HitTestResult,
   CanvasPosition, 
   HandlePosition,
   LayerTransformedListener,
@@ -18,7 +17,6 @@ export class PlayerLayer {
   #layer: AbstractMedia;
   #selected = false;
   #canvas: CanvasElement;
-  #ctx: CanvasContext2D;
   #transforming = false;
   #transformType: HandleType | null = null;
   #dragStart: Point2D = { x: 0, y: 0 };
@@ -27,7 +25,6 @@ export class PlayerLayer {
   #rotationHandle: TransformHandle | null = null;
   #onTransformCallback: LayerTransformedListener | null = null;
   #currentTime = 0;
-  #contentScaleFactor = 0.9; // Match the scale factor from VideoPlayer
 
   /**
    * Class to handle transformations of a layer in the player.
@@ -35,11 +32,6 @@ export class PlayerLayer {
   constructor(layer: AbstractMedia, canvas: CanvasElement) {
     this.#layer = layer;
     this.#canvas = canvas;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Unable to get 2D context from canvas');
-    }
-    this.#ctx = ctx;
     this.#initializeHandles();
     this.#setupEventListeners();
   }
@@ -122,19 +114,7 @@ export class PlayerLayer {
     const rect = this.#canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-
-    // Convert to canvas coordinates
-    const canvasX = x * (this.#canvas.width / rect.width);
-    const canvasY = y * (this.#canvas.height / rect.height);
-    
-    // The layer is scaled down 10%, so we need to adjust the coordinates accordingly
-    const offsetX = (this.#canvas.width * (1 - this.#contentScaleFactor)) / 2;
-    const offsetY = (this.#canvas.height * (1 - this.#contentScaleFactor)) / 2;
-    
-    const scaledX = (canvasX - offsetX) / this.#contentScaleFactor;
-    const scaledY = (canvasY - offsetY) / this.#contentScaleFactor;
-    
-    return { canvasX: scaledX, canvasY: scaledY };
+    return { canvasX: x, canvasY: y };
   }
 
   /**

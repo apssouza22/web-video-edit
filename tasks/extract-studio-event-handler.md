@@ -22,3 +22,5 @@ Task: Create a new class and move all the event setup from the studio.ts into th
   - [ ] Remove `#setupEventBusListeners()` method
 
 - [ ] Verify the refactoring works correctly
+
+
