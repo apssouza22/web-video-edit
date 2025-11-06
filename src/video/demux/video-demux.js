@@ -5,17 +5,15 @@ import {CodecDemuxer} from "./codec-demuxer.js";
  * Service for video demuxing
  */
 export class VideoDemuxService {
-  useHtmlDemux;
 
   /**
    * Create a new VideoDemuxService instance
    * @param {HTMLVideoDemuxer} htmlVideoDemuxer
    * @param {CodecDemuxer} codecDemuxer
    */
-  constructor(htmlVideoDemuxer, codecDemuxer, useHtmlDemux = false) {
+  constructor(htmlVideoDemuxer, codecDemuxer) {
     this.htmlVideoDemuxer = htmlVideoDemuxer;
     this.codecDemuxer = codecDemuxer;
-    this.useHtmlDemux = useHtmlDemux;
   }
 
   /**
@@ -52,11 +50,11 @@ export class VideoDemuxService {
    * @param {Canvas2DRender} renderer - Renderer
    */
   async initDemux(file, renderer) {
-    if (!this.#checkWebCodecsSupport()) {
-      this.htmlVideoDemuxer.initialize(file, renderer);
+    if (this.#checkWebCodecsSupport() && file.name.endsWith('.mp4')) {
+      await this.codecDemuxer.initialize(file, renderer);
       return;
     }
-    await this.codecDemuxer.initialize(file, renderer);
+    this.htmlVideoDemuxer.initialize(file, renderer);
   }
 
   cleanup() {
@@ -65,9 +63,6 @@ export class VideoDemuxService {
   }
 
   #checkWebCodecsSupport() {
-    if( this.useHtmlDemux) {
-      return false; // Force HTML demuxer if specified
-    }
     return typeof VideoDecoder !== 'undefined' &&
         typeof VideoFrame !== 'undefined' &&
         typeof EncodedVideoChunk !== 'undefined';

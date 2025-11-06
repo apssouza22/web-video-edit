@@ -1,21 +1,12 @@
-import {popup} from "../studio/index";
+import {popup} from "@/studio/utils";
 import {createUserMediaRecordingService} from "./index";
+import {UserMediaRecordingService} from "@/record/service";
 
 // Interface for error objects with user messages
 interface RecordingError extends Error {
   userMessage?: string;
 }
 
-// Interface for UserMediaRecordingService to avoid circular dependency
-interface UserMediaRecordingService {
-  addOnVideoFileCreatedListener(callback: (videoFile: File) => void): void;
-
-  startScreenCapture(): Promise<void>;
-
-  startCameraCapture(): Promise<void>;
-
-  stopRecording(): Promise<void>;
-}
 
 export class RecordingControls {
   // Private properties
@@ -43,11 +34,6 @@ export class RecordingControls {
     this.#recordScreenBtn?.addEventListener('click', this.#startScreenRecording.bind(this));
     this.#recordVideoBtn?.addEventListener('click', this.#startCameraRecording.bind(this));
     this.#stopBtn?.addEventListener('click', this.#stopRecording.bind(this));
-
-
-    this.#userMediaRecorder.addOnVideoFileCreatedListener((videoFile: File) => {
-      (window as any).studio.addLayerFromFile(videoFile, true);
-    });
   }
 
   #toggleDropdown(event: Event): void {

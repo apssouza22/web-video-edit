@@ -13,7 +13,7 @@ export class VideoLoader {
   private renderer = new Canvas2DRender();
 
   constructor() {
-    this.videoDemuxer = createDemuxer(false);
+    this.videoDemuxer = createDemuxer();
     this.#setupDemuxerCallbacks();
   }
 
@@ -32,10 +32,10 @@ export class VideoLoader {
     });
   }
 
-  loadVideo(file: LayerFile, callback: Callback): void {
+  async loadVideo(file: LayerFile, callback: Callback): Promise<void> {
     this.callback = callback;
     if (file.uri !== null && file.uri !== undefined) {
-      this.videoDemuxer.initDemux(file, this.renderer);
+      await this.videoDemuxer.initDemux(file, this.renderer);
       return;
     }
 

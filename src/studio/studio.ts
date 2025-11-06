@@ -291,7 +291,7 @@ export class VideoStudio {
     filePicker.click();
   }
 
-  private addLayerFromFile(file: File, useHtmlDemux: boolean = false): AbstractMedia[] {
+  public addLayerFromFile(file: File): AbstractMedia[] {
     const layers = this.layerLoader.addLayerFromFile(file, this.#onLayerLoadUpdate.bind(this));
 
     layers.forEach(layer => {

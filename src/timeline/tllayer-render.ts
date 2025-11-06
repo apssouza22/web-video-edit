@@ -67,6 +67,9 @@ export class TimelineLayerRender {
    * @param {boolean} selected - Whether the media is selected
    */
   renderLayer(layer: StandardLayer, yPos: number, height: number, selected = false) {
+    if(layer.totalTimeInMilSeconds === 0) {
+      return;
+    }
     const renderer = this.#getLayerRenderer(layer);
     if(renderer) {
       renderer.render(yPos, height, selected);

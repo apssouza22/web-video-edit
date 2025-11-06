@@ -57,10 +57,11 @@ export class HTMLVideoDemuxer {
     this.video.setAttribute('loop', false);
     this.video.setAttribute('playsinline', true);
     this.video.setAttribute('muted', true);
-    this.video.setAttribute('preload', 'metadata');
+    this.video.setAttribute('preload', 'auto');
     addElementToBackground(this.video);
     this.video.addEventListener('loadedmetadata', this.#onLoadMetadata.bind(this));
     this.video.src = this.fileSrc;
+
   }
   async #onLoadMetadata() {
     const width = this.video.videoWidth;
@@ -84,11 +85,41 @@ export class HTMLVideoDemuxer {
       });
     }
 
+    await this.#waitForVideoReady();
     await this.#convertToArrayBufferOptimized();
   }
-  async #seekWithTimeout(time, timeout = 500) {
+
+  async #waitForVideoReady() {
+    return new Promise((resolve) => {
+      if (this.video.readyState >= 2) {
+        console.log('Video ready for seeking, readyState:', this.video.readyState);
+        resolve();
+        return;
+      }
+
+      const onCanPlay = () => {
+        console.log('Video can play, readyState:', this.video.readyState);
+        this.video.removeEventListener('canplay', onCanPlay);
+        this.video.removeEventListener('canplaythrough', onCanPlay);
+        resolve();
+      };
+
+      this.video.addEventListener('canplay', onCanPlay, {once: true});
+      this.video.addEventListener('canplaythrough', onCanPlay, {once: true});
+      
+      setTimeout(() => {
+        this.video.removeEventListener('canplay', onCanPlay);
+        this.video.removeEventListener('canplaythrough', onCanPlay);
+        console.log('Video ready timeout, continuing anyway. readyState:', this.video.readyState);
+        resolve();
+      }, 3000);
+    });
+  }
+  async #seekWithTimeout(time, timeout = 2000) {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
+        this.video.removeEventListener('seeked', onSeeked);
+        console.warn(`Seek timeout for time ${time}, readyState: ${this.video.readyState}`);
         reject(new Error(`Seek timeout for time ${time}`));
       }, timeout);
 
@@ -107,7 +138,6 @@ export class HTMLVideoDemuxer {
   }
   async #convertToArrayBufferOptimized(optimizedFps = null) {
     const actualFps = optimizedFps || this.optimizedFPS;
-    this.video.pause();
     await this.#loadInitialFrames(actualFps, this.video.duration);
   }
 

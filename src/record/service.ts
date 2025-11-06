@@ -1,6 +1,7 @@
 import {RecordingPreview} from './preview';
-import {checkBrowserSupport} from "../common/browser-support";
+import {checkBrowserSupport} from "@/common/browser-support";
 import {fixWebmDuration} from "@/common/utils";
+import {getEventBus, RecordVideoFileCreatedEvent} from '@/common/event-bus';
 
 interface RecordingData {
   isRecording: boolean;
@@ -72,8 +73,8 @@ export class UserMediaRecordingService {
   #recordingStartTime: number | null = null;
   #recordingDuration: number = 0;
   #totalFileSize: number = 0;
-  #onVideoFileCreatedCallback: (file: File) => void = () => {};
   #originalStreams: StreamCombination | null = null;
+  #eventBus = getEventBus();
   
   public isRecording: boolean = false;
 
@@ -89,13 +90,6 @@ export class UserMediaRecordingService {
     this.#recordingDuration = 0;
     this.#totalFileSize = 0;
     this.#originalStreams = null;
-  }
-
-  addOnVideoFileCreatedListener(callback: (file: File) => void): void {
-    if (typeof callback !== 'function') {
-      throw new Error('Callback must be a function');
-    }
-    this.#onVideoFileCreatedCallback = callback;
   }
 
   /**
@@ -209,14 +203,15 @@ export class UserMediaRecordingService {
         }
         const partialBlob = await this.#createVideoBlob();
         if (partialBlob) {
-          this.#onVideoFileCreatedCallback(this.#createVideoFile(partialBlob));
+          const videoFile = this.#createVideoFile(partialBlob);
+          this.#eventBus.emit(new RecordVideoFileCreatedEvent(videoFile));
           console.log('Partial recording saved:', partialBlob.size, 'bytes');
         }
       }
     } catch (cleanupError) {
       console.error('Error during interruption cleanup:', cleanupError);
     } finally {
-      this.#cleanup();
+      this.#cleanupRecordingResources();
     }
   }
 
@@ -323,8 +318,8 @@ export class UserMediaRecordingService {
       if (videoBlob) {
         console.log('Processing recorded data - State: processing → complete');
         const videoFile = this.#createVideoFile(videoBlob);
-        this.#onVideoFileCreatedCallback(videoFile);
-        this.#cleanup();
+        this.#eventBus.emit(new RecordVideoFileCreatedEvent(videoFile));
+        this.#cleanupRecordingResources();
       } else {
         throw new Error('Failed to create video blob from recorded chunks');
       }
@@ -451,9 +446,9 @@ export class UserMediaRecordingService {
   }
 
   /**
-   * Clean up resources after recording
+   * Clean up recording resources but keep preview for playback
    */
-  #cleanup(): void {
+  #cleanupRecordingResources(): void {
     this.isRecording = false;
     this.#resetMetadata();
     this.#recordingStartTime = null;
@@ -473,9 +468,17 @@ export class UserMediaRecordingService {
 
     this.#mediaRecorder = null;
     this.#mediaStream = null;
-    this.#preview.cleanup();
 
-    console.log('Resources, metadata, and preview elements cleaned up');
+    console.log('Recording resources cleaned up, preview remains active');
+  }
+
+  /**
+   * Clean up all resources including preview
+   */
+  cleanup(): void {
+    this.#cleanupRecordingResources();
+    this.#preview.cleanup();
+    console.log('All resources and preview elements cleaned up');
   }
 
   #setupMediaRecorder(): void {

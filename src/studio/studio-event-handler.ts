@@ -2,6 +2,7 @@ import {
   getEventBus,
   PlayerLayerTransformedEvent,
   PlayerTimeUpdateEvent,
+  RecordVideoFileCreatedEvent,
   TimelineLayerUpdateEvent,
   TimelineTimeUpdateEvent,
   TranscriptionRemoveIntervalEvent,
@@ -85,6 +86,12 @@ export class StudioEventHandler {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(UiSpeedChangeEvent, (event) => {
         console.log(`Speed changed to: ${event.speed}`);
+      })
+    );
+
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(RecordVideoFileCreatedEvent, (event) => {
+        this.#studio.addLayerFromFile(event.videoFile);
       })
     );
   }

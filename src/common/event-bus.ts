@@ -87,6 +87,13 @@ export class MediaLoadUpdateEvent extends BaseEvent {
   }
 }
 
+export class RecordVideoFileCreatedEvent extends BaseEvent {
+  readonly name = 'record:videoFileCreated';
+  constructor(public videoFile: File) {
+    super();
+  }
+}
+
 type EventHandler<T extends BaseEvent> = (event: T) => void;
 type EventClass<T extends BaseEvent> = new (...args: any[]) => T;
 
