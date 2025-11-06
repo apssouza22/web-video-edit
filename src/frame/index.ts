@@ -12,7 +12,7 @@ export function createFrameService(
 }
 
 // Re-export all types and classes for convenience
-export { FrameService } from './frames.js';
-export { Frame } from './frame.js';
-export { FrameAdjustHandler } from './frame-adjust.js';
-export * from './types.js';
+export { FrameService } from './frames';
+export { Frame } from './frame';
+export { FrameAdjustHandler } from './frame-adjust';
+export * from './types';

@@ -1,3 +1,7 @@
+// Global test setup for Jest
+// This file is loaded before each test suite runs
+
+// Mock AudioContext
 global.AudioContext = class AudioContext {
   constructor() {
     this.currentTime = 0;
@@ -31,6 +35,7 @@ global.AudioContext = class AudioContext {
   }
 };
 
+// Mock OfflineAudioContext
 global.OfflineAudioContext = class OfflineAudioContext extends global.AudioContext {
   constructor(numberOfChannels, length, sampleRate) {
     super();
@@ -40,6 +45,7 @@ global.OfflineAudioContext = class OfflineAudioContext extends global.AudioConte
   }
 };
 
+// Mock MediaRecorder
 global.MediaRecorder = class MediaRecorder {
   constructor(stream, options) {
     this.stream = stream;
@@ -71,6 +77,7 @@ global.MediaRecorder = class MediaRecorder {
   }
 };
 
+// Mock Worker
 global.Worker = class Worker {
   constructor(url, options) {
     this.url = url;
@@ -92,13 +99,21 @@ global.Worker = class Worker {
   terminate() {}
 };
 
-HTMLCanvasElement.prototype.getContext = function(type) {
+// Mock HTMLCanvasElement.getContext
+HTMLCanvasElement.prototype.getContext = function(type, options) {
   if (type === '2d') {
     return {
       canvas: this,
       fillStyle: '',
       strokeStyle: '',
       lineWidth: 1,
+      font: '10px sans-serif',
+      textAlign: 'start',
+      textBaseline: 'alphabetic',
+      shadowColor: '',
+      shadowBlur: 0,
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
       clearRect: () => {},
       fillRect: () => {},
       strokeRect: () => {},
@@ -116,9 +131,17 @@ HTMLCanvasElement.prototype.getContext = function(type) {
       translate: () => {},
       rotate: () => {},
       setTransform: () => {},
-      getImageData: () => ({ data: new Uint8ClampedArray(4) }),
+      getImageData: (sx, sy, sw, sh) => ({ 
+        data: new Uint8ClampedArray(sw * sh * 4),
+        width: sw,
+        height: sh
+      }),
       putImageData: () => {},
-      createImageData: () => ({ data: new Uint8ClampedArray(4) }),
+      createImageData: (width, height) => ({ 
+        data: new Uint8ClampedArray(width * height * 4),
+        width: width,
+        height: height
+      }),
       measureText: () => ({ width: 100 }),
       fillText: () => {},
       strokeText: () => {},
@@ -126,4 +149,72 @@ HTMLCanvasElement.prototype.getContext = function(type) {
   }
   return null;
 };
+
+// Mock HTMLCanvasElement.transferControlToOffscreen
+HTMLCanvasElement.prototype.transferControlToOffscreen = function() {
+  return this;
+};
+
+// Mock HTMLVideoElement properties
+Object.defineProperty(HTMLVideoElement.prototype, 'videoWidth', {
+  get: function() {
+    return this._videoWidth || 1920;
+  },
+  set: function(value) {
+    this._videoWidth = value;
+  }
+});
+
+Object.defineProperty(HTMLVideoElement.prototype, 'videoHeight', {
+  get: function() {
+    return this._videoHeight || 1080;
+  },
+  set: function(value) {
+    this._videoHeight = value;
+  }
+});
+
+// Mock navigator if it doesn't exist
+if (typeof global.navigator === 'undefined') {
+  global.navigator = {};
+}
+
+Object.defineProperty(global.navigator, 'userAgent', {
+  value: 'Mozilla/5.0 (test)',
+  writable: true,
+  configurable: true
+});
+
+Object.defineProperty(global.navigator, 'mediaDevices', {
+  value: {
+    getDisplayMedia: () => Promise.resolve({})
+  },
+  writable: true,
+  configurable: true
+});
+
+// Mock crypto.randomUUID
+if (typeof global.crypto === 'undefined') {
+  global.crypto = {};
+}
+
+if (!global.crypto.randomUUID) {
+  global.crypto.randomUUID = () => {
+    return 'test-uuid-' + Math.random().toString(36).substring(2, 15);
+  };
+}
+
+// Mock document.getElementById for background element
+const originalGetElementById = document.getElementById.bind(document);
+document.getElementById = function(id) {
+  if (id === 'background') {
+    const bgElement = document.createElement('div');
+    bgElement.id = 'background';
+    return bgElement;
+  }
+  return originalGetElementById(id);
+};
+
+// Suppress console warnings in tests (optional)
+// global.console.warn = () => {};
 

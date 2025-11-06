@@ -1,8 +1,20 @@
 export default {
   testEnvironment: 'jsdom',
-  transform: {},
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+        tsconfig: {
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+        },
+      },
+    ],
+  },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   testMatch: [
@@ -22,5 +34,6 @@ export default {
   coverageReporters: ['text', 'lcov', 'html'],
   moduleFileExtensions: ['js', 'ts', 'json'],
   extensionsToTreatAsEsm: ['.ts'],
+  preset: 'ts-jest/presets/default-esm',
 };
 
