@@ -1,11 +1,11 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
-import {createTimeline} from '@/timeline';
+import {createTimeline, Timeline} from '@/timeline';
 import {AbstractMedia, createMediaService, MediaService} from '@/media';
 import {AudioLayer} from '@/media/audio';
 import {LayerLoader} from './layer-loader';
 import {createVideoMuxer} from '@/video/muxer';
 import {StudioControls} from './controls';
-import {PinchHandler} from './pinch-handler';
+import {PinchHandler} from '@/common';
 import {DragItemHandler} from './drag-handler';
 import {ControlsHandler} from './control-handler';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
@@ -14,7 +14,6 @@ import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
 import {ESRenderingContext2D} from "@/common/render-2d";
-import {Timeline} from "@/timeline/timeline";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 
@@ -58,7 +57,7 @@ export class VideoStudio {
       this.player.mount(this.mainSection);
     }
 
-    this.timeline = createTimeline(this);
+    this.timeline = createTimeline();
     this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this));
     this.layerLoader = new LayerLoader(this, this.mediaService);
     this.videoExporter = createVideoMuxer(this);
@@ -144,8 +143,7 @@ export class VideoStudio {
     }).bind(this);
     this.pinchHandler = new PinchHandler(
         this.mainSection,
-        callback,
-        this
+        callback
     );
     this.pinchHandler.setupEventListeners();
   }

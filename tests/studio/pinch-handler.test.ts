@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { PinchHandler } from '@/studio/pinch-handler';
+import { PinchHandler } from '../../src/common/pinch-handler';
 
 // Safari-specific gesture event for testing
 interface GestureEvent extends Event {
@@ -20,7 +20,7 @@ describe('PinchHandler', () => {
     callback = jest.fn();
     context = { someProperty: 'test' };
 
-    pinchHandler = new PinchHandler(element, callback, context);
+    pinchHandler = new PinchHandler(element, callback);
   });
 
   afterEach(() => {
@@ -148,16 +148,6 @@ describe('PinchHandler', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    test('should call callback with correct context', () => {
-      const event = new WheelEvent('wheel', {
-        deltaY: -100,
-        ctrlKey: true
-      });
-
-      element.dispatchEvent(event);
-
-      expect(callback.mock.instances[0]).toBe(context);
-    });
   });
 
   describe('gesture events (Safari)', () => {
@@ -285,19 +275,6 @@ describe('PinchHandler', () => {
       expect(callback).toHaveBeenCalledTimes(2);
     });
 
-    test('should call callback with correct context for gestures', () => {
-      const startEvent = new Event('gesturestart') as GestureEvent;
-      startEvent.rotation = 0;
-      startEvent.scale = 1.0;
-      element.dispatchEvent(startEvent);
-
-      const changeEvent = new Event('gesturechange') as GestureEvent;
-      changeEvent.rotation = 10;
-      changeEvent.scale = 1.5;
-      element.dispatchEvent(changeEvent);
-
-      expect(callback.mock.instances[0]).toBe(context);
-    });
   });
 
   describe('isGesturing', () => {

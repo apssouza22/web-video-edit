@@ -1,20 +1,5 @@
 import { exportToJson } from './utils';
-
-/**
- * Interface for VideoStudio class used by StudioControls
- */
-interface VideoStudio {
-  layerLoader: {
-    loadLayerFromURI: (uri: string) => Promise<any>;
-    addLayerFromFile: (file: File) => any[];
-  };
-  player: {
-    playing: boolean;
-  };
-  pause(): void;
-  play(): void;
-  resize(): void;
-}
+import {VideoStudio} from "@/studio/studio";
 
 export class StudioControls {
   private studio: VideoStudio;
@@ -58,7 +43,9 @@ export class StudioControls {
       if (item.kind === 'file') {
         const file = item.getAsFile();
         if (file) {
-          this.studio.layerLoader.addLayerFromFile(file);
+          this.studio.layerLoader.addLayerFromFile(file, (progress: number, layerName: string) => {
+            console.log(`Loading ${layerName}: ${progress * 100}%`);
+          });
         }
         return;
       }

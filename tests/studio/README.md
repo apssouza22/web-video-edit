@@ -144,10 +144,14 @@ These tests rely on:
 - Custom test setup in `tests/setup.js`
 - TypeScript for type checking
 
+For detailed information on external package dependencies and their DOM requirements, see:
+- **[EXTERNAL-DEPENDENCIES.md](./EXTERNAL-DEPENDENCIES.md)** - Complete reference for all external dependencies and required DOM elements
+
 ## Notes
 
 - Tests use `@/` path alias (configured in `jest.config.js`)
 - All tests clean up after themselves in `afterEach` hooks
 - Mock implementations mirror real API behavior where possible
 - Integration tests mock heavy dependencies to focus on orchestration logic
+- Each external dependency may require specific DOM elements to be set up in tests (see EXTERNAL-DEPENDENCIES.md)
 

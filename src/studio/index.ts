@@ -3,7 +3,7 @@ export { LayerLoader } from './layer-loader';
 export { LoadingPopup } from './loading-popup';
 export { ext_map, popup, exportToJson, addText, uploadSupportedType, getSupportedMimeTypes } from './utils';
 export { updateSettings } from './settings';
-export { PinchHandler } from './pinch-handler';
+export { PinchHandler } from '../common/pinch-handler';
 export { StudioControls } from './controls';
 export { ControlsHandler } from './control-handler';
 export { AspectRatioSelector } from './aspect-ratio-selector';

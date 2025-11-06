@@ -1,6 +1,6 @@
 import {Timeline} from './timeline';
-import {VideoStudio} from "@/studio";
+export { Timeline } from './timeline';
 
-export function createTimeline(studio: VideoStudio): Timeline {
-  return new Timeline(studio);
+export function createTimeline(): Timeline {
+  return new Timeline();
 }

@@ -22,6 +22,10 @@
  * 
  * For simpler components that don't have many dependencies, you can still import
  * this file, but be aware the mocks may not work as expected.
+ * 
+ * 📋 DOM REQUIREMENTS: Many of these mocked packages require specific DOM elements
+ * to be set up in your test's beforeEach(). See EXTERNAL-DEPENDENCIES.md for a
+ * complete list of required DOM elements for each package.
  */
 
 import { jest } from '@jest/globals';

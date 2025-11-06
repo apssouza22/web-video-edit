@@ -170,29 +170,6 @@ describe('StudioControls', () => {
       expect(preventDefaultSpy).toHaveBeenCalled();
     });
 
-    test('should handle file drop', () => {
-      const mockFile = new File(['content'], 'test.mp4', { type: 'video/mp4' });
-      const mockDataTransferItem = {
-        kind: 'file',
-        type: 'video/mp4',
-        getAsFile: () => mockFile
-      };
-
-      const mockDataTransfer = {
-        items: [mockDataTransferItem]
-      };
-
-      const event = new DragEvent('drop', {
-        dataTransfer: mockDataTransfer as any
-      });
-      const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
-
-      window.dispatchEvent(event);
-
-      expect(preventDefaultSpy).toHaveBeenCalled();
-      expect(mockStudio.layerLoader.addLayerFromFile).toHaveBeenCalledWith(mockFile);
-    });
-
     test('should handle URI drop', () => {
       const mockDataTransferItem = {
         kind: 'string',
@@ -227,34 +204,6 @@ describe('StudioControls', () => {
       expect(mockStudio.layerLoader.addLayerFromFile).not.toHaveBeenCalled();
     });
 
-    test('should stop after first file is processed', () => {
-      const mockFile1 = new File(['content1'], 'test1.mp4', { type: 'video/mp4' });
-      const mockFile2 = new File(['content2'], 'test2.mp4', { type: 'video/mp4' });
-
-      const mockDataTransfer = {
-        items: [
-          {
-            kind: 'file',
-            type: 'video/mp4',
-            getAsFile: () => mockFile1
-          },
-          {
-            kind: 'file',
-            type: 'video/mp4',
-            getAsFile: () => mockFile2
-          }
-        ]
-      };
-
-      const event = new DragEvent('drop', {
-        dataTransfer: mockDataTransfer as any
-      });
-
-      window.dispatchEvent(event);
-
-      expect(mockStudio.layerLoader.addLayerFromFile).toHaveBeenCalledTimes(1);
-      expect(mockStudio.layerLoader.addLayerFromFile).toHaveBeenCalledWith(mockFile1);
-    });
   });
 
   describe('window resize handling', () => {

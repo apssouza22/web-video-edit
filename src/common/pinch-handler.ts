@@ -1,4 +1,3 @@
-// Safari-specific gesture event interface (not part of standard DOM types)
 interface GestureEvent extends Event {
   rotation: number;
   scale: number;
@@ -13,7 +12,6 @@ type PinchCallback = (scale: number, rotation: number) => void;
 export class PinchHandler {
     private element: HTMLElement;
     private callback: PinchCallback;
-    private context: any;
     private gesturing: boolean;
     private gestureStartRotation: number;
     private gestureStartScale: number;
@@ -21,10 +19,9 @@ export class PinchHandler {
     /**
      * Creates a new PinchHandler instance
      */
-    constructor(element: HTMLElement, callback: PinchCallback, context: any) {
+    constructor(element: HTMLElement, callback: PinchCallback) {
         this.element = element;
         this.callback = callback;
-        this.context = context;
         this.gesturing = false;
         this.gestureStartRotation = 0;
         this.gestureStartScale = 0;
@@ -48,7 +45,7 @@ export class PinchHandler {
             let scale = 1;
             scale -= delta * 0.01;
             // Your zoom/scale factor
-            this.callback.call(this.context, scale, 0);
+            this.callback( scale, 0);
             return;
         }
         if (e.altKey) {
@@ -57,7 +54,7 @@ export class PinchHandler {
                 delta = e.deltaX * 0.5;
             }
             const rot = -delta * 0.1;
-            this.callback.call(this.context, 0, rot);
+            this.callback( 0, rot);
         }
     }
 
@@ -81,7 +78,7 @@ export class PinchHandler {
         const scale = e.scale / this.gestureStartScale;
         this.gestureStartRotation = e.rotation;
         this.gestureStartScale = e.scale;
-        this.callback.call(this.context, scale, rotation);
+        this.callback(scale, rotation);
     }
 
     /**

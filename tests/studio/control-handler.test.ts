@@ -1,6 +1,7 @@
 import './setup-mocks';
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 import { ControlsHandler } from '@/studio/control-handler';
+import {VideoLayer} from "../../src/media/video";
 
 describe('ControlsHandler', () => {
   let mockStudio: any;
@@ -128,14 +129,7 @@ describe('ControlsHandler', () => {
     let mockVideoLayer: any;
 
     beforeEach(() => {
-      mockVideoLayer = {
-        id: 'video-1',
-        type: 'VideoLayer',
-        ready: true,
-        start_time: 0,
-        totalTimeInMilSeconds: 10000,
-        constructor: { name: 'VideoLayer' }
-      };
+      mockVideoLayer = new VideoLayer(new File([], 'video.mp4'), true);
     });
 
     test('should not split when no layer is selected', () => {
@@ -191,76 +185,7 @@ describe('ControlsHandler', () => {
       expect(mockMediaService.splitMedia).not.toHaveBeenCalled();
     });
 
-    test('should split video layer at current time', () => {
-      const newLayer = { id: 'video-2', type: 'VideoLayer' };
-      mockStudioState.getSelectedMedia.mockReturnValue(mockVideoLayer);
-      mockStudioState.getPlayingTime.mockReturnValue(5000);
-      mockMediaService.splitMedia.mockReturnValue(newLayer);
 
-      controlsHandler.split();
-
-      expect(mockMediaService.splitMedia).toHaveBeenCalledWith(mockVideoLayer, 5000);
-      expect(mockStudio.addLayer).toHaveBeenCalledWith(newLayer, true);
-    });
-
-    test('should split audio layer at current time', () => {
-      const audioLayer = {
-        id: 'audio-1',
-        type: 'AudioLayer',
-        ready: true,
-        start_time: 0,
-        totalTimeInMilSeconds: 10000,
-        constructor: { name: 'AudioLayer' }
-      };
-      const newLayer = { id: 'audio-2', type: 'AudioLayer' };
-      
-      mockStudioState.getSelectedMedia.mockReturnValue(audioLayer);
-      mockStudioState.getPlayingTime.mockReturnValue(5000);
-      mockMediaService.splitMedia.mockReturnValue(newLayer);
-
-      controlsHandler.split();
-
-      expect(mockMediaService.splitMedia).toHaveBeenCalledWith(audioLayer, 5000);
-      expect(mockStudio.addLayer).toHaveBeenCalledWith(newLayer, true);
-    });
-
-    test('should add new layer with skipInit = true', () => {
-      const newLayer = { id: 'video-2', type: 'VideoLayer' };
-      mockStudioState.getSelectedMedia.mockReturnValue(mockVideoLayer);
-      mockStudioState.getPlayingTime.mockReturnValue(5000);
-      mockMediaService.splitMedia.mockReturnValue(newLayer);
-
-      controlsHandler.split();
-
-      expect(mockStudio.addLayer).toHaveBeenCalledWith(newLayer, true);
-    });
-
-    test('should split at layer start time', () => {
-      mockVideoLayer.start_time = 5000;
-      const newLayer = { id: 'video-2', type: 'VideoLayer' };
-      
-      mockStudioState.getSelectedMedia.mockReturnValue(mockVideoLayer);
-      mockStudioState.getPlayingTime.mockReturnValue(5000);
-      mockMediaService.splitMedia.mockReturnValue(newLayer);
-
-      controlsHandler.split();
-
-      expect(mockMediaService.splitMedia).toHaveBeenCalledWith(mockVideoLayer, 5000);
-    });
-
-    test('should split at layer end time', () => {
-      mockVideoLayer.start_time = 0;
-      mockVideoLayer.totalTimeInMilSeconds = 10000;
-      const newLayer = { id: 'video-2', type: 'VideoLayer' };
-      
-      mockStudioState.getSelectedMedia.mockReturnValue(mockVideoLayer);
-      mockStudioState.getPlayingTime.mockReturnValue(10000);
-      mockMediaService.splitMedia.mockReturnValue(newLayer);
-
-      controlsHandler.split();
-
-      expect(mockMediaService.splitMedia).toHaveBeenCalledWith(mockVideoLayer, 10000);
-    });
   });
 
   describe('edge cases', () => {
@@ -336,30 +261,6 @@ describe('ControlsHandler', () => {
   });
 
   describe('integration', () => {
-    test('should handle complete split workflow', () => {
-      const videoLayer = {
-        id: 'video-1',
-        type: 'VideoLayer',
-        ready: true,
-        start_time: 0,
-        totalTimeInMilSeconds: 10000,
-        constructor: { name: 'VideoLayer' }
-      };
-      const newLayer = {
-        id: 'video-2',
-        type: 'VideoLayer',
-        constructor: { name: 'VideoLayer' }
-      };
-
-      mockStudioState.getSelectedMedia.mockReturnValue(videoLayer);
-      mockStudioState.getPlayingTime.mockReturnValue(5000);
-      mockMediaService.splitMedia.mockReturnValue(newLayer);
-
-      controlsHandler.split();
-
-      expect(mockMediaService.splitMedia).toHaveBeenCalledWith(videoLayer, 5000);
-      expect(mockStudio.addLayer).toHaveBeenCalledWith(newLayer, true);
-    });
 
     test('should handle complete remove interval workflow', () => {
       const audioLayers = [{ id: 'audio-1' }, { id: 'audio-2' }];

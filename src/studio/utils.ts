@@ -67,6 +67,7 @@ export function exportToJson(): void {
     // Set up the download link
     a.href = url;
     a.download = date + "_" + Math.floor(Math.random() * 1000) + ".json";
+    a.classList.add('download-link');
     a.textContent = "[Download JSON]";
     a.addEventListener('click', function (): void {
         // After download, revoke the URL to free up memory

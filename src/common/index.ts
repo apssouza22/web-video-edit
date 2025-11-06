@@ -14,5 +14,6 @@ export {
   MediaLoadUpdateEvent
 } from './event-bus';
 export { StudioState } from './studio-state';
+export {PinchHandler} from './pinch-handler';
 export { dpr } from '@/constants';
 

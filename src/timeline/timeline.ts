@@ -3,10 +3,9 @@ import {TimelineZoomHandler} from './zoom';
 import {PreviewHandler} from './preview';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
-import {PinchHandler} from '@/studio';
 import {dpr} from '@/constants';
 import type {StandardLayer, LayerUpdateKind} from './types';
-import { getEventBus, TimelineTimeUpdateEvent, TimelineLayerUpdateEvent } from '@/common/event-bus';
+import {getEventBus, TimelineTimeUpdateEvent, TimelineLayerUpdateEvent, PinchHandler} from '@/common';
 
 /**
  * Class representing a timeline for a video player
@@ -40,8 +39,7 @@ export class Timeline {
    *
    * @param {VideoStudio} studio
    */
-  constructor(studio: any) {
-    this.studio = studio;
+  constructor() {
     this.selectedLayer = null;
     this.isHover = false;
     this.time = 0;
@@ -121,7 +119,7 @@ export class Timeline {
       return
     }
     this.layerUpdateListener('select', newSelectedLayer);
-    this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer, oldSelectedLayer));
+    this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer));
   }
 
   /**
@@ -135,7 +133,7 @@ export class Timeline {
   }
 
   #setupPinchHandler() {
-    const pinch = new PinchHandler(this.timelineHolder, this.pinchCallback, this.studio);
+    const pinch = new PinchHandler(this.timelineHolder, this.pinchCallback.bind(this));
     pinch.setupEventListeners();
   }
 

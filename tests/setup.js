@@ -245,6 +245,49 @@ global.PointerEvent = class PointerEvent extends Event {
   }
 };
 
+// Mock DragEvent
+global.DragEvent = class DragEvent extends Event {
+  constructor(type, options = {}) {
+    super(type, options);
+    this.dataTransfer = options.dataTransfer || {
+      items: [],
+      files: [],
+      types: [],
+      getData: () => '',
+      setData: () => {},
+      clearData: () => {},
+      setDragImage: () => {},
+      effectAllowed: 'all',
+      dropEffect: 'none'
+    };
+    this.clientX = options.clientX || 0;
+    this.clientY = options.clientY || 0;
+    this.screenX = options.screenX || 0;
+    this.screenY = options.screenY || 0;
+    this.pageX = options.pageX || 0;
+    this.pageY = options.pageY || 0;
+    this.ctrlKey = options.ctrlKey || false;
+    this.shiftKey = options.shiftKey || false;
+    this.altKey = options.altKey || false;
+    this.metaKey = options.metaKey || false;
+  }
+};
+
+// Mock ClipboardEvent
+global.ClipboardEvent = class ClipboardEvent extends Event {
+  constructor(type, options = {}) {
+    super(type, options);
+    this.clipboardData = options.clipboardData || {
+      items: [],
+      files: [],
+      types: [],
+      getData: (format) => '',
+      setData: (format, data) => {},
+      clearData: (format) => {}
+    };
+  }
+};
+
 // Mock crypto.randomUUID
 if (typeof global.crypto === 'undefined') {
   global.crypto = {};
