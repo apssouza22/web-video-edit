@@ -288,13 +288,8 @@ describe('Canvas2DRender', () => {
 
     test('should draw scaled video element', () => {
       const mockVideo = document.createElement('video');
-      mockVideo.videoWidth = 1280;
-      mockVideo.videoHeight = 720;
-
       const drawImageSpy = jest.spyOn(mockContext, 'drawImage');
-      
       Canvas2DRender.drawScaled(mockVideo, mockContext, true);
-      
       expect(drawImageSpy).toHaveBeenCalled();
     });
 

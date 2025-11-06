@@ -186,6 +186,7 @@ describe('EventBus', () => {
 
   describe('error handling', () => {
     test('should catch and log errors in event handlers', () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const errorHandler = jest.fn(() => {
         throw new Error('Handler error');
@@ -209,6 +210,7 @@ describe('EventBus', () => {
     });
 
     test('should catch and log errors in once handlers', () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const errorHandler = jest.fn(() => {
         throw new Error('Once handler error');

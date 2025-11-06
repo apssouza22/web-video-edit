@@ -1,6 +1,5 @@
-import './setup-mocks';
-import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { ControlsHandler } from '@/studio/control-handler';
+import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {ControlsHandler} from '@/studio/control-handler';
 import {VideoLayer} from "../../src/media/video";
 
 describe('ControlsHandler', () => {
@@ -44,8 +43,8 @@ describe('ControlsHandler', () => {
     test('should remove audio and video intervals', () => {
       const startTime = 1000;
       const endTime = 3000;
-      const audioLayers = [{ id: '1', type: 'audio' }];
-      const videoLayers = [{ id: '2', type: 'video' }];
+      const audioLayers = [{id: '1', type: 'audio'}];
+      const videoLayers = [{id: '2', type: 'video'}];
 
       mockStudioState.getMediaAudio.mockReturnValue(audioLayers);
       mockStudioState.getMediaVideo.mockReturnValue(videoLayers);
@@ -53,26 +52,27 @@ describe('ControlsHandler', () => {
       controlsHandler.removeInterval(startTime, endTime);
 
       expect(mockMediaService.removeAudioInterval).toHaveBeenCalledWith(
-        startTime,
-        endTime,
-        audioLayers
+          startTime,
+          endTime,
+          audioLayers
       );
       expect(mockMediaService.removeVideoInterval).toHaveBeenCalledWith(
-        startTime,
-        endTime,
-        videoLayers
+          startTime,
+          endTime,
+          videoLayers
       );
     });
 
     test('should reject negative start time', () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       controlsHandler.removeInterval(-100, 3000);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Invalid time interval provided:',
-        -100,
-        3000
+          'Invalid time interval provided:',
+          -100,
+          3000
       );
       expect(mockMediaService.removeAudioInterval).not.toHaveBeenCalled();
       expect(mockMediaService.removeVideoInterval).not.toHaveBeenCalled();
@@ -81,8 +81,9 @@ describe('ControlsHandler', () => {
     });
 
     test('should reject end time less than or equal to start time', () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       controlsHandler.removeInterval(3000, 3000);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -92,8 +93,9 @@ describe('ControlsHandler', () => {
     });
 
     test('should reject end time less than start time', () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       controlsHandler.removeInterval(5000, 3000);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -106,19 +108,20 @@ describe('ControlsHandler', () => {
       controlsHandler.removeInterval(0, 1000);
 
       expect(mockMediaService.removeAudioInterval).toHaveBeenCalledWith(
-        0,
-        1000,
-        expect.any(Array)
+          0,
+          1000,
+          expect.any(Array)
       );
     });
 
     test('should log removal message', () => {
+      // @ts-ignore
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       controlsHandler.removeInterval(1000, 3000);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Removing interval from 1000 to 3000 seconds'
+          'Removing interval from 1000 to 3000 seconds'
       );
 
       consoleLogSpy.mockRestore();
@@ -239,13 +242,13 @@ describe('ControlsHandler', () => {
 
     test('should handle very large time values', () => {
       const largeTime = Number.MAX_SAFE_INTEGER - 1000;
-      
+
       controlsHandler.removeInterval(0, largeTime);
 
       expect(mockMediaService.removeAudioInterval).toHaveBeenCalledWith(
-        0,
-        largeTime,
-        expect.any(Array)
+          0,
+          largeTime,
+          expect.any(Array)
       );
     });
 
@@ -253,9 +256,9 @@ describe('ControlsHandler', () => {
       controlsHandler.removeInterval(1.5, 3.7);
 
       expect(mockMediaService.removeAudioInterval).toHaveBeenCalledWith(
-        1.5,
-        3.7,
-        expect.any(Array)
+          1.5,
+          3.7,
+          expect.any(Array)
       );
     });
   });
@@ -263,8 +266,8 @@ describe('ControlsHandler', () => {
   describe('integration', () => {
 
     test('should handle complete remove interval workflow', () => {
-      const audioLayers = [{ id: 'audio-1' }, { id: 'audio-2' }];
-      const videoLayers = [{ id: 'video-1' }];
+      const audioLayers = [{id: 'audio-1'}, {id: 'audio-2'}];
+      const videoLayers = [{id: 'video-1'}];
 
       mockStudioState.getMediaAudio.mockReturnValue(audioLayers);
       mockStudioState.getMediaVideo.mockReturnValue(videoLayers);
@@ -272,14 +275,14 @@ describe('ControlsHandler', () => {
       controlsHandler.removeInterval(2000, 4000);
 
       expect(mockMediaService.removeAudioInterval).toHaveBeenCalledWith(
-        2000,
-        4000,
-        audioLayers
+          2000,
+          4000,
+          audioLayers
       );
       expect(mockMediaService.removeVideoInterval).toHaveBeenCalledWith(
-        2000,
-        4000,
-        videoLayers
+          2000,
+          4000,
+          videoLayers
       );
     });
   });

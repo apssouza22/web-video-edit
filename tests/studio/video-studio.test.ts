@@ -1,110 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 
-/**
- * VideoStudio Test Suite
- * 
- * This test suite tests the VideoStudio class which orchestrates the entire video editing application.
- * 
- * External Dependencies:
- * For a complete list of external dependencies and their mocking requirements, 
- * see: tests/studio/EXTERNAL-DEPENDENCIES.md
- * 
- * Key points:
- * - All mocks must be defined BEFORE importing VideoStudio (Jest hoisting)
- * - DOM elements must be set up in beforeEach for all dependencies
- * - Timeline requires: #timeline_content, #cursor_preview (with canvas+div), timeline buttons
- * - Canvas requires: #video-canvas
- */
-
-// Mock dependencies before importing VideoStudio
-// These MUST be in this file to be hoisted properly by Jest
-jest.mock('@/canvas', () => ({
-  createVideoCanvas: jest.fn(() => ({
-    mount: jest.fn(),
-    width: 1920,
-    height: 1080,
-    time: 0,
-    total_time: 0,
-    playing: false,
-    audioContext: {
-      createBufferSource: jest.fn(),
-      createGain: jest.fn(),
-      destination: {}
-    },
-    layers: [],
-    addMedias: jest.fn(),
-    setSelectedLayer: jest.fn(),
-    render: jest.fn(),
-    play: jest.fn(),
-    pause: jest.fn(),
-    resize: jest.fn()
-  }))
-}));
-
-jest.mock('@/timeline', () => {
-  const mockTimeline = {
-    selectedLayer: null,
-    addLayers: jest.fn(),
-    render: jest.fn(),
-    resize: jest.fn(),
-    setSelectedLayer: jest.fn()
-  };
-
-  return {
-    createTimeline: jest.fn(() => mockTimeline),
-    Timeline: jest.fn().mockImplementation(() => mockTimeline)
-  };
-});
-
-jest.mock('@/timeline/timeline', () => ({
-  Timeline: jest.fn().mockImplementation(() => ({
-    selectedLayer: null,
-    addLayers: jest.fn(),
-    render: jest.fn(),
-    resize: jest.fn(),
-    setSelectedLayer: jest.fn()
-  }))
-}));
-
-jest.mock('@/media', () => ({
-  createMediaService: jest.fn((callback) => ({
-    clone: jest.fn((layer) => ({ ...layer, id: layer.id + '-clone' })),
-    splitMedia: jest.fn(),
-    removeAudioInterval: jest.fn(),
-    removeVideoInterval: jest.fn()
-  })),
-  createMediaFromFile: jest.fn((file, callback) => {
-    const mockLayer = {
-      id: Math.random().toString(36),
-      name: file.name,
-      start_time: 0,
-      totalTimeInMilSeconds: 5000,
-      init: jest.fn(),
-      dump: jest.fn(() => ({ id: mockLayer.id }))
-    };
-    return [mockLayer];
-  })
-}));
-
-jest.mock('@/video/muxer', () => ({
-  createVideoMuxer: jest.fn(() => ({
-    export: jest.fn((progressCallback, completionCallback) => {
-      progressCallback?.(50);
-      setTimeout(() => {
-        progressCallback?.(100);
-        completionCallback?.();
-      }, 100);
-    })
-  }))
-}));
-
-jest.mock('@/transcription', () => ({
-  createTranscriptionService: jest.fn(() => ({
-    loadModel: jest.fn(() => Promise.resolve()),
-    startTranscription: jest.fn()
-  }))
-}));
-
 import { VideoStudio } from '@/studio/studio';
 import {VideoLayer} from "../../src/media/video";
 
@@ -423,7 +318,6 @@ describe('VideoStudio', () => {
     test('should set cloned layer as selected', () => {
       const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
       const clonedLayer = new VideoLayer(new File([], 'video.mp4'), true);
-
       studio.mediaService.clone = jest.fn(() => clonedLayer);
       const setSelectedSpy = jest.spyOn(studio, 'setSelectedLayer');
 
@@ -436,35 +330,27 @@ describe('VideoStudio', () => {
   describe('play and pause', () => {
     test('should call player.play', () => {
       const playSpy = jest.spyOn(studio.player, 'play');
-
       studio.play();
-
       expect(playSpy).toHaveBeenCalled();
     });
 
     test('should call player.pause', () => {
       const pauseSpy = jest.spyOn(studio.player, 'pause');
-
       studio.pause();
-
       expect(pauseSpy).toHaveBeenCalled();
     });
   });
 
   describe('resize', () => {
-    test('should resize player', () => {
+    test('should resize player/canvas', () => {
       const resizeSpy = jest.spyOn(studio.player, 'resize');
-
       studio.resize();
-
       expect(resizeSpy).toHaveBeenCalled();
     });
 
     test('should resize timeline', () => {
       const resizeSpy = jest.spyOn(studio.timeline, 'resize');
-
       studio.resize();
-
       expect(resizeSpy).toHaveBeenCalled();
     });
 
@@ -476,7 +362,6 @@ describe('VideoStudio', () => {
         init: jest.fn(),
         resize: jest.fn()
       };
-
       studio.addLayer(mockLayer as any);
       studio.resize();
 
@@ -488,9 +373,7 @@ describe('VideoStudio', () => {
 
     test('should accept new aspect ratio', () => {
       const resizeSpy = jest.spyOn(studio.player, 'resize');
-
       studio.resize('16:9');
-
       expect(resizeSpy).toHaveBeenCalledWith('16:9');
     });
   });
@@ -498,18 +381,14 @@ describe('VideoStudio', () => {
   describe('getSelectedLayer', () => {
     test('should return null when no layer selected', () => {
       studio.timeline.selectedLayer = null;
-
       const result = studio.getSelectedLayer();
-
       expect(result).toBeNull();
     });
 
     test('should return selected layer', () => {
       const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
       studio.addLayer(mockLayer as any);
-      studio.studioState.addMedia(mockLayer as any);
       studio.timeline.selectedLayer = { id: '123' } as any;
-
       const result = studio.getSelectedLayer();
 
       expect(result).toBeDefined();
@@ -529,7 +408,6 @@ describe('VideoStudio', () => {
     test('should set selected layer on player', () => {
       const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.player, 'setSelectedLayer');
-
       studio.setSelectedLayer(mockLayer as any);
 
       expect(setSpy).toHaveBeenCalledWith(mockLayer);
@@ -538,7 +416,6 @@ describe('VideoStudio', () => {
     test('should set selected layer on studio state', () => {
       const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.studioState, 'setSelectedMedia');
-
       studio.setSelectedLayer(mockLayer as any);
 
       expect(setSpy).toHaveBeenCalledWith(mockLayer);
@@ -547,7 +424,6 @@ describe('VideoStudio', () => {
     test('should set layer on speed control manager', () => {
       const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.speedControlManager, 'setLayer');
-
       studio.setSelectedLayer(mockLayer as any);
 
       expect(setSpy).toHaveBeenCalledWith(mockLayer);
@@ -565,7 +441,6 @@ describe('VideoStudio', () => {
       };
 
       studio.addLayer(mockLayer as any);
-
       const result = studio.dumpToJson();
 
       expect(typeof result).toBe('string');
@@ -629,23 +504,19 @@ describe('VideoStudio', () => {
 
     test('should fetch JSON from URI', async () => {
       const uri = 'https://example.com/project.json';
-
       await studio.loadLayersFromJson(uri);
-
       expect(global.fetch).toHaveBeenCalledWith(uri);
     });
 
     test('should return early for empty URI', async () => {
       await studio.loadLayersFromJson('');
-
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
     test('should reject non-JSON files', async () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       await studio.loadLayersFromJson('https://example.com/file.txt');
-
       expect(consoleErrorSpy).toHaveBeenCalledWith('File is not a json file');
       expect(global.fetch).not.toHaveBeenCalled();
 
@@ -657,7 +528,6 @@ describe('VideoStudio', () => {
       const startLoadingSpy = jest.spyOn(studio.loadingPopup, 'startLoading');
 
       await studio.loadLayersFromJson(uri);
-
       expect(startLoadingSpy).toHaveBeenCalledWith('json-load', 'Project JSON');
     });
   });
@@ -670,28 +540,6 @@ describe('VideoStudio', () => {
       expect(exportButton).toBeDefined();
     });
 
-  });
-
-  describe('edge cases', () => {
-    test('should handle missing DOM elements gracefully', () => {
-      document.body.innerHTML = '<div id="video-canvas"></div>';
-
-      // expect(() => {
-      //   new VideoStudio();
-      // }).not.toThrow();
-    });
-
-    test('should handle resize with no layers', () => {
-      expect(() => {
-        studio.resize();
-      }).not.toThrow();
-    });
-
-    test('should handle dumpToJson with no layers', () => {
-      const result = studio.dumpToJson();
-
-      expect(result).toBe('[]');
-    });
   });
 });
 

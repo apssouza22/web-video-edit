@@ -1,4 +1,3 @@
-import './setup-mocks';
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 import { SpeedControlInput } from '@/studio/speed-control-input';
 import { resetEventBus } from '@/common/event-bus';
@@ -275,6 +274,7 @@ describe('SpeedControlInput', () => {
     });
 
     test('should handle setSpeed errors', () => {
+      // @ts-ignore
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockLayer.setSpeed.mockImplementation(() => {
         throw new Error('Speed setting failed');

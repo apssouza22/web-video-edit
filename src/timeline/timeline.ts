@@ -4,8 +4,8 @@ import {PreviewHandler} from './preview';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
 import {dpr} from '@/constants';
-import type {StandardLayer, LayerUpdateKind} from './types';
-import {getEventBus, TimelineTimeUpdateEvent, TimelineLayerUpdateEvent, PinchHandler} from '@/common';
+import type {LayerUpdateKind, StandardLayer} from './types';
+import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 
 /**
  * Class representing a timeline for a video player
@@ -35,10 +35,7 @@ export class Timeline {
   private zoomHandler: TimelineZoomHandler;
   #eventBus = getEventBus();
 
-  /**
-   *
-   * @param {VideoStudio} studio
-   */
+
   constructor() {
     this.selectedLayer = null;
     this.isHover = false;

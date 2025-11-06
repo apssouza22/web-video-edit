@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { PinchHandler } from '../../src/common/pinch-handler';
+import {PinchHandler} from "@/common";
 
 // Safari-specific gesture event for testing
 interface GestureEvent extends Event {

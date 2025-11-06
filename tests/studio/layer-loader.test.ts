@@ -1,4 +1,3 @@
-import './setup-mocks';
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 import { LayerLoader } from '@/studio/layer-loader';
 
@@ -22,6 +21,7 @@ describe('LayerLoader', () => {
     layerLoader = new LayerLoader(mockStudio, mockMediaService);
 
     // Mock global fetch
+    // @ts-ignore
     global.fetch = jest.fn();
   });
 
@@ -135,6 +135,7 @@ describe('LayerLoader', () => {
     });
 
     test('should handle fetch errors', async () => {
+      // @ts-ignore
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await expect(
@@ -145,7 +146,9 @@ describe('LayerLoader', () => {
 
   describe('loadLayersFromJson', () => {
     beforeEach(() => {
+      // @ts-ignore
       (global.fetch as jest.Mock).mockResolvedValue({
+      // @ts-ignore
         blob: jest.fn().mockResolvedValue(new Blob(['content']))
       });
       
@@ -289,6 +292,7 @@ describe('LayerLoader', () => {
     });
 
     test('should handle fetch errors in loadLayersFromJson', async () => {
+      // @ts-ignore
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       const jsonData = [{
@@ -337,7 +341,9 @@ describe('LayerLoader', () => {
     });
 
     test('should handle complete workflow for URI', async () => {
+      // @ts-ignore
       (global.fetch as jest.Mock).mockResolvedValue({
+      // @ts-ignore
         blob: jest.fn().mockResolvedValue(new Blob(['content']))
       });
 

@@ -117,6 +117,7 @@ describe('Studio Utils', () => {
         2: file3
       }];
 
+      // @ts-ignore
       const result = uploadSupportedType(files);
       expect(result).toBe(true);
     });

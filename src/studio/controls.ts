@@ -1,5 +1,6 @@
 import { exportToJson } from './utils';
 import {VideoStudio} from "@/studio/studio";
+import {ESRenderingContext2D} from "@/common/render-2d";
 
 export class StudioControls {
   private studio: VideoStudio;
@@ -43,8 +44,13 @@ export class StudioControls {
       if (item.kind === 'file') {
         const file = item.getAsFile();
         if (file) {
-          this.studio.layerLoader.addLayerFromFile(file, (progress: number, layerName: string) => {
-            console.log(`Loading ${layerName}: ${progress * 100}%`);
+          this.studio.layerLoader.addLayerFromFile(file, (
+              layer: any,
+              progress: number,
+              ctx: ESRenderingContext2D | null,
+              audioBuffer?: AudioBuffer | undefined
+          ) => {
+            console.log(`Loading ${layer}: ${progress * 100}%`);
           });
         }
         return;
