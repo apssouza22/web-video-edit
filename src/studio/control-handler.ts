@@ -24,28 +24,29 @@ export class ControlsHandler {
   }
 
 
-  split(): void {
+  split(): boolean {
     if (!this.studioState.getSelectedMedia()) {
-      return;
+      return false;
     }
     const layer = this.studioState.getSelectedMedia()!;
 
     // Check if media is VideoLayer or AudioLayer
     if (!(isMediaVideo(layer)) && !(isMediaAudio(layer))) {
-      return;
+      return false;
     }
     if (!layer.ready) {
-      return;
+      return false;
     }
     if (layer.start_time > this.studioState.getPlayingTime()) {
-      return;
+      return false;
     }
     if (layer.start_time + layer.totalTimeInMilSeconds < this.studioState.getPlayingTime()) {
-      return;
+      return false;
     }
 
     const newMedia = this.mediaService.splitMedia(layer, this.studioState.getPlayingTime());
     this.studio.addLayer(newMedia, true);
+    return true
   }
 
 }

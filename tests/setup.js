@@ -193,6 +193,58 @@ Object.defineProperty(global.navigator, 'mediaDevices', {
   configurable: true
 });
 
+// Mock TextEncoder and TextDecoder (browser APIs not in jsdom)
+if (typeof global.TextEncoder === 'undefined') {
+  global.TextEncoder = class TextEncoder {
+    encode(str) {
+      const buf = Buffer.from(str, 'utf-8');
+      return new Uint8Array(buf);
+    }
+  };
+}
+
+if (typeof global.TextDecoder === 'undefined') {
+  global.TextDecoder = class TextDecoder {
+    constructor(encoding = 'utf-8') {
+      this.encoding = encoding;
+    }
+    decode(buffer) {
+      return Buffer.from(buffer).toString(this.encoding);
+    }
+  };
+}
+
+// Mock PointerEvent
+global.PointerEvent = class PointerEvent extends Event {
+  constructor(type, options = {}) {
+    super(type, options);
+    this.pointerId = options.pointerId || 1;
+    this.width = options.width || 1;
+    this.height = options.height || 1;
+    this.pressure = options.pressure || 0;
+    this.tangentialPressure = options.tangentialPressure || 0;
+    this.tiltX = options.tiltX || 0;
+    this.tiltY = options.tiltY || 0;
+    this.twist = options.twist || 0;
+    this.pointerType = options.pointerType || 'mouse';
+    this.isPrimary = options.isPrimary !== undefined ? options.isPrimary : true;
+    this.clientX = options.clientX || 0;
+    this.clientY = options.clientY || 0;
+    this.screenX = options.screenX || 0;
+    this.screenY = options.screenY || 0;
+    this.offsetX = options.offsetX || 0;
+    this.offsetY = options.offsetY || 0;
+    this.pageX = options.pageX || 0;
+    this.pageY = options.pageY || 0;
+    this.button = options.button !== undefined ? options.button : 0;
+    this.buttons = options.buttons !== undefined ? options.buttons : 0;
+    this.ctrlKey = options.ctrlKey || false;
+    this.shiftKey = options.shiftKey || false;
+    this.altKey = options.altKey || false;
+    this.metaKey = options.metaKey || false;
+  }
+};
+
 // Mock crypto.randomUUID
 if (typeof global.crypto === 'undefined') {
   global.crypto = {};

@@ -1,8 +1,7 @@
-import {AbstractMedia, MediaService, createMediaFromFile, createMediaText} from '@/media';
+import {AbstractMedia, createMediaFromFile, createMediaText, MediaService} from '@/media';
 
 import {ext_map} from './index';
 import {Frame} from '@/frame';
-import {ESRenderingContext2D} from "@/common/render-2d";
 import {LayerLoadUpdateListener} from "@/media/types";
 
 /**
