@@ -53,7 +53,6 @@ export class MediaBunnyDemuxer {
       });
 
       this.totalDuration = await this.input.computeDuration();
-
       const videoTrack = await this.input.getPrimaryVideoTrack();
 
       if (!videoTrack) {
@@ -80,10 +79,8 @@ export class MediaBunnyDemuxer {
       });
 
       this.videoSink = new VideoSampleSink(videoTrack);
-
       renderer.setSize(width, height);
-
-      await this.extractFrames(renderer);
+      await this.extractFrames();
     } catch (error) {
       console.error('MediaBunnyDemuxer initialization error:', error);
       this.cleanup();
@@ -91,7 +88,7 @@ export class MediaBunnyDemuxer {
     }
   }
 
-  private async extractFrames(renderer: Canvas2DRender): Promise<void> {
+  private async extractFrames(): Promise<void> {
     if (!this.videoSink) {
       return;
     }

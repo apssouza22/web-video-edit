@@ -1,4 +1,4 @@
-import {createDemuxer, VideoDemuxService} from "@/video/demuxgtw";
+import {createDemuxer, VideoDemuxService} from "@/video/demux";
 import {VideoMetadata, LayerFile} from "@/media/types";
 import {Canvas2DRender} from "@/common/render-2d";
 

@@ -1,4 +1,4 @@
-import {Canvas2DRender} from "../../common/render-2d.js";
+import {Canvas2DRender} from "../../../common/render-2d.js";
 
 export class CodecDemuxer {
   #worker = null;

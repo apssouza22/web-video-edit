@@ -1,69 +1,67 @@
-import {addElementToBackground} from '../../media/index.js';
-import {fps} from '../../constants.ts';
-import{Canvas2DRender} from "../../common/render-2d.js";
-import {FrameQuality, FrameMetadata} from './frame-quality.js';
+import {addElementToBackground} from '@/media/index';
+import {fps} from '@/constants';
+import {Canvas2DRender} from '@/common/render-2d';
+import {FrameQuality, FrameMetadata} from './frame-quality';
+import {LayerFile, VideoMetadata} from '@/media/types';
+import {ProgressCallback, CompleteCallback, MetadataCallback} from '../video-demux';
 
 export class HTMLVideoDemuxer {
-  constructor() {
-    this.chunkSize =  30;
-    this.optimizedFPS = 12;
-    this.video = null;
-    this.fileSrc = null;
-    this.onProgressCallback = null;
-    this.onCompleteCallback = (frames) => {};
-    this.onMetadataCallback = null;
-    this.isUpgrading = false;
-    this.frameMetadata = [];
-  }
+  private chunkSize: number = 30;
+  private optimizedFPS: number = 12;
+  private video: HTMLVideoElement | null = null;
+  private fileSrc: string | null = null;
+  private onProgressCallback: ProgressCallback | null = null;
+  private onCompleteCallback: CompleteCallback = (frames) => {};
+  private onMetadataCallback: MetadataCallback | null = null;
+  private isUpgrading: boolean = false;
+  private frameMetadata: FrameMetadata[] = [];
+  private renderer!: Canvas2DRender;
 
   /**
    * Set callback for progress updates
-   * @param {Function} callback - Progress callback function
    */
-  setOnProgressCallback(callback) {
+  setOnProgressCallback(callback: ProgressCallback): void {
     this.onProgressCallback = callback;
   }
 
   /**
    * Set callback for completion
-   * @param {Function} callback - Completion callback function
    */
-  setOnCompleteCallback(callback) {
+  setOnCompleteCallback(callback: CompleteCallback): void {
     this.onCompleteCallback = callback;
   }
 
   /**
    * Set callback for metadata loading
-   * @param {Function} callback - Metadata callback function
    */
-  setOnMetadataCallback(callback) {
+  setOnMetadataCallback(callback: MetadataCallback): void {
     this.onMetadataCallback = callback;
   }
 
   /**
    * Initialize HTML video processing
-   * @param {File} file - Video file source URL
-   * @param {Canvas2DRender} renderer - Renderer
    */
-  initialize(file, renderer) {
-    this.fileSrc = file.uri;
+  initialize(file: LayerFile, renderer: Canvas2DRender): void {
+    this.fileSrc = file.uri || '';
     this.renderer = renderer;
     this.#createVideoElement();
   }
 
-  #createVideoElement() {
+  #createVideoElement(): void {
     this.video = document.createElement('video');
-    this.video.setAttribute('autoplay', false);
-    this.video.setAttribute('loop', false);
-    this.video.setAttribute('playsinline', true);
-    this.video.setAttribute('muted', true);
+    this.video.setAttribute('autoplay', 'false');
+    this.video.setAttribute('loop', 'false');
+    this.video.setAttribute('playsinline', 'true');
+    this.video.setAttribute('muted', 'true');
     this.video.setAttribute('preload', 'auto');
     addElementToBackground(this.video);
     this.video.addEventListener('loadedmetadata', this.#onLoadMetadata.bind(this));
-    this.video.src = this.fileSrc;
-
+    this.video.src = this.fileSrc!;
   }
-  async #onLoadMetadata() {
+
+  async #onLoadMetadata(): Promise<void> {
+    if (!this.video) return;
+
     const width = this.video.videoWidth;
     const height = this.video.videoHeight;
     const duration = this.video.duration;
@@ -82,61 +80,69 @@ export class HTMLVideoDemuxer {
         height,
         duration,
         totalTimeInMilSeconds: duration * 1000
-      });
+      } as VideoMetadata);
     }
 
     await this.#waitForVideoReady();
     await this.#convertToArrayBufferOptimized();
   }
 
-  async #waitForVideoReady() {
+  async #waitForVideoReady(): Promise<void> {
+    if (!this.video) return;
+
     return new Promise((resolve) => {
-      if (this.video.readyState >= 2) {
-        console.log('Video ready for seeking, readyState:', this.video.readyState);
+      if (this.video!.readyState >= 2) {
+        console.log('Video ready for seeking, readyState:', this.video!.readyState);
         resolve();
         return;
       }
 
-      const onCanPlay = () => {
-        console.log('Video can play, readyState:', this.video.readyState);
-        this.video.removeEventListener('canplay', onCanPlay);
-        this.video.removeEventListener('canplaythrough', onCanPlay);
+      const onCanPlay = (): void => {
+        console.log('Video can play, readyState:', this.video!.readyState);
+        this.video!.removeEventListener('canplay', onCanPlay);
+        this.video!.removeEventListener('canplaythrough', onCanPlay);
         resolve();
       };
 
-      this.video.addEventListener('canplay', onCanPlay, {once: true});
-      this.video.addEventListener('canplaythrough', onCanPlay, {once: true});
+      this.video!.addEventListener('canplay', onCanPlay, {once: true});
+      this.video!.addEventListener('canplaythrough', onCanPlay, {once: true});
       
       setTimeout(() => {
-        this.video.removeEventListener('canplay', onCanPlay);
-        this.video.removeEventListener('canplaythrough', onCanPlay);
-        console.log('Video ready timeout, continuing anyway. readyState:', this.video.readyState);
+        this.video!.removeEventListener('canplay', onCanPlay);
+        this.video!.removeEventListener('canplaythrough', onCanPlay);
+        console.log('Video ready timeout, continuing anyway. readyState:', this.video!.readyState);
         resolve();
       }, 3000);
     });
   }
-  async #seekWithTimeout(time, timeout = 2000) {
+
+  async #seekWithTimeout(time: number, timeout: number = 2000): Promise<ImageData | null> {
+    if (!this.video) return null;
+
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        this.video.removeEventListener('seeked', onSeeked);
-        console.warn(`Seek timeout for time ${time}, readyState: ${this.video.readyState}`);
+        this.video!.removeEventListener('seeked', onSeeked);
+        console.warn(`Seek timeout for time ${time}, readyState: ${this.video!.readyState}`);
         reject(new Error(`Seek timeout for time ${time}`));
       }, timeout);
 
-      const onSeeked = () => {
+      const onSeeked = (): void => {
         clearTimeout(timeoutId);
-        this.video.removeEventListener('seeked', onSeeked);
-        Canvas2DRender.drawScaled(this.video, this.renderer.context, true);
+        this.video!.removeEventListener('seeked', onSeeked);
+        Canvas2DRender.drawScaled(this.video!, this.renderer.context, true);
         const frame = this.renderer.getImageData(0, 0);
         resolve(frame);
       };
 
-      this.video.addEventListener('seeked', onSeeked, {once: true});
-      this.video.currentTime = time;
-      this.video.pause();
+      this.video!.addEventListener('seeked', onSeeked, {once: true});
+      this.video!.currentTime = time;
+      this.video!.pause();
     });
   }
-  async #convertToArrayBufferOptimized(optimizedFps = null) {
+
+  async #convertToArrayBufferOptimized(optimizedFps: number | null = null): Promise<void> {
+    if (!this.video) return;
+
     const actualFps = optimizedFps || this.optimizedFPS;
     await this.#loadInitialFrames(actualFps, this.video.duration);
   }
@@ -144,7 +150,7 @@ export class HTMLVideoDemuxer {
   /**
    * Load initial frames at reduced FPS for immediate playback
    */
-  async #loadInitialFrames(targetFps, duration) {
+  async #loadInitialFrames(targetFps: number, duration: number): Promise<void> {
     const frameInterval = 1 / targetFps;
     const optimizedFrameCount = Math.floor(duration * targetFps);
     const chunks = Math.ceil(optimizedFrameCount / this.chunkSize);
@@ -166,10 +172,13 @@ export class HTMLVideoDemuxer {
     this.#fillInterpolatedFrames();
     this.onCompleteCallback(this.#convertToLegacyFormat());
     const elapsed = Date.now() - startTime;
-    console.log('Initial video processing complete. Took', elapsed/1000, 'seconds ')
+    console.log('Initial video processing complete. Took', elapsed/1000, 'seconds');
     setTimeout(() => this.#startBackgroundUpgrade(), 1000);
   }
-  async #processInitialFrameChunk(startFrame, endFrame, frameInterval, targetFps) {
+
+  async #processInitialFrameChunk(startFrame: number, endFrame: number, frameInterval: number, targetFps: number): Promise<void> {
+    if (!this.video) return;
+
     for (let i = startFrame; i < endFrame; i++) {
       const time = i * frameInterval;
       const targetIndex = Math.floor(time * fps); // Map to full FPS index
@@ -185,14 +194,16 @@ export class HTMLVideoDemuxer {
         console.warn(`Failed to extract frame at ${time}s:`, error);
       }
       const progress = ((i + 1) / Math.floor(this.video.duration * targetFps) * 100);
-      this.onProgressCallback(Math.min(progress, 100));
+      if (this.onProgressCallback) {
+        this.onProgressCallback(Math.min(progress, 100));
+      }
     }
   }
 
   /**
    * Fill gaps between extracted frames with interpolated references
    */
-  #fillInterpolatedFrames() {
+  #fillInterpolatedFrames(): void {
     let lastRealFrameIndex = -1;
     
     for (let i = 0; i < this.frameMetadata.length; i++) {
@@ -208,13 +219,13 @@ export class HTMLVideoDemuxer {
     }
   }
 
-  #convertToLegacyFormat() {
+  #convertToLegacyFormat(): ImageData[] {
     return this.frameMetadata.map(frameMetadata => {
       return frameMetadata.getDisplayData(this.frameMetadata);
-    }).filter(data => data !== null);
+    }).filter((data): data is ImageData => data !== null);
   }
 
-  async #startBackgroundUpgrade() {
+  async #startBackgroundUpgrade(): Promise<void> {
     if (this.isUpgrading) return;
     console.log('Starting background quality upgrade... Status: ', this.#getLoadingStats());
     this.isUpgrading = true;
@@ -222,11 +233,11 @@ export class HTMLVideoDemuxer {
     await this.#upgradeFrameQuality();
     const elapsed = Date.now() - now;
     this.onCompleteCallback(this.#convertToLegacyFormat());
-    this.cleanup()
-    console.log('Finished background quality upgrade. Took', elapsed/1000, 'ms. ');
+    this.cleanup();
+    console.log('Finished background quality upgrade. Took', elapsed/1000, 'ms.');
   }
 
-  async #upgradeFrameQuality() {
+  async #upgradeFrameQuality(): Promise<void> {
     const framesToUpgrade = this.frameMetadata
       .map((frame, index) => ({ frame, index }))
       .filter(({ frame }) => frame.needsUpgrade());
@@ -254,7 +265,8 @@ export class HTMLVideoDemuxer {
     
     this.isUpgrading = false;
   }
-  async #chunkUpgrade(startIdx, endIdx, framesToUpgrade) {
+
+  async #chunkUpgrade(startIdx: number, endIdx: number, framesToUpgrade: Array<{frame: FrameMetadata; index: number}>): Promise<void> {
     for (let i = startIdx; i < endIdx; i++) {
       const {frame, index} = framesToUpgrade[i];
       const timestamp = index / fps;
@@ -272,14 +284,15 @@ export class HTMLVideoDemuxer {
       }
     }
   }
-  cleanup() {
+
+  cleanup(): void {
     if (this.video) {
       this.video.remove();
       this.video = null;
     }
-    this.frameMetadata = null;
   }
-  #getLoadingStats() {
+
+  #getLoadingStats(): { total: number; lowRes: number; highRes: number; interpolated: number; empty: number } {
     if (this.frameMetadata.length === 0) {
       return { total: 0, lowRes: 0, highRes: 0, interpolated: 0, empty: 0 };
     }
@@ -311,4 +324,5 @@ export class HTMLVideoDemuxer {
     
     return stats;
   }
-} 
+}
+
