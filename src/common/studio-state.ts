@@ -7,8 +7,8 @@ class StudioState {
   private selectedMedia: AbstractMedia | null = null;
   private isPlaying: boolean = false;
   private playingTime: number = 0;
-
-  private constructor() {}
+  private minWidth: number = Number.POSITIVE_INFINITY;
+  private minHeight: number = Number.POSITIVE_INFINITY;
 
   static getInstance(): StudioState {
     if (!StudioState.instance) {
@@ -59,7 +59,16 @@ class StudioState {
 
   getMediaById(id: string): AbstractMedia | null {
     const media = this.medias.find(media => media.id === id);
-    return media? media : null;
+    return media ? media : null;
+  }
+
+  setMinVideoSizes(width: number, height: number) {
+    this.minWidth = width > this.minWidth ? this.minWidth : width;
+    this.minHeight = height > this.minHeight ? this.minHeight : height;
+  }
+
+  getMinVideoSizes(): { width: number, height: number } {
+    return {width: this.minWidth, height: this.minHeight};
   }
 }
 

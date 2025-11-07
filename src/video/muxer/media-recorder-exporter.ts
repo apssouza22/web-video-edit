@@ -1,7 +1,7 @@
 import {AbstractMedia, addElementToBackground, isMediaAudio} from '@/media';
-import { getSupportedMimeTypes } from '@/studio';
-import { fixWebmDuration } from "@/common/utils";
-import type { VideoStudio } from '@/studio';
+import {getSupportedMimeTypes} from '@/studio';
+import {fixWebmDuration} from "@/common/utils";
+import {StudioState} from "@/common";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
@@ -10,7 +10,6 @@ type CompletionCallback = () => void;
  * Class for exporting video using MediaRecorder API without playing in the main player
  */
 export class MediaRecorderExporter {
-    private readonly studio: VideoStudio;
     private recordingCanvas: HTMLCanvasElement | null = null;
     private recordingCtx: CanvasRenderingContext2D | null = null;
     private recordingTime: number = 0;
@@ -21,9 +20,9 @@ export class MediaRecorderExporter {
     private completionCallback: CompletionCallback | null = null;
     private totalDuration: number = 0;
     private progressInterval: number | null = null;
+    private studioState = StudioState.getInstance()
 
-    constructor(studio: VideoStudio) {
-        this.studio = studio;
+    constructor() {
         this.audioContext = new AudioContext();
     }
 
@@ -76,9 +75,10 @@ export class MediaRecorderExporter {
      * Create a separate canvas for recording that matches the player canvas
      */
     #createRecordingCanvas(): void {
+        const {width, height} = this.studioState.getMinVideoSizes()
         this.recordingCanvas = document.createElement('canvas');
-        this.recordingCanvas.width = this.studio.player.canvas.width;
-        this.recordingCanvas.height = this.studio.player.canvas.height;
+        this.recordingCanvas.width = width;
+        this.recordingCanvas.height = height;
         this.recordingCtx = this.recordingCanvas.getContext('2d');
 
         if (this.recordingCtx) {
@@ -145,7 +145,7 @@ export class MediaRecorderExporter {
      */
     #setupAudioForExport(): void {
         this.audioContext.resume();
-        for (const layer of this.studio.getMedias()) {
+        for (const layer of this.studioState.getMedias()) {
             if (layer.constructor.name === 'AudioLayer') {
                 layer.connectAudioSource(this.audioContext);
             }
@@ -159,7 +159,7 @@ export class MediaRecorderExporter {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studio.getMedias();
+        const layers = this.studioState.getMedias();
 
         for (const layer of layers) {
             // Pass playing=true to ensure audio medias start at correct time
@@ -173,7 +173,7 @@ export class MediaRecorderExporter {
     #stopBackgroundRecording(): void {
         this.isRecording = false;
         this.#stopProgressTracking();
-        this.studio.getMedias().forEach(layer => {
+        this.studioState.getMedias().forEach(layer => {
             layer.audioStreamDestination = null;
         });
 
@@ -189,7 +189,7 @@ export class MediaRecorderExporter {
      */
     #getTotalDuration(): number {
         let maxDuration = 0;
-        for (const layer of this.studio.getMedias()) {
+        for (const layer of this.studioState.getMedias()) {
             const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
@@ -203,7 +203,7 @@ export class MediaRecorderExporter {
      */
     #getAudioLayers(): AbstractMedia[] {
         const layers: AbstractMedia[] = [];
-        for (const layer of this.studio.getMedias()) {
+        for (const layer of this.studioState.getMedias()) {
             if (isMediaAudio(layer)) {
                 layers.push(layer);
             }

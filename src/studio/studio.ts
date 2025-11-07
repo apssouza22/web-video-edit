@@ -60,7 +60,7 @@ export class VideoStudio {
     this.timeline = createTimeline();
     this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this));
     this.layerLoader = new LayerLoader(this, this.mediaService);
-    this.videoExporter = createVideoMuxer(this);
+    this.videoExporter = createVideoMuxer();
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
     this.mediaEditor = new ControlsHandler(this, this.mediaService, this.studioState);

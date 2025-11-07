@@ -1,13 +1,10 @@
-import {VideoStudio} from '@/studio';
 import {MediaRecorderExporter} from './media-recorder-exporter.js';
 import {WebCodecExporter} from './web-codec-exporter.js';
 
 export class VideoExportService {
-  private readonly studio: VideoStudio;
   private readonly codecSupported: boolean;
 
-  constructor(studio: VideoStudio) {
-    this.studio = studio;
+  constructor() {
     this.codecSupported = this.#checkCodecSupport();
   }
 
@@ -17,11 +14,11 @@ export class VideoExportService {
 
   export(progressCallback: any, completionCallback: any): void {
     if (!this.codecSupported) {
-      const mediaRecorderExporter = new MediaRecorderExporter(this.studio);
+      const mediaRecorderExporter = new MediaRecorderExporter();
       mediaRecorderExporter.export(progressCallback, completionCallback);
       return;
     }
-    const webCodecExporter = new WebCodecExporter(this.studio);
+    const webCodecExporter = new WebCodecExporter();
     webCodecExporter.export(progressCallback, completionCallback);
   }
 }

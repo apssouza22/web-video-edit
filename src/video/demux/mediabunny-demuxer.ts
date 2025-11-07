@@ -1,13 +1,8 @@
-import { Canvas2DRender } from '@/common/render-2d';
-import { VideoMetadata } from '@/media/types';
-import { fps } from '@/constants';
-import {
-  ALL_FORMATS,
-  BlobSource,
-  CanvasSink,
-  Input, VideoSampleSink,
-  WrappedCanvas,
-} from 'mediabunny';
+import {Canvas2DRender} from '@/common/render-2d';
+import {VideoMetadata} from '@/media/types';
+import {fps} from '@/constants';
+import {ALL_FORMATS, BlobSource, Input, VideoSampleSink, WrappedCanvas,} from 'mediabunny';
+import {StudioState} from "@/common";
 
 export type ProgressCallback = (progress: number) => void;
 export type CompleteCallback = (frames: any[]) => void;
@@ -79,7 +74,7 @@ export class MediaBunnyDemuxer {
       });
 
       this.videoSink = new VideoSampleSink(videoTrack);
-      renderer.setSize(width, height);
+      StudioState.getInstance().setMinVideoSizes(width, height)
       await this.extractFrames();
     } catch (error) {
       console.error('MediaBunnyDemuxer initialization error:', error);

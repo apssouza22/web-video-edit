@@ -1,6 +1,3 @@
-import type {VideoStudio} from '@/studio';
-
-
 import {
     AudioBufferSource,
     BufferTarget,
@@ -12,6 +9,7 @@ import {
     QUALITY_HIGH,
 } from "mediabunny";
 import {AbstractMedia, isMediaAudio} from "@/media";
+import {StudioState} from "@/common";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
@@ -22,9 +20,6 @@ type CompletionCallback = () => void;
  * This implementation follows the test2.js approach using BufferTarget and synchronous frame rendering
  */
 export class WebCodecExporter {
-    private readonly exportWidth: number = 1920;
-    private readonly exportHeight: number = 1080;
-    private readonly studio: VideoStudio;
     private output:  Output<Mp4OutputFormat, BufferTarget> | null = null;
     private canvasSource: CanvasSource | null = null;
     private audioBufferSource: AudioBufferSource | null = null;
@@ -39,9 +34,9 @@ export class WebCodecExporter {
     private audioContext: OfflineAudioContext | null = null;
     private readonly numberOfChannels: number = 2;
     private readonly sampleRate: number = 48000;
+    private readonly studioState = StudioState.getInstance()
 
-    constructor(studio: VideoStudio) {
-        this.studio = studio;
+    constructor() {
         this.output = new Output({
             target: new BufferTarget(),
             format: new Mp4OutputFormat(),
@@ -64,7 +59,7 @@ export class WebCodecExporter {
         this.completionCallback = completionCallback;
 
         console.log('🎬 Starting MediaBunny export with BufferTarget approach...');
-        console.log('Available medias:', this.studio.getMedias().length);
+        console.log('Available medias:', this.studioState.getMedias().length);
         console.log('Audio medias:', this.#getAudioLayers().length);
 
         this.isEncoding = true;
@@ -91,7 +86,8 @@ export class WebCodecExporter {
      * Create a separate OffscreenCanvas for recording at 1920x1080 resolution
      */
     #createRecordingCanvas(): void {
-        this.recordingCanvas = new OffscreenCanvas(this.exportWidth, this.exportHeight);
+        const dimensions = this.studioState.getMinVideoSizes()
+        this.recordingCanvas = new OffscreenCanvas(dimensions.width, dimensions.height);
         // Enhanced context settings for better quality
         this.recordingCtx = this.recordingCanvas.getContext('2d', {
             alpha: false,
@@ -101,7 +97,6 @@ export class WebCodecExporter {
         });
         
         if (this.recordingCtx) {
-            // Set high-quality rendering settings
             this.recordingCtx.imageSmoothingEnabled = true;
             this.recordingCtx.imageSmoothingQuality = 'high';
         }
@@ -122,7 +117,6 @@ export class WebCodecExporter {
             format: new Mp4OutputFormat(),
         });
 
-        // Use recording canvas dimensions for codec selection (1920x1080)
         const exportWidth = this.recordingCanvas.width;
         const exportHeight = this.recordingCanvas.height;
 
@@ -171,7 +165,6 @@ export class WebCodecExporter {
                 console.warn('No audio codec available, exporting video only');
             }
         }
-
         await this.output.start();
     }
 
@@ -199,8 +192,7 @@ export class WebCodecExporter {
             throw new Error('Canvas source not initialized');
         }
 
-        let currentFrame = 0;
-        for (currentFrame = 0; currentFrame < this.totalFrames; currentFrame++) {
+        for (let currentFrame = 0; currentFrame < this.totalFrames; currentFrame++) {
             const currentTime = (currentFrame / this.frameRate) * 1000; // Convert to milliseconds
             const videoProgress = currentFrame / this.totalFrames;
             const overallProgress = videoProgress * (this.audioBufferSource ? 0.9 : 0.95);
@@ -230,12 +222,8 @@ export class WebCodecExporter {
             this.progressCallback(95);
         }
 
-        if (!this.output) {
-            throw new Error('Output not initialized');
-        }
-
         console.log('🔄 Finalizing output...');
-        await this.output.finalize();
+        await this.output!.finalize();
         await this.#createAndDownloadFile();
 
         if (this.progressCallback) {
@@ -307,7 +295,7 @@ export class WebCodecExporter {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studio.getMedias();
+        const layers = this.studioState.getMedias();
         for (const layer of layers) {
             layer.render(this.recordingCtx, currentTime);
         }
@@ -318,7 +306,7 @@ export class WebCodecExporter {
      */
     #getTotalDuration(): number {
         let maxDuration = 0;
-        for (const layer of this.studio.getMedias()) {
+        for (const layer of this.studioState.getMedias()) {
             const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
@@ -332,7 +320,7 @@ export class WebCodecExporter {
      */
     #getAudioLayers(): AbstractMedia[] {
         const layers: AbstractMedia[] = [];
-        for (const layer of this.studio.getMedias()) {
+        for (const layer of this.studioState.getMedias()) {
             if (isMediaAudio(layer)) {
                 layers.push(layer);
             }
