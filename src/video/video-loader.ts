@@ -1,5 +1,4 @@
-import {VideoDemuxService} from "@/video/demux/video-demux";
-import {createDemuxer} from "@/video/demux";
+import {createDemuxer, VideoDemuxService} from "@/video/demuxgtw";
 import {VideoMetadata, LayerFile} from "@/media/types";
 import {Canvas2DRender} from "@/common/render-2d";
 
@@ -8,7 +7,8 @@ type Callback = (progress: number, metadata: VideoMetadata | null) => void;
 export class VideoLoader {
   private videoDemuxer: VideoDemuxService;
   private reader?: FileReader;
-  private callback: Callback = (progress: number, metadata: VideoMetadata | null) => {};
+  private callback: Callback = (progress: number, metadata: VideoMetadata | null) => {
+  };
   private metadata: VideoMetadata | null = null;
   private renderer = new Canvas2DRender();
 
