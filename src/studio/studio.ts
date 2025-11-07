@@ -117,7 +117,7 @@ export class VideoStudio {
         exportButton.textContent = tempText;
         this.loadingPopup.updateProgress(exportId, 100);
       };
-
+      this.player.pause();
       this.videoExporter.export(progressCallback, completionCallback);
     });
   }

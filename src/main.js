@@ -1,5 +1,5 @@
 import {updateSettings} from './studio/index';
-import {addText, popup} from './common/index';
+import {addText, popup, StudioState} from './common/index';
 import {initScreenRecording} from "./record/controls";
 import {initStudio} from "@/studio/initilizer.js";
 
@@ -9,6 +9,7 @@ initScreenRecording();
 
 // Expose global functions for HTML onclick handlers
 window.studio = studio;
+window.studioState =  StudioState.getInstance()
 window.addText = addText;
 window.updateSettings = updateSettings;
 window.popup = popup;

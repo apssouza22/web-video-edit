@@ -125,25 +125,6 @@ export class FrameService {
   }
 
   /**
-   * Backward compatibility: Get frame as Float32Array
-   */
-  getFrameAsArray(index: number): Float32Array | null {
-    if (index < 0 || index >= this.frames.length) {
-      return null;
-    }
-    return this.frames[index].toArray();
-  }
-
-  /**
-   * Backward compatibility: Set frame from Float32Array
-   */
-  setFrameFromArray(index: number, array: Float32Array): void {
-    if (index >= 0 && index < this.frames.length) {
-      this.frames[index] = Frame.fromArray(array);
-    }
-  }
-
-  /**
    * Gets frame considering speed multiplier from the media's speed controller
    */
   getFrameWithSpeed(referenceTime: number, startTime: number, speed: number = 1.0): Frame | null {

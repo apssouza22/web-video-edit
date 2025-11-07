@@ -2,7 +2,7 @@
  * Represents frame reference data - can be any type of frame data
  * including ImageData, HTMLVideoElement, canvas context, etc.
  */
-export type FrameReference = any;
+export type FrameReference = VideoFrame | ImageData | null;
 
 /**
  * Frame transformation properties
@@ -20,15 +20,6 @@ export interface FrameTransform {
  */
 export interface FrameData extends FrameTransform {
   frame: FrameReference;
-}
-
-/**
- * Parameters for FrameService constructor
- */
-export interface FrameServiceParams {
-  totalTimeInMilliseconds: number;
-  startTime: number;
-  isFlexibleLayer?: boolean;
 }
 
 /**
