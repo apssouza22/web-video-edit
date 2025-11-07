@@ -1,6 +1,6 @@
 import {AbstractMedia, createMediaFromFile, createMediaText, MediaService} from '@/media';
 
-import {ext_map} from './index';
+import {ext_map} from '@/common';
 import {Frame} from '@/frame';
 import {LayerLoadUpdateListener} from "@/media/types";
 

@@ -349,17 +349,7 @@ export class UserMediaRecordingService {
       console.warn('Memory usage exceeded limit, implementing progressive storage...');
       this.#handleMemoryPressure();
     }
-
     this.#recordedChunks.push(event.data);
-
-    console.log('Recorded chunk added:', {
-      chunkSize: event.data.size,
-      totalChunks: this.#recordedChunks.length,
-      memoryUsage: this.#preview.formatBytes(this.#currentMemoryUsage),
-      totalFileSize: this.#preview.formatBytes(this.#totalFileSize),
-      duration: this.#preview.formatDuration(this.#recordingDuration)
-    });
-
     // Monitor memory usage and warn if getting high
     if (this.#currentMemoryUsage > this.#maxMemoryUsage * 0.8) {
       console.warn('Memory usage approaching limit:', this.#preview.formatBytes(this.#currentMemoryUsage));

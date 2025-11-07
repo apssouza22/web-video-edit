@@ -6,7 +6,7 @@ import {
   addText,
   uploadSupportedType,
   getSupportedMimeTypes
-} from '@/studio/utils';
+} from '../../src/common/utils';
 
 describe('Studio Utils', () => {
   describe('ext_map', () => {

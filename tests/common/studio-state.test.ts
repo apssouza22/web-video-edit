@@ -1,7 +1,6 @@
-import {beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { StudioState, studioState } from '@/common/studio-state';
-import { AbstractMedia } from '@/media';
-import {VideoLoader} from "../../src/video/video-loader";
+import {beforeEach, describe, expect, test} from '@jest/globals';
+import {StudioState, studioState} from '@/common/studio-state';
+import {AbstractMedia} from '@/media';
 import {AudioLayer} from "../../src/media/audio";
 import {VideoLayer} from "../../src/media/video";
 

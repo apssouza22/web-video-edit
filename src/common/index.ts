@@ -16,4 +16,6 @@ export {
 export { StudioState } from './studio-state';
 export {PinchHandler} from './pinch-handler';
 export { dpr } from '@/constants';
+export { ext_map, popup, exportToJson, addText, uploadSupportedType, getSupportedMimeTypes, fixWebmDuration } from './utils';
+
 

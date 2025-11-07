@@ -9,7 +9,7 @@ import {PinchHandler} from '@/common';
 import {DragItemHandler} from './drag-handler';
 import {ControlsHandler} from './control-handler';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
-import {exportToJson, uploadSupportedType} from './utils';
+import {exportToJson, uploadSupportedType} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";

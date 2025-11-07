@@ -1,4 +1,4 @@
-import { exportToJson } from './utils';
+import { exportToJson } from '@/common/utils';
 import {VideoStudio} from "@/studio/studio";
 import {ESRenderingContext2D} from "@/common/render-2d";
 

@@ -89,7 +89,7 @@ describe('StudioControls', () => {
       // Mock exportToJson function
       const mockExportToJson = jest.fn();
       jest.isolateModules(() => {
-        jest.mock('@/studio/utils', () => ({
+        jest.mock('../../src/common/utils', () => ({
           exportToJson: mockExportToJson
         }));
       });

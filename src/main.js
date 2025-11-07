@@ -1,4 +1,5 @@
-import {addText, popup, updateSettings} from './studio/index';
+import {updateSettings} from './studio/index';
+import {addText, popup} from './common/index';
 import {initScreenRecording} from "./record/controls";
 import {initStudio} from "@/studio/initilizer.js";
 

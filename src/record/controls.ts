@@ -1,4 +1,4 @@
-import {popup} from "@/studio/utils";
+import {popup} from "@/common/utils";
 import {createUserMediaRecordingService} from "./index";
 import {UserMediaRecordingService} from "@/record/service";
 
