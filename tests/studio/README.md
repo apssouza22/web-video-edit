@@ -24,7 +24,7 @@ Jest automatically hoists `jest.mock()` calls to the top of a file, but **ONLY**
 
 ### Usage Patterns
 
-#### For Components with Heavy Dependencies (VideoStudio, LayerLoader, etc.)
+#### For Components with Heavy Dependencies (VideoStudio, MediaLoader, etc.)
 
 Copy the relevant `jest.mock()` calls **directly** into your test file BEFORE imports:
 
@@ -61,7 +61,7 @@ import { MyComponent } from '@/studio/my-component';
 - **`pinch-handler.test.ts`** - Tests for pinch/zoom/rotation gesture handling (Safari gestures and wheel events)
 
 ### Phase 3: Service Classes
-- **`layer-loader.test.ts`** - Tests for loading media from files, URIs, and JSON configurations
+- **`media-loader.test.ts`** - Tests for loading media from files, URIs, and JSON configurations
 - **`speed-control-input.test.ts`** - Tests for the speed control UI component with validation
 - **`control-handler.test.ts`** - Tests for media editing operations (split, remove intervals)
 

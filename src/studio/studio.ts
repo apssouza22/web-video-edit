@@ -2,7 +2,7 @@ import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
 import {AbstractMedia, createMediaService, MediaService} from '@/media';
 import {AudioLayer} from '@/media/audio';
-import {LayerLoader} from './layer-loader';
+import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
 import {StudioControls} from './controls';
 import {PinchHandler} from '@/common';
@@ -35,7 +35,7 @@ export class VideoStudio {
   medias: AbstractMedia[];
   player: VideoCanvas;
   timeline: Timeline;
-  layerLoader: LayerLoader;
+  layerLoader: MediaLoader;
   videoExporter: VideoExportService;
   controls: StudioControls;
   transcriptionManager: TranscriptionService;
@@ -59,7 +59,7 @@ export class VideoStudio {
 
     this.timeline = createTimeline();
     this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this));
-    this.layerLoader = new LayerLoader(this, this.mediaService);
+    this.layerLoader = new MediaLoader(this);
     this.videoExporter = createVideoMuxer();
     this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
@@ -292,7 +292,7 @@ export class VideoStudio {
   }
 
   public addLayerFromFile(file: File): AbstractMedia[] {
-    const layers = this.layerLoader.addLayerFromFile(file, this.#onLayerLoadUpdate.bind(this));
+    const layers = this.layerLoader.addMediaFromFile(file, this.#onLayerLoadUpdate.bind(this));
 
     layers.forEach(layer => {
       this.loadingPopup.startLoading(layer.id.toString(), file.name);

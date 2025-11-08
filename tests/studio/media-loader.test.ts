@@ -1,12 +1,11 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 
 // Use dynamic imports for ESM
-const { LayerLoader } = await import('@/studio/layer-loader');
+const { MediaLoader } = await import('@//studio/media-loader');
 
-describe('LayerLoader', () => {
+describe('MediaLoader', () => {
   let mockStudio: any;
-  let mockMediaService: any;
-  let layerLoader: LayerLoader;
+  let mediaLoader: MediaLoader;
   let mockOnMediaLoadUpdate: jest.Mock;
 
   beforeEach(() => {
@@ -14,13 +13,9 @@ describe('LayerLoader', () => {
       addLayer: jest.fn((layer) => layer)
     };
 
-    mockMediaService = {
-      clone: jest.fn()
-    };
-
     mockOnMediaLoadUpdate = jest.fn();
 
-    layerLoader = new LayerLoader(mockStudio, mockMediaService);
+    mediaLoader = new MediaLoader(mockStudio);
 
     // Mock global fetch
     // @ts-ignore
@@ -33,11 +28,11 @@ describe('LayerLoader', () => {
 
   describe('constructor', () => {
     test('should create instance with studio and media service', () => {
-      expect(layerLoader).toBeDefined();
+      expect(mediaLoader).toBeDefined();
     });
   });
 
-  describe('addLayerFromFile', () => {
+  describe('addMediaFromFile', () => {
     test('should add layer from video file', () => {
       const mockFile = new File(['content'], 'test.mp4', { type: 'video/mp4' });
       const mockLayer = { id: '1', name: 'test.mp4', type: 'video' };
@@ -48,7 +43,7 @@ describe('LayerLoader', () => {
         createMediaFromFile: mockCreateMediaFromFile
       }));
 
-      const layers = layerLoader.addLayerFromFile(mockFile, mockOnMediaLoadUpdate);
+      const layers = mediaLoader.addMediaFromFile(mockFile, mockOnMediaLoadUpdate);
 
       expect(mockStudio.addLayer).toHaveBeenCalled();
       expect(layers.length).toBeGreaterThanOrEqual(0);
@@ -57,7 +52,7 @@ describe('LayerLoader', () => {
     test('should handle multiple layers from file', () => {
       const mockFile = new File(['content'], 'test.mp4', { type: 'video/mp4' });
       
-      const layers = layerLoader.addLayerFromFile(mockFile, mockOnMediaLoadUpdate);
+      const layers = mediaLoader.addMediaFromFile(mockFile, mockOnMediaLoadUpdate);
 
       expect(Array.isArray(layers)).toBe(true);
     });
@@ -65,13 +60,13 @@ describe('LayerLoader', () => {
     test('should call studio.addLayer for each created layer', () => {
       const mockFile = new File(['content'], 'test.mp4', { type: 'video/mp4' });
       
-      layerLoader.addLayerFromFile(mockFile, mockOnMediaLoadUpdate);
+      mediaLoader.addMediaFromFile(mockFile, mockOnMediaLoadUpdate);
 
       expect(mockStudio.addLayer).toHaveBeenCalled();
     });
   });
 
-  describe('loadLayerFromURI', () => {
+  describe('loadMediaFromURI', () => {
     beforeEach(() => {
       // @ts-ignore
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -83,7 +78,7 @@ describe('LayerLoader', () => {
     test('should load layer from valid URI', async () => {
       const uri = 'https://example.com/video.mp4';
       
-      const layers = await layerLoader.loadLayerFromURI(uri);
+      const layers = await mediaLoader.loadMediaFromURI(uri);
 
       expect(global.fetch).toHaveBeenCalledWith(uri);
       expect(layers).toBeDefined();
@@ -92,7 +87,7 @@ describe('LayerLoader', () => {
     test('should extract filename from URI', async () => {
       const uri = 'https://example.com/path/to/video.mp4';
       
-      await layerLoader.loadLayerFromURI(uri);
+      await mediaLoader.loadMediaFromURI(uri);
 
       expect(global.fetch).toHaveBeenCalledWith(uri);
     });
@@ -100,7 +95,7 @@ describe('LayerLoader', () => {
     test('should handle URI with query parameters', async () => {
       const uri = 'https://example.com/video.mp4?param=value';
       
-      const layers = await layerLoader.loadLayerFromURI(uri);
+      const layers = await mediaLoader.loadMediaFromURI(uri);
 
       expect(global.fetch).toHaveBeenCalledWith(uri);
       expect(layers).toBeDefined();
@@ -109,14 +104,14 @@ describe('LayerLoader', () => {
     test('should handle URI with hash', async () => {
       const uri = 'https://example.com/video.mp4#section';
       
-      const layers = await layerLoader.loadLayerFromURI(uri);
+      const layers = await mediaLoader.loadMediaFromURI(uri);
 
       expect(global.fetch).toHaveBeenCalledWith(uri);
       expect(layers).toBeDefined();
     });
 
     test('should return undefined for empty URI', async () => {
-      const result = await layerLoader.loadLayerFromURI('');
+      const result = await mediaLoader.loadMediaFromURI('');
 
       expect(result).toBeUndefined();
       expect(global.fetch).not.toHaveBeenCalled();
@@ -131,7 +126,7 @@ describe('LayerLoader', () => {
       ];
 
       for (const uri of uris) {
-        await layerLoader.loadLayerFromURI(uri);
+        await mediaLoader.loadMediaFromURI(uri);
         expect(global.fetch).toHaveBeenCalledWith(uri);
       }
     });
@@ -141,7 +136,7 @@ describe('LayerLoader', () => {
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await expect(
-        layerLoader.loadLayerFromURI('https://example.com/video.mp4')
+        mediaLoader.loadMediaFromURI('https://example.com/video.mp4')
       ).rejects.toThrow('Network error');
     });
   });
@@ -169,7 +164,7 @@ describe('LayerLoader', () => {
         total_time: 5000
       }];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(global.fetch).toHaveBeenCalledWith('https://example.com/video.mp4');
       expect(layers).toBeDefined();
@@ -187,7 +182,7 @@ describe('LayerLoader', () => {
         total_time: 3000
       }];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(global.fetch).toHaveBeenCalledWith('https://example.com/image.jpg');
       expect(layers).toBeDefined();
@@ -203,7 +198,7 @@ describe('LayerLoader', () => {
         total_time: 2000
       }];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(mockStudio.addLayer).toHaveBeenCalled();
       expect(layers).toBeDefined();
@@ -229,7 +224,7 @@ describe('LayerLoader', () => {
         }
       ];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(layers.length).toBeGreaterThanOrEqual(0);
       expect(Array.isArray(layers)).toBe(true);
@@ -245,7 +240,7 @@ describe('LayerLoader', () => {
         total_time: 5000
       }];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(global.fetch).not.toHaveBeenCalled();
       expect(layers).toBeDefined();
@@ -262,7 +257,7 @@ describe('LayerLoader', () => {
         total_time: 1000
       }];
 
-      await layerLoader.loadLayersFromJson(jsonData);
+      await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(global.alert).toHaveBeenCalledWith("Layer couldn't be processed.");
     });
@@ -280,7 +275,7 @@ describe('LayerLoader', () => {
         ]
       }];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(layers).toBeDefined();
     });
@@ -288,7 +283,7 @@ describe('LayerLoader', () => {
     test('should handle empty JSON array', async () => {
       const jsonData: any[] = [];
 
-      const layers = await layerLoader.loadLayersFromJson(jsonData);
+      const layers = await mediaLoader.loadLayersFromJson(jsonData);
 
       expect(layers).toEqual([]);
     });
@@ -308,7 +303,7 @@ describe('LayerLoader', () => {
       }];
 
       await expect(
-        layerLoader.loadLayersFromJson(jsonData)
+        mediaLoader.loadLayersFromJson(jsonData)
       ).rejects.toThrow('Network error');
     });
   });
@@ -316,18 +311,18 @@ describe('LayerLoader', () => {
   describe('edge cases', () => {
     test('should handle null file', () => {
       expect(() => {
-        layerLoader.addLayerFromFile(null as any, mockOnMediaLoadUpdate);
+        mediaLoader.addMediaFromFile(null as any, mockOnMediaLoadUpdate);
       }).toThrow();
     });
 
     test('should handle undefined URI', async () => {
-      const result = await layerLoader.loadLayerFromURI(undefined as any);
+      const result = await mediaLoader.loadMediaFromURI(undefined as any);
       expect(result).toBeUndefined();
     });
 
     test('should handle null JSON data', async () => {
       await expect(
-        layerLoader.loadLayersFromJson(null as any)
+        mediaLoader.loadLayersFromJson(null as any)
       ).rejects.toThrow();
     });
   });
@@ -336,7 +331,7 @@ describe('LayerLoader', () => {
     test('should handle complete workflow for video file', async () => {
       // Add from file
       const mockFile = new File(['content'], 'test.mp4', { type: 'video/mp4' });
-      const layers = layerLoader.addLayerFromFile(mockFile, mockOnMediaLoadUpdate);
+      const layers = mediaLoader.addMediaFromFile(mockFile, mockOnMediaLoadUpdate);
 
       expect(mockStudio.addLayer).toHaveBeenCalled();
       expect(Array.isArray(layers)).toBe(true);
@@ -350,7 +345,7 @@ describe('LayerLoader', () => {
       });
 
       const uri = 'https://example.com/video.mp4';
-      const layers = await layerLoader.loadLayerFromURI(uri);
+      const layers = await mediaLoader.loadMediaFromURI(uri);
 
       expect(global.fetch).toHaveBeenCalledWith(uri);
       expect(layers).toBeDefined();

@@ -3,13 +3,8 @@ import {AbstractMedia, createMediaFromFile, createMediaText, MediaService} from 
 import {ext_map} from '@/common';
 import {Frame} from '@/frame';
 import {LayerLoadUpdateListener} from "@/media/types";
+import {VideoStudio} from "./studio";
 
-/**
- * Interface for VideoStudio class used by LayerLoader
- */
-interface VideoStudio {
-  addLayer(layer: AbstractMedia): AbstractMedia;
-}
 
 /**
  * Interface for media data from JSON
@@ -26,19 +21,17 @@ interface LayerJsonData {
 }
 
 /**
- * LayerLoader class responsible for loading medias from JSON data
+ * MediaLoader class responsible for loading medias from JSON data
  */
-export class LayerLoader {
+export class MediaLoader {
   private studio: VideoStudio;
-  private mediaService: MediaService;
 
   /**
-   * Constructor for LayerLoader
+   * Constructor for MediaLoader
    * @param studio - The studio instance that will own the medias
    */
-  constructor(studio: VideoStudio, mediaService: MediaService) {
+  constructor(studio: VideoStudio) {
     this.studio = studio;
-    this.mediaService = mediaService;
   }
 
 
@@ -49,7 +42,7 @@ export class LayerLoader {
    * @param onMediaLoadUpdate - Whether to use HTML demuxing for video
    * @returns The added medias
    */
-  addLayerFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
+  addMediaFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
     const layers: AbstractMedia[] = [];
     createMediaFromFile(file, onMediaLoadUpdate)
     .forEach(layer => {
@@ -64,7 +57,7 @@ export class LayerLoader {
    * @param uri - The URI to load the media from
    * @returns Promise that resolves to the added medias
    */
-  async loadLayerFromURI(uri: string): Promise<AbstractMedia[] | undefined> {
+  async loadMediaFromURI(uri: string): Promise<AbstractMedia[] | undefined> {
     if (!uri) {
       return;
     }
@@ -84,7 +77,7 @@ export class LayerLoader {
     const file = new File([data], name, metadata) as File & { uri?: string };
     file.uri = uri;
 
-    return this.addLayerFromFile(file, (l, progress, ctx, audioBuffer) => {});
+    return this.addMediaFromFile(file, (l, progress, ctx, audioBuffer) => {});
   }
 
   /**
@@ -95,7 +88,7 @@ export class LayerLoader {
   async loadLayersFromJson(layers: LayerJsonData[]): Promise<AbstractMedia[]> {
     const allLayers: AbstractMedia[] = [];
     for (const layer_d of layers) {
-      const layersCreated = await this.#loadLayerType(layer_d);
+      const layersCreated = await this.#loadMediaType(layer_d);
 
       if (!layersCreated.length) {
         alert("Layer couldn't be processed.");
@@ -129,11 +122,11 @@ export class LayerLoader {
     })
   }
 
-  async #loadLayerType(layer_d: LayerJsonData): Promise<AbstractMedia[]> {
+  async #loadMediaType(layer_d: LayerJsonData): Promise<AbstractMedia[]> {
     const layersCreated: AbstractMedia[] = [];
     if (layer_d.type === "VideoLayer") {
       if (layer_d.uri) {
-        const l = await this.loadLayerFromURI(layer_d.uri);
+        const l = await this.loadMediaFromURI(layer_d.uri);
         if (l) {
           layersCreated.push(...l);
         }
@@ -145,7 +138,7 @@ export class LayerLoader {
     }
     if (layer_d.type === "ImageLayer") {
       if (layer_d.uri) {
-        const l = await this.loadLayerFromURI(layer_d.uri);
+        const l = await this.loadMediaFromURI(layer_d.uri);
         if (l) {
           layersCreated.push(...l);
         }

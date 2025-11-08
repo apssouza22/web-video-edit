@@ -22,7 +22,7 @@ describe('StudioControls', () => {
       pause: jest.fn(),
       resize: jest.fn(),
       layerLoader: {
-        loadLayerFromURI: jest.fn(),
+        loadMediaFromURI: jest.fn(),
         addLayerFromFile: jest.fn()
       }
     };
@@ -130,7 +130,7 @@ describe('StudioControls', () => {
       });
       window.dispatchEvent(event);
 
-      expect(mockStudio.layerLoader.loadLayerFromURI).toHaveBeenCalledWith('https://example.com/video.mp4');
+      expect(mockStudio.layerLoader.loadMediaFromURI).toHaveBeenCalledWith('https://example.com/video.mp4');
     });
 
     test('should handle empty paste data', () => {
@@ -191,7 +191,7 @@ describe('StudioControls', () => {
 
       window.dispatchEvent(event);
 
-      expect(mockStudio.layerLoader.loadLayerFromURI).toHaveBeenCalledWith('https://example.com/video.mp4');
+      expect(mockStudio.layerLoader.loadMediaFromURI).toHaveBeenCalledWith('https://example.com/video.mp4');
     });
 
     test('should handle drop without items', () => {
