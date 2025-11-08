@@ -1,7 +1,6 @@
-import type {AbstractMedia} from '@/media';
 import {VideoCanvas} from "@/canvas/canvas";
 
-export type LayerTransformedListener = (layer: AbstractMedia) => void;
+export type LayerTransformedListener = (layer: Media) => void;
 export type PlayerEndCallback = (player: VideoCanvas) => void;
 
 /**
@@ -60,6 +59,21 @@ export interface HitTestResult {
 export interface CanvasPosition {
   canvasX: number;
   canvasY: number;
+}
+
+/**
+ * Local version of the AbstractMedia
+ * @see AbstractMedia
+ */
+export interface Media {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+
+  getFrame(currentTime: number): any;
+  update(param: { x?: number; y?: number, scale?: number, rotation?: number }, currentTime: number): void;
+  render(ctx: CanvasContext2D, time: number, playing: boolean): void;
 }
 
 export type CanvasContext2D = CanvasRenderingContext2D;
