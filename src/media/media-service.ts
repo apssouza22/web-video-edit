@@ -4,15 +4,15 @@ import {ImageMedia} from "./image";
 import {AudioMedia} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 import {AbstractMedia} from "@/media/media-common";
-import {AudioSplitHandler} from "@/audio/AudioSplitHandler";
+import {AudioService} from "@/audio";
 
 export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener;
-  private audioCutter: AudioSplitHandler
+  private audioService: AudioService;
 
-  constructor(onLayerLoadUploadListener: LayerLoadUpdateListener) {
+  constructor(onLayerLoadUploadListener: LayerLoadUpdateListener, audioService: AudioService) {
     this.onLayerLoadUpdate = onLayerLoadUploadListener;
-    this.audioCutter = new AudioSplitHandler();
+    this.audioService = audioService;
   }
 
   /**
@@ -44,7 +44,7 @@ export class MediaService {
     }
 
     if (selectedMedia instanceof AudioMedia) {
-      this.audioCutter.split(selectedMedia, mediaClone, splitTime);
+      this.audioService.splitAudio(selectedMedia, mediaClone, splitTime);
     }
 
     return mediaClone;

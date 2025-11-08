@@ -5,6 +5,7 @@ import {MediaService} from './media-service';
 import {LayerLoadUpdateListener} from './types';
 import {AbstractMedia} from './media-common';
 import {TextMedia} from "@/media/text";
+import {AudioService} from "@/audio";
 
 export {AbstractMedia, FlexibleLayer, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
@@ -13,8 +14,8 @@ export {SpeedController} from './speed-controller';
 /**
  * Creates a LayerService instance with the provided listener.
  */
-export function createMediaService(onLayerLoadUploadListener: LayerLoadUpdateListener): MediaService {
-  return new MediaService(onLayerLoadUploadListener);
+export function createMediaService(onLayerLoadUploadListener: LayerLoadUpdateListener, audioService: AudioService): MediaService {
+  return new MediaService(onLayerLoadUploadListener, audioService);
 }
 
 export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {

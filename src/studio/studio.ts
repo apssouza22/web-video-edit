@@ -16,6 +16,7 @@ import {SpeedControlInput} from "./speed-control-input";
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
+import {AudioService, createAudioService} from "@/audio";
 
 /**
  * Update data structure for media transformations
@@ -45,6 +46,7 @@ export class VideoStudio {
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
   studioState: StudioState;
+  private audioService: AudioService;
 
   constructor() {
     this.update = null;
@@ -58,7 +60,8 @@ export class VideoStudio {
     }
 
     this.timeline = createTimeline();
-    this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this));
+    this.audioService = createAudioService();
+    this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this), this.audioService);
     this.layerLoader = new MediaLoader(this);
     this.videoExporter = createVideoMuxer();
     this.controls = new StudioControls(this);

@@ -1,4 +1,4 @@
-import {AbstractMedia, createMediaFromFile, createMediaText, MediaService} from '@/media';
+import {AbstractMedia, createMediaFromFile, createMediaText} from '@/media';
 
 import {ext_map} from '@/common';
 import {Frame} from '@/frame';
@@ -124,7 +124,7 @@ export class MediaLoader {
 
   async #loadMediaType(layer_d: LayerJsonData): Promise<AbstractMedia[]> {
     const layersCreated: AbstractMedia[] = [];
-    if (layer_d.type === "VideoLayer") {
+    if (layer_d.type === "VideoMedia") {
       if (layer_d.uri) {
         const l = await this.loadMediaFromURI(layer_d.uri);
         if (l) {
@@ -132,11 +132,11 @@ export class MediaLoader {
         }
       }
     }
-    if (layer_d.type === "TextLayer") {
+    if (layer_d.type === "TextMedia") {
       const layer = this.studio.addLayer(createMediaText(layer_d.name, (l, progress, ctx, audioBuffer) => {}));
       layersCreated.push(layer);
     }
-    if (layer_d.type === "ImageLayer") {
+    if (layer_d.type === "ImageMedia") {
       if (layer_d.uri) {
         const l = await this.loadMediaFromURI(layer_d.uri);
         if (l) {

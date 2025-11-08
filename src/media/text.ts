@@ -59,8 +59,8 @@ export class TextMedia extends FlexibleLayer {
       this.renderer.shadowColor = "black";
       this.renderer.shadowBlur = 7;
     } else {
-      this.renderer.shadowColor = null;
-      this.renderer.shadowBlur = null;
+      this.renderer.shadowColor = '';
+      this.renderer.shadowBlur = 1;
     }
     
     this.renderer.fillStyle = this.color;

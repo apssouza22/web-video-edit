@@ -29,6 +29,7 @@ export class VideoMedia extends AbstractMedia {
     this.#handleVideoRatio();
 
     metadata.frames.forEach((frame, index) => {
+      // @ts-ignore
       this.framesCollection.update(index, new Frame(frame));
     });
     this.ready = true;

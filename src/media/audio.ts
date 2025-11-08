@@ -4,6 +4,10 @@ import {AudioLoader} from '@/audio/audio-loader';
 import {AudioSource} from '@/audio/audio-source';
 import type {LayerFile} from "./types";
 
+export function createAudioMedia(file: LayerFile, skipLoading: boolean = false): AudioMedia {
+  return new AudioMedia(file, skipLoading);
+}
+
 export class AudioMedia extends AbstractMedia {
   private audioLoader: AudioLoader;
   public audioBuffer: AudioBuffer | null = null;
