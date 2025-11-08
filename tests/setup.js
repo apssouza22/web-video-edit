@@ -1,16 +1,65 @@
 // Global test setup for Jest
 // This file is loaded before each test suite runs
 
+// Mock AudioBuffer
+class MockAudioBuffer {
+  constructor(options) {
+    this.numberOfChannels = options.numberOfChannels || 2;
+    this.length = options.length > 0 ? options.length : 44100;
+    this.sampleRate = options.sampleRate || 44100;
+    this.duration = this.length / this.sampleRate;
+    
+    this._channelData = [];
+    for (let i = 0; i < this.numberOfChannels; i++) {
+      this._channelData[i] = new Float32Array(this.length);
+      for (let j = 0; j < this.length; j++) {
+        this._channelData[i][j] = Math.random() * 2 - 1;
+      }
+    }
+  }
+  
+  getChannelData(channel) {
+    if (channel >= this.numberOfChannels) {
+      throw new Error(`Channel ${channel} out of range`);
+    }
+    return this._channelData[channel];
+  }
+  
+  copyToChannel(source, channelNumber, startInChannel = 0) {
+    const channelData = this.getChannelData(channelNumber);
+    for (let i = 0; i < source.length && startInChannel + i < channelData.length; i++) {
+      channelData[startInChannel + i] = source[i];
+    }
+  }
+  
+  copyFromChannel(destination, channelNumber, startInChannel = 0) {
+    const channelData = this.getChannelData(channelNumber);
+    for (let i = 0; i < destination.length && startInChannel + i < channelData.length; i++) {
+      destination[i] = channelData[startInChannel + i];
+    }
+  }
+}
+
 // Mock AudioContext
 global.AudioContext = class AudioContext {
-  constructor() {
+  constructor(options = {}) {
     this.currentTime = 0;
-    this.sampleRate = 44100;
+    this.sampleRate = options.sampleRate || 44100;
+    this.state = 'running';
+    this.destination = {
+      connect: () => {},
+      disconnect: () => {},
+    };
+  }
+  
+  createBuffer(numberOfChannels, length, sampleRate) {
+    return new MockAudioBuffer({ numberOfChannels, length, sampleRate });
   }
   
   createBufferSource() {
     return {
       buffer: null,
+      playbackRate: { value: 1.0 },
       connect: () => {},
       disconnect: () => {},
       start: () => {},
@@ -26,14 +75,51 @@ global.AudioContext = class AudioContext {
     };
   }
   
+  decodeAudioData(arrayBuffer, successCallback, errorCallback) {
+    try {
+      // if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+      //   const error = new Error('Invalid audio data');
+      //   if (errorCallback) {
+      //     errorCallback(error);
+      //   }
+      //   return Promise.reject(error);
+      // }
+      
+      const audioBuffer = new MockAudioBuffer({
+        numberOfChannels: 2,
+        length: 44100,
+        sampleRate: this.sampleRate
+      });
+      
+      if (successCallback) {
+        successCallback(audioBuffer);
+      }
+      return Promise.resolve(audioBuffer);
+    } catch (error) {
+      if (errorCallback) {
+        errorCallback(error);
+      }
+      return Promise.reject(error);
+    }
+  }
+  
+  close() {
+    this.state = 'closed';
+    return Promise.resolve();
+  }
+  
   resume() {
+    this.state = 'running';
     return Promise.resolve();
   }
   
   suspend() {
+    this.state = 'suspended';
     return Promise.resolve();
   }
 };
+
+global.MockAudioBuffer = MockAudioBuffer;
 
 // Mock OfflineAudioContext
 global.OfflineAudioContext = class OfflineAudioContext extends global.AudioContext {

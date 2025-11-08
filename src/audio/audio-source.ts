@@ -3,9 +3,10 @@ import { PitchPreservationProcessor } from './pitch-preservation-processor';
 export class AudioSource {
   #audioContext: AudioContext | null = null;
   #source: AudioBufferSourceNode | null = null;
-  #pitchProcessor = new PitchPreservationProcessor(); // Pitch preservation processor
+  #pitchProcessor: PitchPreservationProcessor;
 
-  constructor(audioCtx: AudioContext) {
+  constructor(audioCtx: AudioContext, pitchProcessor?: PitchPreservationProcessor) {
+    this.#pitchProcessor = pitchProcessor || new PitchPreservationProcessor();
     this.#audioContext = audioCtx;
   }
 
@@ -17,6 +18,9 @@ export class AudioSource {
   }
 
   connect(destination: AudioNode, speed: number, buffer: AudioBuffer): void {
+    if (speed <= 0) {
+      speed = 0.1; // Prevent invalid speed values
+    }
     this.disconnect();
     this.#source = this.#audioContext!.createBufferSource();
     this.#handlePitch(speed, buffer);
@@ -36,7 +40,6 @@ export class AudioSource {
   }
 
   #handlePitch(speed: number, buffer: AudioBuffer): void {
-    console.log("handle pitch", speed);
     if (speed !== 1.0) {
       this.#source!.buffer = this.#pitchProcessor.createPitchPreservedBuffer(buffer, speed, this.#audioContext!);
       this.#source!.playbackRate.value = 1.0; // Don't apply playbackRate since time-stretching handles the speed change
