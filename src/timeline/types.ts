@@ -1,4 +1,8 @@
-export interface StandardLayer {
+/**
+ * Local package representation of the media AbstractMedia
+ * @see AbstractMedia
+ * */
+export interface MediaInterface {
   id: string;
   name?: string;
   start_time: number; // ms

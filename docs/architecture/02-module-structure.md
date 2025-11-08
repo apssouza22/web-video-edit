@@ -47,10 +47,10 @@ flowchart TB
  subgraph s5["media/"]
         MediaService["media-service.ts"]
         MediaCommon["media-common.ts<br>AbstractMedia"]
-        MediaVideo["video.ts<br>VideoLayer"]
-        MediaAudio["audio.ts<br>AudioLayer"]
-        MediaImage["image.ts<br>ImageLayer"]
-        MediaText["text.ts<br>TextLayer"]
+        MediaVideo["video.ts<br>VideoMedia"]
+        MediaAudio["audio.ts<br>AudioMedia"]
+        MediaImage["image.ts<br>ImageMedia"]
+        MediaText["text.ts<br>TextMedia"]
         MediaTypes["types.ts"]
         SpeedController["speed-controller.ts"]
         MediaIndex["index.ts"]
@@ -233,10 +233,10 @@ flowchart TB
 
 **Key Classes**:
 - `AbstractMedia` - Base class for all media types
-- `VideoLayer` - Video media layer
-- `AudioLayer` - Audio media layer
-- `ImageLayer` - Image media layer
-- `TextLayer` - Text media layer
+- `VideoMedia` - Video media layer
+- `AudioMedia` - Audio media layer
+- `ImageMedia` - Image media layer
+- `TextMedia` - Text media layer
 - `MediaService` - Media operations (split, clone, remove intervals)
 - `SpeedController` - Speed adjustment logic
 

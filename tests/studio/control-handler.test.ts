@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals
 
 // Use dynamic imports for ESM
 const {ControlsHandler} = await import('@/studio/control-handler');
-const {VideoLayer} = await import("../../src/media/video");
+const {VideoMedia} = await import("../../src/media/video");
 
 describe('ControlsHandler', () => {
   let mockStudio: any;
@@ -134,7 +134,7 @@ describe('ControlsHandler', () => {
     let mockVideoLayer: any;
 
     beforeEach(() => {
-      mockVideoLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      mockVideoLayer = new VideoMedia(new File([], 'video.mp4'), true);
     });
 
     test('should not split when no layer is selected', () => {
@@ -148,7 +148,7 @@ describe('ControlsHandler', () => {
     test('should not split non-video/audio layers', () => {
       const textLayer = {
         id: 'text-1',
-        type: 'TextLayer',
+        type: 'TextMedia',
         ready: true,
         start_time: 0,
         totalTimeInMilSeconds: 5000

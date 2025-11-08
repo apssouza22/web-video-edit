@@ -4,7 +4,7 @@ import {AudioLoader} from '@/audio/audio-loader';
 import {AudioSource} from '@/audio/audio-source';
 import type {LayerFile} from "./types";
 
-export class AudioLayer extends AbstractMedia {
+export class AudioMedia extends AbstractMedia {
   private audioLoader: AudioLoader;
   public audioBuffer: AudioBuffer | null = null;
   public source: AudioSource | null = null;
@@ -136,7 +136,7 @@ export class AudioLayer extends AbstractMedia {
   }
 
   /**
-   * Removes an audio interval from this AudioLayer
+   * Removes an audio interval from this AudioMedia
    * @param startTime - Start time in seconds
    * @param endTime - End time in seconds
    * @returns True if the interval was successfully removed, false otherwise
@@ -169,7 +169,7 @@ export class AudioLayer extends AbstractMedia {
   }
 
   /**
-   * Updates this AudioLayer with a new AudioBuffer
+   * Updates this AudioMedia with a new AudioBuffer
    * @param newBuffer - The new AudioBuffer
    */
   #updateBuffer(newBuffer: AudioBuffer): void {

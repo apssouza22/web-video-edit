@@ -4,7 +4,7 @@ import {PreviewHandler} from './preview';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
 import {dpr} from '@/constants';
-import type {LayerUpdateKind, StandardLayer} from './types';
+import type {LayerUpdateKind, MediaInterface} from './types';
 import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 
 /**
@@ -12,11 +12,11 @@ import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateE
  */
 export class Timeline {
   studio: any;
-  selectedLayer: StandardLayer | null;
+  selectedLayer: MediaInterface | null;
   isHover: boolean;
   time: number;
   playerTime: number;
-  layers: StandardLayer[];
+  layers: MediaInterface[];
   scale: number;
   totalTime: number;
   timelineCanvas: HTMLCanvasElement;
@@ -31,7 +31,7 @@ export class Timeline {
   dragHandler: DragLayerHandler;
   timeUpdateListener: ((hoverTime: number, playerTime: number) => void) = () => {
   };
-  layerUpdateListener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void;
+  layerUpdateListener: (kind: LayerUpdateKind, layer: MediaInterface, oldLayer?: MediaInterface, extra?: any) => void;
   private zoomHandler: TimelineZoomHandler;
   #eventBus = getEventBus();
 
@@ -93,7 +93,7 @@ export class Timeline {
    * @param {Function} listener - Function to call when media updates occur
    * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, handler)
    */
-  addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: StandardLayer, oldLayer?: StandardLayer, extra?: any) => void) {
+  addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: MediaInterface, oldLayer?: MediaInterface, extra?: any) => void) {
     if (typeof listener !== 'function') {
       throw new Error('Layer update listener must be a function');
     }
@@ -102,9 +102,9 @@ export class Timeline {
 
   /**
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
-   * @param {StandardLayer|null} newSelectedLayer - The new selected media
+   * @param {MediaInterface|null} newSelectedLayer - The new selected media
    */
-  setSelectedLayer(newSelectedLayer: StandardLayer) {
+  setSelectedLayer(newSelectedLayer: MediaInterface) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
     if (oldSelectedLayer === newSelectedLayer) {
@@ -302,7 +302,7 @@ export class Timeline {
     this.isHover = false;
   }
 
-  addLayers(layers: StandardLayer[]) {
+  addLayers(layers: MediaInterface[]) {
     this.layers = layers;
   }
 
@@ -380,10 +380,10 @@ export class Timeline {
   /**
    * Ensures that only medias overlapping or near the current time (with a small margin of 1%)
    * are considered for further processing. Layers outside this range are ignored.
-   * @param {StandardLayer} layer - The media to check
+   * @param {MediaInterface} layer - The media to check
    * @returns {boolean} - Whether the media can be selected
    */
-  #canSelectLayer(layer: StandardLayer) {
+  #canSelectLayer(layer: MediaInterface) {
     if (layer.start_time > (1.01 * this.time)) {
       return false;
     }
@@ -394,7 +394,7 @@ export class Timeline {
     return true;
   }
 
-  #updateTotalTime(layers: StandardLayer[]) {
+  #updateTotalTime(layers: MediaInterface[]) {
     if (layers.length === 0) {
       this.totalTime = 0;
       return;
@@ -450,10 +450,10 @@ export class Timeline {
 
   /**
    * Reorder medias in the timeline
-   * @param {StandardLayer} layer - The media that was reordered
+   * @param {MediaInterface} layer - The media that was reordered
    * @param {Object} reorderData - Contains fromIndex and toIndex
    */
-  reorderLayer(layer: StandardLayer, reorderData: { fromIndex: number; toIndex: number }) {
+  reorderLayer(layer: MediaInterface, reorderData: { fromIndex: number; toIndex: number }) {
     // The actual reordering is handled by LayerReorderHandler
     // This method can be used for additional logic if needed
     console.log(`Layer "${layer.name}" moved from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);

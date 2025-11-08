@@ -78,7 +78,7 @@ export abstract class AbstractMedia {
    */
   adjustTotalTime(diff: number): void {
     if (!this.ready || !this.framesCollection) {
-      console.warn('VideoLayer not ready or frames collection not available');
+      console.warn('VideoMedia not ready or frames collection not available');
       return;
     }
     if (this.audioBuffer) {

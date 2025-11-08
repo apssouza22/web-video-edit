@@ -3,7 +3,7 @@ import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
 import {loadVideo} from "@/video";
 
-export class VideoLayer extends AbstractMedia {
+export class VideoMedia extends AbstractMedia {
 
   constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);

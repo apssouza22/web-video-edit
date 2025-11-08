@@ -1,12 +1,12 @@
 import { LayerReorderHandler } from './layer-reorder-handler';
-import type { StandardLayer } from './types';
+import type { MediaInterface } from './types';
 import {Timeline} from "./timeline";
 
 /**
  * Handles media dragging and scrubbing in the timeline
  */
 export class DragLayerHandler {
-  dragging: null | ((time: number, selectedLayer: StandardLayer) => void);
+  dragging: null | ((time: number, selectedLayer: MediaInterface) => void);
   time: number;
   timeline: any; // Avoid circular type; must provide .intersectsTime(), .minLayerSpacing etc.
   reorderHandler: LayerReorderHandler;
@@ -14,7 +14,7 @@ export class DragLayerHandler {
   dragStartX: number;
   dragStartY: number;
   dragThreshold: number;
-  selectedLayer?: StandardLayer | null;
+  selectedLayer?: MediaInterface | null;
   initialTime?: number;
 
   /**
@@ -31,7 +31,7 @@ export class DragLayerHandler {
     this.dragThreshold = 10; // Pixels to move before determining drag direction
   }
 
-  dragLayer(time: number, selectedLayer: StandardLayer, currentX: number, currentY: number) {
+  dragLayer(time: number, selectedLayer: MediaInterface, currentX: number, currentY: number) {
     if (this.dragMode === 'horizontal' && this.dragging) {
       this.dragging(time, selectedLayer);
       return;
@@ -44,7 +44,7 @@ export class DragLayerHandler {
   /**
    * Handle the media drag operation based on current time position
    */
-  startLayerDrag(selectedLayer: StandardLayer, time: number, startX: number, startY: number) {
+  startLayerDrag(selectedLayer: MediaInterface, time: number, startX: number, startY: number) {
     this.dragStartX = startX;
     this.dragStartY = startY;
     this.dragMode = 'none';
@@ -97,11 +97,11 @@ export class DragLayerHandler {
   /**
    * Update drag operation with current coordinates
    * @param {number} time - Current time
-   * @param {StandardLayer} selectedLayer - Selected media
+   * @param {MediaInterface} selectedLayer - Selected media
    * @param {number} currentX - Current X coordinate
    * @param {number} currentY - Current Y coordinate
    */
-  updateDrag(time: number, selectedLayer: StandardLayer, currentX: number, currentY: number) {
+  updateDrag(time: number, selectedLayer: MediaInterface, currentX: number, currentY: number) {
     if (this.dragMode === 'none' && this.selectedLayer) {
       this.#determineDragMode(currentX, currentY);
     }
@@ -147,9 +147,9 @@ export class DragLayerHandler {
     this.dragStartY = 0;
   }
 
-  #getMoveLayerStartFn(selectedLayer: StandardLayer) {
+  #getMoveLayerStartFn(selectedLayer: MediaInterface) {
     let baseTime = selectedLayer.start_time;
-    return (time: number, selectedLayer: StandardLayer) => {
+    return (time: number, selectedLayer: MediaInterface) => {
       let diff = time - baseTime;
       baseTime = time;
       selectedLayer.start_time += diff;
@@ -158,7 +158,7 @@ export class DragLayerHandler {
 
   #getMoveEntireLayerFn(time: number) {
     let baseTime = time;
-    return  (t: number, l: StandardLayer) => {
+    return  (t: number, l: MediaInterface) => {
       let diff = t - baseTime;
       baseTime = t;
       l.start_time += diff;
@@ -167,13 +167,13 @@ export class DragLayerHandler {
 
   /**
    * Get the function to resize the media based on the end time
-   * @param {StandardLayer} selectedLayer
+   * @param {MediaInterface} selectedLayer
    * @returns {(function(*, *): void)|*}
    */
-  #getResizeLayerEndFn(selectedLayer: StandardLayer) {
+  #getResizeLayerEndFn(selectedLayer: MediaInterface) {
     console.log("Resizing media:", selectedLayer.name);
     let baseTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
-    return (time: number, selectedLayer: StandardLayer) => {
+    return (time: number, selectedLayer: MediaInterface) => {
       let diff = time - baseTime;
       baseTime = time;
       selectedLayer.adjustTotalTime(diff);

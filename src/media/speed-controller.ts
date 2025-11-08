@@ -30,7 +30,7 @@ export class SpeedController {
     }
     this.currentSpeed = speed;
 
-    // check if media is AudioLayer
+    // check if media is AudioMedia
     if (this.layer.audioBuffer !== null) {
       return;
     }

@@ -2,7 +2,7 @@ import {FlexibleLayer} from './media-common';
 import {LayerCoordinates, LayerFile} from './types';
 import {Frame} from '@/frame';
 
-export class ImageLayer extends FlexibleLayer {
+export class ImageMedia extends FlexibleLayer {
   private img: HTMLImageElement;
   private reader: FileReader;
 

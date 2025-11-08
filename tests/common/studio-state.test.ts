@@ -3,8 +3,8 @@ import {beforeEach, describe, expect, test} from '@jest/globals';
 // Use dynamic imports for ESM
 const {StudioState, studioState} = await import('@/common/studio-state');
 const {AbstractMedia} = await import('@/media');
-const {AudioLayer} = await import("../../src/media/audio");
-const {VideoLayer} = await import("../../src/media/video");
+const {AudioMedia} = await import("../../src/media/audio");
+const {VideoMedia} = await import("../../src/media/video");
 
 // Simple mock media classes for testing
 // Note: These won't work with isMediaVideo/isMediaAudio which use instanceof checks
@@ -122,13 +122,13 @@ describe('StudioState', () => {
   });
 
   // Note: Media Filtering tests are skipped because getMediaVideo() and getMediaAudio()
-  // use instanceof checks (VideoLayer, AudioLayer) which require actual class instances.
+  // use instanceof checks (VideoMedia, AudioMedia) which require actual class instances.
   // Our mock classes extend AbstractMedia but aren't instances of the specific layer types.
-  describe('Media Filtering (requires actual VideoLayer/AudioLayer instances)', () => {
+  describe('Media Filtering (requires actual VideoMedia/AudioMedia instances)', () => {
     test('should filter video medias', () => {
-      const media1 =  new VideoLayer(new File([], 'video-1.mp4'), true);
+      const media1 =  new VideoMedia(new File([], 'video-1.mp4'), true);
       const media2 = new MockMedia('media-2', 'Audio 1', 'audio');
-      const media3 = new VideoLayer(new File([], 'video-2.mp4'), true);
+      const media3 = new VideoMedia(new File([], 'video-2.mp4'), true);
       state.addMedia(media1);
       state.addMedia(media2);
       state.addMedia(media3);
@@ -136,9 +136,9 @@ describe('StudioState', () => {
     });
 
     test('should filter audio medias', () => {
-      const media1 = new AudioLayer(new File([], 'audio-1.mp3'));
+      const media1 = new AudioMedia(new File([], 'audio-1.mp3'));
       const media2 = new MockMedia('media-2', 'Video 1', 'video');
-      const media3 = new AudioLayer(new File([], 'audio-2.mp3'));
+      const media3 = new AudioMedia(new File([], 'audio-2.mp3'));
 
       state.addMedia(media1);
       state.addMedia(media2);
@@ -153,7 +153,7 @@ describe('StudioState', () => {
       state.addMedia(media1);
       state.addMedia(media2);
       
-      // Will return empty because our mocks aren't VideoLayer instances
+      // Will return empty because our mocks aren't VideoMedia instances
       expect(state.getMediaVideo()).toEqual([]);
     });
 
@@ -164,7 +164,7 @@ describe('StudioState', () => {
       state.addMedia(media1);
       state.addMedia(media2);
       
-      // Will return empty because our mocks aren't AudioLayer instances
+      // Will return empty because our mocks aren't AudioMedia instances
       expect(state.getMediaAudio()).toEqual([]);
     });
   });

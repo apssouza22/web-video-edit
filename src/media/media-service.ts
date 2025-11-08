@@ -1,7 +1,7 @@
-import {TextLayer} from "./text";
-import {VideoLayer} from "./video";
-import {ImageLayer} from "./image";
-import {AudioLayer} from "./audio";
+import {TextMedia} from "./text";
+import {VideoMedia} from "./video";
+import {ImageMedia} from "./image";
+import {AudioMedia} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 import {AbstractMedia} from "@/media/media-common";
 import {AudioSplitHandler} from "@/audio/AudioSplitHandler";
@@ -39,11 +39,11 @@ export class MediaService {
 
   splitMedia(selectedMedia: AbstractMedia, splitTime: number): AbstractMedia {
     const mediaClone = this.clone(selectedMedia);
-    if (selectedMedia instanceof VideoLayer) {
+    if (selectedMedia instanceof VideoMedia) {
       this.splitVideoLayer(selectedMedia, mediaClone, splitTime);
     }
 
-    if (selectedMedia instanceof AudioLayer) {
+    if (selectedMedia instanceof AudioMedia) {
       this.audioCutter.split(selectedMedia, mediaClone, splitTime);
     }
 
@@ -114,32 +114,32 @@ export class MediaService {
 
   private createClone(layer: any): any | null {
     if (!layer.ready) {
-      console.error('Cannot clone VideoLayer that is not ready');
+      console.error('Cannot clone VideoMedia that is not ready');
       return null;
     }
 
     const cloneName = layer.name + " [Clone]";
 
-    if (layer instanceof TextLayer) {
-      return new TextLayer(cloneName);
+    if (layer instanceof TextMedia) {
+      return new TextMedia(cloneName);
     }
 
-    if (layer instanceof VideoLayer) {
-      const videoLayer = new VideoLayer(layer.file!, true);
+    if (layer instanceof VideoMedia) {
+      const videoLayer = new VideoMedia(layer.file!, true);
       videoLayer.name = cloneName;
       return videoLayer;
     }
 
-    if (layer instanceof AudioLayer) {
-      const audioLayer = new AudioLayer(layer.file!, true);
+    if (layer instanceof AudioMedia) {
+      const audioLayer = new AudioMedia(layer.file!, true);
       audioLayer.name = cloneName;
       audioLayer.playerAudioContext = layer.playerAudioContext;
       audioLayer.audioBuffer = layer.audioBuffer;
       return audioLayer;
     }
 
-    if (layer instanceof ImageLayer) {
-      const imageLayer = new ImageLayer(layer.file!);
+    if (layer instanceof ImageMedia) {
+      const imageLayer = new ImageMedia(layer.file!);
       imageLayer.name = cloneName;
       return imageLayer;
     }

@@ -1,11 +1,12 @@
 import {FlexibleLayer} from './media-common';
 import {LayerChange, LayerFile} from './types';
 
-export class TextLayer extends FlexibleLayer {
+export class TextMedia extends FlexibleLayer {
   public color: string;
   public shadow: boolean;
 
   constructor(text: string) {
+    // @ts-ignore
     const fakeFile: LayerFile = {
       name: text
     };

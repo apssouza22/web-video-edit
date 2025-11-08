@@ -1,7 +1,7 @@
 /**
  * Class to handle the preview display for the timeline
  */
-import type { StandardLayer } from './types';
+import type { MediaInterface } from './types';
 
 export class PreviewHandler {
   previewHolder: HTMLElement;
@@ -16,7 +16,7 @@ export class PreviewHandler {
     this.cursorText = this.previewHolder.querySelector('div') as HTMLElement;
   }
 
-  render(time: number, layers: StandardLayer[]) {
+  render(time: number, layers: MediaInterface[]) {
     this.previewCtx.clearRect(0, 0, this.previewCtx.canvas.width, this.previewCtx.canvas.height);
     for (let layer of layers) {
       layer.render(this.previewCtx, time);

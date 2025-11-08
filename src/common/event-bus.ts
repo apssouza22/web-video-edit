@@ -1,5 +1,5 @@
 import type { AbstractMedia } from '@/media';
-import type { StandardLayer, LayerUpdateKind } from '@/timeline/types';
+import type { MediaInterface, LayerUpdateKind } from '@/timeline/types';
 
 /**
  * Reorder data for media repositioning
@@ -39,8 +39,8 @@ export class TimelineLayerUpdateEvent extends BaseEvent {
   readonly name = 'timeline:layerUpdate';
   constructor(
     public action: LayerUpdateKind,
-    public layer: StandardLayer,
-    public oldLayer?: StandardLayer,
+    public layer: MediaInterface,
+    public oldLayer?: MediaInterface,
     public extra?: LayerReorderData
   ) {
     super();

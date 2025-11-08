@@ -1,13 +1,13 @@
 /**
  * Handles media reordering through vertical drag operations in the timeline
  */
-import type { StandardLayer } from './types';
+import type { MediaInterface } from './types';
 import {Timeline} from "./timeline";
 
 export class LayerReorderHandler {
   timeline: any; // Uses properties from Timeline; avoid circular types
   isDragging: boolean;
-  draggedLayer: StandardLayer | null;
+  draggedLayer: MediaInterface | null;
   dragStartY: number;
   currentDropIndex: number;
   dropZones: Array<{ y: number; index: number; isTop: boolean }>;
@@ -28,10 +28,10 @@ export class LayerReorderHandler {
 
   /**
    * Start vertical media reordering drag operation
-   * @param {StandardLayer} layer - The media being dragged
+   * @param {MediaInterface} layer - The media being dragged
    * @param {number} startY - Initial Y coordinate
    */
-  startReorder(layer: StandardLayer, startY: number) {
+  startReorder(layer: MediaInterface, startY: number) {
     this.isDragging = true;
     this.draggedLayer = layer;
     this.dragStartY = startY;
@@ -153,11 +153,11 @@ export class LayerReorderHandler {
 
   /**
    * Find the current index of a media in the timeline
-   * @param {StandardLayer} layer - The media to find
+   * @param {MediaInterface} layer - The media to find
    * @returns {number} - Layer index
    * @private
    */
-  #findCurrentLayerIndex(layer: StandardLayer) {
+  #findCurrentLayerIndex(layer: MediaInterface) {
     return this.timeline.layers.indexOf(layer);
   }
 

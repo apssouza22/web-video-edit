@@ -5,7 +5,7 @@ export class AudioSplitHandler {
 
   split(mediaOriginal: AbstractMedia, mediaClone: AbstractMedia, time: number): void {
     if (!mediaOriginal.audioBuffer || !mediaOriginal.playerAudioContext) {
-      console.error('AudioLayer missing audioBuffer or playerAudioContext');
+      console.error('AudioMedia missing audioBuffer or playerAudioContext');
       return;
     }
 

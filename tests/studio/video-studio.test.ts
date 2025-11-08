@@ -13,7 +13,7 @@ jest.unstable_mockModule('@/timeline', () => ({
 
 // Use dynamic imports for ESM
 const { VideoStudio } = await import('@/studio/studio');
-const {VideoLayer} = await import("@/media/video");
+const {VideoMedia} = await import("@/media/video");
 
 describe('VideoStudio', () => {
   // @ts-ignore
@@ -255,13 +255,13 @@ describe('VideoStudio', () => {
         disconnect: jest.fn()
       };
 
-      // Make it look like an AudioLayer
-      Object.setPrototypeOf(mockAudioLayer, { constructor: { name: 'AudioLayer' } });
+      // Make it look like an AudioMedia
+      Object.setPrototypeOf(mockAudioLayer, { constructor: { name: 'AudioMedia' } });
 
       studio.addLayer(mockAudioLayer as any);
       studio.remove(mockAudioLayer as any);
 
-      // AudioLayer check might not work in test, but we can verify it doesn't throw
+      // AudioMedia check might not work in test, but we can verify it doesn't throw
       expect(studio.getMedias().length).toBe(0);
     });
 

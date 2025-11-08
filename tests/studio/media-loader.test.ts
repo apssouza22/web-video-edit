@@ -155,7 +155,7 @@ describe('MediaLoader', () => {
 
     test('should load video layer from JSON', async () => {
       const jsonData = [{
-        type: 'VideoLayer',
+        type: 'VideoMedia',
         name: 'test-video',
         uri: 'https://example.com/video.mp4',
         width: 1920,
@@ -173,7 +173,7 @@ describe('MediaLoader', () => {
 
     test('should load image layer from JSON', async () => {
       const jsonData = [{
-        type: 'ImageLayer',
+        type: 'ImageMedia',
         name: 'test-image',
         uri: 'https://example.com/image.jpg',
         width: 1920,
@@ -190,7 +190,7 @@ describe('MediaLoader', () => {
 
     test('should load text layer from JSON', async () => {
       const jsonData = [{
-        type: 'TextLayer',
+        type: 'TextMedia',
         name: 'Hello World',
         width: 1920,
         height: 1080,
@@ -207,7 +207,7 @@ describe('MediaLoader', () => {
     test('should load multiple layers from JSON', async () => {
       const jsonData = [
         {
-          type: 'TextLayer',
+          type: 'TextMedia',
           name: 'Text 1',
           width: 1920,
           height: 1080,
@@ -215,7 +215,7 @@ describe('MediaLoader', () => {
           total_time: 2000
         },
         {
-          type: 'TextLayer',
+          type: 'TextMedia',
           name: 'Text 2',
           width: 1920,
           height: 1080,
@@ -232,7 +232,7 @@ describe('MediaLoader', () => {
 
     test('should handle video layer without URI', async () => {
       const jsonData = [{
-        type: 'VideoLayer',
+        type: 'VideoMedia',
         name: 'test-video',
         width: 1920,
         height: 1080,
@@ -264,7 +264,7 @@ describe('MediaLoader', () => {
 
     test('should handle frames data in JSON', async () => {
       const jsonData = [{
-        type: 'TextLayer',
+        type: 'TextMedia',
         name: 'test',
         width: 1920,
         height: 1080,
@@ -293,7 +293,7 @@ describe('MediaLoader', () => {
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       const jsonData = [{
-        type: 'VideoLayer',
+        type: 'VideoMedia',
         name: 'test',
         uri: 'https://example.com/video.mp4',
         width: 1920,

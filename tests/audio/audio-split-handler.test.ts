@@ -53,7 +53,7 @@ describe('AudioSplitHandler', () => {
       expect(mockMediaOriginal.audioBuffer!.duration).toBeCloseTo(1.0, 1);
       expect(mockMediaClone.name).toBe('Test Audio [Split]');
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Successfully split AudioLayer')
+        expect.stringContaining('Successfully split AudioMedia')
       );
 
       consoleLogSpy.mockRestore();
@@ -145,7 +145,7 @@ describe('AudioSplitHandler', () => {
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'AudioLayer missing audioBuffer or playerAudioContext'
+        'AudioMedia missing audioBuffer or playerAudioContext'
       );
       expect(mockMediaClone.audioBuffer).toBeNull();
 
@@ -160,7 +160,7 @@ describe('AudioSplitHandler', () => {
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'AudioLayer missing audioBuffer or playerAudioContext'
+        'AudioMedia missing audioBuffer or playerAudioContext'
       );
       expect(mockMediaClone.audioBuffer).toBeNull();
 

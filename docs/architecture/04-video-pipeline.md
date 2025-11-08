@@ -35,7 +35,7 @@ graph TB
     end
     
     subgraph "Media Layer"
-        VideoLayer[VideoLayer<br/>Media Representation]
+        VideoMedia[VideoMedia<br/>Media Representation]
         Metadata[Video Metadata<br/>FPS, Duration, Size]
     end
     
@@ -79,15 +79,15 @@ graph TB
     Canvas2D --> FrameService
     FrameService --> FrameQuality
     
-    FrameService --> VideoLayer
-    Metadata --> VideoLayer
+    FrameService --> VideoMedia
+    Metadata --> VideoMedia
     
-    VideoLayer --> Player
+    VideoMedia --> Player
     Player --> RenderLoop
     RenderLoop --> TimeSync
     TimeSync --> CanvasRender
     
-    VideoLayer --> ExportService
+    VideoMedia --> ExportService
     Player --> ExportService
     ExportService --> ExportConfig
     ExportConfig --> MediaRecorderExp
@@ -99,7 +99,7 @@ graph TB
     
     style DemuxService fill:#f8d7da
     style ExportService fill:#f8d7da
-    style VideoLayer fill:#fff3cd
+    style VideoMedia fill:#fff3cd
     style Player fill:#d4edda
     style FrameService fill:#e1f5ff
 ```

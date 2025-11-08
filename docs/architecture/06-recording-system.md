@@ -656,7 +656,7 @@ sequenceDiagram
     participant EventBus
     participant Studio as VideoStudio
     participant Loader as LayerLoader
-    participant VideoLayer
+    participant VideoMedia
     participant Timeline
 
     Record->>Record: Recording complete
@@ -665,10 +665,10 @@ sequenceDiagram
     EventBus->>Studio: Notify subscribers
     Studio->>Loader: Load video file
     
-    Loader->>VideoLayer: Create VideoLayer
-    VideoLayer->>VideoLayer: Load and demux
+    Loader->>VideoMedia: Create VideoMedia
+    VideoMedia->>VideoMedia: Load and demux
     
-    VideoLayer->>Studio: Loading complete
+    VideoMedia->>Studio: Loading complete
     Studio->>Timeline: Add layer
     Timeline->>Timeline: Render timeline
     

@@ -30,7 +30,7 @@ export class ControlsHandler {
     }
     const layer = this.studioState.getSelectedMedia()!;
 
-    // Check if media is VideoLayer or AudioLayer
+    // Check if media is VideoMedia or AudioMedia
     if (!(isMediaVideo(layer)) && !(isMediaAudio(layer))) {
       return false;
     }

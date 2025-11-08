@@ -2,21 +2,21 @@
  * Base class for timeline media rendering
  * Encapsulates all rendering logic for timeline medias
  */
-import type { StandardLayer } from './types';
+import type { MediaInterface } from './types';
 
 export class TimelineLayer {
   /**
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
-   * @param {StandardLayer} media - The media data to render
+   * @param {MediaInterface} media - The media data to render
    * @param {number} totalTime - The total time duration of the timeline
    * @param {number} canvasWidth - The width of the timeline canvas
    */
   ctx: CanvasRenderingContext2D;
-  layer: StandardLayer;
+  layer: MediaInterface;
   totalTime: number;
   canvasWidth: number;
 
-  constructor(ctx: CanvasRenderingContext2D, layer: StandardLayer, totalTime: number, canvasWidth: number) {
+  constructor(ctx: CanvasRenderingContext2D, layer: MediaInterface, totalTime: number, canvasWidth: number) {
     this.ctx = ctx;
     this.layer = layer;
     this.totalTime = totalTime;

@@ -33,10 +33,10 @@ graph TB
     
     subgraph "Media Layers"
         MediaBase[AbstractMedia<br/>Base Class]
-        VideoLayer[VideoLayer]
-        AudioLayer[AudioLayer]
-        ImageLayer[ImageLayer]
-        TextLayer[TextLayer]
+        VideoMedia[VideoMedia]
+        AudioMedia[AudioMedia]
+        ImageMedia[ImageMedia]
+        TextMedia[TextMedia]
     end
     
     subgraph "Player System"
@@ -71,16 +71,16 @@ graph TB
     TextTL --> TLBase
     
     TLBase -.-> MediaBase
-    VideoTL -.-> VideoLayer
-    AudioTL -.-> AudioLayer
-    ImageTL -.-> ImageLayer
-    TextTL -.-> TextLayer
+    VideoTL -.-> VideoMedia
+    AudioTL -.-> AudioMedia
+    ImageTL -.-> ImageMedia
+    TextTL -.-> TextMedia
     
     MediaBase --> Player
-    VideoLayer --> CanvasLayers
-    AudioLayer --> CanvasLayers
-    ImageLayer --> CanvasLayers
-    TextLayer --> CanvasLayers
+    VideoMedia --> CanvasLayers
+    AudioMedia --> CanvasLayers
+    ImageMedia --> CanvasLayers
+    TextMedia --> CanvasLayers
     
     Timeline --> EventBus
     Player --> EventBus
@@ -122,7 +122,7 @@ classDiagram
         +removeInterval(start, end)
     }
     
-    class VideoLayer {
+    class VideoMedia {
         +file: File
         +videoMetadata: VideoMetadata
         +fps: number
@@ -130,7 +130,7 @@ classDiagram
         +render(ctx, time, playing)
     }
     
-    class AudioLayer {
+    class AudioMedia {
         +audioBuffer: AudioBuffer
         +audioSource: AudioBufferSourceNode
         +playerAudioContext: AudioContext
@@ -139,13 +139,13 @@ classDiagram
         +render(ctx, time, playing)
     }
     
-    class ImageLayer {
+    class ImageMedia {
         +image: HTMLImageElement
         +loadImage()
         +render(ctx, time, playing)
     }
     
-    class TextLayer {
+    class TextMedia {
         +text: string
         +fontSize: number
         +fontFamily: string
@@ -153,10 +153,10 @@ classDiagram
         +render(ctx, time, playing)
     }
     
-    AbstractMedia <|-- VideoLayer
-    AbstractMedia <|-- AudioLayer
-    AbstractMedia <|-- ImageLayer
-    AbstractMedia <|-- TextLayer
+    AbstractMedia <|-- VideoMedia
+    AbstractMedia <|-- AudioMedia
+    AbstractMedia <|-- ImageMedia
+    AbstractMedia <|-- TextMedia
 ```
 
 ### Common Properties
@@ -181,20 +181,20 @@ Creates appropriate timeline renderers based on media type.
 class TimelineLayerFactory {
   static createTimelineLayer(
     ctx: CanvasRenderingContext2D,
-    layer: StandardLayer,
+    layer: MediaInterface,
     totalTime: number,
     canvasWidth: number
   ): TimelineLayer {
     const layerType = layer.constructor.name;
     
     switch (layerType) {
-      case 'AudioLayer':
+      case 'AudioMedia':
         return new AudioTimelineLayer(ctx, layer, totalTime, canvasWidth);
-      case 'VideoLayer':
+      case 'VideoMedia':
         return new VideoTimelineLayer(ctx, layer, totalTime, canvasWidth);
-      case 'ImageLayer':
+      case 'ImageMedia':
         return new ImageTimelineLayer(ctx, layer, totalTime, canvasWidth);
-      case 'TextLayer':
+      case 'TextMedia':
         return new TextTimelineLayer(ctx, layer, totalTime, canvasWidth);
     }
   }
@@ -602,7 +602,7 @@ class ZoomHandler {
 ### Standard Layer Interface
 
 ```typescript
-interface StandardLayer {
+interface MediaInterface {
   id: string;
   name?: string;
   start_time: number;              // milliseconds

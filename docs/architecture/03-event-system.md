@@ -144,8 +144,8 @@ class TimelineLayerUpdateEvent extends BaseEvent {
   readonly name = 'timeline:layerUpdate';
   constructor(
     public action: LayerUpdateKind,      // 'select' | 'delete' | 'split' | 'clone' | 'reorder'
-    public layer: StandardLayer,         // Affected layer
-    public oldLayer?: StandardLayer,     // Previous state (for split)
+    public layer: MediaInterface,         // Affected layer
+    public oldLayer?: MediaInterface,     // Previous state (for split)
     public extra?: LayerReorderData      // Reorder info
   )
 }

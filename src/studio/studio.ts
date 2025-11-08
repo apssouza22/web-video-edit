@@ -1,7 +1,7 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
 import {AbstractMedia, createMediaService, MediaService} from '@/media';
-import {AudioLayer} from '@/media/audio';
+import {AudioMedia} from '@/media/audio';
 import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
 import {StudioControls} from './controls';
@@ -202,7 +202,7 @@ export class VideoStudio {
         }
       }
     }
-    if (layer instanceof AudioLayer) {
+    if (layer instanceof AudioMedia) {
       layer.disconnect();
     }
     this.player.total_time = 0;

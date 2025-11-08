@@ -37,10 +37,10 @@ graph TB
     end
     
     subgraph "Layer Creation"
-        VideoLayer[VideoLayer]
-        AudioLayer[AudioLayer]
-        ImageLayer[ImageLayer]
-        TextLayer[TextLayer]
+        VideoMedia[VideoMedia]
+        AudioMedia[AudioMedia]
+        ImageMedia[ImageMedia]
+        TextMedia[TextMedia]
     end
     
     subgraph "Integration"
@@ -67,15 +67,15 @@ graph TB
     ImageLoader --> ImageDecode
     
     VideoDemux --> FrameExtraction
-    FrameExtraction --> VideoLayer
-    AudioDecode --> AudioLayer
-    ImageDecode --> ImageLayer
-    TextCreation --> TextLayer
+    FrameExtraction --> VideoMedia
+    AudioDecode --> AudioMedia
+    ImageDecode --> ImageMedia
+    TextCreation --> TextMedia
     
-    VideoLayer --> EventBus
-    AudioLayer --> EventBus
-    ImageLayer --> EventBus
-    TextLayer --> EventBus
+    VideoMedia --> EventBus
+    AudioMedia --> EventBus
+    ImageMedia --> EventBus
+    TextMedia --> EventBus
     
     EventBus --> MediaArray
     MediaArray --> Timeline
@@ -97,7 +97,7 @@ sequenceDiagram
     participant VideoLoader
     participant Demux as VideoDemuxService
     participant FrameSvc as FrameService
-    participant Layer as VideoLayer
+    participant Layer as VideoMedia
     participant EventBus
     participant Studio
 
@@ -486,7 +486,7 @@ graph TB
         LayerLoader[LayerLoader]
         VideoLoad[Video Loading]
         Demux[Demuxing]
-        LayerCreate[Create VideoLayer]
+        LayerCreate[Create VideoMedia]
     end
     
     subgraph "Editor Phase"
@@ -532,7 +532,7 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Input"
-        VideoLayer[Video Layer]
+        VideoMedia[Video Layer]
         AudioExtract[Extract Audio]
     end
     
@@ -560,7 +560,7 @@ graph TB
         Export[Export Transcript]
     end
     
-    VideoLayer --> AudioExtract
+    VideoMedia --> AudioExtract
     AudioExtract --> TransService
     TransService --> Worker
     Worker --> AIModel

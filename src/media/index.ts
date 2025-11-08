@@ -1,10 +1,10 @@
-import {VideoLayer} from './video';
-import {ImageLayer} from './image';
-import {AudioLayer} from './audio';
+import {VideoMedia} from './video';
+import {ImageMedia} from './image';
+import {AudioMedia} from './audio';
 import {MediaService} from './media-service';
 import {LayerLoadUpdateListener} from './types';
 import {AbstractMedia} from './media-common';
-import {TextLayer} from "@/media/text";
+import {TextMedia} from "@/media/text";
 
 export {AbstractMedia, FlexibleLayer, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
@@ -20,14 +20,14 @@ export function createMediaService(onLayerLoadUploadListener: LayerLoadUpdateLis
 export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {
   const layers: AbstractMedia[] = [];
   if (file.type.indexOf('video') >= 0) {
-    layers.push(new AudioLayer(file));
-    layers.push(new VideoLayer(file, false));
+    layers.push(new AudioMedia(file));
+    layers.push(new VideoMedia(file, false));
   }
   if (file.type.indexOf('image') >= 0) {
-    layers.push(new ImageLayer(file));
+    layers.push(new ImageMedia(file));
   }
   if (file.type.indexOf('audio') >= 0) {
-    layers.push(new AudioLayer(file));
+    layers.push(new AudioMedia(file));
   }
   layers.forEach(layer => {
     layer.addLoadUpdateListener(onLoadUpdateListener);
@@ -36,13 +36,13 @@ export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadU
 }
 
 export function createMediaText(text: string, onLoadUpdateListener: LayerLoadUpdateListener): AbstractMedia {
-  return new TextLayer(text)
+  return new TextMedia(text)
 }
 
 export function isMediaAudio(layer: AbstractMedia):boolean {
-  return layer instanceof AudioLayer;
+  return layer instanceof AudioMedia;
 }
 
 export function isMediaVideo(layer: AbstractMedia):boolean {
-  return layer instanceof VideoLayer;
+  return layer instanceof VideoMedia;
 }
