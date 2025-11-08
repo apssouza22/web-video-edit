@@ -20,17 +20,21 @@ export class MediaService {
    * startTime and endTime are in seconds
    * @param startTime - Start time in seconds
    * @param endTime - End time in seconds
-   * @param audioLayers - Array of AudioLayers to remove interval from
+   * @param audioMedias - Array of AudioLayers to remove interval from
    */
-  removeAudioInterval(startTime: number, endTime: number, audioLayers: AbstractMedia[]): void {
+  removeAudioInterval(startTime: number, endTime: number, audioMedias: AbstractMedia[]): void {
     try {
-      if (audioLayers.length === 0) {
+      if (audioMedias.length === 0) {
         console.log('No audio medias found to remove interval from');
         return;
       }
-      audioLayers.forEach((audioLayer, index) => {
-        console.log(`Clipping audio layer ${index + 1}: "${audioLayer.name}"`);
-        audioLayer.removeInterval(startTime, endTime);
+      audioMedias.forEach((audioMedia, index) => {
+        console.log(`Clipping audio layer ${index + 1}: "${audioMedia.name}"`);
+        const newBuffer = this.audioService.removeInterval(audioMedia, startTime, endTime);
+        if (newBuffer && newBuffer !== audioMedia.audioBuffer) {
+          (audioMedia as AudioMedia).updateBuffer(newBuffer);
+          console.log(`Successfully updated audio layer: "${audioMedia.name}"`);
+        }
       });
     } catch (error) {
       console.error('Error removing audio interval:', error);
@@ -78,7 +82,7 @@ export class MediaService {
       }
       videoLayers.forEach((videoLayer, index) => {
         console.log(`Processing video layer ${index + 1}: "${videoLayer.name}"`);
-        videoLayer.removeInterval(startTime, endTime);
+        (videoLayer as VideoMedia).removeInterval(startTime, endTime);
       });
     } catch (error) {
       console.error('Error removing video interval:', error);

@@ -7,7 +7,7 @@ import {AbstractMedia} from './media-common';
 import {TextMedia} from "@/media/text";
 import {AudioService} from "@/audio";
 
-export {AbstractMedia, FlexibleLayer, addElementToBackground} from './media-common';
+export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
 

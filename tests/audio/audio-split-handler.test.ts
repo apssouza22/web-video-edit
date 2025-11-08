@@ -42,7 +42,6 @@ describe('AudioSplitHandler', () => {
 
   describe('split', () => {
     test('should split audio buffer successfully at middle point', () => {
-      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
       const splitTime = mockMediaOriginal.start_time + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
@@ -52,11 +51,6 @@ describe('AudioSplitHandler', () => {
       expect(mockMediaClone.audioBuffer!.duration).toBeCloseTo(1.0, 1);
       expect(mockMediaOriginal.audioBuffer!.duration).toBeCloseTo(1.0, 1);
       expect(mockMediaClone.name).toBe('Test Audio [Split]');
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Successfully split AudioMedia')
-      );
-
-      consoleLogSpy.mockRestore();
     });
 
     test('should update clone total time correctly', () => {

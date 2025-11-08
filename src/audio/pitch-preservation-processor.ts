@@ -1,3 +1,5 @@
+import {ESAudioContext} from "@/media/media-common";
+
 /**
  * Pitch Preservation Processor
  * Handles time-stretching algorithms to preserve pitch while changing audio playback speed
@@ -12,7 +14,7 @@ export class PitchPreservationProcessor {
    * @param audioContext - Audio context for creating new buffers
    * @returns Time-stretched audio buffer with preserved pitch
    */
-  createPitchPreservedBuffer(originalBuffer: AudioBuffer, speed: number, audioContext: AudioContext): AudioBuffer {
+  createPitchPreservedBuffer(originalBuffer: AudioBuffer, speed: number, audioContext: ESAudioContext): AudioBuffer {
     if (speed === 1.0) {
       return originalBuffer;
     }

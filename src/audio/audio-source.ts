@@ -1,11 +1,12 @@
 import { PitchPreservationProcessor } from './pitch-preservation-processor';
+import {ESAudioContext} from "@/media/media-common";
 
 export class AudioSource {
-  #audioContext: AudioContext | null = null;
+  #audioContext: ESAudioContext | null = null;
   #source: AudioBufferSourceNode | null = null;
   #pitchProcessor: PitchPreservationProcessor;
 
-  constructor(audioCtx: AudioContext, pitchProcessor?: PitchPreservationProcessor) {
+  constructor(audioCtx: ESAudioContext, pitchProcessor?: PitchPreservationProcessor) {
     this.#pitchProcessor = pitchProcessor || new PitchPreservationProcessor();
     this.#audioContext = audioCtx;
   }

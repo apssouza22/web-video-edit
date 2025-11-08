@@ -1,30 +1,22 @@
-import {AbstractMedia} from './media-common';
-import {AudioCutter} from '@/audio/audio-cutter';
+import {AbstractMedia, ESAudioContext} from './media-common';
 import {AudioLoader} from '@/audio/audio-loader';
 import {AudioSource} from '@/audio/audio-source';
 import type {LayerFile} from "./types";
-
-export function createAudioMedia(file: LayerFile, skipLoading: boolean = false): AudioMedia {
-  return new AudioMedia(file, skipLoading);
-}
 
 export class AudioMedia extends AbstractMedia {
   private audioLoader: AudioLoader;
   public audioBuffer: AudioBuffer | null = null;
   public source: AudioSource | null = null;
-  public playerAudioContext: AudioContext | null = null;
   public playing: boolean = false;
   public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
   public currentSpeed: number = 1.0; // Track current playback speed
   public lastAppliedSpeed: number = 1.0; // Track last applied speed for change detection
-  private audioCutter: AudioCutter;
   public originalTotalTimeInMilSeconds: number = 0; // Store original duration before speed changes
   public started: boolean = false; // Track if audio source has started playing
 
   constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
     this.audioLoader = new AudioLoader();
-    this.audioCutter = new AudioCutter();
 
     if (skipLoading) {
       return;
@@ -94,7 +86,7 @@ export class AudioMedia extends AbstractMedia {
     this.#updateTotalTimeForSpeed();
   }
 
-  connectAudioSource(playerAudioContext: AudioContext): void {
+  connectAudioSource(playerAudioContext: ESAudioContext): void {
     this.disconnect();
     this.currentSpeed = this.speedController.getSpeed();
     this.lastAppliedSpeed = this.currentSpeed;
@@ -140,43 +132,10 @@ export class AudioMedia extends AbstractMedia {
   }
 
   /**
-   * Removes an audio interval from this AudioMedia
-   * @param startTime - Start time in seconds
-   * @param endTime - End time in seconds
-   * @returns True if the interval was successfully removed, false otherwise
-   */
-  removeInterval(startTime: number, endTime: number): boolean {
-    if (!this.audioBuffer || !this.playerAudioContext) {
-      console.warn(`Audio layer "${this.name}" missing audioBuffer or playerAudioContext`);
-      return false;
-    }
-
-    if (startTime < 0 || endTime <= startTime) {
-      console.error('Invalid time interval provided:', startTime, endTime);
-      return false;
-    }
-
-    try {
-      const newBuffer = this.audioCutter.removeInterval(this.audioBuffer, this.playerAudioContext, startTime, endTime);
-
-      if (newBuffer && newBuffer !== this.audioBuffer) {
-        this.#updateBuffer(newBuffer);
-        console.log(`Successfully updated audio layer: "${this.name}"`);
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error(`Error removing audio interval from layer "${this.name}":`, error);
-      return false;
-    }
-  }
-
-  /**
    * Updates this AudioMedia with a new AudioBuffer
    * @param newBuffer - The new AudioBuffer
    */
-  #updateBuffer(newBuffer: AudioBuffer): void {
+  updateBuffer(newBuffer: AudioBuffer): void {
     if (!newBuffer) {
       console.error('Invalid buffer provided for updateBuffer');
       return;

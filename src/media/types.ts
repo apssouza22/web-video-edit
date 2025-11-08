@@ -1,7 +1,7 @@
 import {Frame} from '@/frame';
 import {ESRenderingContext2D} from "@/common/render-2d";
 
-export type LayerFile  = File & { uri?: string }
+export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 
 /**
  * Layer load update listener function signature

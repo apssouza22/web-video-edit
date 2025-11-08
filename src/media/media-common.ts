@@ -250,10 +250,7 @@ export abstract class AbstractMedia {
     return this.speedController.getSpeed();
   }
 
-  removeInterval(startTime: number, endTime: number) {
-    // This is a no-op for non-video medias
-    return false;
-  }
+
 }
 
 /**

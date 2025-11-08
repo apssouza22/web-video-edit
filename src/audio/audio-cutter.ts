@@ -1,3 +1,5 @@
+import {ESAudioContext} from "@/media/media-common";
+
 /**
  * AudioCutter provides audio cutting functionality
  */
@@ -11,7 +13,7 @@ export class AudioCutter {
    * @param endTime - End time in seconds
    * @returns New audio buffer with interval removed, or null on error
    */
-  removeInterval(audioBuffer: AudioBuffer, audioContext: AudioContext, startTime: number, endTime: number): AudioBuffer | null {
+  removeInterval(audioBuffer: AudioBuffer, audioContext: ESAudioContext, startTime: number, endTime: number): AudioBuffer | null {
     if (!this.#validateInputs(audioBuffer, startTime, endTime, audioContext)) {
       return null;
     }
@@ -51,7 +53,7 @@ export class AudioCutter {
    * @param audioContext - Audio context to validate
    * @returns True if inputs are valid, false otherwise
    */
-  #validateInputs(audioBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: AudioContext): boolean {
+  #validateInputs(audioBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: ESAudioContext): boolean {
     if (!audioBuffer) {
       console.error('AudioCutter: No audio buffer provided');
       return false;
