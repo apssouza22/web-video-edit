@@ -1,6 +1,8 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { SpeedControlInput } from '@/studio/speed-control-input';
-import { resetEventBus } from '@/common/event-bus';
+
+// Use dynamic imports for ESM
+const { SpeedControlInput } = await import('@/studio/speed-control-input');
+const { resetEventBus } = await import('@/common/event-bus');
 
 describe('SpeedControlInput', () => {
   let speedControl: SpeedControlInput;

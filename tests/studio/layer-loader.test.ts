@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { LayerLoader } from '@/studio/layer-loader';
+
+// Use dynamic imports for ESM
+const { LayerLoader } = await import('@/studio/layer-loader');
 
 describe('LayerLoader', () => {
   let mockStudio: any;

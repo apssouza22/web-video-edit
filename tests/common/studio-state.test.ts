@@ -1,8 +1,10 @@
 import {beforeEach, describe, expect, test} from '@jest/globals';
-import {StudioState, studioState} from '@/common/studio-state';
-import {AbstractMedia} from '@/media';
-import {AudioLayer} from "../../src/media/audio";
-import {VideoLayer} from "../../src/media/video";
+
+// Use dynamic imports for ESM
+const {StudioState, studioState} = await import('@/common/studio-state');
+const {AbstractMedia} = await import('@/media');
+const {AudioLayer} = await import("../../src/media/audio");
+const {VideoLayer} = await import("../../src/media/video");
 
 // Simple mock media classes for testing
 // Note: These won't work with isMediaVideo/isMediaAudio which use instanceof checks

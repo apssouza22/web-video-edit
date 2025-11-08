@@ -1,5 +1,7 @@
 import {afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { checkBrowserSupport } from '@/common/browser-support';
+
+// Use dynamic imports for ESM
+const { checkBrowserSupport } = await import('@/common/browser-support');
 
 describe('checkBrowserSupport', () => {
   let originalNavigator: Navigator;

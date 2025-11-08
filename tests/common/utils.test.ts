@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { fixWebmDuration } from '@/common/utils';
+
+// Use dynamic imports for ESM
+const { fixWebmDuration } = await import('@/common/utils');
 
 describe('fixWebmDuration', () => {
   let mockBlob: Blob;

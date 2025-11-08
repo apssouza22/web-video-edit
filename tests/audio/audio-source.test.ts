@@ -1,6 +1,8 @@
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
-import {AudioSource} from '@/audio/audio-source';
-import {PitchPreservationProcessor} from '@/audio/pitch-preservation-processor';
+
+// Use dynamic imports for ESM
+const {AudioSource} = await import('@/audio/audio-source');
+const {PitchPreservationProcessor} = await import('@/audio/pitch-preservation-processor');
 
 describe('AudioSource', () => {
   let audioSource: AudioSource;

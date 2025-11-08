@@ -1,21 +1,44 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { VideoDemuxService } from '@/video/demux/video-demux';
-import { MediaBunnyDemuxer } from '@/video/demux/mediabunny-demuxer';
-import { HTMLVideoDemuxer } from '@/video/demux/htmldemuxer/html-video-demuxer';
-import { CodecDemuxer } from '@/video/demux/mp4boxdemuxer/codec-demuxer';
-import { Canvas2DRender } from '@/common/render-2d';
 
-jest.mock('@/video/demux/mediabunny-demuxer');
-jest.mock('@/video/demux/htmldemuxer/html-video-demuxer');
-jest.mock('@/video/demux/mp4boxdemuxer/codec-demuxer');
-jest.mock('@/common/render-2d');
+// Since this test uses dependency injection (passing mock instances to constructor),
+// we don't need to mock the module imports. We just import types.
+const { VideoDemuxService } = await import('@/video/demux/video-demux');
+
+// Type imports for test setup
+type MediaBunnyDemuxer = {
+  setOnProgressCallback: jest.Mock;
+  setOnCompleteCallback: jest.Mock;
+  setOnMetadataCallback: jest.Mock;
+  initialize: jest.Mock;
+  cleanup: jest.Mock;
+};
+
+type CodecDemuxer = {
+  setOnProgressCallback: jest.Mock;
+  setOnCompleteCallback: jest.Mock;
+  setOnMetadataCallback: jest.Mock;
+  initialize: jest.Mock;
+  cleanup: jest.Mock;
+};
+
+type HTMLVideoDemuxer = {
+  setOnProgressCallback: jest.Mock;
+  setOnCompleteCallback: jest.Mock;
+  setOnMetadataCallback: jest.Mock;
+  initialize: jest.Mock;
+  cleanup: jest.Mock;
+};
+
+type Canvas2DRender = {
+  context: any;
+};
 
 describe('VideoDemuxService', () => {
-  let videoDemuxService: VideoDemuxService;
-  let mockMediaBunnyDemuxer: jest.Mocked<MediaBunnyDemuxer>;
-  let mockCodecDemuxer: jest.Mocked<CodecDemuxer>;
-  let mockHTMLVideoDemuxer: jest.Mocked<HTMLVideoDemuxer>;
-  let mockRenderer: jest.Mocked<Canvas2DRender>;
+  let videoDemuxService: InstanceType<typeof VideoDemuxService>;
+  let mockMediaBunnyDemuxer: MediaBunnyDemuxer;
+  let mockCodecDemuxer: CodecDemuxer;
+  let mockHTMLVideoDemuxer: HTMLVideoDemuxer;
+  let mockRenderer: Canvas2DRender;
 
   beforeEach(() => {
     mockMediaBunnyDemuxer = {
@@ -297,4 +320,3 @@ describe('VideoDemuxService', () => {
     });
   });
 });
-

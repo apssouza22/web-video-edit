@@ -1,9 +1,22 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 
-import { VideoStudio } from '@/studio/studio';
-import {VideoLayer} from "../../src/media/video";
+const mockTimeline = {
+  init: jest.fn(),
+  resize: jest.fn(),
+  setSelectedLayer: jest.fn(),
+};
+
+jest.unstable_mockModule('@/timeline', () => ({
+  createTimeline: () => mockTimeline,
+}));
+
+
+// Use dynamic imports for ESM
+const { VideoStudio } = await import('@/studio/studio');
+const {VideoLayer} = await import("@/media/video");
 
 describe('VideoStudio', () => {
+  // @ts-ignore
   let studio: VideoStudio;
 
   beforeEach(() => {
@@ -14,7 +27,6 @@ describe('VideoStudio', () => {
       </div>
       <div id="header"></div>
       <div id="layers"></div>
-      <div id="timeline_content"></div>
       <button id="export">Export</button>
       <div id="speed-control-item"></div>
       <input id="filepicker" type="file" />

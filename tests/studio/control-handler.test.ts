@@ -1,6 +1,8 @@
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
-import {ControlsHandler} from '@/studio/control-handler';
-import {VideoLayer} from "../../src/media/video";
+
+// Use dynamic imports for ESM
+const {ControlsHandler} = await import('@/studio/control-handler');
+const {VideoLayer} = await import("../../src/media/video");
 
 describe('ControlsHandler', () => {
   let mockStudio: any;

@@ -1,12 +1,14 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import {
+
+// Use dynamic imports for ESM
+const {
   ext_map,
   popup,
   exportToJson,
   addText,
   uploadSupportedType,
   getSupportedMimeTypes
-} from '../../src/common/utils';
+} = await import('../../src/common/utils');
 
 describe('Studio Utils', () => {
   describe('ext_map', () => {

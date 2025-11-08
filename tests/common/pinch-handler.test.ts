@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import {PinchHandler} from "@/common";
+
+// Use dynamic imports for ESM
+const {PinchHandler} = await import("@/common");
 
 // Safari-specific gesture event for testing
 interface GestureEvent extends Event {

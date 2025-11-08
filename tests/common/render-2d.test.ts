@@ -1,5 +1,7 @@
 import {beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { Canvas2DRender } from '@/common/render-2d';
+
+// Use dynamic imports for ESM
+const { Canvas2DRender } = await import('@/common/render-2d');
 
 describe('Canvas2DRender', () => {
   let render: Canvas2DRender;

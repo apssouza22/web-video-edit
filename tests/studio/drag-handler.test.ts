@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { DragItemHandler } from '@/studio/drag-handler';
+
+// Use dynamic imports for ESM
+const { DragItemHandler } = await import('@/studio/drag-handler');
 
 describe('DragItemHandler', () => {
   let element: HTMLElement;

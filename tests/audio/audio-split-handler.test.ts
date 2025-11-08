@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { AudioSplitHandler } from '@/audio/AudioSplitHandler';
-import { AbstractMedia } from '@/media/media-common';
+
+// Use dynamic imports for ESM
+const { AudioSplitHandler } = await import('@/audio/AudioSplitHandler');
+const { AbstractMedia } = await import('@/media/media-common');
 
 class MockMedia extends AbstractMedia {
   constructor() {

@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { LoadingPopup } from '@/studio/loading-popup';
+
+// Use dynamic imports for ESM
+const { LoadingPopup } = await import('@/studio/loading-popup');
 
 describe('LoadingPopup', () => {
   let loadingPopup: LoadingPopup;

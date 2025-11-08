@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { AspectRatioSelector } from '@/studio/aspect-ratio-selector';
+
+// Use dynamic imports for ESM
+const { AspectRatioSelector } = await import('@/studio/aspect-ratio-selector');
 
 describe('AspectRatioSelector', () => {
   let selector: AspectRatioSelector;

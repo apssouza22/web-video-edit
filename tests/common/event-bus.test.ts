@@ -1,5 +1,7 @@
 import {afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
-import {
+
+// Use dynamic imports for ESM
+const {
   EventBus,
   getEventBus,
   resetEventBus,
@@ -7,8 +9,9 @@ import {
   PlayerLayerTransformedEvent,
   TimelineTimeUpdateEvent,
   UiSpeedChangeEvent,
-  UiAspectRatioChangeEvent
-} from '@/common/event-bus';
+  UiAspectRatioChangeEvent,
+  STUDIO_EVENTS
+} = await import('@/common/event-bus');
 
 describe('EventBus', () => {
   let eventBus: EventBus;

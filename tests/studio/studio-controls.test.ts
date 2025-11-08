@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
-import { StudioControls } from '@/studio/controls';
+
+// Use dynamic imports for ESM
+const { StudioControls } = await import('@/studio/controls');
 
 describe('StudioControls', () => {
   let mockStudio: any;

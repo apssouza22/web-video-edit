@@ -1,9 +1,38 @@
 import { describe, expect, jest, test, beforeEach, afterEach } from '@jest/globals';
-import { createDemuxer, VideoDemuxService } from '@/video/demux';
 
-jest.mock('@/video/demux/mediabunny-demuxer');
-jest.mock('@/video/demux/mp4boxdemuxer/codec-demuxer');
-jest.mock('@/video/demux/htmldemuxer/html-video-demuxer');
+// Mock the demuxer classes
+jest.unstable_mockModule('@/video/demux/mediabunny-demuxer', () => ({
+  MediaBunnyDemuxer: jest.fn().mockImplementation(() => ({
+    setOnProgressCallback: jest.fn(),
+    setOnCompleteCallback: jest.fn(),
+    setOnMetadataCallback: jest.fn(),
+    initialize: jest.fn(),
+    cleanup: jest.fn(),
+  })),
+}));
+
+jest.unstable_mockModule('@/video/demux/mp4boxdemuxer/codec-demuxer', () => ({
+  CodecDemuxer: jest.fn().mockImplementation(() => ({
+    setOnProgressCallback: jest.fn(),
+    setOnCompleteCallback: jest.fn(),
+    setOnMetadataCallback: jest.fn(),
+    initialize: jest.fn(),
+    cleanup: jest.fn(),
+  })),
+}));
+
+jest.unstable_mockModule('@/video/demux/htmldemuxer/html-video-demuxer', () => ({
+  HTMLVideoDemuxer: jest.fn().mockImplementation(() => ({
+    setOnProgressCallback: jest.fn(),
+    setOnCompleteCallback: jest.fn(),
+    setOnMetadataCallback: jest.fn(),
+    initialize: jest.fn(),
+    cleanup: jest.fn(),
+  })),
+}));
+
+// Import after mocking
+const { createDemuxer, VideoDemuxService } = await import('@/video/demux');
 
 describe('createDemuxer', () => {
   beforeEach(() => {
@@ -105,4 +134,3 @@ describe('createDemuxer', () => {
     }).not.toThrow();
   });
 });
-
