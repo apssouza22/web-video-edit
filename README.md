@@ -26,3 +26,9 @@ npm start
 ```
 
 3. Open your browser and navigate to http://localhost:8001
+
+### Jest and ECMAScript Modules
+To run tests using Jest with ECMAScript modules, follow these steps:
+```
+node --experimental-vm-modules
+```

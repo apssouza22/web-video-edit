@@ -385,6 +385,40 @@ if (!global.crypto.randomUUID) {
   };
 }
 
+// Mock Blob.arrayBuffer() if not available
+if (typeof Blob !== 'undefined' && !Blob.prototype.arrayBuffer) {
+  Blob.prototype.arrayBuffer = function() {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(this);
+    });
+  };
+}
+
+// Mock Blob.slice() if not properly implemented
+if (typeof Blob !== 'undefined') {
+  const originalSlice = Blob.prototype.slice;
+  Blob.prototype.slice = function(start, end, contentType) {
+    const sliced = originalSlice ? originalSlice.call(this, start, end, contentType) : this;
+    
+    // Ensure slice result has arrayBuffer method
+    if (!sliced.arrayBuffer) {
+      sliced.arrayBuffer = function() {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsArrayBuffer(this);
+        });
+      };
+    }
+    
+    return sliced;
+  };
+}
+
 // Mock document.getElementById for background element
 const originalGetElementById = document.getElementById.bind(document);
 document.getElementById = function(id) {
@@ -395,6 +429,226 @@ document.getElementById = function(id) {
   }
   return originalGetElementById(id);
 };
+
+// Mock localStorage
+if (typeof global.localStorage === 'undefined') {
+  const localStorageMock = {
+    store: {},
+    getItem(key) {
+      return this.store[key] || null;
+    },
+    setItem(key, value) {
+      this.store[key] = value.toString();
+    },
+    removeItem(key) {
+      delete this.store[key];
+    },
+    clear() {
+      this.store = {};
+    },
+  };
+  global.localStorage = localStorageMock;
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+    configurable: true,
+  });
+}
+
+// Mock WebCodecs API (VideoDecoder, VideoFrame, EncodedVideoChunk)
+if (typeof global.VideoDecoder === 'undefined') {
+  global.VideoDecoder = class VideoDecoder {
+    constructor(init) {
+      this.init = init;
+      this.state = 'unconfigured';
+    }
+    
+    configure(config) {
+      this.state = 'configured';
+    }
+    
+    decode(chunk) {
+      if (this.init && this.init.output) {
+        this.init.output({
+          codedWidth: 1920,
+          codedHeight: 1080,
+          timestamp: 0,
+          close: () => {},
+        });
+      }
+    }
+    
+    flush() {
+      return Promise.resolve();
+    }
+    
+    close() {
+      this.state = 'closed';
+    }
+    
+    static isConfigSupported(config) {
+      return Promise.resolve({ supported: true });
+    }
+  };
+}
+
+if (typeof global.VideoFrame === 'undefined') {
+  global.VideoFrame = class VideoFrame {
+    constructor(source, init) {
+      this.codedWidth = init?.codedWidth || 1920;
+      this.codedHeight = init?.codedHeight || 1080;
+      this.timestamp = init?.timestamp || 0;
+      this.duration = init?.duration || 0;
+    }
+    
+    close() {}
+  };
+}
+
+if (typeof global.EncodedVideoChunk === 'undefined') {
+  global.EncodedVideoChunk = class EncodedVideoChunk {
+    constructor(init) {
+      this.type = init.type;
+      this.timestamp = init.timestamp;
+      this.duration = init.duration;
+      this.data = init.data;
+    }
+    
+    copyTo(destination) {
+      const view = new Uint8Array(destination);
+      view.set(new Uint8Array(this.data));
+    }
+  };
+}
+
+if (typeof global.VideoEncoder === 'undefined') {
+  global.VideoEncoder = class VideoEncoder {
+    constructor(init) {
+      this.init = init;
+      this.state = 'unconfigured';
+    }
+    
+    configure(config) {
+      this.state = 'configured';
+    }
+    
+    encode(frame, options) {
+      if (this.init && this.init.output) {
+        this.init.output({
+          type: 'key',
+          timestamp: 0,
+          data: new ArrayBuffer(1024),
+        });
+      }
+    }
+    
+    flush() {
+      return Promise.resolve();
+    }
+    
+    close() {
+      this.state = 'closed';
+    }
+    
+    static isConfigSupported(config) {
+      return Promise.resolve({ supported: true });
+    }
+  };
+}
+
+if (typeof global.AudioEncoder === 'undefined') {
+  global.AudioEncoder = class AudioEncoder {
+    constructor(init) {
+      this.init = init;
+      this.state = 'unconfigured';
+    }
+    
+    configure(config) {
+      this.state = 'configured';
+    }
+    
+    encode(data) {
+      if (this.init && this.init.output) {
+        this.init.output({
+          type: 'key',
+          timestamp: 0,
+          data: new ArrayBuffer(1024),
+        });
+      }
+    }
+    
+    flush() {
+      return Promise.resolve();
+    }
+    
+    close() {
+      this.state = 'closed';
+    }
+    
+    static isConfigSupported(config) {
+      return Promise.resolve({ supported: true });
+    }
+  };
+}
+
+// Mock OffscreenCanvas
+if (typeof global.OffscreenCanvas === 'undefined') {
+  global.OffscreenCanvas = class OffscreenCanvas {
+    constructor(width, height) {
+      this.width = width;
+      this.height = height;
+    }
+    
+    getContext(contextType, options) {
+      if (contextType === '2d') {
+        return {
+          canvas: this,
+          fillStyle: '',
+          strokeStyle: '',
+          lineWidth: 1,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high',
+          clearRect: () => {},
+          fillRect: () => {},
+          strokeRect: () => {},
+          beginPath: () => {},
+          closePath: () => {},
+          moveTo: () => {},
+          lineTo: () => {},
+          stroke: () => {},
+          fill: () => {},
+          arc: () => {},
+          drawImage: () => {},
+          save: () => {},
+          restore: () => {},
+          scale: () => {},
+          translate: () => {},
+          rotate: () => {},
+          setTransform: () => {},
+          getImageData: (sx, sy, sw, sh) => ({ 
+            data: new Uint8ClampedArray(sw * sh * 4),
+            width: sw,
+            height: sh
+          }),
+          putImageData: () => {},
+          createImageData: (width, height) => ({ 
+            data: new Uint8ClampedArray(width * height * 4),
+            width: width,
+            height: height
+          }),
+          measureText: () => ({ width: 100 }),
+          fillText: () => {},
+          strokeText: () => {},
+        };
+      }
+      return null;
+    }
+    
+    convertToBlob(options) {
+      return Promise.resolve(new Blob());
+    }
+  };
+}
 
 // Suppress console warnings in tests (optional)
 // global.console.warn = () => {};
