@@ -6,14 +6,14 @@ import {
   HandleType,
   HitTestResult,
   LayerTransformedListener,
-  Media,
   Point2D,
   TransformHandle
 } from './types';
 import type {FrameTransform} from '@/frame';
+import {AbstractMedia} from "@/media";
 
 export class CanvasLayer {
-  private readonly _media: Media;
+  private readonly _media: AbstractMedia;
   #selected = false;
   #canvas: CanvasElement;
   #transforming = false;
@@ -28,7 +28,7 @@ export class CanvasLayer {
   /**
    * Class to handle transformations of a media in the player.
    */
-  constructor(media: Media, canvas: CanvasElement) {
+  constructor(media: AbstractMedia, canvas: CanvasElement) {
     this._media = media;
     this.#canvas = canvas;
     this.#initializeHandles();
@@ -38,7 +38,7 @@ export class CanvasLayer {
   /**
    * Returns the media associated with this PlayerLayer instance.
    */
-  get media(): Media {
+  get media(): AbstractMedia {
     return this._media;
   }
 

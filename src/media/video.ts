@@ -101,9 +101,9 @@ export class VideoMedia extends AbstractMedia {
           scale * this.width,
           scale * this.height
       );
-    } else if (frame.frame) {
+    } else if (frame.frameObject) {
       // Assume it's ImageData
-      const imageData = frame.frame as ImageData;
+      const imageData = frame.frameObject as ImageData;
       this.renderer.putImageData(imageData, x, y);
     }
     this.drawScaled(this.renderer.context, ctxOut);

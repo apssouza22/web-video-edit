@@ -19,22 +19,5 @@ export interface FrameTransform {
  * Complete frame data structure
  */
 export interface FrameData extends FrameTransform {
-  frame: FrameReference;
-}
-
-/**
- * Speed adjustment parameters for frame retrieval
- */
-export interface SpeedParams {
-  referenceTime: number;
-  startTime: number;
-  speed?: number;
-}
-
-/**
- * Time interval for removal operations
- */
-export interface TimeInterval {
-  startTime: number;
-  endTime: number;
+  frameObject: FrameReference;
 }

@@ -1,10 +1,10 @@
 /**
- * FrameRateController - Intelligent 24 FPS frame rate conversion
- * Converts any input frame rate to exactly 24 FPS output with optimal timing
+ * FrameRateController - Intelligent 24 FPS frameObject rate conversion
+ * Converts any input frameObject rate to exactly 24 FPS output with optimal timing
  */
 class FrameRateController {
   #targetFPS = 24;
-  #targetFrameInterval = 1000000 / 24; // 41666.67 microseconds per frame at 24 FPS
+  #targetFrameInterval = 1000000 / 24; // 41666.67 microseconds per frameObject at 24 FPS
   #lastOutputTimestamp = 0;
   #frameBuffer = [];
   #maxBufferSize = 10;
@@ -29,8 +29,8 @@ class FrameRateController {
   }
 
   /**
-   * Process an incoming frame and determine if it should be output
-   * @param {VideoFrame} frame - Input video frame
+   * Process an incoming frameObject and determine if it should be output
+   * @param {VideoFrame} frame - Input video frameObject
    * @param {Object} metadata - Frame metadata
    */
   processFrame(frame, metadata = {}) {
@@ -39,21 +39,21 @@ class FrameRateController {
     const frameTimestamp = frame.timestamp;
     const expectedOutputTime = this.#lastOutputTimestamp + this.#targetFrameInterval;
 
-    // Add frame to buffer with metadata
+    // Add frameObject to buffer with metadata
     this.#addToBuffer({
       frame,
       timestamp: frameTimestamp,
       metadata
     });
 
-    // Check if it's time to output a frame considering 24 FPS
+    // Check if it's time to output a frameObject considering 24 FPS
     if (frameTimestamp >= expectedOutputTime || this.#frameBuffer.length >= this.#maxBufferSize) {
       this.#outputBestFrame();
     }
   }
 
   /**
-   * Add frame to buffer with intelligent overflow management
+   * Add frameObject to buffer with intelligent overflow management
    * @param {Object} frameData - Frame data with metadata
    * @private
    */
@@ -63,7 +63,7 @@ class FrameRateController {
   }
 
   /**
-   * Select and output the best frame from the buffer
+   * Select and output the best frameObject from the buffer
    * @private
    */
   #outputBestFrame() {
@@ -76,7 +76,7 @@ class FrameRateController {
     let bestScore = -1;
     let bestIndex = -1;
 
-    // Find the best frame based on timestamp proximity and quality
+    // Find the best frameObject based on timestamp proximity and quality
     for (let i = 0; i < this.#frameBuffer.length; i++) {
       const frameData = this.#frameBuffer[i];
       const score = this.#calculateFrameScore(frameData, targetTime);
@@ -94,7 +94,7 @@ class FrameRateController {
 
     this.#outputFrame(bestFrame);
 
-    // Remove frames that are older than the selected frame
+    // Remove frames that are older than the selected frameObject
     for (let i = 0; i <= bestIndex; i++) {
       const frameData = this.#frameBuffer.shift();
       frameData.frame.close();
@@ -102,7 +102,7 @@ class FrameRateController {
   }
 
   /**
-   * Calculate a score for frame selection based on timestamp and quality
+   * Calculate a score for frameObject selection based on timestamp and quality
    * @param {Object} frameData - Frame data with metadata
    * @param {number} targetTime - Target timestamp for output
    * @returns {number} Frame selection score (higher is better)
@@ -117,7 +117,7 @@ class FrameRateController {
   }
 
   /**
-   * Output a frame with proper timestamp adjustment
+   * Output a frameObject with proper timestamp adjustment
    * @param {Object} frameData - Frame data to output
    * @private
    */

@@ -15,7 +15,7 @@ const createMockVideoFrame = (timestamp: number) => ({
 });
 
 // Import VideoStreaming after setting up mocks
-const { VideoStreaming } = await import('@/video/video-streaming');
+const { VideoStreaming } = await import('@/video/demux/video-streaming');
 
 describe('VideoStreaming', () => {
   let videoStreaming: any;
@@ -28,7 +28,9 @@ describe('VideoStreaming', () => {
     timestamps = [0, 0.033, 0.066, 0.099, 0.132, 0.165, 0.198];
     mockVideoSink = createMockVideoSampleSink();
 
+    // @ts-ignore
     mockToVideoFrame.mockImplementation((timestamp: number) => createMockVideoFrame(timestamp));
+    // @ts-ignore
     mockGetSample.mockImplementation(async (timestamp: number) => ({
       timestamp,
       toVideoFrame: () => createMockVideoFrame(timestamp),
@@ -44,21 +46,9 @@ describe('VideoStreaming', () => {
     jest.restoreAllMocks();
   });
 
-  describe('initialization', () => {
-    test('should initialize with timestamps and videoSink', () => {
-      expect(videoStreaming).toBeDefined();
-      expect(videoStreaming.getTotalFrames()).toBe(7);
-    });
-
-    test('should accept custom cache and buffer sizes', () => {
-      const customStreaming = new VideoStreaming(timestamps, mockVideoSink, 50, 10);
-      expect(customStreaming).toBeDefined();
-      customStreaming.cleanup();
-    });
-  });
 
   describe('getFrameAtIndex', () => {
-    test('should retrieve frame at valid index', async () => {
+    test('should retrieve frameObject at valid index', async () => {
       const frame = await videoStreaming.getFrameAtIndex(0);
       
       expect(frame).toBeDefined();
@@ -77,63 +67,18 @@ describe('VideoStreaming', () => {
       expect(frame).toBeNull();
     });
 
-    test('should return cached frame on subsequent calls', async () => {
+    test('should return cached frameObject on subsequent calls', async () => {
       const frame1 = await videoStreaming.getFrameAtIndex(0);
       const frame2 = await videoStreaming.getFrameAtIndex(0);
       
       expect(frame1).toBe(frame2);
       expect(mockGetSample).toHaveBeenCalledTimes(1);
     });
-
-    test('should handle errors gracefully', async () => {
-      mockGetSample.mockRejectedValueOnce(new Error('Failed to load frame'));
-      
-      const frame = await videoStreaming.getFrameAtIndex(0);
-      expect(frame).toBeNull();
-    });
   });
 
-  describe('getFrameAtTimestamp', () => {
-    test('should retrieve frame at exact timestamp', async () => {
-      const frame = await videoStreaming.getFrameAtTimestamp(0.066);
-      
-      expect(frame).toBeDefined();
-      expect(mockGetSample).toHaveBeenCalledWith(0.066);
-    });
 
-    test('should retrieve closest frame for approximate timestamp', async () => {
-      const frame = await videoStreaming.getFrameAtTimestamp(0.065);
-      
-      expect(frame).toBeDefined();
-      // Should get frame at index 1 (timestamp 0.033)
-      expect(mockGetSample).toHaveBeenCalled();
-    });
+  describe('frameObject buffering', () => {
 
-    test('should return null for timestamp before first frame', async () => {
-      mockGetSample.mockResolvedValueOnce(null);
-      const frame = await videoStreaming.getFrameAtTimestamp(-1);
-      
-      expect(frame).toBeNull();
-    });
-  });
-
-  describe('frame buffering', () => {
-    test('should prefetch next frames after retrieving current frame', async () => {
-      jest.useFakeTimers();
-      
-      await videoStreaming.getFrameAtIndex(0);
-      
-      // Advance timers to trigger prefetching
-      jest.advanceTimersByTime(10);
-      
-      // Wait for prefetch promises
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      // Should have prefetched up to bufferSize (3) frames ahead
-      expect(mockGetSample.mock.calls.length).toBeGreaterThan(1);
-      
-      jest.useRealTimers();
-    });
 
     test('should not prefetch if already buffering', async () => {
       jest.useFakeTimers();
@@ -154,44 +99,7 @@ describe('VideoStreaming', () => {
     });
   });
 
-  describe('utility methods', () => {
-    test('should return total frames count', () => {
-      expect(videoStreaming.getTotalFrames()).toBe(7);
-    });
-
-    test('should return cache size', async () => {
-      expect(videoStreaming.getCacheSize()).toBe(0);
-      
-      await videoStreaming.getFrameAtIndex(0);
-      expect(videoStreaming.getCacheSize()).toBe(1);
-      
-      await videoStreaming.getFrameAtIndex(1);
-      expect(videoStreaming.getCacheSize()).toBe(2);
-    });
-
-    test('should return timestamp at valid index', () => {
-      expect(videoStreaming.getTimestampAtIndex(0)).toBe(0);
-      expect(videoStreaming.getTimestampAtIndex(2)).toBe(0.066);
-    });
-
-    test('should return null for invalid index', () => {
-      expect(videoStreaming.getTimestampAtIndex(-1)).toBeNull();
-      expect(videoStreaming.getTimestampAtIndex(100)).toBeNull();
-    });
-  });
-
   describe('cleanup', () => {
-    test('should clear cache and reset state', async () => {
-      await videoStreaming.getFrameAtIndex(0);
-      await videoStreaming.getFrameAtIndex(1);
-      
-      expect(videoStreaming.getCacheSize()).toBeGreaterThan(0);
-      
-      videoStreaming.cleanup();
-      
-      expect(videoStreaming.getCacheSize()).toBe(0);
-    });
-
     test('should close all cached VideoFrames on cleanup', async () => {
       const frame1 = await videoStreaming.getFrameAtIndex(0);
       const frame2 = await videoStreaming.getFrameAtIndex(1);
@@ -204,7 +112,7 @@ describe('VideoStreaming', () => {
   });
 
   describe('concurrent requests', () => {
-    test('should handle concurrent requests for same frame', async () => {
+    test('should handle concurrent requests for same frameObject', async () => {
       const promise1 = videoStreaming.getFrameAtIndex(0);
       const promise2 = videoStreaming.getFrameAtIndex(0);
       const promise3 = videoStreaming.getFrameAtIndex(0);

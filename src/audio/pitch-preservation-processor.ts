@@ -66,7 +66,7 @@ export class PitchPreservationProcessor {
     let outputPos = 0;
 
     while (inputPos + frameSize < originalLength && outputPos + frameSize < newLength) {
-      // Extract frame from original audio
+      // Extract frameObject from original audio
       const frame = this.#extractFrame(originalData, inputPos, frameSize);
       this.#applyHannWindow(frame);
       this.#overlapAdd(newData, frame, outputPos, newLength);
@@ -77,11 +77,11 @@ export class PitchPreservationProcessor {
   }
 
   /**
-   * Extract a frame from the original audio data
+   * Extract a frameObject from the original audio data
    * @param originalData - Original audio data
    * @param startPos - Start position
    * @param frameSize - Frame size
-   * @returns Extracted frame
+   * @returns Extracted frameObject
    */
   #extractFrame(originalData: Float32Array, startPos: number, frameSize: number): Float32Array {
     const frame = new Float32Array(frameSize);
@@ -92,8 +92,8 @@ export class PitchPreservationProcessor {
   }
 
   /**
-   * Apply Hann window function to a frame
-   * @param frame - Audio frame
+   * Apply Hann window function to a frameObject
+   * @param frame - Audio frameObject
    */
   #applyHannWindow(frame: Float32Array): void {
     const frameSize = frame.length;
@@ -104,7 +104,7 @@ export class PitchPreservationProcessor {
   }
 
   /**
-   * Overlap-add frame to output buffer
+   * Overlap-add frameObject to output buffer
    * @param outputData - Output buffer
    * @param frame - Frame to add
    * @param outputPos - Output position

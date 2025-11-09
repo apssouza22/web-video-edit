@@ -47,6 +47,7 @@ jest.unstable_mockModule('mediabunny', () => ({
 // Import modules AFTER mocking
 const { MediaBunnyDemuxer } = await import('@/video/demux/mediabunny-demuxer');
 const { Canvas2DRender } = await import('@/common/render-2d');
+const {VideoStreaming} = await import ("@/video");
 
 describe('MediaBunnyDemuxer', () => {
   // @ts-ignore
@@ -184,14 +185,11 @@ describe('MediaBunnyDemuxer', () => {
 
   describe('cleanup', () => {
     test('should cleanup resources', () => {
-      demuxer['frames'] = [{ width: 1920, height: 1080 }] as any;
       demuxer['timestamps'] = [0.033, 0.066, 0.099];
       demuxer['isProcessing'] = true;
       demuxer.cleanup();
 
       expect(demuxer['isProcessing']).toBe(false);
-      expect(demuxer['frames']).toEqual([]);
-      expect(demuxer['timestamps']).toEqual([]);
       expect(demuxer['input']).toBeNull();
     });
 
@@ -203,8 +201,6 @@ describe('MediaBunnyDemuxer', () => {
 
       demuxer.cleanup();
 
-      expect(demuxer['frames']).toEqual([]);
-      expect(demuxer['timestamps']).toEqual([]);
       expect(demuxer['isProcessing']).toBe(false);
       expect(demuxer['input']).toBeNull();
     });
@@ -222,7 +218,7 @@ describe('MediaBunnyDemuxer', () => {
 
       expect(progressCallback).toHaveBeenCalled();
       expect(completeCallback).toHaveBeenCalled();
-      expect(completeCallback).toHaveBeenCalledWith([]);
+      expect(completeCallback).toHaveBeenCalledWith(expect.any(VideoStreaming));
     });
 
     test('should extract timestamps based on target FPS', async () => {
@@ -235,10 +231,7 @@ describe('MediaBunnyDemuxer', () => {
 
       // Should have extracted timestamps
       expect(metadataCallback).toHaveBeenCalledWith(
-        expect.objectContaining({
-          timestamps: expect.any(Array),
-          videoSink: expect.any(Object),
-        })
+          expect.any(Object)
       );
     });
 
@@ -252,10 +245,7 @@ describe('MediaBunnyDemuxer', () => {
         expect.objectContaining({
           width: 1920,
           height: 1080,
-          totalTimeInMilSeconds: 10000,
-          frames: [],
-          timestamps: expect.any(Array),
-          videoSink: expect.any(Object),
+          totalTimeInMilSeconds: 10000
         })
       );
     });

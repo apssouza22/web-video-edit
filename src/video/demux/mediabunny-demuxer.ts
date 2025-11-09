@@ -2,15 +2,18 @@ import {Canvas2DRender} from '@/common/render-2d';
 import {fps} from '@/constants';
 import {ALL_FORMATS, BlobSource, Input, VideoSampleSink,} from 'mediabunny';
 import {StudioState} from "@/common";
-import {CompleteCallback, MetadataCallback, ProgressCallback} from "@/video/demux/types";
-import {VideoStreaming} from "@/video";
+import {CompleteCallback, MetadataCallback, ProgressCallback} from "./types";
+import {VideoStreaming} from "./video-streaming";
 
 
 export class MediaBunnyDemuxer {
-  private onProgressCallback: ProgressCallback = () => {};
-  private onCompleteCallback: CompleteCallback = () => {};
-  private onMetadataCallback: MetadataCallback = () => {};
-  
+  private onProgressCallback: ProgressCallback = () => {
+  };
+  private onCompleteCallback: CompleteCallback = () => {
+  };
+  private onMetadataCallback: MetadataCallback = () => {
+  };
+
   private timestamps: number[] = [];
   private input: Input | null = null;
   private videoSink: VideoSampleSink | null = null;
@@ -88,7 +91,7 @@ export class MediaBunnyDemuxer {
     try {
       const frameInterval = 1 / this.targetFps;
       const totalFramesTarget = Math.floor(this.totalDuration * this.targetFps);
-      
+
       console.log(`Extracting timestamps at ${this.targetFps} fps (${totalFramesTarget} total frames)`);
 
       let currentFrameIndex = 0;
@@ -109,10 +112,10 @@ export class MediaBunnyDemuxer {
           currentFrameIndex++;
           nextTargetTime = currentFrameIndex * frameInterval;
 
-          const progress = totalFramesTarget > 0 
-            ? Math.min(100, (currentFrameIndex / totalFramesTarget) * 100)
-            : 0;
-          
+          const progress = totalFramesTarget > 0
+              ? Math.min(100, (currentFrameIndex / totalFramesTarget) * 100)
+              : 0;
+
           this.onProgressCallback(progress);
         }
 
@@ -122,7 +125,7 @@ export class MediaBunnyDemuxer {
       }
 
       console.log(`Extracted ${this.timestamps.length} timestamps at ${this.targetFps} fps`);
-      
+
       this.onProgressCallback(100);
       this.onCompleteCallback(new VideoStreaming(this.timestamps, this.videoSink!, 1000, 5));
     } catch (error) {
@@ -136,8 +139,8 @@ export class MediaBunnyDemuxer {
     try {
       this.isProcessing = false;
       this.timestamps = [];
-      
-      // Note: videoSink is kept alive for on-demand frame retrieval
+
+      // Note: videoSink is kept alive for on-demand frameObject retrieval
       // It will be cleaned up by the VideoMedia class
       this.input = null;
     } catch (error) {

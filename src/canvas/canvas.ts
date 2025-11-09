@@ -1,15 +1,15 @@
-import { dpr } from '@/constants';
+import {dpr} from '@/constants';
 import {AbstractMedia, isMediaAudio} from '@/media';
-import { CanvasLayer } from './canvas-layer.js';
+import {CanvasLayer} from './canvas-layer.js';
 import type {
-  LayerTransformedListener,
-  PlayerEndCallback,
+  AudioContextType,
   CanvasContext2D,
   CanvasElement,
-  AudioContextType, Media
+  LayerTransformedListener,
+  PlayerEndCallback
 } from './types.js';
 import {StudioState} from "@/common/studio-state";
-import { getEventBus, PlayerTimeUpdateEvent, PlayerLayerTransformedEvent } from '@/common/event-bus';
+import {getEventBus, PlayerLayerTransformedEvent, PlayerTimeUpdateEvent} from '@/common/event-bus';
 
 export class VideoCanvas {
   #selectedLayer: AbstractMedia | null = null;
@@ -28,7 +28,7 @@ export class VideoCanvas {
   public width = 0;
   public height = 0;
   public layers: CanvasLayer[] = [];
-  public layerTransformedListener: LayerTransformedListener = (layer: Media) => {};
+  public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {};
   private studioState: StudioState;
 
   constructor(studioState: StudioState) {

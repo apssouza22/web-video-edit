@@ -9,7 +9,7 @@ export class Frame implements FrameData {
     public scale: number;
     public rotation: number;
     public anchor: boolean;
-    public frame: FrameReference;
+    public frameObject: FrameReference;
 
     /**
      * Creates a new Frame instance
@@ -27,7 +27,7 @@ export class Frame implements FrameData {
         this.scale = scale;
         this.rotation = rotation;
         this.anchor = anchor;
-        this.frame = frame;
+        this.frameObject = frame;
     }
 
     /**
@@ -62,7 +62,7 @@ export class Frame implements FrameData {
      */
     clone(): Frame {
         return new Frame(
-            this.frame,
+            this.frameObject,
             this.x,
             this.y,
             this.scale,
@@ -79,7 +79,7 @@ export class Frame implements FrameData {
         if (weight < 0) weight = 0;
 
         return new Frame(
-            this.frame,   // Frame reference stays with the base frame
+            this.frameObject,   // Frame reference stays with the base frameObject
             this.#lerp(this.x, other.x, weight),
             this.#lerp(this.y, other.y, weight),
             this.#lerp(this.scale, other.scale, weight),

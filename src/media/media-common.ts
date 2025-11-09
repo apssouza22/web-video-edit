@@ -230,8 +230,8 @@ export abstract class AbstractMedia {
   /**
    * Gets the frame at the specified reference time
    */
-  async getFrame(ref_time: number): Promise<Frame | null> {
-    return await this.framesCollection.getFrame(ref_time, this.start_time);
+  getFrame(ref_time: number): Frame | null {
+    return this.framesCollection.getFrame(ref_time, this.start_time);
   }
 
   drawScaled(
