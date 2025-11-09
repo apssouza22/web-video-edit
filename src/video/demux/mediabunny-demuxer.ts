@@ -1,19 +1,17 @@
 import {Canvas2DRender} from '@/common/render-2d';
-import {VideoMetadata} from '@/media/types';
 import {fps} from '@/constants';
-import {ALL_FORMATS, BlobSource, Input, VideoSampleSink, WrappedCanvas,} from 'mediabunny';
+import {ALL_FORMATS, BlobSource, Input, VideoSampleSink,} from 'mediabunny';
 import {StudioState} from "@/common";
+import {CompleteCallback, MetadataCallback, ProgressCallback} from "@/video/demux/types";
+import {VideoStreaming} from "@/video";
 
-export type ProgressCallback = (progress: number) => void;
-export type CompleteCallback = (frames: any[]) => void;
-export type MetadataCallback = (metadata: VideoMetadata) => void;
 
 export class MediaBunnyDemuxer {
   private onProgressCallback: ProgressCallback = () => {};
   private onCompleteCallback: CompleteCallback = () => {};
   private onMetadataCallback: MetadataCallback = () => {};
   
-  private frames: any[] = [];
+  private timestamps: number[] = [];
   private input: Input | null = null;
   private videoSink: VideoSampleSink | null = null;
   private isProcessing = false;
@@ -39,7 +37,7 @@ export class MediaBunnyDemuxer {
   async initialize(file: File, renderer: Canvas2DRender): Promise<void> {
     try {
       this.isProcessing = true;
-      this.frames = [];
+      this.timestamps = [];
 
       const source = new BlobSource(file);
       this.input = new Input({
@@ -66,16 +64,15 @@ export class MediaBunnyDemuxer {
       const height = videoTrack.displayHeight;
       const totalTimeInMilSeconds = this.totalDuration * 1000;
 
+      this.videoSink = new VideoSampleSink(videoTrack);
+      StudioState.getInstance().setMinVideoSizes(width, height)
+
       this.onMetadataCallback({
         width,
         height,
-        totalTimeInMilSeconds,
-        frames: [],
+        totalTimeInMilSeconds
       });
-
-      this.videoSink = new VideoSampleSink(videoTrack);
-      StudioState.getInstance().setMinVideoSizes(width, height)
-      await this.extractFrames();
+      await this.extractTimestamps();
     } catch (error) {
       console.error('MediaBunnyDemuxer initialization error:', error);
       this.cleanup();
@@ -83,7 +80,7 @@ export class MediaBunnyDemuxer {
     }
   }
 
-  private async extractFrames(): Promise<void> {
+  private async extractTimestamps(): Promise<void> {
     if (!this.videoSink) {
       return;
     }
@@ -92,7 +89,7 @@ export class MediaBunnyDemuxer {
       const frameInterval = 1 / this.targetFps;
       const totalFramesTarget = Math.floor(this.totalDuration * this.targetFps);
       
-      console.log(`Extracting frames at ${this.targetFps} fps (${totalFramesTarget} total frames)`);
+      console.log(`Extracting timestamps at ${this.targetFps} fps (${totalFramesTarget} total frames)`);
 
       let currentFrameIndex = 0;
       let nextTargetTime = 0;
@@ -107,7 +104,7 @@ export class MediaBunnyDemuxer {
         const timestamp = videoSample.timestamp;
 
         if (timestamp >= nextTargetTime && currentFrameIndex < totalFramesTarget) {
-          this.frames.push(videoSample.toVideoFrame());
+          this.timestamps.push(timestamp);
 
           currentFrameIndex++;
           nextTargetTime = currentFrameIndex * frameInterval;
@@ -124,44 +121,24 @@ export class MediaBunnyDemuxer {
         }
       }
 
-      console.log(`Extracted ${this.frames.length} frames at ${this.targetFps} fps`);
+      console.log(`Extracted ${this.timestamps.length} timestamps at ${this.targetFps} fps`);
       
       this.onProgressCallback(100);
-      this.onCompleteCallback(this.frames);
+      this.onCompleteCallback(new VideoStreaming(this.timestamps, this.videoSink!, 1000, 5));
     } catch (error) {
-      console.error('Error extracting frames:', error);
+      console.error('Error extracting timestamps:', error);
       throw error;
     }
   }
 
-  private convertToVideoFrame(
-    wrappedCanvas: WrappedCanvas,
-    renderer: Canvas2DRender
-  ): ImageData {
-    const context = renderer.context;
-    const canvas = wrappedCanvas.canvas;
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(canvas, 0, 0);
-
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    
-    if (!imageData) {
-      throw new Error('Failed to extract ImageData from canvas');
-    }
-
-    return imageData;
-  }
 
   cleanup(): void {
     try {
       this.isProcessing = false;
-
-      if (this.frames && this.frames.length > 0) {
-        this.frames = [];
-      }
-
-      this.videoSink = null;
+      this.timestamps = [];
+      
+      // Note: videoSink is kept alive for on-demand frame retrieval
+      // It will be cleaned up by the VideoMedia class
       this.input = null;
     } catch (error) {
       console.error('Error during MediaBunnyDemuxer cleanup:', error);

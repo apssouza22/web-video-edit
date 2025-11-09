@@ -157,9 +157,9 @@ export class MediaRecorderExporter {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studioState.getMedias();
+        const medias = this.studioState.getMedias();
 
-        for (const layer of layers) {
+        for (const layer of medias) {
             // Pass playing=true to ensure audio medias start at correct time
             layer.render(this.recordingCtx, time, true);
         }

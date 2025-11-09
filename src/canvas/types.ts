@@ -66,6 +66,7 @@ export interface CanvasPosition {
  * @see AbstractMedia
  */
 export interface Media {
+  totalTimeInMilSeconds: number;
   id: string;
   name: string;
   width: number;

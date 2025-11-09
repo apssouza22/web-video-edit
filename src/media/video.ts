@@ -1,13 +1,13 @@
-import {createFrameService, Frame} from '@/frame';
+import {createFrameService} from '@/frame';
 import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
-import {loadVideo} from "@/video";
+import {loadVideo, VideoStreaming} from "@/video";
 
 export class VideoMedia extends AbstractMedia {
+  private videoStreaming: VideoStreaming | undefined = undefined;
 
   constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
-    this.framesCollection = createFrameService(0, 0, false);
 
     // Empty VideoLayers (split() requires this)
     if (skipLoading) {
@@ -23,15 +23,14 @@ export class VideoMedia extends AbstractMedia {
       return;
     }
     this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
-    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
     this.width = metadata.width;
     this.height = metadata.height;
-    this.#handleVideoRatio();
 
-    metadata.frames.forEach((frame, index) => {
-      // @ts-ignore
-      this.framesCollection.update(index, new Frame(frame));
-    });
+    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
+    this.framesCollection.initializeFrames();
+    this.videoStreaming = metadata.frames
+
+    this.#handleVideoRatio();
     this.ready = true;
     this.loadUpdateListener(this, 100, this.ctx);
   }
@@ -62,7 +61,7 @@ export class VideoMedia extends AbstractMedia {
     this.renderer.setSize(this.width, this.height);
   }
 
-  render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): void {
+  async render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
     if (!this.ready) {
       return;
     }
@@ -87,21 +86,35 @@ export class VideoMedia extends AbstractMedia {
     const y = frame.y + this.renderer.height / 2 - this.height / 2;
 
     this.renderer.clearRect();
-    if (frame.frame instanceof VideoFrame) {
+
+    if (!this.videoStreaming) {
+      return;
+    }
+
+    const videoFrame = await this.videoStreaming.getFrameAtIndex(index);
+    if (videoFrame instanceof VideoFrame) {
       this.renderer.drawImage(
-          frame.frame,
+          videoFrame,
           0, 0,
           this.width, this.height,
           x, y,
           scale * this.width,
           scale * this.height
       );
-    } else {
+    } else if (frame.frame) {
       // Assume it's ImageData
       const imageData = frame.frame as ImageData;
       this.renderer.putImageData(imageData, x, y);
     }
     this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
+
+  }
+
+  cleanup(): void {
+    if (this.videoStreaming) {
+      this.videoStreaming.cleanup();
+      this.videoStreaming = undefined;
+    }
   }
 }

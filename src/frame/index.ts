@@ -15,4 +15,5 @@ export function createFrameService(
 export { FrameService } from './frames';
 export { Frame } from './frame';
 export { FrameAdjustHandler } from './frame-adjust';
+export { FrameCache } from './frame-cache';
 export * from './types';

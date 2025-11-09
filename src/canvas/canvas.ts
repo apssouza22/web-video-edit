@@ -6,7 +6,7 @@ import type {
   PlayerEndCallback,
   CanvasContext2D,
   CanvasElement,
-  AudioContextType
+  AudioContextType, Media
 } from './types.js';
 import {StudioState} from "@/common/studio-state";
 import { getEventBus, PlayerTimeUpdateEvent, PlayerLayerTransformedEvent } from '@/common/event-bus';
@@ -28,7 +28,7 @@ export class VideoCanvas {
   public width = 0;
   public height = 0;
   public layers: CanvasLayer[] = [];
-  public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {};
+  public layerTransformedListener: LayerTransformedListener = (layer: Media) => {};
   private studioState: StudioState;
 
   constructor(studioState: StudioState) {

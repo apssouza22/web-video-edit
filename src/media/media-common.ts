@@ -127,7 +127,7 @@ export abstract class AbstractMedia {
     };
   }
 
-  render(ctxOut: ESRenderingContext2D, currentTime: number, playing: boolean = false): void {
+  async render(ctxOut: ESRenderingContext2D, currentTime: number, playing: boolean = false):  Promise<void> {
     // This is the base render method that subclasses should override
     // It now includes caching logic to avoid redundant rendering
     console.log("render not implemented");
@@ -172,8 +172,8 @@ export abstract class AbstractMedia {
    *
    * NOTICE: Currently ignores the reference time and applies changes to all frames.
    */
-  update(change: LayerChange, referenceTime: number): void {
-    let f = this.getFrame(referenceTime);
+  async update(change: LayerChange, referenceTime: number): Promise<void> {
+    let f = await this.getFrame(referenceTime);
     if (!f) {
       return;
     }
@@ -230,8 +230,8 @@ export abstract class AbstractMedia {
   /**
    * Gets the frame at the specified reference time
    */
-  getFrame(ref_time: number): Frame | null {
-    return this.framesCollection.getFrame(ref_time, this.start_time);
+  async getFrame(ref_time: number): Promise<Frame | null> {
+    return await this.framesCollection.getFrame(ref_time, this.start_time);
   }
 
   drawScaled(

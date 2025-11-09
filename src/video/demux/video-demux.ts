@@ -3,12 +3,9 @@ import {MediaBunnyDemuxer} from "./mediabunny-demuxer";
 import {CodecDemuxer} from "./mp4boxdemuxer/codec-demuxer";
 import {Canvas2DRender} from "@/common/render-2d";
 import {VideoMetadata} from "@/media/types";
+import {VideoStreaming} from "@/video";
+import {CompleteCallback, MetadataCallback, ProgressCallback} from "@/video/demux/types";
 
-export type ProgressCallback = (progress: number) => void;
-
-export type CompleteCallback = (frames: any[]) => void;
-
-export type MetadataCallback = (metadata: VideoMetadata) => void;
 
 export class VideoDemuxService {
   private mediaBunnyDemuxer: MediaBunnyDemuxer;

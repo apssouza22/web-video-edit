@@ -26,7 +26,7 @@ export class ImageMedia extends FlexibleLayer {
     this.reader.readAsDataURL(file as File);
   }
 
-  render(ctx_out: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): void {
+  async render(ctx_out: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
     if (!this.ready) {
       return;
     }
@@ -40,7 +40,7 @@ export class ImageMedia extends FlexibleLayer {
       return;
     }
 
-    const {f, scale, x, y} = this.getLayerCoordinates(currentTime);
+    const {f, scale, x, y} = await this.getLayerCoordinates(currentTime);
     if (f) {
       this.renderer.clearRect();
       this.renderer.drawImage(
@@ -56,8 +56,8 @@ export class ImageMedia extends FlexibleLayer {
     }
   }
 
-  private getLayerCoordinates(currentTime: number): LayerCoordinates {
-    const f = this.getFrame(currentTime);
+  private async getLayerCoordinates(currentTime: number): Promise<LayerCoordinates> {
+    const f =  await this.getFrame(currentTime);
     if (!f) {
       return {
         f: new Frame(),

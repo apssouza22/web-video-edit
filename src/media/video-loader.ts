@@ -1,6 +1,7 @@
 import {createDemuxer, VideoDemuxService} from "@/video/demux";
-import {VideoMetadata, LayerFile} from "@/media/types";
+import {LayerFile, VideoMetadata} from "@/media/types";
 import {Canvas2DRender} from "@/common/render-2d";
+import {VideoStreaming} from "@/video";
 
 type Callback = (progress: number, metadata: VideoMetadata | null) => void;
 
@@ -22,7 +23,7 @@ export class VideoLoader {
       this.callback(progress, this.metadata);
     });
 
-    this.videoDemuxer.setOnCompleteCallback((frames: any[]) => {
+    this.videoDemuxer.setOnCompleteCallback((frames: VideoStreaming) => {
       this.metadata!.frames = frames;
       this.callback(100, this.metadata);
     });

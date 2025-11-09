@@ -24,19 +24,19 @@ export class TextMedia extends FlexibleLayer {
   /**
    * Update the media's dimensions and text properties
    */
-  update(change: LayerChange, refTime: number): void {
+  async update(change: LayerChange, refTime: number): Promise<void> {
     const rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
     super.update(change, refTime);
   }
 
-  render(ctxOut: CanvasRenderingContext2D, refTime: number, playing: boolean = false): void {
+  async render(ctxOut: CanvasRenderingContext2D, refTime: number, playing: boolean = false): Promise<void> {
     if (!this.isLayerVisible(refTime)) {
       return;
     }
     
-    const frame = this.getFrame(refTime);
+    const frame = await this.getFrame(refTime);
     if (!frame) {
       return;
     }

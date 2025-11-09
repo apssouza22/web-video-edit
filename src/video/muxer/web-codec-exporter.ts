@@ -10,6 +10,7 @@ import {
 } from "mediabunny";
 import {AbstractMedia, isMediaAudio} from "@/media";
 import {StudioState} from "@/common";
+import {fps} from "@/constants";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
@@ -28,7 +29,7 @@ export class WebCodecExporter {
     private completionCallback: CompletionCallback | null = null;
     private totalFrames: number = 0;
     private totalDuration: number = 0;
-    private readonly frameRate: number = 30;
+    private readonly frameRate: number = fps;
     private recordingCanvas: OffscreenCanvas | null = null;
     private recordingCtx: OffscreenCanvasRenderingContext2D | null = null;
     private audioContext: OfflineAudioContext | null = null;
@@ -193,6 +194,7 @@ export class WebCodecExporter {
         }
 
         for (let currentFrame = 0; currentFrame < this.totalFrames; currentFrame++) {
+
             const currentTime = (currentFrame / this.frameRate) * 1000; // Convert to milliseconds
             const videoProgress = currentFrame / this.totalFrames;
             const overallProgress = videoProgress * (this.audioBufferSource ? 0.9 : 0.95);
@@ -200,7 +202,7 @@ export class WebCodecExporter {
             if (this.progressCallback) {
                 this.progressCallback(Math.round(overallProgress * 100));
             }
-            this.#renderFrameAtTime(currentTime);
+            await this.#renderFrameAtTime(currentTime);
 
             // Add frame to video encoder - await is crucial for backpressure
             await this.canvasSource.add(currentTime / 1000, 1 / this.frameRate);
@@ -291,13 +293,13 @@ export class WebCodecExporter {
     /**
      * Render a single frame at the specified time
      */
-    #renderFrameAtTime(currentTime: number): void {
+    async #renderFrameAtTime(currentTime: number): Promise<void> {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
-        const layers = this.studioState.getMedias();
-        for (const layer of layers) {
-            layer.render(this.recordingCtx, currentTime);
+        const medias = this.studioState.getMedias();
+        for (const media of medias) {
+            await media.render(this.recordingCtx, currentTime);
         }
     }
 

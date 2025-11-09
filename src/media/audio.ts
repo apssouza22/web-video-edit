@@ -100,7 +100,7 @@ export class AudioMedia extends AbstractMedia {
     this.started = false;
   }
 
-  render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): void {
+  async render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
     if (!this.ready) {
       return;
     }

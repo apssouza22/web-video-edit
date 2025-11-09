@@ -1,5 +1,6 @@
 import {Frame} from '@/frame';
 import {ESRenderingContext2D} from "@/common/render-2d";
+import {VideoStreaming} from "@/video";
 
 export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 
@@ -51,6 +52,6 @@ export interface VideoMetadata {
   totalTimeInMilSeconds: number;
   width: number;
   height: number;
-  frames: Frame[];
+  frames?: VideoStreaming
 }
 

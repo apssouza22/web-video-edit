@@ -185,31 +185,33 @@ describe('MediaBunnyDemuxer', () => {
   describe('cleanup', () => {
     test('should cleanup resources', () => {
       demuxer['frames'] = [{ width: 1920, height: 1080 }] as any;
+      demuxer['timestamps'] = [0.033, 0.066, 0.099];
       demuxer['isProcessing'] = true;
       demuxer.cleanup();
 
       expect(demuxer['isProcessing']).toBe(false);
       expect(demuxer['frames']).toEqual([]);
-      expect(demuxer['videoSink']).toBeNull();
+      expect(demuxer['timestamps']).toEqual([]);
       expect(demuxer['input']).toBeNull();
     });
 
     test('should reset all state on cleanup', () => {
       demuxer['frames'] = [{ width: 1920, height: 1080 }] as any;
+      demuxer['timestamps'] = [0.033, 0.066, 0.099];
       demuxer['isProcessing'] = true;
       demuxer['totalDuration'] = 10;
 
       demuxer.cleanup();
 
       expect(demuxer['frames']).toEqual([]);
+      expect(demuxer['timestamps']).toEqual([]);
       expect(demuxer['isProcessing']).toBe(false);
-      expect(demuxer['videoSink']).toBeNull();
       expect(demuxer['input']).toBeNull();
     });
   });
 
-  describe('frame extraction', () => {
-    test('should extract frames and call progress callback', async () => {
+  describe('timestamp extraction', () => {
+    test('should extract timestamps and call progress callback', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
       const progressCallback = jest.fn();
       const completeCallback = jest.fn();
@@ -220,27 +222,27 @@ describe('MediaBunnyDemuxer', () => {
 
       expect(progressCallback).toHaveBeenCalled();
       expect(completeCallback).toHaveBeenCalled();
-      expect(completeCallback).toHaveBeenCalledWith(expect.any(Array));
+      expect(completeCallback).toHaveBeenCalledWith([]);
     });
 
-    test('should extract correct number of frames based on target FPS', async () => {
+    test('should extract timestamps based on target FPS', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      const completeCallback = jest.fn();
+      const metadataCallback = jest.fn();
       demuxer.setTargetFps(30);
-      demuxer.setOnCompleteCallback(completeCallback);
+      demuxer.setOnMetadataCallback(metadataCallback);
 
       await demuxer.initialize(mockFile, mockRenderer);
 
-      // Should have extracted frames
-      expect(completeCallback).toHaveBeenCalledWith(expect.arrayContaining([
+      // Should have extracted timestamps
+      expect(metadataCallback).toHaveBeenCalledWith(
         expect.objectContaining({
-          codedWidth: expect.any(Number),
-          codedHeight: expect.any(Number),
+          timestamps: expect.any(Array),
+          videoSink: expect.any(Object),
         })
-      ]));
+      );
     });
 
-    test('should call metadata callback with video dimensions', async () => {
+    test('should call metadata callback with video dimensions, timestamps and videoSink', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
       const metadataCallback = jest.fn();
       demuxer.setOnMetadataCallback(metadataCallback);
@@ -252,6 +254,8 @@ describe('MediaBunnyDemuxer', () => {
           height: 1080,
           totalTimeInMilSeconds: 10000,
           frames: [],
+          timestamps: expect.any(Array),
+          videoSink: expect.any(Object),
         })
       );
     });

@@ -1,7 +1,6 @@
-import { fps } from '@/constants';
-import { FrameAdjustHandler } from './frame-adjust';
-import { Frame } from './frame';
-import { FrameReference, SpeedParams, TimeInterval } from './types.js';
+import {fps} from '@/constants';
+import {FrameAdjustHandler} from './frame-adjust';
+import {Frame} from './frame';
 
 export class FrameService {
   public frames: Frame[] = [];
@@ -27,10 +26,6 @@ export class FrameService {
 
   getTotalTimeInMilSec(): number {
     return this.totalTimeInMilSeconds;
-  }
-
-  calculateTotalTimeInMilSec(): number {
-    return this.frames.length / fps * 1000;
   }
 
   initializeFrames(): void {
@@ -95,12 +90,6 @@ export class FrameService {
     return (index / fps * 1000) + startTime;
   }
 
-  /**
-   * Linear interpolation between two values
-   */
-  lerp(a: number, b: number, t: number): number {
-    return a + (b - a) * t;
-  }
 
   /**
    * Interpolates between two frames
@@ -116,43 +105,4 @@ export class FrameService {
     return this.timeAdjustHandler.removeInterval(startTime, endTime);
   }
 
-  copy(): Frame[] {
-    return this.frames.map(frame => frame.clone());
-  }
-
-  update(index: number, frame: Frame | Float32Array): void {
-    this.frames[index] = frame instanceof Frame ? frame : Frame.fromArray(frame);
-  }
-
-  /**
-   * Gets frame considering speed multiplier from the media's speed controller
-   */
-  getFrameWithSpeed(referenceTime: number, startTime: number, speed: number = 1.0): Frame | null {
-    if (speed === 1.0) {
-      return this.getFrame(referenceTime, startTime);
-    }
-    
-    // Adjust the reference time based on speed
-    const speedAdjustedTime = startTime + ((referenceTime - startTime) * speed);
-    return this.getFrame(speedAdjustedTime, startTime);
-  }
-
-  /**
-   * Gets the index considering speed multiplier
-   */
-  getIndexWithSpeed(currentTime: number, startTime: number, speed: number = 1.0): number {
-    if (speed === 1.0) {
-      return this.getIndex(currentTime, startTime);
-    }
-    
-    const speedAdjustedTime = startTime + ((currentTime - startTime) * speed);
-    return this.getIndex(speedAdjustedTime, startTime);
-  }
-
-  /**
-   * Gets the effective duration considering speed
-   */
-  getSpeedAdjustedDuration(speed: number = 1.0): number {
-    return Math.floor(this.totalTimeInMilSeconds / speed);
-  }
 }
