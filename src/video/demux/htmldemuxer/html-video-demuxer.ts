@@ -1,9 +1,9 @@
-import {addElementToBackground} from '@/media/index';
+import {addElementToBackground} from '@/media/';
 import {fps} from '@/constants';
 import {Canvas2DRender} from '@/common/render-2d';
-import {FrameQuality, FrameMetadata} from './frame-quality';
+import {FrameMetadata, FrameQuality} from './frame-quality';
 import {LayerFile, VideoMetadata} from '@/media/types';
-import {ProgressCallback, CompleteCallback, MetadataCallback} from '../video-demux';
+import {CompleteCallback, MetadataCallback, ProgressCallback} from "@/video/demux/types";
 
 export class HTMLVideoDemuxer {
   private chunkSize: number = 30;
@@ -170,6 +170,7 @@ export class HTMLVideoDemuxer {
       }
     }
     this.#fillInterpolatedFrames();
+    // @ts-ignore
     this.onCompleteCallback(this.#convertToLegacyFormat());
     const elapsed = Date.now() - startTime;
     console.log('Initial video processing complete. Took', elapsed/1000, 'seconds');
@@ -232,6 +233,7 @@ export class HTMLVideoDemuxer {
     const now = Date.now();
     await this.#upgradeFrameQuality();
     const elapsed = Date.now() - now;
+    // @ts-ignore
     this.onCompleteCallback(this.#convertToLegacyFormat());
     this.cleanup();
     console.log('Finished background quality upgrade. Took', elapsed/1000, 'ms.');

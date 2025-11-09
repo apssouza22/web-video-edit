@@ -2,7 +2,7 @@ import {isMediaAudio, isMediaVideo, MediaService} from "@/media";
 import {VideoStudio} from "@/studio/studio";
 import {StudioState} from "@/common/studio-state";
 
-export class ControlsHandler {
+export class MediaOps {
   private studioState: StudioState;
   private studio: VideoStudio;
   private mediaService: MediaService;

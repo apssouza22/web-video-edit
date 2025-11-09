@@ -14,8 +14,8 @@ export {SpeedController} from './speed-controller';
 /**
  * Creates a LayerService instance with the provided listener.
  */
-export function createMediaService(onLayerLoadUploadListener: LayerLoadUpdateListener, audioService: AudioService): MediaService {
-  return new MediaService(onLayerLoadUploadListener, audioService);
+export function createMediaService(audioService: AudioService): MediaService {
+  return new MediaService( audioService);
 }
 
 export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {

@@ -1,14 +1,15 @@
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
 
 // Use dynamic imports for ESM
-const {ControlsHandler} = await import('@/studio/control-handler');
+const {MediaOps} = await import('../../src/studio/media-ops');
 const {VideoMedia} = await import("../../src/media/video");
 
 describe('ControlsHandler', () => {
   let mockStudio: any;
   let mockMediaService: any;
   let mockStudioState: any;
-  let controlsHandler: ControlsHandler;
+  // @ts-ignore
+  let controlsHandler: MediaOps;
 
   beforeEach(() => {
     mockStudioState = {
@@ -18,17 +19,18 @@ describe('ControlsHandler', () => {
       getMediaVideo: jest.fn(() => [])
     };
 
-    mockStudio = {
-      addLayer: jest.fn()
-    };
-
     mockMediaService = {
       removeAudioInterval: jest.fn(),
       removeVideoInterval: jest.fn(),
       splitMedia: jest.fn()
     };
 
-    controlsHandler = new ControlsHandler(mockStudio, mockMediaService, mockStudioState);
+    mockStudio = {
+      addLayer: jest.fn(),
+      mediaService: mockMediaService
+    };
+
+    controlsHandler = new MediaOps(mockStudio, mockMediaService, mockStudioState);
   });
 
   afterEach(() => {

@@ -5,13 +5,18 @@ import {AudioMedia} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 import {AbstractMedia} from "@/media/media-common";
 import {AudioService} from "@/audio";
+import {ESRenderingContext2D} from "@/common/render-2d";
 
 export class MediaService {
-  private onLayerLoadUpdate: LayerLoadUpdateListener;
+  private onLayerLoadUpdate: LayerLoadUpdateListener = (
+      layer: any,
+      progress: number,
+      ctx: ESRenderingContext2D | null,
+      audioBuffer?: AudioBuffer | undefined
+  ) => void {};
   private audioService: AudioService;
 
-  constructor(onLayerLoadUploadListener: LayerLoadUpdateListener, audioService: AudioService) {
-    this.onLayerLoadUpdate = onLayerLoadUploadListener;
+  constructor(audioService: AudioService) {
     this.audioService = audioService;
   }
 
@@ -151,4 +156,7 @@ export class MediaService {
     return null;
   }
 
+  setOnLayerLoadUpdateListener(onLayerLoadUploadListener: LayerLoadUpdateListener) {
+    this.onLayerLoadUpdate = onLayerLoadUploadListener;
+  }
 }

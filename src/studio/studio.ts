@@ -7,7 +7,7 @@ import {createVideoMuxer} from '@/video/muxer';
 import {StudioControls} from './controls';
 import {PinchHandler} from '@/common';
 import {DragItemHandler} from './drag-handler';
-import {ControlsHandler} from './control-handler';
+import {MediaOps} from './media-ops';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {exportToJson, uploadSupportedType} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
@@ -36,19 +36,17 @@ export class VideoStudio {
   medias: AbstractMedia[];
   player: VideoCanvas;
   timeline: Timeline;
-  layerLoader: MediaLoader;
+  mediaLoader: MediaLoader;
   videoExporter: VideoExportService;
-  controls: StudioControls;
   transcriptionManager: TranscriptionService;
-  mediaEditor: ControlsHandler;
   mediaService: MediaService;
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
   studioState: StudioState;
-  private audioService: AudioService;
 
-  constructor() {
+  constructor(mediaService: MediaService) {
+    this.mediaService = mediaService;
     this.update = null;
     this.mainSection = document.getElementById('video-canvas')!;
     this.aspectRatioSelector = new AspectRatioSelector();
@@ -60,13 +58,11 @@ export class VideoStudio {
     }
 
     this.timeline = createTimeline();
-    this.audioService = createAudioService();
-    this.mediaService = createMediaService(this.#onLayerLoadUpdate.bind(this), this.audioService);
-    this.layerLoader = new MediaLoader(this);
+    this.mediaService.setOnLayerLoadUpdateListener(this.#onLayerLoadUpdate.bind(this));
+    this.mediaLoader = new MediaLoader(this);
     this.videoExporter = createVideoMuxer();
-    this.controls = new StudioControls(this);
     this.transcriptionManager = createTranscriptionService();
-    this.mediaEditor = new ControlsHandler(this, this.mediaService, this.studioState);
+
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
 
@@ -80,7 +76,6 @@ export class VideoStudio {
 
   init(): void {
     this.setUpVideoExport()
-    this.controls.init();
     this.transcriptionManager.loadModel();
     this.speedControlManager.init();
   }
@@ -295,7 +290,7 @@ export class VideoStudio {
   }
 
   public addLayerFromFile(file: File): AbstractMedia[] {
-    const layers = this.layerLoader.addMediaFromFile(file, this.#onLayerLoadUpdate.bind(this));
+    const layers = this.mediaLoader.addMediaFromFile(file, this.#onLayerLoadUpdate.bind(this));
 
     layers.forEach(layer => {
       this.loadingPopup.startLoading(layer.id.toString(), file.name);
@@ -320,7 +315,7 @@ export class VideoStudio {
 
     const response = await fetch(uri);
     const layers = await response.json();
-    await this.layerLoader.loadLayersFromJson(layers);
+    await this.mediaLoader.loadLayersFromJson(layers);
     this.loadingPopup.updateProgress('json-load', 100);
   }
 

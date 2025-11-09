@@ -30,7 +30,7 @@ export class StudioControls {
   #onPaste(ev: ClipboardEvent): void {
     const uri = (ev.clipboardData || (window as any).clipboardData)?.getData('text');
     if (uri) {
-      this.studio.layerLoader.loadMediaFromURI(uri);
+      this.studio.mediaLoader.loadMediaFromURI(uri);
     }
   }
 
@@ -44,7 +44,7 @@ export class StudioControls {
       if (item.kind === 'file') {
         const file = item.getAsFile();
         if (file) {
-          this.studio.layerLoader.addMediaFromFile(file, (
+          this.studio.mediaLoader.addMediaFromFile(file, (
               layer: any,
               progress: number,
               ctx: ESRenderingContext2D | null,
@@ -57,7 +57,7 @@ export class StudioControls {
       }
       if (item.kind === 'string' && item.type === 'text/uri-list') {
         item.getAsString((uri: string) => {
-          this.studio.layerLoader.loadMediaFromURI(uri);
+          this.studio.mediaLoader.loadMediaFromURI(uri);
         });
       }
     }

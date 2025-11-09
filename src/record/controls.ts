@@ -110,7 +110,7 @@ export class RecordingControls {
   }
 }
 
-// Legacy export for backward compatibility
+
 export function initScreenRecording(): void {
   const controls = new RecordingControls();
   controls.init();

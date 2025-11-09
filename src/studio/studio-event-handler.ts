@@ -10,14 +10,17 @@ import {
   UiSpeedChangeEvent
 } from '@/common/event-bus';
 import {VideoStudio} from "@/studio/studio";
+import {MediaOps} from "@/studio/media-ops";
 
 export class StudioEventHandler {
   #studio: VideoStudio;
   #eventBus = getEventBus();
   #eventUnsubscribers: (() => void)[] = [];
+  private mediaControls: MediaOps;
 
-  constructor(studio: VideoStudio) {
+  constructor(studio: VideoStudio, mediaControls: MediaOps) {
     this.#studio = studio;
+    this.mediaControls = mediaControls;
   }
 
   init(): void {
@@ -51,7 +54,7 @@ export class StudioEventHandler {
         } else if (event.action === 'clone') {
           this.#studio.cloneLayer(media);
         } else if (event.action === 'split') {
-          this.#studio.mediaEditor.split();
+          this.mediaControls.split();
         } else if (event.action === 'reorder') {
           if (event.extra) {
             console.log(`Layer "${media.name}" reordered from index ${event.extra.fromIndex} to ${event.extra.toIndex}`);
@@ -63,7 +66,7 @@ export class StudioEventHandler {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(TranscriptionRemoveIntervalEvent, (event) => {
         console.log(`TranscriptionManager: Removing interval from ${event.startTime} to ${event.endTime}`);
-        this.#studio.mediaEditor.removeInterval(event.startTime, event.endTime);
+        this.mediaControls.removeInterval(event.startTime, event.endTime);
       })
     );
 

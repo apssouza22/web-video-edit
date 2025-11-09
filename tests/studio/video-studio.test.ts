@@ -1,5 +1,6 @@
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 
+
 const mockTimeline = {
   init: jest.fn(),
   resize: jest.fn(),
@@ -14,6 +15,8 @@ jest.unstable_mockModule('@/timeline', () => ({
 // Use dynamic imports for ESM
 const { VideoStudio } = await import('@/studio/studio');
 const {VideoMedia} = await import("@/media/video");
+const {createMediaService} = await import( "../../src/media");
+const {createAudioService} = await import("../../src/audio");
 
 describe('VideoStudio', () => {
   // @ts-ignore
@@ -54,8 +57,9 @@ describe('VideoStudio', () => {
 
     // Mock alert
     global.alert = jest.fn();
-
-    studio = new VideoStudio();
+    const audioService = createAudioService();
+    const mediaService = createMediaService(audioService);
+    studio = new VideoStudio(mediaService);
   });
 
   afterEach(() => {
@@ -80,9 +84,6 @@ describe('VideoStudio', () => {
       expect(studio.timeline).toBeDefined();
     });
 
-    test('should create controls', () => {
-      expect(studio.controls).toBeDefined();
-    });
 
     test('should create loading popup', () => {
       expect(studio.loadingPopup).toBeDefined();
@@ -98,13 +99,6 @@ describe('VideoStudio', () => {
   });
 
   describe('init', () => {
-    test('should initialize controls', () => {
-      const initSpy = jest.spyOn(studio.controls, 'init');
-
-      studio.init();
-
-      expect(initSpy).toHaveBeenCalled();
-    });
 
     test('should load transcription model', () => {
       const loadModelSpy = jest.spyOn(studio.transcriptionManager, 'loadModel');

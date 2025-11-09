@@ -4,7 +4,7 @@ flowchart TB
         StudioInit["initilizer.ts"]
         StudioEvents["studio-event-handler.ts"]
         StudioControls["controls.ts"]
-        ControlHandler["control-handler.ts"]
+        ControlHandler["media-ops.ts"]
         DragHandler["drag-handler.ts"]
         MediaLoader["media-loader.ts"]
         Settings["settings.ts"]

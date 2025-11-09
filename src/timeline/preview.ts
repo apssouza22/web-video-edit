@@ -16,10 +16,10 @@ export class PreviewHandler {
     this.cursorText = this.previewHolder.querySelector('div') as HTMLElement;
   }
 
-  render(time: number, layers: MediaInterface[]) {
+  async render(time: number, layers: MediaInterface[]) {
     this.previewCtx.clearRect(0, 0, this.previewCtx.canvas.width, this.previewCtx.canvas.height);
     for (let layer of layers) {
-      layer.render(this.previewCtx, time);
+      await layer.render(this.previewCtx, time);
     }
   }
 
