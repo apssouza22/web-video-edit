@@ -1,0 +1,52 @@
+graph TB
+    subgraph "Event Publishers"
+        Canvas[Canvas]
+        Timeline[Timeline]
+        TransView[Transcription View]
+        SpeedCtrl[Speed Control]
+        AspectCtrl[Aspect Ratio Control]
+        MediaLoader[Media Loader]
+        RecordSvc[Record Service]
+    end
+
+    subgraph "EventBus<br/>(Central Hub)"
+        Bus[Event Bus<br/>Pub-Sub Pattern]
+    end
+
+    subgraph "Event Subscribers"
+        CanvasSub[Canvas]
+        TimelineSub[Timeline]
+        MediaSvcSub[Media Service]
+        ControlsSub[Controls]
+        StudioSub[Studio]
+        AudioSvcSub[Audio Service]
+    end
+
+    Canvas -->|PlayerTimeUpdateEvent| Bus
+    Canvas -->|PlayerLayerTransformedEvent| Bus
+
+    Timeline -->|TimelineTimeUpdateEvent| Bus
+    Timeline -->|TimelineLayerUpdateEvent| Bus
+
+    TransView -->|TranscriptionRemoveIntervalEvent| Bus
+    TransView -->|TranscriptionSeekEvent| Bus
+
+    SpeedCtrl -->|UiSpeedChangeEvent| Bus
+    AspectCtrl -->|UiAspectRatioChangeEvent| Bus
+    MediaLoader -->|MediaLoadUpdateEvent| Bus
+    RecordSvc -->|RecordVideoFileCreatedEvent| Bus
+
+    Bus -->|All Events| CanvasSub
+    Bus -->|All Events| TimelineSub
+    Bus -->|All Events| MediaSvcSub
+    Bus -->|All Events| ControlsSub
+    Bus -->|All Events| StudioSub
+    Bus -->|All Events| AudioSvcSub
+
+    classDef publisher fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef bus fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
+    classDef subscriber fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+
+    class Canvas,Timeline,TransView,SpeedCtrl,AspectCtrl,MediaLoader,RecordSvc publisher
+    class Bus bus
+    class CanvasSub,TimelineSub,MediaSvcSub,ControlsSub,StudioSub,AudioSvcSub subscriber

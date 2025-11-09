@@ -1,569 +1,480 @@
-# Event System Architecture
+# Event Flow Architecture
 
 ## Overview
+The application uses a centralized EventBus for decoupled communication between components. This document maps all events, their publishers, and subscribers.
 
-The application uses a centralized, type-safe EventBus for decoupled communication between modules. This event-driven architecture allows components to communicate without direct dependencies.
+## Event System Architecture
+<img src="event-flow.png" alt="System Architecture Overview" width="800"/>
 
-## EventBus Architecture
+## Event Catalog
+
+### 1. PlayerTimeUpdateEvent
+**Event Name**: `player:timeUpdate`  
+**Published By**: `VideoCanvas`  
+**Subscribers**: `Timeline`, `StudioControls`
+
+**Purpose**: Notify when the player's playback time changes
+
+**Payload**:
+```typescript
+{
+  newTime: number,  // New playback time in milliseconds
+  oldTime: number   // Previous playback time
+}
+```
+
+**Usage**:
+- Update timeline marker position
+- Update time display in controls
+- Synchronize audio playback
+
+---
+
+### 2. PlayerLayerTransformedEvent
+**Event Name**: `player:layerTransformed`  
+**Published By**: `VideoCanvas` (via `CanvasLayer`)  
+**Subscribers**: `Timeline`, `ControlHandler`
+
+**Purpose**: Notify when a layer is transformed (moved, scaled, rotated) on the canvas
+
+**Payload**:
+```typescript
+{
+  layer: AbstractMedia  // The transformed media layer
+}
+```
+
+**Usage**:
+- Update timeline layer visualization
+- Update transformation control inputs (x, y, scale, rotation)
+- Trigger re-render of dependent components
+
+---
+
+### 3. TimelineTimeUpdateEvent
+**Event Name**: `timeline:timeUpdate`  
+**Published By**: `Timeline`  
+**Subscribers**: `VideoCanvas`, `AudioSource`
+
+**Purpose**: Notify when user interacts with timeline (scrubbing, seeking)
+
+**Payload**:
+```typescript
+{
+  newTime: number,  // New timeline time in milliseconds
+  oldTime: number   // Previous timeline time
+}
+```
+
+**Usage**:
+- Seek video canvas to new time
+- Stop/reset audio playback
+- Pause video if playing
+
+---
+
+### 4. TimelineLayerUpdateEvent
+**Event Name**: `timeline:layerUpdate`  
+**Published By**: `Timeline`  
+**Subscribers**: `VideoCanvas`, `MediaService`, `Studio`
+
+**Purpose**: Notify when layers are added, removed, updated, or reordered
+
+**Payload**:
+```typescript
+{
+  action: 'add' | 'remove' | 'update' | 'reorder',
+  layer: MediaInterface,
+  oldLayer?: MediaInterface,  // For update action
+  extra?: {                    // For reorder action
+    fromIndex: number,
+    toIndex: number
+  }
+}
+```
+
+**Usage**:
+- Synchronize canvas layers with timeline
+- Update media collections
+- Recalculate total timeline duration
+- Update layer rendering order
+
+---
+
+### 5. TranscriptionRemoveIntervalEvent
+**Event Name**: `transcription:removeInterval`  
+**Published By**: `TranscriptionView`  
+**Subscribers**: `MediaService`
+
+**Purpose**: Request removal of audio/video interval (silence removal)
+
+**Payload**:
+```typescript
+{
+  startTime: number,  // Start time in seconds
+  endTime: number     // End time in seconds
+}
+```
+
+**Usage**:
+- Remove audio segments from audio layers
+- Remove video frames from video layers
+- Update layer timings
+- Re-render timeline and canvas
+
+---
+
+### 6. TranscriptionSeekEvent
+**Event Name**: `transcription:seek`  
+**Published By**: `TranscriptionView`  
+**Subscribers**: `Timeline`, `VideoCanvas`
+
+**Purpose**: Seek to a specific timestamp from transcription
+
+**Payload**:
+```typescript
+{
+  timestamp: number  // Target time in milliseconds
+}
+```
+
+**Usage**:
+- Update timeline position
+- Seek canvas to timestamp
+- Update time marker
+
+---
+
+### 7. UiSpeedChangeEvent
+**Event Name**: `ui:speedChange`  
+**Published By**: `SpeedControlInput`  
+**Subscribers**: `MediaService`, `AudioService`, `Timeline`, `Canvas`
+
+**Purpose**: Change playback speed for selected or all layers
+
+**Payload**:
+```typescript
+{
+  speed: number  // Speed multiplier (e.g., 0.5, 1.0, 1.5, 2.0)
+}
+```
+
+**Usage**:
+- Update media playback speed
+- Apply pitch preservation to audio
+- Recalculate frame timings
+- Update timeline visualization
+- Adjust audio playback rate
+
+---
+
+### 8. UiAspectRatioChangeEvent
+**Event Name**: `ui:aspectRatioChange`  
+**Published By**: `AspectRatioSelector`  
+**Subscribers**: `VideoCanvas`, `Studio`
+
+**Purpose**: Change canvas aspect ratio
+
+**Payload**:
+```typescript
+{
+  ratio: string,      // New aspect ratio (e.g., "16:9", "9:16", "1:1")
+  oldRatio?: string   // Previous aspect ratio
+}
+```
+
+**Usage**:
+- Resize canvas dimensions
+- Recalculate layer positions
+- Update export dimensions
+- Re-render canvas
+
+---
+
+### 9. MediaLoadUpdateEvent
+**Event Name**: `media:loadUpdate`  
+**Published By**: `MediaLoader`, `MediaService`  
+**Subscribers**: `Studio`, `LoadingPopup`
+
+**Purpose**: Report progress during media loading/processing
+
+**Payload**:
+```typescript
+{
+  layer: AbstractMedia,
+  progress: number,              // 0-100
+  ctx?: CanvasRenderingContext2D,
+  audioBuffer?: AudioBuffer
+}
+```
+
+**Usage**:
+- Update loading progress bar
+- Show loading popup
+- Cache rendered frames
+- Store audio buffer
+
+---
+
+### 10. RecordVideoFileCreatedEvent
+**Event Name**: `record:videoFileCreated`  
+**Published By**: `RecordService`  
+**Subscribers**: `Studio`
+
+**Purpose**: Notify when screen recording is complete
+
+**Payload**:
+```typescript
+{
+  videoFile: File  // Recorded video file
+}
+```
+
+**Usage**:
+- Load recorded video into studio
+- Add to timeline automatically
+- Show preview
+
+---
+
+## Event Flow Patterns
+
+### Pattern 1: User Interaction → Event → UI Update
 
 ```mermaid
-graph TB
-    subgraph "Event Bus System"
-        EventBus[EventBus<br/>Singleton Instance]
-        
-        subgraph "Event Types"
-            PlayerEvents[Player Events]
-            TimelineEvents[Timeline Events]
-            UIEvents[UI Events]
-            MediaEvents[Media Events]
-            TranscriptionEvents[Transcription Events]
-            RecordEvents[Record Events]
-        end
-        
-        subgraph "Publishers"
-            Player[VideoCanvas]
-            Timeline[Timeline]
-            UI[UI Controls]
-            MediaLoader[Layer Loader]
-            Transcription[Transcription Service]
-            Record[Recording Service]
-        end
-        
-        subgraph "Subscribers"
-            TimelineUI[Timeline UI]
-            PlayerUI[Player UI]
-            Studio[Video Studio]
-            MediaLayers[Media Layers]
-            Controls[Studio Controls]
-        end
+sequenceDiagram
+    participant User
+    participant Component
+    participant EventBus
+    participant Subscriber1
+    participant Subscriber2
+
+    User->>Component: Interact
+    Component->>Component: Update local state
+    Component->>EventBus: emit(Event)
+    
+    par Parallel Notification
+        EventBus->>Subscriber1: notify(Event)
+        Subscriber1->>Subscriber1: Update state
+        Subscriber1->>Subscriber1: Re-render
+    and
+        EventBus->>Subscriber2: notify(Event)
+        Subscriber2->>Subscriber2: Update state
+        Subscriber2->>Subscriber2: Re-render
+    end
+```
+
+### Pattern 2: Service Operation → Progress Events
+
+```mermaid
+sequenceDiagram
+    participant Service
+    participant EventBus
+    participant UI
+
+    Service->>Service: Start long operation
+    
+    loop Progress Updates
+        Service->>EventBus: emit(ProgressEvent)
+        EventBus->>UI: notify(ProgressEvent)
+        UI->>UI: Update progress bar
     end
     
-    Player --> PlayerEvents
-    Timeline --> TimelineEvents
-    UI --> UIEvents
-    MediaLoader --> MediaEvents
-    Transcription --> TranscriptionEvents
-    Record --> RecordEvents
+    Service->>EventBus: emit(CompleteEvent)
+    EventBus->>UI: notify(CompleteEvent)
+    UI->>UI: Hide progress bar
+```
+
+### Pattern 3: Cross-Component Synchronization
+
+```mermaid
+sequenceDiagram
+    participant Canvas
+    participant EventBus
+    participant Timeline
+    participant Controls
+
+    Canvas->>EventBus: emit(PlayerTimeUpdateEvent)
     
-    PlayerEvents --> EventBus
-    TimelineEvents --> EventBus
-    UIEvents --> EventBus
-    MediaEvents --> EventBus
-    TranscriptionEvents --> EventBus
-    RecordEvents --> EventBus
-    
-    EventBus -.-> TimelineUI
-    EventBus -.-> PlayerUI
-    EventBus -.-> Studio
-    EventBus -.-> MediaLayers
-    EventBus -.-> Controls
-    
-    style EventBus fill:#fff3cd
-    style PlayerEvents fill:#d4edda
-    style TimelineEvents fill:#d4edda
-    style UIEvents fill:#e1f5ff
-    style MediaEvents fill:#f8d7da
-    style TranscriptionEvents fill:#e2d5f0
-    style RecordEvents fill:#d1ecf1
-```
-
-## Event Types
-
-### Player Events
-
-#### PlayerTimeUpdateEvent
-Emitted when the playback time changes.
-
-```typescript
-class PlayerTimeUpdateEvent extends BaseEvent {
-  readonly name = 'player:timeUpdate';
-  constructor(
-    public newTime: number,  // Current time in milliseconds
-    public oldTime: number   // Previous time in milliseconds
-  )
-}
-```
-
-**Publisher**: `VideoCanvas`  
-**Subscribers**: `Timeline` (sync time marker)
-
-**Usage Example**:
-```typescript
-// Publishing
-this.eventBus.emit(new PlayerTimeUpdateEvent(1500, 1000));
-
-// Subscribing
-eventBus.subscribe(PlayerTimeUpdateEvent, (event) => {
-  console.log(`Time changed from ${event.oldTime} to ${event.newTime}`);
-  // Update timeline marker
-});
+    par Synchronized Updates
+        EventBus->>Timeline: Update marker
+        Timeline->>Timeline: Render marker at new time
+    and
+        EventBus->>Controls: Update display
+        Controls->>Controls: Show current time
+    end
 ```
 
 ---
 
-#### PlayerLayerTransformedEvent
-Emitted when a layer is transformed (moved, resized, rotated).
+## Event Subscription Map
 
-```typescript
-class PlayerLayerTransformedEvent extends BaseEvent {
-  readonly name = 'player:layerTransformed';
-  constructor(public layer: AbstractMedia)
-}
-```
+### VideoCanvas
+**Subscribes To**:
+- `TimelineTimeUpdateEvent` → Seek to timeline time
+- `TimelineLayerUpdateEvent` → Update layer collection
+- `UiAspectRatioChangeEvent` → Resize canvas
 
-**Publisher**: `VideoCanvas` (via CanvasLayer)  
-**Subscribers**: `Timeline`, `StudioControls` (update UI)
-
----
-
-### Timeline Events
-
-#### TimelineTimeUpdateEvent
-Emitted when the timeline time changes (user seeks).
-
-```typescript
-class TimelineTimeUpdateEvent extends BaseEvent {
-  readonly name = 'timeline:timeUpdate';
-  constructor(
-    public newTime: number,  // Seek time in milliseconds
-    public oldTime: number   // Previous time in milliseconds
-  )
-}
-```
-
-**Publisher**: `Timeline`  
-**Subscribers**: `VideoCanvas` (update playback position)
+**Publishes**:
+- `PlayerTimeUpdateEvent` → Time changes during playback
+- `PlayerLayerTransformedEvent` → Layer transformed by user
 
 ---
 
-#### TimelineLayerUpdateEvent
-Emitted when a layer is updated on the timeline.
+### Timeline
+**Subscribes To**:
+- `PlayerTimeUpdateEvent` → Update time marker
+- `PlayerLayerTransformedEvent` → Update layer display
+- `UiSpeedChangeEvent` → Recalculate layer widths
 
-```typescript
-class TimelineLayerUpdateEvent extends BaseEvent {
-  readonly name = 'timeline:layerUpdate';
-  constructor(
-    public action: LayerUpdateKind,      // 'select' | 'delete' | 'split' | 'clone' | 'reorder'
-    public layer: MediaInterface,         // Affected layer
-    public oldLayer?: MediaInterface,     // Previous state (for split)
-    public extra?: LayerReorderData      // Reorder info
-  )
-}
-```
-
-**Publisher**: `Timeline`  
-**Subscribers**: `VideoStudio` (update layer state)
-
-**Actions**:
-- `select`: User selected a layer
-- `delete`: User deleted a layer
-- `split`: User split a layer
-- `clone`: User cloned a layer
-- `reorder`: User reordered layers
+**Publishes**:
+- `TimelineTimeUpdateEvent` → User scrubs timeline
+- `TimelineLayerUpdateEvent` → Layers added/removed/reordered
 
 ---
 
-### UI Events
+### MediaService
+**Subscribes To**:
+- `TimelineLayerUpdateEvent` → Track media changes
+- `TranscriptionRemoveIntervalEvent` → Remove audio/video intervals
+- `UiSpeedChangeEvent` → Update media speed
 
-#### UiSpeedChangeEvent
-Emitted when the playback speed changes.
-
-```typescript
-class UiSpeedChangeEvent extends BaseEvent {
-  readonly name = 'ui:speedChange';
-  constructor(public speed: number)  // Speed multiplier (0.5, 1.0, 2.0, etc.)
-}
-```
-
-**Publisher**: `SpeedControlInput`  
-**Subscribers**: Media layers (adjust playback speed)
+**Publishes**:
+- `MediaLoadUpdateEvent` → Loading progress updates
 
 ---
 
-#### UiAspectRatioChangeEvent
-Emitted when the canvas aspect ratio changes.
+### AudioService
+**Subscribes To**:
+- `PlayerTimeUpdateEvent` → Synchronize audio playback
+- `TimelineTimeUpdateEvent` → Stop/reset audio
+- `UiSpeedChangeEvent` → Adjust audio playback rate
 
-```typescript
-class UiAspectRatioChangeEvent extends BaseEvent {
-  readonly name = 'ui:aspectRatioChange';
-  constructor(
-    public ratio: string,      // New ratio (e.g., "16:9")
-    public oldRatio?: string   // Previous ratio
-  )
-}
-```
-
-**Publisher**: `AspectRatioSelector`  
-**Subscribers**: `VideoCanvas` (resize canvas)
+**Publishes**: None directly (uses MediaService)
 
 ---
 
-### Media Events
+### StudioControls
+**Subscribes To**:
+- `PlayerTimeUpdateEvent` → Update time display
 
-#### MediaLoadUpdateEvent
-Emitted during media loading progress.
-
-```typescript
-class MediaLoadUpdateEvent extends BaseEvent {
-  readonly name = 'media:loadUpdate';
-  constructor(
-    public layer: AbstractMedia,              // Loading layer
-    public progress: number,                  // Progress percentage (0-100)
-    public ctx?: CanvasRenderingContext2D,   // Canvas context
-    public audioBuffer?: AudioBuffer          // Audio buffer (for audio layers)
-  )
-}
-```
-
-**Publisher**: Media layers during loading  
-**Subscribers**: `LoadingPopup`, `VideoStudio` (update loading state)
+**Publishes**: None (uses direct method calls)
 
 ---
 
-### Transcription Events
+### TranscriptionView
+**Subscribes To**: None directly
 
-#### TranscriptionRemoveIntervalEvent
-Emitted when removing a time interval based on transcript.
-
-```typescript
-class TranscriptionRemoveIntervalEvent extends BaseEvent {
-  readonly name = 'transcription:removeInterval';
-  constructor(
-    public startTime: number,  // Start time in seconds
-    public endTime: number     // End time in seconds
-  )
-}
-```
-
-**Publisher**: `TranscriptionService`  
-**Subscribers**: `MediaService` (remove intervals from layers)
+**Publishes**:
+- `TranscriptionRemoveIntervalEvent` → Remove silence
+- `TranscriptionSeekEvent` → Seek to timestamp
 
 ---
 
-#### TranscriptionSeekEvent
-Emitted when seeking to a timestamp from transcript.
+### SpeedControlInput
+**Subscribes To**: None directly
 
-```typescript
-class TranscriptionSeekEvent extends BaseEvent {
-  readonly name = 'transcription:seek';
-  constructor(public timestamp: number)  // Timestamp in seconds
-}
-```
-
-**Publisher**: `TranscriptionView`  
-**Subscribers**: `VideoCanvas` (seek to timestamp)
+**Publishes**:
+- `UiSpeedChangeEvent` → Speed changed by user
 
 ---
 
-### Recording Events
+### AspectRatioSelector
+**Subscribes To**: None directly
 
-#### RecordVideoFileCreatedEvent
-Emitted when a recording is completed and video file is created.
-
-```typescript
-class RecordVideoFileCreatedEvent extends BaseEvent {
-  readonly name = 'record:videoFileCreated';
-  constructor(public videoFile: File)  // Recorded video file
-}
-```
-
-**Publisher**: `UserMediaRecordingService`  
-**Subscribers**: `VideoStudio` (load recorded video into timeline)
+**Publishes**:
+- `UiAspectRatioChangeEvent` → Aspect ratio changed
 
 ---
 
-## EventBus API
+### RecordService
+**Subscribes To**: None directly
 
-### Subscribe to Event
+**Publishes**:
+- `RecordVideoFileCreatedEvent` → Recording complete
+
+---
+
+## EventBus Implementation
+
+### Core Methods
+
 ```typescript
+class EventBus {
+  // Subscribe to an event
+  subscribe<T extends BaseEvent>(
+    EventClass: EventClass<T>,
+    handler: EventHandler<T>
+  ): () => void
+
+  // Subscribe once (auto-unsubscribe after first call)
+  once<T extends BaseEvent>(
+    EventClass: EventClass<T>,
+    handler: EventHandler<T>
+  ): void
+
+  // Unsubscribe from an event
+  unsubscribe<T extends BaseEvent>(
+    EventClass: EventClass<T>,
+    handler: EventHandler<T>
+  ): void
+
+  // Emit an event to all subscribers
+  emit<T extends BaseEvent>(event: T): void
+
+  // Clear all listeners (optional EventClass)
+  clear<T extends BaseEvent>(EventClass?: EventClass<T>): void
+}
+```
+
+### Usage Example
+
+```typescript
+import { getEventBus, PlayerTimeUpdateEvent } from '@/common';
+
 const eventBus = getEventBus();
 
-const unsubscribe = eventBus.subscribe(PlayerTimeUpdateEvent, (event) => {
-  console.log('Time updated:', event.newTime);
-});
+// Subscribe
+const unsubscribe = eventBus.subscribe(
+  PlayerTimeUpdateEvent,
+  (event) => {
+    console.log('Time updated:', event.newTime);
+  }
+);
 
-// Later: unsubscribe
+// Emit
+eventBus.emit(new PlayerTimeUpdateEvent(1000, 0));
+
+// Unsubscribe
 unsubscribe();
 ```
 
-### Subscribe Once
-```typescript
-eventBus.once(MediaLoadUpdateEvent, (event) => {
-  console.log('Media loaded:', event.layer.name);
-});
-```
+---
 
-### Emit Event
-```typescript
-eventBus.emit(new UiSpeedChangeEvent(1.5));
-```
+## Benefits of Event-Driven Architecture
 
-### Check for Listeners
-```typescript
-if (eventBus.hasListeners(PlayerTimeUpdateEvent)) {
-  console.log('Someone is listening to time updates');
-}
-```
+### 1. Loose Coupling
+- Components don't need direct references to each other
+- Easy to add/remove components
+- Simplified testing with mock events
 
-### Count Listeners
-```typescript
-const count = eventBus.listenerCount(TimelineLayerUpdateEvent);
-console.log(`${count} listeners for layer updates`);
-```
+### 2. Scalability
+- New features can subscribe to existing events
+- No need to modify existing components
+- Clear separation of concerns
 
-### Clear Listeners
-```typescript
-// Clear specific event type
-eventBus.clear(PlayerTimeUpdateEvent);
+### 3. Flexibility
+- Multiple subscribers for same event
+- Events can be logged, debugged, or replayed
+- Easy to add middleware (logging, analytics)
 
-// Clear all listeners
-eventBus.clear();
-```
-
-## Event Flow Examples
-
-### Playback Time Synchronization
-
-```mermaid
-sequenceDiagram
-    participant Player as VideoCanvas
-    participant EventBus
-    participant Timeline
-    participant UI as UI Components
-
-    loop Animation Frame
-        Player->>Player: Update time
-        Player->>EventBus: emit(PlayerTimeUpdateEvent)
-        EventBus->>Timeline: Notify subscribers
-        Timeline->>Timeline: Update time marker
-        EventBus->>UI: Notify subscribers
-        UI->>UI: Update time display
-    end
-```
-
-### User Seeks on Timeline
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Timeline
-    participant EventBus
-    participant Player as VideoCanvas
-    participant Audio as Audio Context
-
-    User->>Timeline: Click/drag timeline
-    Timeline->>Timeline: Calculate time
-    Timeline->>EventBus: emit(TimelineTimeUpdateEvent)
-    EventBus->>Player: Notify subscribers
-    Player->>Player: setTime(newTime)
-    Player->>Audio: Refresh audio sources
-    Player->>Player: Render frame at time
-```
-
-### Speed Change Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant UI as Speed Control
-    participant EventBus
-    participant Video as Video Layers
-    participant Audio as Audio Layers
-
-    User->>UI: Change speed (e.g., 1.5x)
-    UI->>EventBus: emit(UiSpeedChangeEvent)
-    EventBus->>Video: Notify subscribers
-    Video->>Video: Adjust frame timing
-    EventBus->>Audio: Notify subscribers
-    Audio->>Audio: Adjust playback rate
-```
-
-### Recording Completion Flow
-
-```mermaid
-sequenceDiagram
-    participant Record as Recording Service
-    participant EventBus
-    participant Studio as VideoStudio
-    participant Loader as LayerLoader
-    participant Timeline
-
-    Record->>Record: Stop recording
-    Record->>Record: Create video file
-    Record->>EventBus: emit(RecordVideoFileCreatedEvent)
-    EventBus->>Studio: Notify subscribers
-    Studio->>Loader: Load video file
-    Loader->>Timeline: Add layer to timeline
-    Timeline->>Timeline: Render new layer
-```
-
-### Media Loading Flow
-
-```mermaid
-sequenceDiagram
-    participant Loader as LayerLoader
-    participant Layer as Media Layer
-    participant EventBus
-    participant Popup as Loading Popup
-    participant Studio as VideoStudio
-
-    Loader->>Layer: Load media
-    loop Loading Progress
-        Layer->>EventBus: emit(MediaLoadUpdateEvent)
-        EventBus->>Popup: Update progress
-        Popup->>Popup: Display progress bar
-    end
-    Layer->>EventBus: emit(MediaLoadUpdateEvent, 100%)
-    EventBus->>Studio: Loading complete
-    EventBus->>Popup: Hide popup
-```
-
-## Type Safety
-
-The EventBus uses TypeScript generics for type-safe event handling:
-
-```typescript
-type EventHandler<T extends BaseEvent> = (event: T) => void;
-type EventClass<T extends BaseEvent> = new (...args: any[]) => T;
-
-subscribe<T extends BaseEvent>(
-  EventClass: EventClass<T>,
-  handler: EventHandler<T>
-): () => void
-```
-
-**Benefits**:
-- Compile-time type checking
-- IDE autocomplete for event properties
-- Prevents type mismatches
+### 4. Maintainability
 - Clear event contracts
+- Self-documenting through event names
+- Easy to trace data flow
 
-## Error Handling
-
-The EventBus catches and logs errors in event handlers:
-
-```typescript
-emit<T extends BaseEvent>(event: T): void {
-  listeners.forEach(handler => {
-    try {
-      handler(event);
-    } catch (error) {
-      console.error(`Error in event handler for ${event.name}:`, error);
-    }
-  });
-}
-```
-
-**Benefits**:
-- One failing handler doesn't break others
-- Errors are logged for debugging
-- System remains stable
-
-## Best Practices
-
-### 1. Use Specific Event Types
-✅ Good: `PlayerTimeUpdateEvent`  
-❌ Bad: Generic event with string type
-
-### 2. Immutable Event Data
-Events should be read-only:
-```typescript
-class MyEvent extends BaseEvent {
-  readonly name = 'my:event';
-  constructor(public readonly data: string) {
-    super();
-  }
-}
-```
-
-### 3. Unsubscribe When Done
-```typescript
-class MyComponent {
-  private unsubscribe: () => void;
-  
-  init() {
-    this.unsubscribe = eventBus.subscribe(MyEvent, this.handleEvent);
-  }
-  
-  cleanup() {
-    this.unsubscribe();
-  }
-}
-```
-
-### 4. Use `once()` for One-Time Events
-```typescript
-// Wait for media to load
-eventBus.once(MediaLoadUpdateEvent, (event) => {
-  if (event.progress === 100) {
-    console.log('Media fully loaded');
-  }
-});
-```
-
-### 5. Avoid Circular Event Chains
-Don't create events that trigger themselves indirectly.
-
-### 6. Document Event Purpose
-Each event should have a clear purpose and ownership.
-
-## Testing Events
-
-```typescript
-describe('EventBus', () => {
-  let eventBus: EventBus;
-  
-  beforeEach(() => {
-    eventBus = new EventBus();
-  });
-  
-  it('should notify subscribers', () => {
-    const handler = jest.fn();
-    eventBus.subscribe(PlayerTimeUpdateEvent, handler);
-    
-    eventBus.emit(new PlayerTimeUpdateEvent(100, 0));
-    
-    expect(handler).toHaveBeenCalledWith(
-      expect.objectContaining({ newTime: 100, oldTime: 0 })
-    );
-  });
-  
-  it('should support unsubscribe', () => {
-    const handler = jest.fn();
-    const unsubscribe = eventBus.subscribe(PlayerTimeUpdateEvent, handler);
-    
-    unsubscribe();
-    eventBus.emit(new PlayerTimeUpdateEvent(100, 0));
-    
-    expect(handler).not.toHaveBeenCalled();
-  });
-});
-```
-
-## Singleton Pattern
-
-The EventBus uses a singleton pattern:
-
-```typescript
-let globalEventBusInstance: EventBus | null = null;
-
-export function getEventBus(): EventBus {
-  if (!globalEventBusInstance) {
-    globalEventBusInstance = new EventBus();
-  }
-  return globalEventBusInstance;
-}
-
-export function resetEventBus(): void {
-  if (globalEventBusInstance) {
-    globalEventBusInstance.clear();
-  }
-  globalEventBusInstance = null;
-}
-```
-
-This ensures:
-- Single instance across the application
-- Can be reset for testing
-- Easy access from any module
+### 5. Testability
+- Components can be tested in isolation
+- Events can be mocked
+- No need for complex setup
 
