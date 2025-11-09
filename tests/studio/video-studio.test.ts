@@ -305,8 +305,8 @@ describe('VideoStudio', () => {
 
   describe('cloneLayer', () => {
     test('should clone layer using media service', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
-      const clonedLayer = new VideoLayer(new File([], 'video2.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
+      const clonedLayer = new VideoMedia(new File([], 'video2.mp4'), true);
 
       studio.mediaService.clone = jest.fn(() => clonedLayer);
 
@@ -317,8 +317,8 @@ describe('VideoStudio', () => {
     });
 
     test('should add cloned layer to studio', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
-      const clonedLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
+      const clonedLayer = new VideoMedia(new File([], 'video.mp4'), true);
 
       studio.mediaService.clone = jest.fn(() => clonedLayer);
 
@@ -328,8 +328,8 @@ describe('VideoStudio', () => {
     });
 
     test('should set cloned layer as selected', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
-      const clonedLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
+      const clonedLayer = new VideoMedia(new File([], 'video.mp4'), true);
       studio.mediaService.clone = jest.fn(() => clonedLayer);
       const setSelectedSpy = jest.spyOn(studio, 'setSelectedLayer');
 
@@ -398,7 +398,7 @@ describe('VideoStudio', () => {
     });
 
     test('should return selected layer', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
       studio.addLayer(mockLayer as any);
       studio.timeline.selectedLayer = { id: '123' } as any;
       const result = studio.getSelectedLayer();
@@ -409,7 +409,7 @@ describe('VideoStudio', () => {
 
   describe('setSelectedLayer', () => {
     test('should set selected layer on timeline', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.timeline, 'setSelectedLayer');
 
       studio.setSelectedLayer(mockLayer as any);
@@ -418,7 +418,7 @@ describe('VideoStudio', () => {
     });
 
     test('should set selected layer on player', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.player, 'setSelectedLayer');
       studio.setSelectedLayer(mockLayer as any);
 
@@ -426,7 +426,7 @@ describe('VideoStudio', () => {
     });
 
     test('should set selected layer on studio state', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.studioState, 'setSelectedMedia');
       studio.setSelectedLayer(mockLayer as any);
 
@@ -434,7 +434,7 @@ describe('VideoStudio', () => {
     });
 
     test('should set layer on speed control manager', () => {
-      const mockLayer = new VideoLayer(new File([], 'video.mp4'), true);
+      const mockLayer = new VideoMedia(new File([], 'video.mp4'), true);
       const setSpy = jest.spyOn(studio.speedControlManager, 'setLayer');
       studio.setSelectedLayer(mockLayer as any);
 

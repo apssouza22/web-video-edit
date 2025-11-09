@@ -1,4 +1,4 @@
-import {VideoLoader} from "@/video/video-loader";
+import {VideoLoader} from "@/media/video-loader";
 import {LayerFile, VideoMetadata} from "@/media/types";
 
 export async function loadVideo(

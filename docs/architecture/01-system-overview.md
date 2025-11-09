@@ -5,122 +5,79 @@
 This diagram shows the main components of the Web Video Edit application and their relationships.
 
 ```mermaid
-graph TB
-    subgraph "User Interface Layer"
-        UI[HTML/CSS UI]
-        Controls[Studio Controls]
-        Timeline[Timeline Component]
-        Canvas[Video Canvas Display]
+flowchart LR
+    subgraph subGraph0["User Interface Layer"]
+        UI["HTML/CSS UI"]
+        Controls["Studio Controls"]
+        Timeline["Timeline Component"]
+        Canvas["Video Canvas Display"]
     end
-
-    subgraph "Core Orchestration"
-        Studio[VideoStudio<br/>Main Orchestrator]
-        EventBus[EventBus<br/>Central Communication]
-        State[StudioState<br/>Global State]
+    subgraph subGraph1["Core Orchestration"]
+        Studio["VideoStudio<br>Main Orchestrator"]
+        EventBus["EventBus<br>Central Communication"]
+        State["StudioState<br>Global State"]
     end
-
-    subgraph "Media Management"
-        MediaService[MediaService<br/>Media Operations]
-        LayerLoader[LayerLoader<br/>Media Loading]
-        MediaLayers[Media Layers<br/>Video/Audio/Image/Text]
+    subgraph subGraph2["Media Management"]
+        MediaService["MediaService<br>Media Operations"]
+        MediaLoader["MediaLoader<br>Media Loading"]
+        MediaLayers["Media Layers<br>Video/Audio/Image/Text"]
+        AudioLoader["Audio Loader"]
+        AudioSource["Audio Source"]
     end
-
-    subgraph "Playback & Rendering"
-        Player[VideoCanvas<br/>Player & Renderer]
-        CanvasLayers[Canvas Layers<br/>Layer Rendering]
-        AudioContext[Web Audio API]
+    subgraph subGraph3["Playback & Rendering"]
+        Player["VideoCanvas<br>Player &amp; Renderer"]
+        CanvasLayers["Canvas Layers<br>Layer Rendering"]
+        AudioContext["Web Audio API"]
     end
-
-    subgraph "Timeline System"
-        TL[Timeline<br/>Timeline Manager]
-        TLLayers[Timeline Layers<br/>Visual Representation]
-        TimeMarker[Time Marker]
-        DragHandler[Drag & Drop Handler]
+    subgraph subGraph4["Timeline System"]
+        TL["Timeline<br>Timeline Manager"]
+        TLLayers["Timeline Layers<br>Visual Representation"]
+        TimeMarker["Time Marker"]
+        DragHandler["Drag & Drop Handler"]
     end
-
-    subgraph "Video Processing"
-        Demux[VideoDemuxService<br/>Frame Extraction]
-        MP4Box[MP4Box Demuxer]
-        MediaBunny[MediaBunny Demuxer]
-        HTMLDemux[HTML5 Video Demuxer]
-        FrameService[Frame Service]
+    subgraph subGraph5["Video Processing"]
+        Demux["VideoDemuxService<br>Frame Extraction"]
+        MP4Box["MP4Box Demuxer"]
+        MediaBunny["MediaBunny Demuxer"]
+        HTMLDemux["HTML5 Video Demuxer"]
+        FrameService["Frame Service"]
     end
-
-    subgraph "Export System"
-        Export[VideoExportService]
-        MediaRecorder[MediaRecorder Exporter]
-        WebCodec[WebCodec Exporter]
+    subgraph subGraph6["Export System"]
+        Export["VideoExportService"]
+        MediaRecorder["MediaRecorder Exporter"]
+        WebCodec["WebCodec Exporter"]
     end
-
-    subgraph "Recording System"
-        Record[UserMediaRecordingService]
-        Preview[Recording Preview]
-        MediaStream[MediaStream API]
+    subgraph subGraph7["Recording System"]
+        Record["UserMediaRecordingService"]
+        Preview["Recording Preview"]
+        MediaStream["MediaStream API"]
     end
-
-    subgraph "AI Features"
-        Transcription[TranscriptionService]
-        AIModel[Transformers.js Model]
+    subgraph subGraph8["AI Features"]
+        Transcription["TranscriptionService"]
+        AIModel["Transformers.js Model"]
     end
-
-    subgraph "Audio Processing"
-        AudioLoader[Audio Loader]
-        AudioCutter[Audio Split Handler]
-        PitchProcessor[Pitch Preservation]
+    subgraph subGraph9["Audio Processing"]
+        AudioService["Audio Service"]
+        AudioCutter["Audio Cutter"]
+        PitchProcessor["Pitch Preservation"]
     end
-
     UI --> Studio
     Controls --> Studio
     Timeline --> Studio
     Canvas --> Player
-    
-    Studio --> EventBus
-    Studio --> State
-    Studio --> Player
-    Studio --> TL
-    Studio --> MediaService
-    Studio --> LayerLoader
-    Studio --> Export
-    Studio --> Transcription
-    Studio --> Record
-    
-    EventBus -.-> Player
-    EventBus -.-> TL
-    EventBus -.-> MediaLayers
-    EventBus -.-> Record
-    
-    MediaService --> MediaLayers
-    LayerLoader --> MediaLayers
-    LayerLoader --> Demux
-    LayerLoader --> AudioLoader
-    
-    Player --> CanvasLayers
-    Player --> AudioContext
-    CanvasLayers --> MediaLayers
-    
-    TL --> TLLayers
-    TL --> TimeMarker
-    TL --> DragHandler
-    TLLayers --> MediaLayers
-    
-    Demux --> MP4Box
-    Demux --> MediaBunny
-    Demux --> HTMLDemux
-    Demux --> FrameService
-    
-    Export --> MediaRecorder
-    Export --> WebCodec
-    Export --> Player
-    
-    Record --> Preview
-    Record --> MediaStream
-    Record --> EventBus
-    
+    Studio --> EventBus & State & Player & TL & MediaService & Export & Transcription & Record
+    EventBus -.-> Player & TL & MediaLayers & Record
+    MediaService --> MediaLayers & AudioService
+    MediaLoader --> MediaLayers & Demux & AudioLoader
+    MediaLayers --> AudioSource
+    AudioService --> AudioCutter & PitchProcessor
+    Player --> CanvasLayers & AudioContext
+    TL --> TLLayers & TimeMarker & DragHandler
+    Demux --> MP4Box & MediaBunny & HTMLDemux & FrameService
+    Export --> MediaRecorder & WebCodec
+    Record --> Preview & MediaStream
     Transcription --> AIModel
-    
-    MediaService --> AudioCutter
-    AudioLoader --> PitchProcessor
-    
+
     style Studio fill:#e1f5ff
     style EventBus fill:#fff3cd
     style Player fill:#d4edda
@@ -129,6 +86,9 @@ graph TB
     style Export fill:#f8d7da
     style Record fill:#d1ecf1
     style Transcription fill:#e2d5f0
+
+
+
 ```
 
 ## Component Descriptions
