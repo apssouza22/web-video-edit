@@ -13,7 +13,7 @@ export class VideoStreaming {
   constructor(
       timestamps: number[],
       videoSink: VideoSampleSink,
-      cacheSize: number = 30,
+      cacheSize: number = 10000,
       bufferSize: number = 5
   ) {
     this.#timestamps = timestamps;

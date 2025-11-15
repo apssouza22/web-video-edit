@@ -127,7 +127,7 @@ export class MediaBunnyDemuxer {
       console.log(`Extracted ${this.timestamps.length} timestamps at ${this.targetFps} fps`);
 
       this.onProgressCallback(100);
-      this.onCompleteCallback(new VideoStreaming(this.timestamps, this.videoSink!, 1000, 5));
+      this.onCompleteCallback(new VideoStreaming(this.timestamps, this.videoSink!));
     } catch (error) {
       console.error('Error extracting timestamps:', error);
       throw error;

@@ -9,7 +9,7 @@ export class Canvas2DRender{
   // @ts-ignore
   #canvas: HTMLCanvasElement | OffscreenCanvas;
   // @ts-ignore
-  #ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+  #ctx: ESRenderingContext2D;
   #transferable: OffscreenCanvas | null = null;
 
   constructor(canvas?: HTMLCanvasElement) {
@@ -35,7 +35,7 @@ export class Canvas2DRender{
     return this.#transferable;
   }
 
-  get context(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
+  get context(): ESRenderingContext2D {
     return this.#ctx;
   }
 
@@ -205,7 +205,7 @@ export class Canvas2DRender{
   // Static method for standalone usage (maintains backward compatibility)
   static drawScaled(
     ctxFrom: HTMLVideoElement | ESRenderingContext2D,
-    ctxOutTo: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, 
+    ctxOutTo: ESRenderingContext2D,
     video: boolean = false
   ): void {
     const width = video && ctxFrom instanceof HTMLVideoElement
