@@ -16,6 +16,7 @@ export {
 } from './event-bus';
 export { StudioState } from './studio-state';
 export {PinchHandler} from './pinch-handler';
+export { TabController } from './tab-controller';
 export { dpr } from '@/constants';
 export { ext_map, popup, exportToJson, addText, uploadSupportedType, getSupportedMimeTypes, fixWebmDuration } from './utils';
 

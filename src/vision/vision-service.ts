@@ -4,26 +4,28 @@ import {
   VisionResult,
   VisionServiceConfig,
   VisionResultCallback,
-  SampleExtractorConfig, SamplingStrategy
+  SampleExtractorConfig, SamplingStrategy, FrameSample
 } from './types.js';
 import { getEventBus, VisionAnalysisCompleteEvent } from '@/common/event-bus';
 import {AbstractMedia} from "@/media";
 import { SampleExtractor } from './sample-extractor.js';
 import {ComparisonMethod} from "@/vision/frame-comparator";
+import {displaySamples} from "@/vision/sample-display";
+
+
 
 export class VisionService {
   #worker: Worker;
   #visionView: VisionView;
-  #onResultCallback: VisionResultCallback;
   #eventBus = getEventBus();
   #sampleExtractor: SampleExtractor;
+  private timestampToSample = new Map<number, FrameSample>();
 
-  constructor(config?: VisionServiceConfig & { samplingConfig?: SampleExtractorConfig }) {
+  constructor() {
     this.#worker = new Worker(new URL("./worker.js", import.meta.url), {
       type: "module",
     });
     this.#visionView = new VisionView();
-    this.#onResultCallback = (result: VisionResult) => {};
     this.#sampleExtractor = new SampleExtractor({
       strategy: SamplingStrategy.SCENE_CHANGE,
       maxSamples: 100,
@@ -73,16 +75,22 @@ export class VisionService {
 
   #onAnalysisComplete(data: VisionResult): void {
     console.log("Vision analysis complete:", data);
-    this.#visionView.updateResult(data);
-    this.#onResultCallback(data);
-    this.#eventBus.emit(new VisionAnalysisCompleteEvent(data));
+
+    this.#visionView.updateResult(data as FrameSample);
+    const result = this.timestampToSample.get(data.timestamp!);
+    if (result) {
+      result.text = data.text!;
+      this.#eventBus.emit(new VisionAnalysisCompleteEvent(result));
+      return
+    }
+    console.warn("Could not find matching sample for timestamp:", data.timestamp);
   }
 
   loadModel(): void {
     this.#worker.postMessage({ task: "load-model" });
   }
 
-  analyzeImage(imageData: ImageData, instruction: string): void {
+  private analyzeImage(sample: FrameSample, instruction: string): void {
     // if (window.location.hostname === "localhost") {
     //   console.warn("Using mocked vision data for local development.");
     //   const data = this.#getMockedData(instruction);
@@ -90,10 +98,10 @@ export class VisionService {
     //   return;
     // }
 
-    this.#visionView.showLoading();
     this.#worker.postMessage({
       task: "analyze-image",
-      imageData: imageData,
+      imageData: sample.imageData,
+      timestamp: sample.timestamp,
       instruction: instruction
     });
   }
@@ -102,20 +110,24 @@ export class VisionService {
     try {
       console.log("Extracting smart samples from video...");
       const samples = await this.#sampleExtractor.extractSamples(media);
-      
+
+      samples.forEach(sample => {
+        this.timestampToSample.set(sample.timestamp, sample);
+      });
+
       if (!samples || samples.length === 0) {
         console.error("No video samples extracted for analysis.");
         return;
       }
-
       console.log(`Extracted ${samples.length} unique frame samples for analysis`);
 
       for (const sample of samples) {
         const enhancedInstruction = `${instruction} [Frame at ${(sample.timestamp / 1000).toFixed(2)}s]`;
-        this.analyzeImage(sample.imageData, enhancedInstruction);
-        
+        this.analyzeImage(sample, enhancedInstruction);
+
         await this.#delay(500);
       }
+      displaySamples(samples);
     } catch (error) {
       console.error("Error analyzing video:", error);
     }
@@ -130,18 +142,6 @@ export class VisionService {
       text: `Mocked response for instruction: "${instruction}". This is a placeholder description of the image content.`,
       timestamp: Date.now()
     };
-  }
-
-  getView(): VisionView {
-    return this.#visionView;
-  }
-
-  getSampleExtractor(): SampleExtractor {
-    return this.#sampleExtractor;
-  }
-
-  updateSamplingConfig(config: Partial<SampleExtractorConfig>): void {
-    this.#sampleExtractor.updateConfig(config);
   }
 }
 

@@ -1,39 +1,31 @@
-import type { VisionService } from './vision-service.js';
-import type { VisionResult } from './types.js';
+import type {FrameSample} from './types.js';
 
 export class VisionView {
   #visionElement: HTMLElement | null = null;
-  #resultContainer: HTMLElement | null;
+  #resultContainer: HTMLElement | null = null;
 
   constructor() {
-    this.#resultContainer = this.#createDefaultContainer();
+    this.#visionElement = document.getElementById('vision');
+    if (this.#visionElement) {
+      this.#resultContainer = this.#createDefaultContainer();
+    }
   }
 
   #createDefaultContainer(): HTMLDivElement {
-    const container = document.createElement('div');
-    container.id = 'vision-result';
-    container.style.padding = '10px';
-    container.style.border = '1px solid #ccc';
-    container.style.marginTop = '10px';
-    container.style.borderRadius = '4px';
-
     const resultContainer = document.createElement('div');
-    resultContainer.className = 'result-container';
-
-    container.appendChild(resultContainer);
-    document.body.appendChild(container);
-    this.#visionElement = container;
+    resultContainer.className = 'vision-results';
+    this.#visionElement?.appendChild(resultContainer);
     return resultContainer;
   }
 
-  updateResult(result: VisionResult): void {
+  updateResult(result: FrameSample): void {
     if (!result || !result.text) {
       console.error('Invalid vision result provided');
       return;
     }
     this.show()
     this.#clearResult();
-    this.#displayResult(result);
+    this.displayResult(result);
   }
 
   #clearResult(): void {
@@ -48,11 +40,9 @@ export class VisionView {
     return div.innerHTML;
   }
 
-  #displayResult(result: VisionResult): void {
+  private displayResult(result: FrameSample): void {
     if (!this.#resultContainer) return;
-    console.log('Displaying vision result:', result);
-    const escapedText = this.#escapeHtml(result.text);
-
+    const escapedText = this.#escapeHtml(result.text!);
     const resultHTML = `
       <div class="vision-result-item" style="padding: 10px; margin-bottom: 5px;">
         <div class="result-text" style="font-size: 14px; line-height: 1.5;">
@@ -67,21 +57,10 @@ export class VisionView {
     this.#resultContainer.insertAdjacentHTML('beforeend', resultHTML);
   }
 
-  showLoading(): void {
-    if (this.#resultContainer) {
-      this.#resultContainer.innerHTML = '<div style="padding: 10px;">Analyzing image... Please wait.</div>';
-    }
-  }
-
-  hide(): void {
-    if (this.#visionElement) {
-      this.#visionElement.style.display = 'none';
-    }
-  }
-
   private show(): void {
-    if (this.#visionElement) {
-      this.#visionElement.style.display = 'block';
+    const visionTab = document.querySelector('.tab-button[data-tab="vision"]');
+    if (visionTab) {
+      (visionTab as HTMLElement).click();
     }
   }
 }

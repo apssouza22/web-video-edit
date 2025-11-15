@@ -43,6 +43,7 @@ export interface AnalyzeImageMessage extends WorkerMessageBase {
   task: "analyze-image";
   imageData: ImageData;
   instruction: string;
+  timestamp: number;
 }
 
 export interface WorkerResponseMessage extends WorkerMessageBase {
@@ -78,6 +79,7 @@ export enum SamplingStrategy {
 export interface FrameSample {
   imageData: ImageData;
   timestamp: number;
+  text?: string;
 }
 
 export interface SampleExtractorConfig {

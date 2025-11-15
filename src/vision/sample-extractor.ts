@@ -3,6 +3,7 @@ import {ComparisonMethod, FrameComparator} from './frame-comparator.js';
 import {Canvas2DRender} from '@/common/render-2d';
 import type {FrameSample, SampleExtractorConfig} from './types.js';
 import {SamplingStrategy as Strategy} from './types.js';
+import {SampleDisplay} from './sample-display.js';
 
 export class SampleExtractor {
   #config: Required<SampleExtractorConfig>;
@@ -286,6 +287,16 @@ export class SampleExtractor {
 
   getConfig(): Required<SampleExtractorConfig> {
     return {...this.#config};
+  }
+
+  displaySamples(samples: FrameSample[], options?: {
+    title?: string;
+    maxThumbnailWidth?: number;
+    maxThumbnailHeight?: number;
+  }): SampleDisplay {
+    const display = new SampleDisplay();
+    display.displaySamples(samples, options);
+    return display;
   }
 }
 

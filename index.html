@@ -50,15 +50,30 @@
     <canvas></canvas>
   </div>
   <div id="center-panel">
-    <div id="transcription">
-      <div class="text-chunks">
-        <!-- <div class="text-chunk"></div> -->
+    <div id="leftNav">
+      <div class="tab-header">
+        <div class="tab-button active" data-tab="transcription">Transcription</div>
+        <div class="tab-button" data-tab="vision">Vision</div>
+      </div>
+
+      <div class="tab-content-wrapper">
+        <div id="transcription" class="tab-content active">
+          <div class="text-chunks">
+            <!-- <div class="text-chunk"></div> -->
+          </div>
+        </div>
+
+        <div id="vision" class="tab-content">
+          <!-- <div class="vision-result"></div> -->
+        </div>
       </div>
     </div>
+
     <div id="video-canvas-panel">
       <div id="video-canvas">
       </div>
     </div>
+
   </div>
 
   <div id="layer_holder">

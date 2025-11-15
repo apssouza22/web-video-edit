@@ -73,6 +73,39 @@ samples.forEach(sample => {
 });
 ```
 
+### Display Samples in UI
+
+The package includes a beautiful UI component to display extracted samples:
+
+```typescript
+import { SampleExtractor, displaySamples } from '@/vision';
+
+const extractor = new SampleExtractor();
+const samples = await extractor.extractSamples(media);
+
+// Display samples in a centered modal
+displaySamples(samples, {
+  title: 'Extracted Frame Samples',
+  maxThumbnailWidth: 200,
+  maxThumbnailHeight: 150
+});
+```
+
+Or use the instance method:
+
+```typescript
+const extractor = new SampleExtractor();
+const samples = await extractor.extractSamples(media);
+
+// Display using the extractor instance
+const display = extractor.displaySamples(samples, {
+  title: 'Smart Samples - Adaptive Strategy'
+});
+
+// Hide after 5 seconds
+setTimeout(() => display.hide(), 5000);
+```
+
 ### Custom Configuration
 
 ```typescript
@@ -142,6 +175,78 @@ console.log(`Compared ${history.length} frames`);
 
 // Clear history for fresh extraction
 extractor.clearHistory();
+```
+
+## Display Features
+
+### SampleDisplay Class
+
+The `SampleDisplay` class provides a beautiful UI to visualize extracted frame samples:
+
+**Features:**
+- Centered modal overlay with dark backdrop
+- Grid layout with responsive thumbnails
+- Click on thumbnails to view full-size images
+- Sample information (timestamp, frame index, dimensions)
+- Animated transitions
+- Keyboard (ESC) and click-outside to close
+
+**Display Options:**
+
+```typescript
+interface DisplayOptions {
+  title?: string;                  // Modal title (default: "Extracted Frame Samples")
+  maxThumbnailWidth?: number;      // Max thumbnail width in pixels (default: 200)
+  maxThumbnailHeight?: number;     // Max thumbnail height in pixels (default: 150)
+}
+```
+
+**Methods:**
+
+- `displaySamples(samples, options)` - Show the samples in a modal
+- `hide()` - Hide the modal with animation
+- `isVisible()` - Check if modal is currently visible
+
+### Usage Examples
+
+**Simple Display:**
+```typescript
+import { displaySamples } from '@/vision';
+
+const samples = await extractor.extractSamples(media);
+displaySamples(samples);
+```
+
+**Custom Styling:**
+```typescript
+displaySamples(samples, {
+  title: 'Scene Changes Detected',
+  maxThumbnailWidth: 250,
+  maxThumbnailHeight: 180
+});
+```
+
+**Programmatic Control:**
+```typescript
+const display = displaySamples(samples);
+
+// Hide after user action
+document.getElementById('continueBtn').addEventListener('click', () => {
+  display.hide();
+});
+```
+
+**Conditional Display:**
+```typescript
+const samples = await extractor.extractSamples(media);
+
+if (samples.length > 5) {
+  displaySamples(samples, {
+    title: `Found ${samples.length} Unique Frames`
+  });
+} else {
+  console.log('Not enough samples to display');
+}
 ```
 
 ## Configuration Options

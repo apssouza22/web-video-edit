@@ -1,4 +1,4 @@
-import { VisionModelFactory, analyzeImage, onModelInferenceError } from "./vision-model.js";
+import {VisionModelFactory, analyzeImage, onModelInferenceError} from "./vision-model.js";
 import type {
   WorkerMessage,
   WorkerResponseMessage,
@@ -36,18 +36,15 @@ self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
   }
 
   if (isAnalyzeImageMessage(message)) {
-    const result = await analyzeImage(
-      message.imageData,
-      message.instruction,
-      (partialText: string) => {
-        const streamMessage: WorkerResponseMessage = {
-          status: "progress",
-          task: "image-analysis",
-          data: { text: partialText },
-        };
-        self.postMessage(streamMessage);
-      }
-    );
+    const onTextUpdate = (partialText: string) => {
+      const streamMessage: WorkerResponseMessage = {
+        status: "progress",
+        task: "image-analysis",
+        data: {text: partialText, timestamp: message.timestamp},
+      };
+      self.postMessage(streamMessage);
+    };
+    const result = await analyzeImage(message.imageData, message.timestamp, message.instruction, onTextUpdate);
 
     if (!result || !result.text) {
       return;

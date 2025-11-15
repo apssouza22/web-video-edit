@@ -1,9 +1,10 @@
 import {updateSettings} from '@/studio';
-import {addText, popup, StudioState} from '@/common';
+import {addText, popup, StudioState, TabController} from '@/common';
 import {initScreenRecording} from "./record/controls";
 import {initStudio} from "@/studio/initilizer.js";
 
-const studio = initStudio()
+const studio = initStudio();
+const tabController = new TabController('leftNav');
 
 // Expose global functions for HTML onclick handlers
 // @ts-ignore

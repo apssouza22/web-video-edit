@@ -95,6 +95,7 @@ function getStreamer(processor: LlavaProcessor, onTextUpdate?: StreamUpdateCallb
 
 export async function analyzeImage(
     imageData: ImageData,
+    timestamp: number,
     instruction: string,
     onTextUpdate?: StreamUpdateCallback
 ): Promise<VisionResult> {
@@ -124,32 +125,12 @@ export async function analyzeImage(
       skip_special_tokens: true,
     });
 
-    return {text: decoded[0].trim()};
+    return {text: decoded[0].trim(), timestamp: timestamp};
   } catch (error) {
     return onModelInferenceError(error as VisionError);
   } finally {
     VisionModelFactory.inferenceLock = false;
   }
-}
-
-export async function analyzeVideoFrame(
-    video: HTMLVideoElement,
-    instruction: string,
-    onTextUpdate?: StreamUpdateCallback
-): Promise<VisionResult> {
-  if (!VisionModelFactory.canvas) {
-    VisionModelFactory.canvas = document.createElement("canvas");
-  }
-  const canvas = VisionModelFactory.canvas;
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d", {willReadFrequently: true});
-  if (!ctx) {
-    throw new Error("Could not get canvas context");
-  }
-  ctx.drawImage(video, 0, 0);
-  const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  return analyzeImage(frame, instruction, onTextUpdate);
 }
 
 export function onModelInferenceError(error: VisionError): VisionResult {

@@ -146,18 +146,85 @@ text-align: center;
   flex-direction: row;
 }
 
-#center-panel #transcription {
+#center-panel #leftNav {
   height: 100%;
   width: 40%;
   background: rgba(43, 47, 51, 0.9);
   color: rgb(192, 200, 213);
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 30px;
+  overflow: hidden;
   box-sizing: border-box;
   border-right: #c0c8d5 solid 1px;
   font-family: 'JupiterSans', Arial, sans-serif;
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+#leftNav .tab-header {
+  display: flex;
+  background: rgba(37, 37, 40, 0.95);
+  border-bottom: 1px solid rgba(60, 60, 65, 0.8);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+#leftNav .tab-button {
+  flex: 1;
+  padding: 12px 20px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(192, 200, 213);
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+#leftNav .tab-button:hover {
+  background: rgba(53, 53, 58, 0.5);
+  color: rgb(220, 225, 235);
+}
+
+#leftNav .tab-button.active {
+  color: rgb(169, 225, 250);
+  border-bottom-color: rgb(169, 225, 250);
+  background: rgba(43, 47, 51, 0.9);
+}
+
+#leftNav .tab-content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+#leftNav .tab-content {
+  display: none;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: fadeIn 0.3s ease;
+}
+
+#leftNav .tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#center-panel #transcription {
   line-height: 1.6;
 }
 
@@ -220,6 +287,37 @@ text-align: center;
   color: #0b284b;
   font-weight: bold;
   border: 1px solid rgba(169, 225, 250, 0.6);
+}
+
+/* Vision tab content styling */
+#vision {
+  line-height: 1.6;
+}
+
+#vision .vision-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#vision .vision-result-item {
+  background: rgba(53, 53, 58, 0.5);
+  border-radius: 6px;
+  padding: 12px;
+  border-left: 3px solid rgba(169, 225, 250, 0.6);
+}
+
+#vision .result-text {
+  color: rgb(220, 225, 235);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+#vision .result-timestamp {
+  color: rgb(150, 158, 171);
+  font-size: 11px;
+  font-style: italic;
 }
 
 

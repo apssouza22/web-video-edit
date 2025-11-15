@@ -18,8 +18,8 @@ export class VideoMedia extends AbstractMedia {
   }
 
   private onVideoLoadUpdateCallback(progress: number, metadata: VideoMetadata | null) {
-    this.loadUpdateListener(this, progress, this.ctx);
-    if (progress < 100 || !metadata) {
+    this.loadUpdateListener(this, progress -1, this.ctx);
+    if (progress < 100 || !metadata?.frames) {
       return;
     }
     this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
@@ -32,6 +32,7 @@ export class VideoMedia extends AbstractMedia {
 
     this.#handleVideoRatio();
     this.ready = true;
+    console.log(`Video loaded: ${metadata.frames}`);
     this.loadUpdateListener(this, 100, this.ctx);
   }
 

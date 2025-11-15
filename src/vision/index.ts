@@ -3,7 +3,6 @@ import { VisionService } from './vision-service.js';
 export {
   VisionModelFactory,
   analyzeImage,
-  analyzeVideoFrame,
   onModelInferenceError
 } from "./vision-model.js";
 
@@ -11,6 +10,7 @@ export { VisionService } from './vision-service.js';
 export { VisionView } from './vision-view.js';
 export { SampleExtractor } from './sample-extractor.js';
 export { FrameComparator, ComparisonMethod } from './frame-comparator.js';
+export { SampleDisplay, displaySamples } from './sample-display.js';
 
 export type {
   VisionResult,
