@@ -7,7 +7,6 @@ Only proceed to the *next* unchecked item after confirming the previous one is c
 ## Javascript and TypeScript Code Style Guide
 Ensure one class per file and use PascalCase for class names.
 Also use private methods for any helper functions that are not intended to be used outside the class.
-In javascript use # for private methods
 Avoid using global variables or functions that are not encapsulated within a class.
 Avoid coupling packages. Preference to use events for communication between different packages.Ensure self-contained packages.
 Avoid adding code that is not being used in the current task.

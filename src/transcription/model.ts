@@ -1,14 +1,8 @@
 // import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers";
-import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers";  //this version logs as error the shape mismatch
+// import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers";  //this version logs as error the shape mismatch
+import {env, pipeline, PretrainedModelOptions} from "@huggingface/transformers";
 
-import type { 
-  ModelParams, 
-  ProgressCallback, 
-  PipelineOptions, 
-  Pipeline, 
-  TranscriptionResult,
-  TranscriptionError
-} from './types.js';
+import type {ModelParams, Pipeline, ProgressCallback, TranscriptionError, TranscriptionResult} from './types.js';
 
 // Disable local models
 env.allowLocalModels = false;
@@ -33,17 +27,17 @@ export class PipelineFactory {
    */
   static async getInstance(progress_callback: ProgressCallback | null = null): Promise<Pipeline> {
     if (this.instance === null) {
-      const options: PipelineOptions = {
+      const options: PretrainedModelOptions = {
         progress_callback: progress_callback || undefined,
         dtype: "q8",
         // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
         revision: this.model.includes("/whisper-medium") ? "no_attentions" : "output_attentions",
       };
-
+      // @ts-ignore
       this.instance = pipeline(
-        this.task,
-        this.model,
-        options
+          "automatic-speech-recognition",
+          this.model,
+          options
       ) as Promise<Pipeline>;
     }
 
@@ -60,14 +54,14 @@ export async function transcribe(audio: Float32Array): Promise<TranscriptionResu
   });
 
   const start = performance.now();
-  
+
   try {
     const output = await modelInference(audio, modelParams);
     const end = performance.now();
-    
-    console.log(`Time taken to transcribe: ${(end - start)/1000} seconds`);
+
+    console.log(`Time taken to transcribe: ${(end - start) / 1000} seconds`);
     console.log(output);
-    
+
     return output;
   } catch (error) {
     return onModelInferenceError(error as TranscriptionError);
@@ -76,7 +70,7 @@ export async function transcribe(audio: Float32Array): Promise<TranscriptionResu
 
 export function onModelInferenceError(error: TranscriptionError): null {
   console.log(error);
-  
+
   if (typeof self !== 'undefined') {
     self.postMessage({
       status: "error",
@@ -84,6 +78,6 @@ export function onModelInferenceError(error: TranscriptionError): null {
       data: error,
     });
   }
-  
+
   return null;
 }

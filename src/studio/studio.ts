@@ -1,6 +1,6 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, createMediaService, MediaService} from '@/media';
+import {AbstractMedia, createMediaService, isMediaVideo, MediaService} from '@/media';
 import {AudioMedia} from '@/media/audio';
 import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
@@ -17,6 +17,7 @@ import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 import {AudioService, createAudioService} from "@/audio";
+import {createVisionService, VisionService} from "@/vision";
 
 /**
  * Update data structure for media transformations
@@ -44,6 +45,7 @@ export class VideoStudio {
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
   studioState: StudioState;
+  private visionService: VisionService;
 
   constructor(mediaService: MediaService) {
     this.mediaService = mediaService;
@@ -62,7 +64,7 @@ export class VideoStudio {
     this.mediaLoader = new MediaLoader(this);
     this.videoExporter = createVideoMuxer();
     this.transcriptionManager = createTranscriptionService();
-
+    this.visionService = createVisionService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
 
@@ -77,6 +79,7 @@ export class VideoStudio {
   init(): void {
     this.setUpVideoExport()
     this.transcriptionManager.loadModel();
+    this.visionService.loadModel();
     this.speedControlManager.init();
   }
 
@@ -328,6 +331,9 @@ export class VideoStudio {
     this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
     if (progress === 100) {
       this.setSelectedLayer(layer);
+      if (isMediaVideo(layer)) {
+        this.visionService.analyzeVideo(layer, "Describe what is happening in this video");
+      }
     }
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);

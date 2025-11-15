@@ -9,6 +9,7 @@ export {
   TimelineLayerUpdateEvent,
   TranscriptionRemoveIntervalEvent,
   TranscriptionSeekEvent,
+  VisionAnalysisCompleteEvent,
   UiSpeedChangeEvent,
   UiAspectRatioChangeEvent,
   MediaLoadUpdateEvent
