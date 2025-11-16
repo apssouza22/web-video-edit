@@ -12,13 +12,13 @@ export class TimelineLayer {
    * @param {number} canvasWidth - The width of the timeline canvas
    */
   ctx: CanvasRenderingContext2D;
-  layer: MediaInterface;
+  media: MediaInterface;
   totalTime: number;
   canvasWidth: number;
 
-  constructor(ctx: CanvasRenderingContext2D, layer: MediaInterface, totalTime: number, canvasWidth: number) {
+  constructor(ctx: CanvasRenderingContext2D, media: MediaInterface, totalTime: number, canvasWidth: number) {
     this.ctx = ctx;
-    this.layer = layer;
+    this.media = media;
     this.totalTime = totalTime;
     this.canvasWidth = canvasWidth;
   }
@@ -86,8 +86,8 @@ export class TimelineLayer {
    */
   #calculateDimensions() {
     const scale = this.canvasWidth / this.totalTime;
-    const start = scale * this.layer.start_time;
-    const length = scale * this.layer.totalTimeInMilSeconds;
+    const start = scale * this.media.start_time;
+    const length = scale * this.media.totalTimeInMilSeconds;
     
     return { start, length, scale };
   }
@@ -178,7 +178,7 @@ export class TimelineLayer {
     const maxTextWidth = length - height * 3;
 
     // Truncate text if it's too long
-    let displayName = this.layer.name || 'Unnamed Layer';
+    let displayName = this.media.name || 'Unnamed Layer';
     const textWidth = this.ctx.measureText(displayName).width;
     if (textWidth > maxTextWidth) {
       while (this.ctx.measureText(displayName + '...').width > maxTextWidth && displayName.length > 0) {

@@ -229,9 +229,11 @@ export abstract class AbstractMedia {
 
   /**
    * Gets the frame at the specified reference time
+   * @param time Reference time in milliseconds
+   * Returns null if no frame is found
    */
-  getFrame(ref_time: number): Frame | null {
-    return this.framesCollection.getFrame(ref_time, this.start_time);
+  getFrame(time: number): Frame | null {
+    return this.framesCollection.getFrame(time, this.start_time);
   }
 
   drawScaled(
@@ -250,7 +252,9 @@ export abstract class AbstractMedia {
     return this.speedController.getSpeed();
   }
 
-
+  getTotalFrames(): number {
+    return this.framesCollection.getLength();
+  }
 }
 
 /**

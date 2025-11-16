@@ -1,4 +1,4 @@
-import {createFrameService} from '@/frame';
+import {createFrameService, Frame} from '@/frame';
 import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
 import {loadVideo, VideoStreaming} from "@/video";
@@ -28,7 +28,7 @@ export class VideoMedia extends AbstractMedia {
 
     this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
     this.framesCollection.initializeFrames();
-    this.videoStreaming = metadata.frames
+    this.videoStreaming = metadata.frames;
 
     this.#handleVideoRatio();
     this.ready = true;
@@ -109,7 +109,10 @@ export class VideoMedia extends AbstractMedia {
     }
     this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
+  }
 
+  async getFrameAtIndex(index: number): Promise<VideoFrame | null> {
+    return this.videoStreaming!.getFrameAtIndex(index);
   }
 
   cleanup(): void {
