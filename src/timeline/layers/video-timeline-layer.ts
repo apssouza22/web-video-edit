@@ -10,6 +10,7 @@ export class VideoTimelineLayer extends TimelineLayer {
 
   constructor(ctx: CanvasRenderingContext2D, media: VideoMedia, totalTime: number, canvasWidth: number) {
     super(ctx, media, totalTime, canvasWidth);
+    console.log('Creating VideoTimelineLayer for media:', media.isVideo() ? 'VideoMedia' : 'Unknown Media');
     this.#thumbnailGenerator = new VideoThumbnailGenerator(media);
   }
 

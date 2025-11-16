@@ -9,6 +9,7 @@ import {
   LayerChange,
   LayerDumpData,
 } from './types';
+import {VideoMedia} from "@/media/video";
 
 export type ESAudioContext = AudioContext | OfflineAudioContext;
 
@@ -255,6 +256,15 @@ export abstract class AbstractMedia {
   getTotalFrames(): number {
     return this.framesCollection.getLength();
   }
+
+  isVideo(): boolean {
+    return this instanceof VideoMedia;
+  }
+
+  isAudio(): boolean {
+    return this.constructor.name === 'AudioMedia' //To avoid circular dependency
+  }
+
 }
 
 /**

@@ -6,17 +6,18 @@ import {TimelineLayerRender} from './tllayer-render';
 import {dpr} from '@/constants';
 import type {LayerUpdateKind, MediaInterface} from './types';
 import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
+import {AbstractMedia} from "@/media";
 
 /**
  * Class representing a timeline for a video player
  */
 export class Timeline {
   studio: any;
-  selectedLayer: MediaInterface | null;
+  selectedLayer: AbstractMedia | null;
   isHover: boolean;
   time: number;
   playerTime: number;
-  layers: MediaInterface[];
+  layers: AbstractMedia[];
   scale: number;
   totalTime: number;
   timelineCanvas: HTMLCanvasElement;
@@ -51,7 +52,7 @@ export class Timeline {
     this.timelineHolder.appendChild(this.timelineCanvas);
 
     // Configuration for timeline elements
-    this.layerHeight = 35; // Height per media
+    this.layerHeight = 35; // Default height per media
     this.minLayerSpacing = 10; // Minimum space between medias
     this.contentPadding = 15; // Padding around content
 
@@ -104,7 +105,7 @@ export class Timeline {
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
    * @param {MediaInterface|null} newSelectedLayer - The new selected media
    */
-  setSelectedLayer(newSelectedLayer: MediaInterface) {
+  setSelectedLayer(newSelectedLayer: AbstractMedia) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
     if (oldSelectedLayer === newSelectedLayer) {
@@ -302,8 +303,15 @@ export class Timeline {
     this.isHover = false;
   }
 
-  addLayers(layers: MediaInterface[]) {
+  addLayers(layers: AbstractMedia[]) {
     this.layers = layers;
+  }
+
+  getLayerHeight(media: AbstractMedia): number {
+    if (media.isVideo()) {
+      return this.layerHeight * 2;
+    }
+    return this.layerHeight;
   }
 
   /**
@@ -327,14 +335,18 @@ export class Timeline {
     }
 
     // Calculate vertical positions starting from top (below time marker)
-    const layerSpacing = this.minLayerSpacing + this.layerHeight;
-
-    let yPos = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
+    let yPos = this.timeMarker.height + this.contentPadding;
 
     for (let layer of this.layers) {
+      const layerHeight = this.getLayerHeight(layer);
+      const layerSpacing = this.minLayerSpacing + layerHeight;
+      
+      yPos += layerSpacing / 2;
+      
       let selected = this.selectedLayer === layer;
-      this.layerRenderer.renderLayer(layer, yPos, this.layerHeight, selected);
-      yPos += layerSpacing;
+      this.layerRenderer.renderLayer(layer, yPos, layerHeight, selected);
+      
+      yPos += layerSpacing / 2;
     }
 
     this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
@@ -354,25 +366,29 @@ export class Timeline {
    * @returns {boolean} - Whether a media was selected
    */
   #selectLayer(ev: PointerEvent) {
-    const layerSpacing = this.minLayerSpacing + this.layerHeight;
-    let yPos = this.timeMarker.height + this.contentPadding + (layerSpacing / 2);
+    let yPos = this.timeMarker.height + this.contentPadding;
 
     for (let layer of this.layers) {
+      const layerHeight = this.getLayerHeight(layer);
+      const layerSpacing = this.minLayerSpacing + layerHeight;
+      
+      yPos += layerSpacing / 2;
+
       if (!this.#canSelectLayer(layer)) {
-        yPos += layerSpacing;
+        yPos += layerSpacing / 2;
         continue;
       }
 
       // Check if click is within the media's vertical bounds
-      const layerTop = yPos - this.layerHeight / 2;
-      const layerBottom = yPos + this.layerHeight / 2;
+      const layerTop = yPos - layerHeight / 2;
+      const layerBottom = yPos + layerHeight / 2;
 
       if (ev.offsetY >= layerTop && ev.offsetY <= layerBottom) {
         this.setSelectedLayer(layer);
         return true;
       }
 
-      yPos += layerSpacing;
+      yPos += layerSpacing / 2;
     }
     return false;
   }

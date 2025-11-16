@@ -94,7 +94,6 @@ export class LayerReorderHandler {
   #calculateDropZones() {
     this.dropZones = [];
     const layers = this.timeline.layers;
-    const layerSpacing = this.timeline.minLayerSpacing + this.timeline.layerHeight;
     let yPos = this.timeline.timeMarker.height + this.timeline.contentPadding;
 
     // Add drop zone at the top
@@ -106,6 +105,9 @@ export class LayerReorderHandler {
 
     // Add drop zones between medias
     for (let i = 0; i < layers.length; i++) {
+      const layerHeight = this.timeline.getLayerHeight(layers[i]);
+      const layerSpacing = this.timeline.minLayerSpacing + layerHeight;
+      
       yPos += layerSpacing;
       if (i < layers.length - 1) {
         this.dropZones.push({
@@ -212,7 +214,7 @@ export class LayerReorderHandler {
   #renderLayerPreview(ctx: CanvasRenderingContext2D) {
     if (!this.draggedLayer) return;
 
-    const layerHeight = this.timeline.layerHeight;
+    const layerHeight = this.timeline.getLayerHeight(this.draggedLayer);
     const previewY = this.layerPreviewY;
     
     // Semi-transparent background
