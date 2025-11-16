@@ -134,6 +134,7 @@ text-align: center;
 #foreground {
   z-index: 5;
   background: black;
+  overflow: hidden;
 }
 
 #center-panel {

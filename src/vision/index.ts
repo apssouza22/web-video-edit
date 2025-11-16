@@ -1,38 +1,18 @@
 import { VisionService } from './vision-service.js';
-
-export {
-  VisionModelFactory,
-  analyzeImage,
-  onModelInferenceError
-} from "./vision-model.js";
+import { SampleExtractor } from './sample-extractor.js';
+import { SamplingStrategy } from './types.js';
+import {ComparisonMethod} from "@/vision/frame-comparator";
 
 export { VisionService } from './vision-service.js';
-export { VisionView } from './vision-view.js';
-export { SampleExtractor } from './sample-extractor.js';
-export { FrameComparator, ComparisonMethod } from './frame-comparator.js';
-export { SampleDisplay, displaySamples } from './sample-display.js';
-
-export type {
-  VisionResult,
-  ModelParams,
-  ProgressCallback,
-  ProgressCallbackData,
-  ModelOptions,
-  WorkerMessage,
-  WorkerResponseMessage,
-  LoadModelMessage,
-  AnalyzeImageMessage,
-  VisionResultCallback,
-  StreamUpdateCallback,
-  VisionServiceConfig,
-  VisionError,
-  SamplingStrategy,
-  FrameSample,
-  SampleExtractorConfig,
-  FrameComparisonResult
-} from './types.js';
 
 export function createVisionService(): VisionService {
-  return new VisionService();
+  const sampleExtractor = new SampleExtractor({
+    strategy: SamplingStrategy.SCENE_CHANGE,
+    maxSamples: 1000,
+    minSamples: 5,
+    similarityThreshold: 0.20,
+    comparisonMethod: ComparisonMethod.HISTOGRAM
+  })
+  return new VisionService(sampleExtractor);
 }
 

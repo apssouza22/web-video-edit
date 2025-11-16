@@ -17,6 +17,15 @@ const modelParams: ModelParams = {
   repetitionPenalty: 1.2,
 };
 
+interface QueuedRequest {
+  imageData: ImageData;
+  timestamp: number;
+  instruction: string;
+  onTextUpdate?: StreamUpdateCallback;
+  resolve: (result: VisionResult) => void;
+  reject: (error: Error) => void;
+}
+
 export class VisionModelFactory {
   static readonly modelId: string = MODEL_ID;
   static processorInstance: LlavaProcessor | null = null;
@@ -24,6 +33,7 @@ export class VisionModelFactory {
   static loadPromise: Promise<void> | null = null;
   static inferenceLock: boolean = false;
   static canvas: HTMLCanvasElement | null = null;
+  static requestQueue: QueuedRequest[] = [];
 
   static async getInstance(progressCallback: ProgressCallback | null = null): Promise<{
     processor: LlavaProcessor;
@@ -93,17 +103,12 @@ function getStreamer(processor: LlavaProcessor, onTextUpdate?: StreamUpdateCallb
   });
 }
 
-export async function analyzeImage(
+async function processInference(
     imageData: ImageData,
     timestamp: number,
     instruction: string,
     onTextUpdate?: StreamUpdateCallback
 ): Promise<VisionResult> {
-  if (VisionModelFactory.inferenceLock) {
-    console.log("Inference already running, skipping request");
-    return {text: ""};
-  }
-  VisionModelFactory.inferenceLock = true;
   try {
     const {processor, model} = await VisionModelFactory.getInstance();
     if (!processor || !model) {
@@ -128,9 +133,51 @@ export async function analyzeImage(
     return {text: decoded[0].trim(), timestamp: timestamp};
   } catch (error) {
     return onModelInferenceError(error as VisionError);
-  } finally {
-    VisionModelFactory.inferenceLock = false;
   }
+}
+
+function processNextInQueue(): void {
+  if (VisionModelFactory.requestQueue.length === 0) {
+    VisionModelFactory.inferenceLock = false;
+    return;
+  }
+
+  const request = VisionModelFactory.requestQueue.shift()!;
+  processInference(request.imageData, request.timestamp, request.instruction, request.onTextUpdate)
+    .then(result => {
+      request.resolve(result);
+      processNextInQueue();
+    })
+    .catch(error => {
+      request.reject(error);
+      processNextInQueue();
+    });
+}
+
+export async function analyzeImage(
+    imageData: ImageData,
+    timestamp: number,
+    instruction: string,
+    onTextUpdate?: StreamUpdateCallback
+): Promise<VisionResult> {
+  if (VisionModelFactory.inferenceLock) {
+    console.log("Inference already running, adding request to queue");
+    return new Promise((resolve, reject) => {
+      VisionModelFactory.requestQueue.push({
+        imageData,
+        timestamp,
+        instruction,
+        onTextUpdate,
+        resolve,
+        reject,
+      });
+    });
+  }
+
+  VisionModelFactory.inferenceLock = true;
+  const result = await processInference(imageData, timestamp, instruction, onTextUpdate);
+  processNextInQueue();
+  return result;
 }
 
 export function onModelInferenceError(error: VisionError): VisionResult {

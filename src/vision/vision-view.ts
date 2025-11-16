@@ -24,37 +24,41 @@ export class VisionView {
       return;
     }
     this.show()
-    this.#clearResult();
     this.displayResult(result);
-  }
-
-  #clearResult(): void {
-    if (this.#resultContainer) {
-      this.#resultContainer.innerHTML = '';
-    }
-  }
-
-  #escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 
   private displayResult(result: FrameSample): void {
     if (!this.#resultContainer) return;
-    const escapedText = this.#escapeHtml(result.text!);
-    const resultHTML = `
-      <div class="vision-result-item" style="padding: 10px; margin-bottom: 5px;">
-        <div class="result-text" style="font-size: 14px; line-height: 1.5;">
-          ${escapedText}
-        </div>
-        ${result.timestamp ? `<div class="result-timestamp" style="font-size: 12px; color: #666; margin-top: 5px;">
-          ${new Date(result.timestamp).toLocaleTimeString()}
-        </div>` : ''}
-      </div>
-    `;
-
-    this.#resultContainer.insertAdjacentHTML('beforeend', resultHTML);
+    
+    const itemContainer = document.createElement('div');
+    itemContainer.className = 'vision-result-item';
+    itemContainer.style.cssText = 'padding: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee;';
+    
+    const imageCanvas = document.createElement('canvas');
+    imageCanvas.width = result.imageData.width;
+    imageCanvas.height = result.imageData.height;
+    imageCanvas.style.cssText = 'max-width: 50%; height: auto; display: block; margin-bottom: 10px; border-radius: 4px;';
+    
+    const ctx = imageCanvas.getContext('2d');
+    if (ctx) {
+      ctx.putImageData(result.imageData, 0, 0);
+    }
+    
+    const timestampDiv = document.createElement('div');
+    timestampDiv.className = 'result-timestamp';
+    timestampDiv.style.cssText = 'font-size: 12px; color: #666; margin-bottom: 5px;';
+    timestampDiv.textContent = `Timestamp: ${result.timestamp.toFixed(2)}s`;
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'result-text';
+    textDiv.style.cssText = 'font-size: 14px; line-height: 1.5; color: #fff;';
+    textDiv.textContent = result.text || '';
+    
+    itemContainer.appendChild(imageCanvas);
+    itemContainer.appendChild(timestampDiv);
+    itemContainer.appendChild(textDiv);
+    
+    this.#resultContainer.appendChild(itemContainer);
   }
 
   private show(): void {

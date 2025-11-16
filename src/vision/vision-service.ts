@@ -1,17 +1,8 @@
-import { VisionView } from './vision-view.js';
-import {
-  WorkerResponseMessage,
-  VisionResult,
-  VisionServiceConfig,
-  VisionResultCallback,
-  SampleExtractorConfig, SamplingStrategy, FrameSample
-} from './types.js';
-import { getEventBus, VisionAnalysisCompleteEvent } from '@/common/event-bus';
+import {VisionView} from './vision-view.js';
+import {FrameSample, VisionResult, WorkerResponseMessage} from './types.js';
+import {getEventBus, VisionAnalysisCompleteEvent} from '@/common/event-bus';
 import {AbstractMedia} from "@/media";
-import { SampleExtractor } from './sample-extractor.js';
-import {ComparisonMethod} from "@/vision/frame-comparator";
-import {displaySamples} from "@/vision/sample-display";
-
+import {SampleExtractor} from './sample-extractor.js';
 
 
 export class VisionService {
@@ -21,18 +12,12 @@ export class VisionService {
   #sampleExtractor: SampleExtractor;
   private timestampToSample = new Map<number, FrameSample>();
 
-  constructor() {
+  constructor(sampleExtractor: SampleExtractor ) {
     this.#worker = new Worker(new URL("./worker.js", import.meta.url), {
       type: "module",
     });
     this.#visionView = new VisionView();
-    this.#sampleExtractor = new SampleExtractor({
-      strategy: SamplingStrategy.SCENE_CHANGE,
-      maxSamples: 100,
-      minSamples: 5,
-      similarityThreshold: 0.20,
-      comparisonMethod: ComparisonMethod.HISTOGRAM
-    });
+    this.#sampleExtractor = sampleExtractor ;
     this.#addEventListener();
   }
 
@@ -76,10 +61,10 @@ export class VisionService {
   #onAnalysisComplete(data: VisionResult): void {
     console.log("Vision analysis complete:", data);
 
-    this.#visionView.updateResult(data as FrameSample);
     const result = this.timestampToSample.get(data.timestamp!);
     if (result) {
       result.text = data.text!;
+      this.#visionView.updateResult(result);
       this.#eventBus.emit(new VisionAnalysisCompleteEvent(result));
       return
     }
@@ -110,7 +95,6 @@ export class VisionService {
     try {
       console.log("Extracting smart samples from video...");
       const samples = await this.#sampleExtractor.extractSamples(media);
-
       samples.forEach(sample => {
         this.timestampToSample.set(sample.timestamp, sample);
       });
@@ -124,10 +108,8 @@ export class VisionService {
       for (const sample of samples) {
         const enhancedInstruction = `${instruction} [Frame at ${(sample.timestamp / 1000).toFixed(2)}s]`;
         this.analyzeImage(sample, enhancedInstruction);
-
         await this.#delay(500);
       }
-      displaySamples(samples);
     } catch (error) {
       console.error("Error analyzing video:", error);
     }

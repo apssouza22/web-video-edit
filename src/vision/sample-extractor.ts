@@ -3,7 +3,7 @@ import {ComparisonMethod, FrameComparator} from './frame-comparator.js';
 import {Canvas2DRender} from '@/common/render-2d';
 import type {FrameSample, SampleExtractorConfig} from './types.js';
 import {SamplingStrategy as Strategy} from './types.js';
-import {SampleDisplay} from './sample-display.js';
+
 
 export class SampleExtractor {
   #config: Required<SampleExtractorConfig>;
@@ -49,9 +49,7 @@ export class SampleExtractor {
 
   async #extractTimeBasedSamples(media: AbstractMedia): Promise<FrameSample[]> {
     const samples: FrameSample[] = [];
-    const durationSeconds = media.totalTimeInMilSeconds / 1000;
     const intervalMs = this.#config.intervalSeconds * 1000;
-
     let currentTime = media.start_time;
     const endTime = media.start_time + media.totalTimeInMilSeconds;
 
@@ -78,32 +76,22 @@ export class SampleExtractor {
     for (let i = 0; i < totalFrames && samples.length < this.#config.maxSamples; i += sampleEvery) {
       const time = media.start_time + (i * (media.totalTimeInMilSeconds / totalFrames));
       const imageData = await this.#extractFrameAtTime(media, time);
-
       if (!imageData) continue;
-
       if (!previousImageData) {
-        samples.push({
-          imageData,
-          timestamp: time,
-          frameIndex: i
-        });
+        samples.push({imageData, timestamp: time});
         previousImageData = imageData;
-      } else {
-        const comparison = this.#comparator.compare(
-            previousImageData,
-            imageData,
-            this.#config.comparisonMethod as ComparisonMethod
-        );
-
-        if (comparison.isDifferent) {
-          samples.push({
-            imageData,
-            timestamp: time,
-            frameIndex: i
-          });
-          previousImageData = imageData;
-        }
+        continue;
       }
+      const comparison = this.#comparator.compare(
+          previousImageData,
+          imageData,
+          this.#config.comparisonMethod as ComparisonMethod
+      );
+      if (comparison.isDifferent) {
+        samples.push({imageData, timestamp: time});
+        previousImageData = imageData;
+      }
+
     }
 
     return this.#ensureMinimumSamples(samples, media);
@@ -111,7 +99,6 @@ export class SampleExtractor {
 
   async #extractAdaptiveSamples(media: AbstractMedia): Promise<FrameSample[]> {
     const samples: FrameSample[] = [];
-    const totalFrames = media.framesCollection.getLength();
     const durationSeconds = media.totalTimeInMilSeconds / 1000;
 
     const minInterval = Math.max(1, durationSeconds / this.#config.maxSamples);
@@ -124,11 +111,7 @@ export class SampleExtractor {
 
     const firstFrame = await this.#extractFrameAtTime(media, currentTime);
     if (firstFrame) {
-      samples.push({
-        imageData: firstFrame,
-        timestamp: currentTime,
-        frameIndex: 0
-      });
+      samples.push({imageData: firstFrame, timestamp: currentTime});
     }
 
     currentTime += currentInterval * 1000;
@@ -140,27 +123,19 @@ export class SampleExtractor {
         const isDifferent = this.#isDifferentFromPrevious(imageData);
 
         if (isDifferent) {
-          const frameIndex = media.framesCollection.getIndex(currentTime, media.start_time);
-          samples.push({
-            imageData,
-            timestamp: currentTime,
-            frameIndex
-          });
-
+          samples.push({imageData, timestamp: currentTime});
           consecutiveSimilar = 0;
           currentInterval = Math.max(minInterval, currentInterval * 0.8);
-        } else {
-          consecutiveSimilar++;
+          continue;
+        }
+        consecutiveSimilar++;
 
-          if (consecutiveSimilar > 2) {
-            currentInterval = Math.min(maxInterval, currentInterval * 1.5);
-          }
+        if (consecutiveSimilar > 2) {
+          currentInterval = Math.min(maxInterval, currentInterval * 1.5);
         }
       }
-
       currentTime += currentInterval * 1000;
     }
-
     return this.#ensureMinimumSamples(samples, media);
   }
 
@@ -179,7 +154,6 @@ export class SampleExtractor {
         samples.push({
           imageData,
           timestamp: time,
-          frameIndex
         });
       }
     }
@@ -203,7 +177,6 @@ export class SampleExtractor {
       this.#previousSamples.push({
         imageData,
         timestamp: 0,
-        frameIndex: 0
       });
       return true;
     }
@@ -219,7 +192,6 @@ export class SampleExtractor {
       this.#previousSamples.push({
         imageData,
         timestamp: 0,
-        frameIndex: 0
       });
       return true;
     }
@@ -250,7 +222,6 @@ export class SampleExtractor {
           samples.push({
             imageData,
             timestamp: time,
-            frameIndex
           });
         }
       }
@@ -287,16 +258,6 @@ export class SampleExtractor {
 
   getConfig(): Required<SampleExtractorConfig> {
     return {...this.#config};
-  }
-
-  displaySamples(samples: FrameSample[], options?: {
-    title?: string;
-    maxThumbnailWidth?: number;
-    maxThumbnailHeight?: number;
-  }): SampleDisplay {
-    const display = new SampleDisplay();
-    display.displaySamples(samples, options);
-    return display;
   }
 }
 
