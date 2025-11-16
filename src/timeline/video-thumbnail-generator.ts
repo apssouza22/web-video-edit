@@ -19,7 +19,7 @@ export class VideoThumbnailGenerator {
     this.#thumbnailHeight = thumbnailHeight;
   }
 
-  async generateThumbnail(frameIndex: number): Promise<HTMLCanvasElement | null> {
+  async #generateThumbnail(frameIndex: number): Promise<HTMLCanvasElement | null> {
     const cached = this.#thumbnailCache.get(frameIndex);
     if (cached) {
       return cached;
@@ -54,7 +54,6 @@ export class VideoThumbnailGenerator {
 
       this.#thumbnailCache.set(frameIndex, canvas);
       this.#generationQueue.delete(frameIndex);
-
       return canvas;
     } catch (error) {
       console.error(`Error generating thumbnail for frame ${frameIndex}:`, error);
@@ -67,16 +66,14 @@ export class VideoThumbnailGenerator {
     if (this.#isGenerating) {
       return;
     }
-
     this.#isGenerating = true;
-
     for (const frameIndex of frameIndices) {
       if (!this.#thumbnailCache.has(frameIndex) && !this.#generationQueue.has(frameIndex)) {
-        await this.generateThumbnail(frameIndex);
+        await this.#generateThumbnail(frameIndex);
+        // avoid hanging the main thread
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
     }
-
     this.#isGenerating = false;
   }
 
@@ -84,29 +81,9 @@ export class VideoThumbnailGenerator {
     return this.#thumbnailCache.get(frameIndex) || null;
   }
 
-  hasThumbnail(frameIndex: number): boolean {
-    return this.#thumbnailCache.has(frameIndex);
-  }
-
-  clearCache(): void {
+  cleanup(): void {
     this.#thumbnailCache.clear();
     this.#generationQueue.clear();
-  }
-
-  getCacheSize(): number {
-    return this.#thumbnailCache.size;
-  }
-
-  setThumbnailSize(width: number, height: number): void {
-    if (width !== this.#thumbnailWidth || height !== this.#thumbnailHeight) {
-      this.#thumbnailWidth = width;
-      this.#thumbnailHeight = height;
-      this.clearCache();
-    }
-  }
-
-  cleanup(): void {
-    this.clearCache();
     this.#isGenerating = false;
   }
 }

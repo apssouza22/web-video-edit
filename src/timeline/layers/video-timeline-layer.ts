@@ -1,7 +1,6 @@
 import {TimelineLayer} from '../timeline-layer';
 import {VideoThumbnailGenerator} from '../video-thumbnail-generator';
 import type {VideoMedia} from '@/media/video';
-import {MediaInterface} from "@/timeline/types";
 
 export class VideoTimelineLayer extends TimelineLayer {
   #thumbnailsInitialized: boolean = false;
@@ -9,9 +8,9 @@ export class VideoTimelineLayer extends TimelineLayer {
   #lastThumbnailCount: number = 0;
   #thumbnailGenerator: VideoThumbnailGenerator;
 
-  constructor(ctx: CanvasRenderingContext2D, media: MediaInterface, totalTime: number, canvasWidth: number) {
+  constructor(ctx: CanvasRenderingContext2D, media: VideoMedia, totalTime: number, canvasWidth: number) {
     super(ctx, media, totalTime, canvasWidth);
-    this.#thumbnailGenerator = new VideoThumbnailGenerator(media as VideoMedia);
+    this.#thumbnailGenerator = new VideoThumbnailGenerator(media);
   }
 
   getLayerColors() {
@@ -78,21 +77,13 @@ export class VideoTimelineLayer extends TimelineLayer {
       const frameIndex = this.#thumbnailIndices[i];
       const thumbnail = this.#thumbnailGenerator.getThumbnail(frameIndex);
       if (thumbnail) {
-        this.ctx.drawImage(
-            thumbnail,
-            currentX,
-            thumbnailY,
-            thumbnailWidth,
-            thumbnailHeight
-        );
+        this.ctx.drawImage(thumbnail, currentX, thumbnailY, thumbnailWidth, thumbnailHeight);
         this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
         this.ctx.lineWidth = 1;
         this.ctx.strokeRect(currentX, thumbnailY, thumbnailWidth, thumbnailHeight);
       }
-
       currentX += thumbnailWidth + thumbnailSpacing;
     }
-
     this.ctx.restore();
   }
 
