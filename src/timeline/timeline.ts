@@ -1,6 +1,5 @@
 import {TimeMarker} from './time-marker';
 import {TimelineZoomHandler} from './zoom';
-import {PreviewHandler} from './preview';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
 import {dpr} from '@/constants';
@@ -28,7 +27,6 @@ export class Timeline {
   contentPadding: number;
   timeMarker: TimeMarker;
   layerRenderer: TimelineLayerRender;
-  previewHandler: PreviewHandler;
   dragHandler: DragLayerHandler;
   timeUpdateListener: ((hoverTime: number, playerTime: number) => void) = () => {
   };
@@ -66,8 +64,6 @@ export class Timeline {
         this.totalTime,
         this.timelineCanvas.clientWidth
     );
-
-    this.previewHandler = new PreviewHandler();
     this.dragHandler = new DragLayerHandler(this);
     this.zoomHandler = new TimelineZoomHandler(this);
     this.layerUpdateListener = () => {
@@ -237,13 +233,8 @@ export class Timeline {
     this.isHover = true;
     let rect = this.timelineCanvas.getBoundingClientRect();
     let time = ev.offsetX / rect.width * this.totalTime;
-
-    // Update cursor based on drag mode and hover state
     this.#updateCursor(time);
-
-    this.previewHandler.updatePreview(ev, this.timelineHolder, time, this.totalTime);
     this.dragHandler.updateDrag(time, this.selectedLayer!, ev.offsetX, ev.offsetY);
-
     this.setTime(time);
   }
 
@@ -290,16 +281,12 @@ export class Timeline {
   #onPointerLeave() {
     document.body.style.cursor = "default";
     this.timelineCanvas.className = "";
-    this.previewHandler.previewHolder.style.display = "none";
-
     // Finish drag operation and check if reordering occurred
     const reorderOccurred = this.dragHandler.finishDrag();
-
     // If reordering occurred, trigger a re-render
     if (reorderOccurred) {
       this.render();
     }
-
     this.isHover = false;
   }
 
@@ -354,7 +341,6 @@ export class Timeline {
 
     if (this.isHover) {
       this.#renderLineMarker(this.time);
-      this.previewHandler.render(this.time, this.layers);
     }
 
     this.dragHandler.renderFeedback(this.timelineCtx);

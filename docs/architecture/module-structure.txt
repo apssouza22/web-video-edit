@@ -34,7 +34,6 @@ flowchart TB
         TLLayer["timeline-layer.ts"]
         TLFactory["timeline-layer-factory.ts"]
         TLRender["tllayer-render.ts"]
-        TLPreview["preview.ts"]
         TLDrag["drag.ts"]
         TLZoom["zoom.ts"]
         TimeMarker["time-marker.ts"]
@@ -98,7 +97,7 @@ flowchart TB
     subgraph s12["record/"]
         RecordService["service.ts<br>UserMediaRecordingService"]
         RecordControls["controls.ts"]
-        RecordPreview["preview.ts"]
+
         RecordIndex["index.ts"]
     end
     subgraph s13["transcription/"]
