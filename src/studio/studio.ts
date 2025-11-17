@@ -126,7 +126,7 @@ export class VideoStudio {
 
   reorderLayer(fromIndex: number, toIndex: number) {
     this.studioState.reorderLayer(fromIndex, toIndex);
-    this.player.addMedias(this.getMedias());
+    this.player.addLayers(this.getMedias());
     this.timeline.addLayers(this.getMedias());
   }
 
@@ -255,7 +255,7 @@ export class VideoStudio {
       this.update = null;
     }
     if (this.medias.length !== this.player.layers.length) {
-      this.player.addMedias(this.getMedias());
+      this.player.addLayers(this.getMedias());
       this.timeline.addLayers(this.getMedias());
     }
 
@@ -324,7 +324,7 @@ export class VideoStudio {
     if (progress === 100) {
       this.setSelectedLayer(layer);
       if (isMediaVideo(layer)) {
-        this.visionService.analyzeVideo(layer, "Describe what is happening in this video");
+        this.visionService.analyzeVideo(layer);
       }
     }
     if (audioBuffer) {

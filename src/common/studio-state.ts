@@ -38,7 +38,7 @@ class StudioState {
   }
 
   getMedias(): AbstractMedia[] {
-    return this.medias;
+    return this.medias.slice();
   }
 
   getMediaVideo(): AbstractMedia[] {

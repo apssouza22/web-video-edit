@@ -73,7 +73,8 @@ export class VisionService {
     this.#worker.postMessage({ task: "load-model" });
   }
 
-  private analyzeImage(sample: FrameSample, instruction: string): void {
+  async analyzeVideo(media: AbstractMedia): Promise<void> {
+    const instruction = "Describe the image in detail. Include all people, objects, and actions. Respond in 50 words or less.";
     // if (window.location.hostname === "localhost") {
     //   console.warn("Using mocked vision data for local development.");
     //   const data = this.#getMockedData(instruction);
@@ -81,15 +82,6 @@ export class VisionService {
     //   return;
     // }
 
-    this.#worker.postMessage({
-      task: "analyze-image",
-      imageData: sample.imageData,
-      timestamp: sample.timestamp,
-      instruction: instruction
-    });
-  }
-
-  async analyzeVideo(media: AbstractMedia, instruction: string): Promise<void> {
     try {
       console.log("Extracting smart samples from video...");
       const samples = await this.#sampleExtractor.extractSamples(media);
@@ -105,7 +97,12 @@ export class VisionService {
 
       for (const sample of samples) {
         const enhancedInstruction = `${instruction} [Frame at ${(sample.timestamp / 1000).toFixed(2)}s]`;
-        this.analyzeImage(sample, enhancedInstruction);
+        this.#worker.postMessage({
+          task: "analyze-image",
+          imageData: sample.imageData,
+          timestamp: sample.timestamp,
+          instruction: enhancedInstruction
+        });
         await this.#delay(500);
       }
     } catch (error) {
@@ -120,7 +117,7 @@ export class VisionService {
   #getMockedData(instruction: string): VisionResult {
     return {
       text: `Mocked response for instruction: "${instruction}". This is a placeholder description of the image content.`,
-      timestamp: Date.now()
+      timestamp: 0.3,
     };
   }
 }

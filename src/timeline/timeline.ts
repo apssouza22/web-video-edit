@@ -207,7 +207,6 @@ export class Timeline {
   /**
    * Handle scrubbing movement
    * @param {Event} ev - The pointer event
-   * @returns {number} - The current time position
    */
   #onPointerMove(ev: PointerEvent) {
     ev.preventDefault();

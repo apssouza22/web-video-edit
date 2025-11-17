@@ -53,8 +53,8 @@ export class VideoCanvas {
     }
   }
 
-  addMedias(medias: AbstractMedia[]): void {
-    this.layers = medias.map(layer => {
+  addLayers(layers: AbstractMedia[]): void {
+    this.layers = layers.map(layer => {
       const playerLayer = new CanvasLayer(layer, this.canvas);
       if (this.#selectedLayer === layer) {
         playerLayer.selected = true;
