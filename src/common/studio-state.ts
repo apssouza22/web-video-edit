@@ -70,6 +70,11 @@ class StudioState {
   getMinVideoSizes(): { width: number, height: number } {
     return {width: this.minWidth, height: this.minHeight};
   }
+
+  reorderLayer(fromIndex: number, toIndex: number) {
+    const layer = this.medias.splice(fromIndex, 1)[0];
+    this.medias.splice(toIndex, 0, layer);
+  }
 }
 
 export const studioState = StudioState.getInstance();

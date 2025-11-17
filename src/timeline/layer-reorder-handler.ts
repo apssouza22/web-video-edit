@@ -1,13 +1,13 @@
 /**
  * Handles media reordering through vertical drag operations in the timeline
  */
-import type { MediaInterface } from './types';
 import {Timeline} from "./timeline";
+import {AbstractMedia} from "@/media";
 
 export class LayerReorderHandler {
-  timeline: any; // Uses properties from Timeline; avoid circular types
+  timeline: Timeline;
   isDragging: boolean;
-  draggedLayer: MediaInterface | null;
+  draggedLayer: AbstractMedia | null;
   dragStartY: number;
   currentDropIndex: number;
   dropZones: Array<{ y: number; index: number; isTop: boolean }>;
@@ -31,7 +31,7 @@ export class LayerReorderHandler {
    * @param {MediaInterface} layer - The media being dragged
    * @param {number} startY - Initial Y coordinate
    */
-  startReorder(layer: MediaInterface, startY: number) {
+  startReorder(layer: AbstractMedia, startY: number) {
     this.isDragging = true;
     this.draggedLayer = layer;
     this.dragStartY = startY;
@@ -62,7 +62,7 @@ export class LayerReorderHandler {
     }
 
     const originalIndex = this.#findCurrentLayerIndex(this.draggedLayer!);
-    
+
     if (originalIndex !== this.currentDropIndex && this.currentDropIndex >= 0) {
       this.#reorderLayer(originalIndex, this.currentDropIndex);
       this.#resetDrag();
@@ -71,13 +71,6 @@ export class LayerReorderHandler {
 
     this.#resetDrag();
     return false;
-  }
-
-  /**
-   * Cancel the current drag operation
-   */
-  cancelReorder() {
-    this.#resetDrag();
   }
 
   /**
@@ -107,7 +100,7 @@ export class LayerReorderHandler {
     for (let i = 0; i < layers.length; i++) {
       const layerHeight = this.timeline.getLayerHeight(layers[i]);
       const layerSpacing = this.timeline.minLayerSpacing + layerHeight;
-      
+
       yPos += layerSpacing;
       if (i < layers.length - 1) {
         this.dropZones.push({
@@ -132,7 +125,7 @@ export class LayerReorderHandler {
    * @returns {number} - Drop index
    * @private
    */
-  #calculateDropIndex(currentY: number) {
+  #calculateDropIndex(currentY: number): number {
     let closestIndex = -1;
     let closestDistance = Infinity;
 
@@ -159,7 +152,7 @@ export class LayerReorderHandler {
    * @returns {number} - Layer index
    * @private
    */
-  #findCurrentLayerIndex(layer: MediaInterface) {
+  #findCurrentLayerIndex(layer: AbstractMedia): number {
     return this.timeline.layers.indexOf(layer);
   }
 
@@ -167,18 +160,12 @@ export class LayerReorderHandler {
   #reorderLayer(fromIndex: number, toIndex: number) {
     const layers = this.timeline.layers;
     const layer = layers.splice(fromIndex, 1)[0];
-    
+
     // Adjust target index if we removed an element before it
     const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
     layers.splice(adjustedToIndex, 0, layer);
 
-    // Notify the timeline about the reorder
-    if (this.timeline.layerUpdateListener) {
-      this.timeline.layerUpdateListener('reorder', layer, null, { 
-        fromIndex, 
-        toIndex: adjustedToIndex 
-      });
-    }
+    this.timeline.updateLayersOrder(layer, fromIndex, adjustedToIndex);
   }
 
   /**
@@ -188,21 +175,21 @@ export class LayerReorderHandler {
    */
   #renderDropZones(ctx: CanvasRenderingContext2D) {
     const activeDropIndex = this.currentDropIndex;
-    
+
     for (let i = 0; i < this.dropZones.length; i++) {
       const zone = this.dropZones[i];
       const isActive = zone.index === activeDropIndex;
-      
+
       ctx.strokeStyle = isActive ? 'rgba(0, 150, 255, 0.8)' : 'rgba(100, 100, 100, 0.3)';
       ctx.lineWidth = isActive ? 3 : 1;
       ctx.setLineDash(isActive ? [] : [5, 5]);
-      
+
       ctx.beginPath();
       ctx.moveTo(0, zone.y);
       ctx.lineTo(this.timeline.timelineCanvas.clientWidth, zone.y);
       ctx.stroke();
     }
-    
+
     ctx.setLineDash([]); // Reset line dash
   }
 
@@ -216,21 +203,21 @@ export class LayerReorderHandler {
 
     const layerHeight = this.timeline.getLayerHeight(this.draggedLayer);
     const previewY = this.layerPreviewY;
-    
+
     // Semi-transparent background
     ctx.fillStyle = 'rgba(0, 150, 255, 0.2)';
-    ctx.fillRect(0, previewY - layerHeight / 2, 
-                this.timeline.timelineCanvas.clientWidth, layerHeight);
-    
+    ctx.fillRect(0, previewY - layerHeight / 2,
+        this.timeline.timelineCanvas.clientWidth, layerHeight);
+
     // Border
     ctx.strokeStyle = 'rgba(0, 150, 255, 0.6)';
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
-    ctx.strokeRect(0, previewY - layerHeight / 2, 
-                  this.timeline.timelineCanvas.clientWidth, layerHeight);
-    
+    ctx.strokeRect(0, previewY - layerHeight / 2,
+        this.timeline.timelineCanvas.clientWidth, layerHeight);
+
     ctx.setLineDash([]); // Reset line dash
-    
+
     // Layer name
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.font = '12px Arial';

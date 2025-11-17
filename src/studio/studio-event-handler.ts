@@ -11,13 +11,14 @@ import {
 } from '@/common/event-bus';
 import {VideoStudio} from "@/studio/studio";
 import {MediaOps} from "@/studio/media-ops";
+import {StudioState} from "@/common";
 
 export class StudioEventHandler {
   #studio: VideoStudio;
   #eventBus = getEventBus();
   #eventUnsubscribers: (() => void)[] = [];
   private mediaControls: MediaOps;
-
+  #studioState = StudioState.getInstance();
   constructor(studio: VideoStudio, mediaControls: MediaOps) {
     this.#studio = studio;
     this.mediaControls = mediaControls;
@@ -26,7 +27,7 @@ export class StudioEventHandler {
   init(): void {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(PlayerTimeUpdateEvent, (event) => {
-        this.#studio.studioState.setPlayingTime(event.newTime);
+        this.#studioState.setPlayingTime(event.newTime);
         this.#studio.timeline.playerTime = event.newTime;
         this.#studio.transcriptionManager.highlightChunksByTime(event.newTime / 1000);
       })
@@ -35,7 +36,7 @@ export class StudioEventHandler {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(TimelineTimeUpdateEvent, (event) => {
         if (!this.#studio.player.playing) {
-          this.#studio.studioState.setPlayingTime(event.newTime);
+          this.#studioState.setPlayingTime(event.newTime);
           this.#studio.player.setTime(event.newTime);
         }
       })
@@ -57,7 +58,7 @@ export class StudioEventHandler {
           this.mediaControls.split();
         } else if (event.action === 'reorder') {
           if (event.extra) {
-            console.log(`Layer "${media.name}" reordered from index ${event.extra.fromIndex} to ${event.extra.toIndex}`);
+            this.#studioState.reorderLayer(event.extra.fromIndex, event.extra.toIndex);
           }
         }
       })
@@ -73,7 +74,7 @@ export class StudioEventHandler {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(TranscriptionSeekEvent, (event) => {
         const newTime = event.timestamp * 1000;
-        this.#studio.studioState.setPlayingTime(newTime);
+        this.#studioState.setPlayingTime(newTime);
         this.#studio.player.pause();
         this.#studio.player.setTime(newTime);
         this.#studio.player.play();

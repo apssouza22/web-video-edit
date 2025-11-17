@@ -85,16 +85,8 @@ export class Timeline {
     this.#eventBus.emit(new TimelineTimeUpdateEvent(this.time, this.playerTime));
   }
 
-  /**
-   * Add a listener for media updates
-   * @param {Function} listener - Function to call when media updates occur
-   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TIMELINE_LAYER_UPDATE, handler)
-   */
-  addLayerUpdateListener(listener: (kind: LayerUpdateKind, layer: MediaInterface, oldLayer?: MediaInterface, extra?: any) => void) {
-    if (typeof listener !== 'function') {
-      throw new Error('Layer update listener must be a function');
-    }
-    this.layerUpdateListener = listener;
+  public updateLayersOrder(media: AbstractMedia, fromIndex: number, toIndex: number) {
+    this.#eventBus.emit(new TimelineLayerUpdateEvent('select', media, undefined, {fromIndex, toIndex}));
   }
 
   /**
@@ -114,16 +106,6 @@ export class Timeline {
     }
     this.layerUpdateListener('select', newSelectedLayer);
     this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer));
-  }
-
-  /**
-   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TIMELINE_TIME_UPDATE, handler)
-   */
-  addTimeUpdateListener(listener: (hoverTime: number, playerTime: number) => void) {
-    if (typeof listener !== 'function') {
-      throw new Error('Time update listener must be a function');
-    }
-    this.timeUpdateListener = listener
   }
 
   #setupPinchHandler() {
@@ -327,12 +309,12 @@ export class Timeline {
     for (let layer of this.layers) {
       const layerHeight = this.getLayerHeight(layer);
       const layerSpacing = this.minLayerSpacing + layerHeight;
-      
+
       yPos += layerSpacing / 2;
-      
+
       let selected = this.selectedLayer === layer;
       this.layerRenderer.renderLayer(layer, yPos, layerHeight, selected);
-      
+
       yPos += layerSpacing / 2;
     }
 
@@ -357,7 +339,7 @@ export class Timeline {
     for (let layer of this.layers) {
       const layerHeight = this.getLayerHeight(layer);
       const layerSpacing = this.minLayerSpacing + layerHeight;
-      
+
       yPos += layerSpacing / 2;
 
       if (!this.#canSelectLayer(layer)) {
