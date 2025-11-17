@@ -18,6 +18,7 @@ export class ImageMedia extends FlexibleLayer {
           this.width = this.img.naturalWidth;
           this.height = this.img.naturalHeight;
           this.ready = true;
+          this.renderer.setSize(this.width, this.height);
           this.loadUpdateListener(this, 100, this.ctx);
         }).bind(this));
       }
@@ -33,44 +34,20 @@ export class ImageMedia extends FlexibleLayer {
     if (!this.isLayerVisible(currentTime)) {
       return;
     }
-    
+
     // Check if we need to re-render this frame
     if (!this.shouldReRender(currentTime)) {
       this.drawScaled(this.ctx, ctx_out);
       return;
     }
 
-    const {f, scale, x, y} = await this.getLayerCoordinates(currentTime);
-    if (f) {
-      this.renderer.clearRect();
-      this.renderer.drawImage(
-        this.img, 
-        0, 0, 
-        this.width, this.height, 
-        x, y, 
-        scale * this.width, 
-        scale * this.height
-      );
-      this.drawScaled(this.ctx, ctx_out);
-      this.updateRenderCache(currentTime);
+    const frame = await this.getFrame(currentTime);
+    if (!frame) {
+      return;
     }
-  }
-
-  private async getLayerCoordinates(currentTime: number): Promise<LayerCoordinates> {
-    const f =  await this.getFrame(currentTime);
-    if (!f) {
-      return {
-        f: new Frame(),
-        scale: 1,
-        x: 0,
-        y: 0
-      };
-    }
-    
-    const scale = f.scale;
-    const x = f.x + this.renderer.width / 2 - this.width / 2;
-    const y = f.y + this.renderer.height / 2 - this.height / 2;
-    
-    return {f, scale, x, y};
+    frame.videoData = this.img;
+    this.renderer.drawFrame(frame)
+    this.drawScaled(this.ctx, ctx_out);
+    this.updateRenderCache(currentTime);
   }
 }

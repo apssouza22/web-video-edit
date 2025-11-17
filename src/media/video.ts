@@ -80,17 +80,7 @@ export class VideoMedia extends AbstractMedia {
     if (!videoFrame) {
       return;
     }
-    const x = videoFrame.x + this.renderer.width / 2 - this.width / 2;
-    const y = videoFrame.y + this.renderer.height / 2 - this.height / 2;
-    this.renderer.clearRect();
-    this.renderer.drawImage(
-        videoFrame.videoData as VideoFrame,
-        0, 0,
-        this.width, this.height,
-        x, y,
-        videoFrame.scale * this.width,
-        videoFrame.scale * this.height
-    );
+    this.renderer.drawFrame(videoFrame)
     this.drawScaled(this.renderer.context, ctxOut);
     this.updateRenderCache(currentTime);
   }

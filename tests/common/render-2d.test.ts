@@ -4,6 +4,7 @@ import {beforeEach, describe, expect, jest, test } from '@jest/globals';
 const { Canvas2DRender } = await import('@/common/render-2d');
 
 describe('Canvas2DRender', () => {
+  // @ts-ignore
   let render: Canvas2DRender;
 
   beforeEach(() => {

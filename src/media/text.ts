@@ -35,14 +35,14 @@ export class TextMedia extends FlexibleLayer {
     if (!this.isLayerVisible(refTime)) {
       return;
     }
-    
-    const frame = await this.getFrame(refTime);
-    if (!frame) {
-      return;
-    }
-    
+
     if (!this.shouldReRender(refTime)) {
       this.drawScaled(this.ctx, ctxOut);
+      return;
+    }
+
+    const frame = await this.getFrame(refTime);
+    if (!frame) {
       return;
     }
 

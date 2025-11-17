@@ -9,7 +9,7 @@ export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRen
 export class Canvas2DRender{
   // @ts-ignore
   #canvas: HTMLCanvasElement | OffscreenCanvas;
-  // @ts-ignore
+
   #ctx: ESRenderingContext2D;
   #transferable: OffscreenCanvas | null = null;
 
@@ -18,14 +18,10 @@ export class Canvas2DRender{
       this.#canvas = canvas.transferControlToOffscreen();
       this.#ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     } else {
-      this.#createCanvas();
+      this.#canvas = document.createElement('canvas');
+      this.#transferable = document.createElement('canvas').transferControlToOffscreen();
+      this.#ctx = this.#canvas.getContext('2d', { willReadFrequently: true })!;
     }
-  }
-
-  #createCanvas(): void {
-    this.#canvas = document.createElement('canvas');
-    this.#transferable = document.createElement('canvas').transferControlToOffscreen();
-    this.#ctx = this.#canvas.getContext('2d', { willReadFrequently: true })!;
   }
 
   get canvas(): HTMLCanvasElement | OffscreenCanvas {
@@ -78,7 +74,21 @@ export class Canvas2DRender{
     this.#ctx.clearRect(x, y, w, h);
   }
 
-  drawImage(
+  drawFrame(frame:Frame): void {
+    const x = frame.x + this.width / 2 - this.width / 2;
+    const y = frame.y + this.height / 2 - this.height / 2;
+    this.clearRect();
+    this.#drawImage(
+        frame.videoData as VideoFrame,
+        0, 0,
+        this.width, this.height,
+        x, y,
+        frame.scale * this.width,
+        frame.scale * this.height
+    );
+  }
+
+  #drawImage(
     image: CanvasImageSource, 
     sx: number, 
     sy: number, 
@@ -100,11 +110,6 @@ export class Canvas2DRender{
     }
   }
 
-
-  putImageData(imageData: ImageData, dx: number, dy: number): void {
-    if (!this.#ctx) return;
-    this.#ctx.putImageData(imageData, dx, dy);
-  }
 
   getImageData(sx: number = 0, sy: number = 0, sw: number | null = null, sh: number | null = null): ImageData | null {
     if (!this.#ctx || !this.#canvas) return null;

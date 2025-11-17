@@ -59,8 +59,6 @@ export class VisionService {
   }
 
   #onAnalysisComplete(data: VisionResult): void {
-    console.log("Vision analysis complete:", data);
-
     const result = this.timestampToSample.get(data.timestamp!);
     if (result) {
       result.text = data.text!;
