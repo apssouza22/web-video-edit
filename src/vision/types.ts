@@ -20,15 +20,6 @@ export interface ProgressCallbackData {
 
 export type ProgressCallback = (data: ProgressCallbackData) => void;
 
-export interface ModelOptions {
-  dtype?: {
-    embed_tokens?: string;
-    vision_encoder?: string;
-    decoder_model_merged?: string;
-  };
-  device?: string;
-}
-
 export interface WorkerMessageBase {
   task?: string;
   status?: string;
@@ -70,10 +61,8 @@ export interface VisionError extends Error {
 }
 
 export enum SamplingStrategy {
-  TIME_BASED = 'time_based',
   SCENE_CHANGE = 'scene_change',
   ADAPTIVE = 'adaptive',
-  UNIFORM = 'uniform'
 }
 
 export interface FrameSample {
@@ -86,14 +75,6 @@ export interface SampleExtractorConfig {
   strategy?: SamplingStrategy;
   maxSamples?: number;
   minSamples?: number;
-  intervalSeconds?: number;
   similarityThreshold?: number;
   comparisonMethod?: string;
 }
-
-export interface FrameComparisonResult {
-  similarity: number;
-  method: string;
-  isDifferent: boolean;
-}
-

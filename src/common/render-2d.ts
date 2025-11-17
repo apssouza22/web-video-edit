@@ -1,4 +1,5 @@
 import {dpr} from '@/constants';
+import {Frame} from "@/frame";
 
 export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -98,6 +99,7 @@ export class Canvas2DRender{
       this.#ctx.drawImage(image, sx, sy, sWidth, sHeight!, dx, dy!, dWidth!, dHeight!);
     }
   }
+
 
   putImageData(imageData: ImageData, dx: number, dy: number): void {
     if (!this.#ctx) return;

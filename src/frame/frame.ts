@@ -1,21 +1,22 @@
-import { FrameReference, FrameTransform, FrameData } from './types';
+import { VideoData, FrameTransform } from './types';
+import {videoFrameToImageData} from "@/common/video-to-image";
 
 /**
  * Represents a single frame with transformation properties
  */
-export class Frame implements FrameData {
+export class Frame implements FrameTransform {
     public x: number;
     public y: number;
     public scale: number;
     public rotation: number;
     public anchor: boolean;
-    public frameObject: FrameReference;
+    public videoData: VideoData;
 
     /**
      * Creates a new Frame instance
      */
     constructor(
-        frame: FrameReference = null,
+        frame: VideoData = null,
         x: number = 0,
         y: number = 0,
         scale: number = 1,
@@ -27,13 +28,13 @@ export class Frame implements FrameData {
         this.scale = scale;
         this.rotation = rotation;
         this.anchor = anchor;
-        this.frameObject = frame;
+        this.videoData = frame;
     }
 
     /**
      * Creates a Frame from a Float32Array (for backward compatibility)
      */
-    static fromArray(array: Float32Array, frame: FrameReference = null): Frame {
+    static fromArray(array: Float32Array, frame: VideoData = null): Frame {
         return new Frame(
             frame,
             array[0] || 0,    // x
@@ -57,12 +58,23 @@ export class Frame implements FrameData {
         return array;
     }
 
+    async toImageData(): Promise<ImageData | null> {
+        if (this.videoData instanceof ImageData) {
+            return this.videoData;
+        }
+        if (this.videoData instanceof VideoFrame) {
+            return videoFrameToImageData(this.videoData);
+        }
+        return null;
+    }
+
+
     /**
      * Creates a copy of this frame
      */
     clone(): Frame {
         return new Frame(
-            this.frameObject,
+            this.videoData,
             this.x,
             this.y,
             this.scale,
@@ -79,7 +91,7 @@ export class Frame implements FrameData {
         if (weight < 0) weight = 0;
 
         return new Frame(
-            this.frameObject,   // Frame reference stays with the base frameObject
+            this.videoData,   // Frame reference stays with the base frameObject
             this.#lerp(this.x, other.x, weight),
             this.#lerp(this.y, other.y, weight),
             this.#lerp(this.scale, other.scale, weight),

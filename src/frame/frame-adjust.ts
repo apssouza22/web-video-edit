@@ -110,10 +110,10 @@ export class FrameAdjustHandler {
     const lastFrame = this.framesCollection.frames[oldNumFrames - 1];
     
     // Check if the last frameObject is ImageData for special handling
-    if (lastFrame.frameObject instanceof ImageData) {
+    if (lastFrame.videoData instanceof ImageData) {
       // Create copies of the last frameObject to extend the video
       for (let i = 0; i < frameDiff; i++) {
-        const imageData = lastFrame.frameObject as ImageData;
+        const imageData = lastFrame.videoData as ImageData;
         const newImageData = new ImageData(
           new Uint8ClampedArray(imageData.data),
           imageData.width,

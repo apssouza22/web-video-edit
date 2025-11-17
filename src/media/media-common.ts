@@ -233,7 +233,7 @@ export abstract class AbstractMedia {
    * @param time Reference time in milliseconds
    * Returns null if no frame is found
    */
-  getFrame(time: number): Frame | null {
+  async getFrame(time: number): Promise<Frame | null> {
     return this.framesCollection.getFrame(time, this.start_time);
   }
 
