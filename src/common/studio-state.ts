@@ -72,8 +72,10 @@ class StudioState {
   }
 
   reorderLayer(fromIndex: number, toIndex: number) {
+    // Adjust target index if we removed an element before it
+    const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
     const layer = this.medias.splice(fromIndex, 1)[0];
-    this.medias.splice(toIndex, 0, layer);
+    this.medias.splice(adjustedToIndex, 0, layer);
   }
 }
 

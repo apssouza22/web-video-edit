@@ -66,7 +66,7 @@ export class TimelineLayerRender {
    * @param {number} height - The height of the media track
    * @param {boolean} selected - Whether the media is selected
    */
-  renderLayer(layer: MediaInterface, yPos: number, height: number, selected = false) {
+  renderLayer(layer: MediaInterface, yPos: number, height: number, selected: boolean = false) {
     if(layer.totalTimeInMilSeconds === 0) {
       return;
     }

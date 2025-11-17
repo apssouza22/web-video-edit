@@ -85,8 +85,9 @@ export class Timeline {
     this.#eventBus.emit(new TimelineTimeUpdateEvent(this.time, this.playerTime));
   }
 
-  public updateLayersOrder(media: AbstractMedia, fromIndex: number, toIndex: number) {
-    this.#eventBus.emit(new TimelineLayerUpdateEvent('select', media, undefined, {fromIndex, toIndex}));
+  public updateLayersOrder(fromIndex: number, toIndex: number) {
+    const layer = this.layers[fromIndex];
+    this.#eventBus.emit(new TimelineLayerUpdateEvent('reorder', layer, undefined, {fromIndex, toIndex}));
   }
 
   /**
@@ -430,16 +431,5 @@ export class Timeline {
 
     this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     this.timelineCtx.fillText(timeText, textX, textY);
-  }
-
-  /**
-   * Reorder medias in the timeline
-   * @param {MediaInterface} layer - The media that was reordered
-   * @param {Object} reorderData - Contains fromIndex and toIndex
-   */
-  reorderLayer(layer: MediaInterface, reorderData: { fromIndex: number; toIndex: number }) {
-    // The actual reordering is handled by LayerReorderHandler
-    // This method can be used for additional logic if needed
-    console.log(`Layer "${layer.name}" moved from index ${reorderData.fromIndex} to ${reorderData.toIndex}`);
   }
 }

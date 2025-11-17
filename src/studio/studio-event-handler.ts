@@ -58,7 +58,7 @@ export class StudioEventHandler {
           this.mediaControls.split();
         } else if (event.action === 'reorder') {
           if (event.extra) {
-            this.#studioState.reorderLayer(event.extra.fromIndex, event.extra.toIndex);
+            this.#studio.reorderLayer(event.extra.fromIndex, event.extra.toIndex);
           }
         }
       })

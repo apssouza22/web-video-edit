@@ -1,13 +1,11 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, createMediaService, isMediaVideo, MediaService} from '@/media';
+import {AbstractMedia, isMediaVideo, MediaService} from '@/media';
 import {AudioMedia} from '@/media/audio';
 import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
-import {StudioControls} from './controls';
 import {PinchHandler} from '@/common';
 import {DragItemHandler} from './drag-handler';
-import {MediaOps} from './media-ops';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {exportToJson, uploadSupportedType} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
@@ -16,7 +14,6 @@ import {SpeedControlInput} from "./speed-control-input";
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
-import {AudioService, createAudioService} from "@/audio";
 import {createVisionService, VisionService} from "@/vision";
 
 /**
@@ -127,6 +124,12 @@ export class VideoStudio {
     return this.studioState.getMediaById(id);
   }
 
+  reorderLayer(fromIndex: number, toIndex: number) {
+    this.studioState.reorderLayer(fromIndex, toIndex);
+    this.player.addMedias(this.getMedias());
+    this.timeline.addLayers(this.getMedias());
+  }
+
   dumpToJson(): string {
     const out: any[] = [];
     for (const layer of this.getMedias()) {
@@ -183,28 +186,19 @@ export class VideoStudio {
    * Get all medias in the studio
    */
   getMedias(): AbstractMedia[] {
-    return this.medias;
+    return this.studioState.getMedias();
   }
 
   /**
    * Remove a media from the studio
    */
-  remove(layer: AbstractMedia): void {
-    const idx = this.getMedias().indexOf(layer);
-    const len = this.getMedias().length;
+  remove(media: AbstractMedia): void {
+    const idx = this.getMedias().indexOf(media);
     if (idx > -1) {
       this.getMedias().splice(idx, 1);
-      const layer_picker = document.getElementById('layers');
-      if (layer_picker) {
-        // divs are reversed
-        const childToRemove = layer_picker.children[len - idx - 1];
-        if (childToRemove) {
-          childToRemove.remove();
-        }
-      }
     }
-    if (layer instanceof AudioMedia) {
-      layer.disconnect();
+    if (media instanceof AudioMedia) {
+      media.disconnect();
     }
     this.player.total_time = 0;
     for (const layer of this.getMedias()) {
@@ -248,8 +242,8 @@ export class VideoStudio {
   resize(newRatio?: string): void {
     this.player.resize(newRatio);
     this.timeline.resize();
-    this.getMedias().forEach(layer => {
-      layer.resize(this.player.width, this.player.height);
+    this.getMedias().forEach(media => {
+      media.resize(this.player.width, this.player.height);
     })
   }
 
@@ -267,7 +261,6 @@ export class VideoStudio {
 
     this.player.render(realtime)
     this.timeline.render();
-
     window.requestAnimationFrame(this.#loop.bind(this));
   }
 
@@ -294,7 +287,6 @@ export class VideoStudio {
 
   public addLayerFromFile(file: File): AbstractMedia[] {
     const layers = this.mediaLoader.addMediaFromFile(file, this.#onLayerLoadUpdate.bind(this));
-
     layers.forEach(layer => {
       this.loadingPopup.startLoading(layer.id.toString(), file.name);
     })

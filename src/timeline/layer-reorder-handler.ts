@@ -64,7 +64,7 @@ export class LayerReorderHandler {
     const originalIndex = this.#findCurrentLayerIndex(this.draggedLayer!);
 
     if (originalIndex !== this.currentDropIndex && this.currentDropIndex >= 0) {
-      this.#reorderLayer(originalIndex, this.currentDropIndex);
+      this.timeline.updateLayersOrder(originalIndex, this.currentDropIndex);
       this.#resetDrag();
       return true;
     }
@@ -156,17 +156,6 @@ export class LayerReorderHandler {
     return this.timeline.layers.indexOf(layer);
   }
 
-
-  #reorderLayer(fromIndex: number, toIndex: number) {
-    const layers = this.timeline.layers;
-    const layer = layers.splice(fromIndex, 1)[0];
-
-    // Adjust target index if we removed an element before it
-    const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
-    layers.splice(adjustedToIndex, 0, layer);
-
-    this.timeline.updateLayersOrder(layer, fromIndex, adjustedToIndex);
-  }
 
   /**
    * Render drop zone indicators
