@@ -1,4 +1,4 @@
-import {AbstractMedia, isMediaAudio, isMediaVideo} from "@/media";
+import {AbstractMedia} from "@/media";
 
 class StudioState {
   private static instance: StudioState | null = null;
@@ -42,11 +42,11 @@ class StudioState {
   }
 
   getMediaVideo(): AbstractMedia[] {
-    return this.medias.filter(media => isMediaVideo(media));
+    return this.medias.filter(media => media.isVideo());
   }
 
   getMediaAudio(): AbstractMedia[] {
-    return this.medias.filter(media => isMediaAudio(media));
+    return this.medias.filter(media => media.isAudio());
   }
 
   getSelectedMedia(): AbstractMedia | null {

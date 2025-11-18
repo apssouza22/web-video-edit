@@ -1,4 +1,4 @@
-import {FrameCache} from '@/frame/frame-cache';
+import {FrameCache} from './frame-cache';
 import type {VideoSampleSink} from 'mediabunny';
 
 export class VideoStreaming {

@@ -10,7 +10,7 @@ export class VisionService {
   #visionView: VisionView;
   #eventBus = getEventBus();
   #sampleExtractor: SampleExtractor;
-  private timestampToSample = new Map<number, FrameSample>();
+  #timestampToSample = new Map<number, FrameSample>();
 
   constructor(sampleExtractor: SampleExtractor ) {
     this.#worker = new Worker(new URL("./worker.js", import.meta.url), {
@@ -59,7 +59,7 @@ export class VisionService {
   }
 
   #onAnalysisComplete(data: VisionResult): void {
-    const result = this.timestampToSample.get(data.timestamp!);
+    const result = this.#timestampToSample.get(data.timestamp!);
     if (result) {
       result.text = data.text!;
       this.#visionView.updateResult(result);
@@ -86,7 +86,7 @@ export class VisionService {
       console.log("Extracting smart samples from video...");
       const samples = await this.#sampleExtractor.extractSamples(media);
       samples.forEach(sample => {
-        this.timestampToSample.set(sample.timestamp, sample);
+        this.#timestampToSample.set(sample.timestamp, sample);
       });
 
       if (!samples || samples.length === 0) {

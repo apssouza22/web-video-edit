@@ -38,3 +38,13 @@ To run tests using Jest with ECMAScript modules, follow these steps:
 ```
 node --experimental-vm-modules
 ```
+
+# TODOs
+-  Stream video frame from frame package
+- Save the project to local storage including files
+- Implement undo/redo functionality
+- Add more video editing features (transitions, effects, etc.)
+- Add search based on the vision results
+- Improve UI/UX design
+- Add audio waveform visualization
+- Add captions and subtitles support
