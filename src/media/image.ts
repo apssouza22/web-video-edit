@@ -18,13 +18,28 @@ export class ImageMedia extends FlexibleLayer {
           this.width = this.img.naturalWidth;
           this.height = this.img.naturalHeight;
           this.ready = true;
-          this.renderer.setSize(this.width, this.height);
+          this.#handleVideoRatio()
           this.loadUpdateListener(this, 100, this.ctx);
         }).bind(this));
       }
     }).bind(this), false);
 
     this.reader.readAsDataURL(file as File);
+  }
+
+
+  #handleVideoRatio(): void {
+    const playerRatio = this.canvas.width / this.canvas.height;
+    const videoRatio = this.width / this.height;
+
+    if (videoRatio > playerRatio) {
+      const scale = videoRatio / playerRatio;
+      this.height *= scale;
+    } else {
+      const scale = playerRatio / videoRatio;
+      this.width *= scale;
+    }
+    this.renderer.setSize(this.width, this.height);
   }
 
   async render(ctx_out: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {

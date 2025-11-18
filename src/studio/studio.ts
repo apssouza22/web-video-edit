@@ -5,7 +5,6 @@ import {AudioMedia} from '@/media/audio';
 import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
 import {PinchHandler} from '@/common';
-import {DragItemHandler} from './drag-handler';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {exportToJson, uploadSupportedType} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
@@ -29,7 +28,7 @@ interface LayerUpdate {
 
 export class VideoStudio {
   update: LayerUpdate | null;
-  mainSection: HTMLElement;
+  videoCanvas: HTMLElement;
   aspectRatioSelector: AspectRatioSelector;
   medias: AbstractMedia[];
   player: VideoCanvas;
@@ -47,15 +46,12 @@ export class VideoStudio {
   constructor(mediaService: MediaService) {
     this.mediaService = mediaService;
     this.update = null;
-    this.mainSection = document.getElementById('video-canvas')!;
+    this.videoCanvas = document.getElementById('video-canvas')!;
     this.aspectRatioSelector = new AspectRatioSelector();
     this.medias = [];
     this.studioState = StudioState.getInstance();
     this.player = createVideoCanvas(this.studioState);
-    if (this.mainSection) {
-      this.player.mount(this.mainSection);
-    }
-
+    this.player.mount(this.videoCanvas);
     this.timeline = createTimeline();
     this.mediaService.setOnLayerLoadUpdateListener(this.#onLayerLoadUpdate.bind(this));
     this.mediaLoader = new MediaLoader(this);
@@ -68,7 +64,6 @@ export class VideoStudio {
     window.requestAnimationFrame(this.#loop.bind(this));
 
     this.#setupPinchHandler();
-    this.#setupDragHandler();
     this.#setupAspectRatioSelector();
     this.resize();
   }
@@ -145,20 +140,8 @@ export class VideoStudio {
         rotation: rotation
       };
     }).bind(this);
-    this.pinchHandler = new PinchHandler(
-        this.mainSection,
-        callback
-    );
+    this.pinchHandler = new PinchHandler(this.videoCanvas, callback);
     this.pinchHandler.setupEventListeners();
-  }
-
-  #setupDragHandler(): void {
-    const callback = ((x: number, y: number) => {
-      this.update = {x: x, y: y};
-    }).bind(this);
-
-    const dragHandler = new DragItemHandler(this.mainSection, callback, this);
-    dragHandler.setupEventListeners()
   }
 
   #setupAspectRatioSelector(): void {

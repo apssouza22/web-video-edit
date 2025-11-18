@@ -11,6 +11,7 @@ import {
 } from './types';
 import type {FrameTransform} from '@/frame';
 import {AbstractMedia} from "@/media";
+import {dpr} from '@/constants';
 
 export class CanvasLayer {
   private readonly _media: AbstractMedia;
@@ -95,18 +96,18 @@ export class CanvasLayer {
     if (!this.#selected) return;
     const { canvasX, canvasY } = this.#getPosition(event);
 
-    const hitResult = this.#hitTest(canvasX, canvasY);
-    
-    if (hitResult) {
-      this.#transforming = true;
-      this.#transformType = hitResult.type;
-      this.#dragStart = { x: canvasX, y: canvasY };
-      this.#initialTransform = this.#getCurrentTransform();
-      
-      // Set cursor
-      this.#canvas.style.cursor = hitResult.cursor;
-      event.preventDefault();
-    }
+    this.#hitTest(canvasX, canvasY).then(async hitResult => {
+      if (hitResult) {
+        this.#transforming = true;
+        this.#transformType = hitResult.type;
+        this.#dragStart = { x: canvasX, y: canvasY };
+        this.#initialTransform = await this.#getCurrentTransform();
+        
+        // Set cursor
+        this.#canvas.style.cursor = hitResult.cursor;
+        event.preventDefault();
+      }
+    });
   }
 
   #getPosition(event: PointerEvent): CanvasPosition {
@@ -127,8 +128,9 @@ export class CanvasLayer {
     }
 
     if (this.#selected) {
-      const hitResult = this.#hitTest(canvasX, canvasY);
-      this.#canvas.style.cursor = hitResult ? hitResult.cursor : 'default';
+      this.#hitTest(canvasX, canvasY).then(hitResult => {
+        this.#canvas.style.cursor = hitResult ? hitResult.cursor : 'default';
+      });
     }
   }
 
@@ -151,20 +153,20 @@ export class CanvasLayer {
   /**
    * Perform transformation based on current drag
    */
-  #performTransformation(currentX: number, currentY: number): void {
+  async #performTransformation(currentX: number, currentY: number): Promise<void> {
     const dx = currentX - this.#dragStart.x;
     const dy = currentY - this.#dragStart.y;
 
     switch (this.#transformType) {
       case HandleType.MOVE:
-        this.#performMove(dx, dy);
+        await this.#performMove(dx, dy);
         break;
       case HandleType.ROTATE:
-        this.#performRotation(currentX, currentY);
+        await this.#performRotation(currentX, currentY);
         break;
       default:
         if (this.#transformType && this.#transformType.startsWith('resize-')) {
-          this.#performResize(dx, dy, this.#transformType);
+          await this.#performResize(dx, dy, this.#transformType);
         }
         break;
     }
@@ -173,12 +175,16 @@ export class CanvasLayer {
   /**
    * Perform move transformation
    */
-  #performMove(dx: number, dy: number): void {
-    const frame = this._media.getFrame(this.#currentTime);
+  async #performMove(dx: number, dy: number): Promise<void> {
+    const frame = await this._media.getFrame(this.#currentTime);
     if (frame && this.#initialTransform) {
-      this._media.update({
-        x: this.#initialTransform.x + dx,
-        y: this.#initialTransform.y + dy
+      // Convert client coordinate deltas to canvas coordinates
+      const canvasDx = dx * dpr;
+      const canvasDy = dy * dpr;
+      
+      await this._media.update({
+        x: this.#initialTransform.x + canvasDx,
+        y: this.#initialTransform.y + canvasDy
       }, this.#currentTime);
     }
   }
@@ -186,9 +192,9 @@ export class CanvasLayer {
   /**
    * Perform resize transformation
    */
-  #performResize(dx: number, dy: number, handleType: HandleType): void {
-    const bounds = this.#getLayerBounds();
-    if (!bounds) return;
+  async #performResize(dx: number, dy: number, handleType: HandleType): Promise<void> {
+    const bounds = await this.#getLayerBounds();
+    if (!bounds || !this.#initialTransform) return;
     const dragDistance = Math.sqrt(dx * dx + dy * dy);
     
     // Determine scale direction based on handle type and drag direction
@@ -239,16 +245,22 @@ export class CanvasLayer {
     const scaleFactor = 1 + (scaleDirection * dragDistance * 0.00005);
     const maxScale = scaleFactor > 1 ? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor);
 
-    this._media.update({
+    // Convert client coordinate offsets to canvas coordinates
+    const canvasOffsetX = offsetX * dpr;
+    const canvasOffsetY = offsetY * dpr;
+
+    await this._media.update({
       scale: maxScale,
+      x: this.#initialTransform.x + canvasOffsetX,
+      y: this.#initialTransform.y + canvasOffsetY
     }, this.#currentTime);
   }
 
   /**
    * Perform rotation transformation
    */
-  #performRotation(currentX: number, currentY: number): void {
-    const bounds = this.#getLayerBounds();
+  async #performRotation(currentX: number, currentY: number): Promise<void> {
+    const bounds = await this.#getLayerBounds();
     if (!bounds) return;
 
     const centerX = bounds.x + bounds.width / 2;
@@ -258,7 +270,7 @@ export class CanvasLayer {
     const currentAngle = Math.atan2(currentY - centerY, currentX - centerX);
     const deltaAngle = currentAngle - startAngle;
 
-    this._media.update({
+    await this._media.update({
       rotation: deltaAngle * (180 / Math.PI) // Convert to degrees
     }, this.#currentTime);
   }
@@ -266,10 +278,10 @@ export class CanvasLayer {
   /**
    * Hit test for transformation handles and media area
    */
-  #hitTest(x: number, y: number): HitTestResult | null {
+  async #hitTest(x: number, y: number): Promise<HitTestResult | null> {
     if (!this.#selected) return null;
 
-    const bounds = this.#getLayerBounds();
+    const bounds = await this.#getLayerBounds();
     if (!bounds) return null;
 
     const handleSize = 8;
@@ -330,8 +342,8 @@ export class CanvasLayer {
   /**
    * Get current transformation values
    */
-  #getCurrentTransform(): FrameTransform {
-    const frame = this._media.getFrame(this.#currentTime);
+  async #getCurrentTransform(): Promise<FrameTransform> {
+    const frame = await this._media.getFrame(this.#currentTime);
     return frame ? {
       x: frame.x || 0,
       y: frame.y || 0,
@@ -342,19 +354,20 @@ export class CanvasLayer {
   }
 
   /**
-   * Get media bounds in canvas coordinates
+   * Get media bounds in client coordinates (CSS pixels)
    */
-  #getLayerBounds(): Bounds | null {
-    const frame = this._media.getFrame(this.#currentTime);
+  async #getLayerBounds(): Promise<Bounds | null> {
+    const frame = await this._media.getFrame(this.#currentTime);
     if (!frame) return null;
 
     // Calculate position using the same logic as media rendering
-    const x = frame.x + this.#canvas.width / 2 - this._media.width / 2;
-    const y = frame.y + this.#canvas.height / 2 - this._media.height / 2;
+    // Convert from canvas coordinates to client coordinates by dividing by dpr
+    const x = (frame.x + this.#canvas.width / 2 - this._media.width / 2) / dpr;
+    const y = (frame.y + this.#canvas.height / 2 - this._media.height / 2) / dpr;
     
-    // Apply scale to get final dimensions
-    const width = this._media.width * frame.scale;
-    const height = this._media.height * frame.scale;
+    // Apply scale to get final dimensions in client coordinates
+    const width = (this._media.width * frame.scale) / dpr;
+    const height = (this._media.height * frame.scale) / dpr;
 
     return { x, y, width, height };
   }
@@ -362,14 +375,14 @@ export class CanvasLayer {
   /**
    * Mark the media area with visual boundaries and handles
    */
-  #markLayerArea(ctx: CanvasContext2D): void {
+  async #markLayerArea(ctx: CanvasContext2D): Promise<void> {
     if (!this.#selected) return;
-    const bounds = this.#getLayerBounds();
+    const bounds = await this.#getLayerBounds();
     if (!bounds) return;
 
     ctx.save();
 
-    // Draw selection boundary
+    // Draw selection boundary (bounds are in client coordinates, context is already scaled by dpr)
     ctx.strokeStyle = '#00aaff';
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
