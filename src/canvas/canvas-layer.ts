@@ -11,7 +11,6 @@ import {
 } from './types';
 import type {FrameTransform} from '@/frame';
 import {AbstractMedia} from "@/media";
-import {dpr} from '@/constants';
 import {getBoundingBox} from "@/common/render-2d";
 
 export class CanvasLayer {
@@ -164,13 +163,15 @@ export class CanvasLayer {
   async #performMove(dx: number, dy: number): Promise<void> {
     const frame = await this._media.getFrame(this.#currentTime);
     if (frame && this.#initialTransform) {
-      // Convert client coordinate deltas to canvas coordinates
-      const canvasDx = dx * dpr;
-      const canvasDy = dy * dpr;
+      const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
+      const transformScale = bounding.ratio * bounding.scaleFactor;
+      
+      const frameDx = dx / transformScale;
+      const frameDy = dy / transformScale;
 
       await this._media.update({
-        x: this.#initialTransform.x + canvasDx,
-        y: this.#initialTransform.y + canvasDy
+        x: this.#initialTransform.x + frameDx,
+        y: this.#initialTransform.y + frameDy
       }, this.#currentTime);
     }
   }
@@ -231,14 +232,16 @@ export class CanvasLayer {
     const scaleFactor = 1 + (scaleDirection * dragDistance * 0.00005);
     const maxScale = scaleFactor > 1 ? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor);
 
-    // Convert client coordinate offsets to canvas coordinates
-    const canvasOffsetX = offsetX * dpr;
-    const canvasOffsetY = offsetY * dpr;
+    const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
+    const transformScale = bounding.ratio * bounding.scaleFactor;
+    
+    const frameOffsetX = offsetX / transformScale;
+    const frameOffsetY = offsetY / transformScale;
 
     await this._media.update({
       scale: maxScale,
-      x: this.#initialTransform.x + canvasOffsetX,
-      y: this.#initialTransform.y + canvasOffsetY
+      x: this.#initialTransform.x + frameOffsetX,
+      y: this.#initialTransform.y + frameOffsetY
     }, this.#currentTime);
   }
 
