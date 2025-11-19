@@ -30,7 +30,7 @@ export class VideoMedia extends AbstractMedia {
     this.framesCollection.initializeFrames();
     this.videoStreaming = metadata.frames;
 
-    this.#handleVideoRatio();
+    this.renderer.setSize(this.width, this.height);
     this.ready = true;
     this.loadUpdateListener(this, 100, this.ctx);
   }
@@ -45,20 +45,6 @@ export class VideoMedia extends AbstractMedia {
       console.log("Video clipping successful");
     }
     return success;
-  }
-
-  #handleVideoRatio(): void {
-    const playerRatio = this.canvas.width / this.canvas.height;
-    const videoRatio = this.width / this.height;
-
-    if (videoRatio > playerRatio) {
-      const scale = videoRatio / playerRatio;
-      this.height *= scale;
-    } else {
-      const scale = playerRatio / videoRatio;
-      this.width *= scale;
-    }
-    this.renderer.setSize(this.width, this.height);
   }
 
   async render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {

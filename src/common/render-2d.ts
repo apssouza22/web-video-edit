@@ -2,6 +2,7 @@ import {dpr} from '@/constants';
 import {Frame} from "@/frame";
 
 export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+export type CanvasElement = HTMLCanvasElement | OffscreenCanvas;
 
 /**
  * Canvas 2D rendering wrapper class with TypeScript support
@@ -9,7 +10,6 @@ export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRen
 export class Canvas2DRender{
   // @ts-ignore
   #canvas: HTMLCanvasElement | OffscreenCanvas;
-
   #ctx: ESRenderingContext2D;
   #transferable: OffscreenCanvas | null = null;
 
@@ -216,49 +216,62 @@ export class Canvas2DRender{
     video: boolean = false
   ): void {
     const width = video && ctxFrom instanceof HTMLVideoElement
-      ? ctxFrom.videoWidth 
-      : ctxFrom instanceof Canvas2DRender 
-        ? ctxFrom.clientWidth 
+      ? ctxFrom.videoWidth
+      : ctxFrom instanceof Canvas2DRender
+        ? ctxFrom.clientWidth
         : (ctxFrom as any).canvas?.clientWidth ?? 0;
-        
-    const height = video && ctxFrom instanceof HTMLVideoElement 
-      ? ctxFrom.videoHeight 
-      : ctxFrom instanceof Canvas2DRender 
-        ? ctxFrom.clientHeight 
+
+    const height = video && ctxFrom instanceof HTMLVideoElement
+      ? ctxFrom.videoHeight
+      : ctxFrom instanceof Canvas2DRender
+        ? ctxFrom.clientHeight
         : (ctxFrom as any).canvas?.clientHeight ?? 0;
-        
-    const in_ratio = width / height;
 
-    // Check if the output canvas context has been scaled by device pixel ratio
-    // by comparing actual canvas size to client size
-    const canvasScaled = ctxOutTo.canvas.width !== (ctxOutTo.canvas as HTMLCanvasElement).clientWidth;
-    
-    // Use appropriate dimensions based on whether canvas is scaled
-    const outLogicalWidth = canvasScaled ? 
-      ctxOutTo.canvas.width / dpr : 
-      ctxOutTo.canvas.width;
-    const outLogicalHeight = canvasScaled ? 
-      ctxOutTo.canvas.height / dpr : 
-      ctxOutTo.canvas.height;
-    
-    const out_ratio = outLogicalWidth / outLogicalHeight;
-
-    let ratio = 1;
-    let offset_width = 0;
-    let offset_height = 0;
-    if (in_ratio > out_ratio) { // input is wider
-      // match width
-      ratio = outLogicalWidth / width;
-      offset_height = (outLogicalHeight - (ratio * height)) / 2;
-    } else { // output is wider
-      // match height
-      ratio = outLogicalHeight / height;
-      offset_width = (outLogicalWidth - (ratio * width)) / 2;
-    }
+    let {ratio, offset_width, offset_height} = getCoordinates(width, height, ctxOutTo.canvas);
     ctxOutTo.drawImage(
         video ? ctxFrom as HTMLVideoElement : (ctxFrom as ESRenderingContext2D).canvas as CanvasImageSource,
-        0, 0, width, height,
-        offset_width, offset_height, ratio * width, ratio * height
+        0, 0,
+        width, height,
+        offset_width, offset_height,
+        ratio * width, ratio * height
     );
   }
+}
+
+export function getBoundingBox(width: number, height: number, canvas: CanvasElement) {
+  const {ratio, offset_width, offset_height} = getCoordinates(width, height, canvas);
+  return {
+    x: offset_width,
+    y: offset_height,
+    width: ratio * width,
+    height: ratio * height,
+    ratio: ratio
+  };
+}
+
+function getCoordinates(width: number, height: number, canvas: CanvasElement) {
+  const in_ratio = width / height;
+  // Check if the output canvas context has been scaled by device pixel ratio
+  // by comparing actual canvas size to client size
+  const canvasScaled = canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
+
+  // Use appropriate dimensions based on whether canvas is scaled
+  const outLogicalWidth = canvasScaled ? canvas.width / dpr : canvas.width;
+  const outLogicalHeight = canvasScaled ? canvas.height / dpr : canvas.height;
+
+  const out_ratio = outLogicalWidth / outLogicalHeight;
+
+  let ratio = 1;
+  let offset_width = 0;
+  let offset_height = 0;
+  if (in_ratio > out_ratio) { // input is wider
+    // match width
+    ratio = outLogicalWidth / width;
+    offset_height = (outLogicalHeight - (ratio * height)) / 2;
+  } else { // output is wider
+    // match height
+    ratio = outLogicalHeight / height;
+    offset_width = (outLogicalWidth - (ratio * width)) / 2;
+  }
+  return {ratio, offset_width, offset_height};
 }

@@ -12,6 +12,7 @@ import {
 import type {FrameTransform} from '@/frame';
 import {AbstractMedia} from "@/media";
 import {dpr} from '@/constants';
+import {getBoundingBox} from "@/common/render-2d";
 
 export class CanvasLayer {
   private readonly _media: AbstractMedia;
@@ -359,15 +360,18 @@ export class CanvasLayer {
   async #getLayerBounds(): Promise<Bounds | null> {
     const frame = await this._media.getFrame(this.#currentTime);
     if (!frame) return null;
-
-    // Calculate position using the same logic as media rendering
-    // Convert from canvas coordinates to client coordinates by dividing by dpr
-    const x = (frame.x + this.#canvas.width / 2 - this._media.width / 2) / dpr;
-    const y = (frame.y + this.#canvas.height / 2 - this._media.height / 2) / dpr;
     
-    // Apply scale to get final dimensions in client coordinates
-    const width = (this._media.width * frame.scale) / dpr;
-    const height = (this._media.height * frame.scale) / dpr;
+    const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
+    
+    // Transform frame position from media canvas coordinates to output canvas coordinates
+    // The bounding box gives us where the media canvas appears in the output canvas
+    // frame.x and frame.y are positions in the media canvas space
+    const x = bounding.x + frame.x * bounding.ratio;
+    const y = bounding.y + frame.y * bounding.ratio;
+    
+    // Apply both the canvas scaling ratio and the frame scale to get final dimensions
+    const width = this._media.width * frame.scale * bounding.ratio;
+    const height = this._media.height * frame.scale * bounding.ratio;
 
     return { x, y, width, height };
   }

@@ -17,8 +17,8 @@ export class ImageMedia extends FlexibleLayer {
         this.img.addEventListener('load', ((): void => {
           this.width = this.img.naturalWidth;
           this.height = this.img.naturalHeight;
+          this.renderer.setSize(this.width, this.height);
           this.ready = true;
-          this.#handleVideoRatio()
           this.loadUpdateListener(this, 100, this.ctx);
         }).bind(this));
       }
@@ -28,21 +28,7 @@ export class ImageMedia extends FlexibleLayer {
   }
 
 
-  #handleVideoRatio(): void {
-    const playerRatio = this.canvas.width / this.canvas.height;
-    const videoRatio = this.width / this.height;
-
-    if (videoRatio > playerRatio) {
-      const scale = videoRatio / playerRatio;
-      this.height *= scale;
-    } else {
-      const scale = playerRatio / videoRatio;
-      this.width *= scale;
-    }
-    this.renderer.setSize(this.width, this.height);
-  }
-
-  async render(ctx_out: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
+  async render(ctxTo: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
     if (!this.ready) {
       return;
     }
@@ -52,7 +38,7 @@ export class ImageMedia extends FlexibleLayer {
 
     // Check if we need to re-render this frame
     if (!this.shouldReRender(currentTime)) {
-      this.drawScaled(this.ctx, ctx_out);
+      this.drawScaled(this.ctx, ctxTo);
       return;
     }
 
@@ -61,8 +47,8 @@ export class ImageMedia extends FlexibleLayer {
       return;
     }
     frame.videoData = this.img;
-    this.renderer.drawFrame(frame)
-    this.drawScaled(this.ctx, ctx_out);
+    this.renderer.drawFrame(frame);
+    this.drawScaled(this.ctx, ctxTo);
     this.updateRenderCache(currentTime);
   }
 }
