@@ -276,6 +276,15 @@ export class CanvasLayer {
     const bounds = await this.#getLayerBounds();
     if (!bounds) return null;
 
+    const frame = await this._media.getFrame(this.#currentTime);
+    if (!frame) return null;
+
+    const centerX = bounds.x + bounds.width / 2;
+    const centerY = bounds.y + bounds.height / 2;
+    const rotation = (frame.rotation || 0) * (Math.PI / 180);
+
+    const rotatedPoint = this.#rotatePoint(x, y, centerX, centerY, -rotation);
+
     const handleSize = 8;
     const rotationHandleOffset = 20;
 
@@ -283,7 +292,7 @@ export class CanvasLayer {
     const rotationX = bounds.x + bounds.width / 2;
     const rotationY = bounds.y - rotationHandleOffset;
     
-    if (this.#pointInRect(x, y, rotationX - handleSize/2, rotationY - handleSize/2, handleSize, handleSize)) {
+    if (this.#pointInRect(rotatedPoint.x, rotatedPoint.y, rotationX - handleSize/2, rotationY - handleSize/2, handleSize, handleSize)) {
       return { type: HandleType.ROTATE, cursor: 'grab' };
     }
 
@@ -294,17 +303,32 @@ export class CanvasLayer {
       const handle = this.#handles[i];
       const pos = handlePositions[i];
       
-      if (this.#pointInRect(x, y, pos.x, pos.y, handleSize, handleSize)) {
+      if (this.#pointInRect(rotatedPoint.x, rotatedPoint.y, pos.x, pos.y, handleSize, handleSize)) {
         return { type: handle.type, cursor: handle.cursor };
       }
     }
 
     // Test media content area for move
-    if (this.#pointInRect(x, y, bounds.x, bounds.y, bounds.width, bounds.height)) {
+    if (this.#pointInRect(rotatedPoint.x, rotatedPoint.y, bounds.x, bounds.y, bounds.width, bounds.height)) {
       return { type: HandleType.MOVE, cursor: 'move' };
     }
 
     return null;
+  }
+
+  /**
+   * Rotate a point around a center
+   */
+  #rotatePoint(x: number, y: number, centerX: number, centerY: number, angle: number): Point2D {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const dx = x - centerX;
+    const dy = y - centerY;
+    
+    return {
+      x: centerX + dx * cos - dy * sin,
+      y: centerY + dx * sin + dy * cos
+    };
   }
 
   /**
@@ -377,7 +401,18 @@ export class CanvasLayer {
     const bounds = await this.#getLayerBounds();
     if (!bounds) return;
 
+    const frame = await this._media.getFrame(this.#currentTime);
+    if (!frame) return;
+
     ctx.save();
+
+    const centerX = bounds.x + bounds.width / 2;
+    const centerY = bounds.y + bounds.height / 2;
+    const rotation = (frame.rotation || 0) * (Math.PI / 180);
+
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation);
+    ctx.translate(-centerX, -centerY);
 
     // Draw selection boundary (bounds are in client coordinates, context is already scaled by dpr)
     ctx.strokeStyle = '#00aaff';
