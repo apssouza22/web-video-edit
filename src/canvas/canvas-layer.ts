@@ -250,17 +250,20 @@ export class CanvasLayer {
    */
   async #performRotation(currentX: number, currentY: number): Promise<void> {
     const bounds = await this.#getLayerBounds();
-    if (!bounds) return;
+    if (!bounds || !this.#initialTransform) return;
 
     const centerX = bounds.x + bounds.width / 2;
     const centerY = bounds.y + bounds.height / 2;
 
     const startAngle = Math.atan2(this.#dragStart.y - centerY, this.#dragStart.x - centerX);
     const currentAngle = Math.atan2(currentY - centerY, currentX - centerX);
-    const deltaAngle = currentAngle - startAngle;
+    const deltaAngle = (currentAngle - startAngle) / 5;
+
+    const rotation = deltaAngle * (180 / Math.PI);
+    this.#initialTransform.rotation += deltaAngle * (180 / Math.PI)
 
     await this._media.update({
-      rotation: deltaAngle * (180 / Math.PI) // Convert to degrees
+      rotation: rotation // Convert to degrees
     }, this.#currentTime);
   }
 
