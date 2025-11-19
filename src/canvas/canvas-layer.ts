@@ -34,7 +34,6 @@ export class CanvasLayer {
     this._media = media;
     this.#canvas = canvas;
     this.#initializeHandles();
-    this.#setupEventListeners();
   }
 
   /**
@@ -81,19 +80,9 @@ export class CanvasLayer {
   }
 
   /**
-   * Setup event listeners for transformation
-   */
-  #setupEventListeners(): void {
-    this.#canvas.addEventListener('pointerdown', this.#onPointerDown.bind(this));
-    this.#canvas.addEventListener('pointermove', this.#onPointerMove.bind(this));
-    this.#canvas.addEventListener('pointerup', this.#onPointerUp.bind(this));
-    this.#canvas.addEventListener('pointerleave', this.#onPointerUp.bind(this));
-  }
-
-  /**
    * Handle pointer down events
    */
-  #onPointerDown(event: PointerEvent): void {
+  onPointerDown(event: PointerEvent): void {
     if (!this.#selected) return;
     const { canvasX, canvasY } = this.#getPosition(event);
 
@@ -121,7 +110,7 @@ export class CanvasLayer {
   /**
    * Handle pointer move events
    */
-  #onPointerMove(event: PointerEvent): void {
+  onPointerMove(event: PointerEvent): void {
     const { canvasX, canvasY } = this.#getPosition(event);
     if (this.#transforming) {
       this.#performTransformation(canvasX, canvasY);
@@ -138,7 +127,7 @@ export class CanvasLayer {
   /**
    * Handle pointer up events
    */
-  #onPointerUp(): void {
+  onPointerUp(): void {
     if (this.#transforming) {
       this.#transforming = false;
       this.#transformType = null;
@@ -182,7 +171,7 @@ export class CanvasLayer {
       // Convert client coordinate deltas to canvas coordinates
       const canvasDx = dx * dpr;
       const canvasDy = dy * dpr;
-      
+
       await this._media.update({
         x: this.#initialTransform.x + canvasDx,
         y: this.#initialTransform.y + canvasDy

@@ -40,6 +40,47 @@ export class VideoCanvas {
       throw new Error('Unable to get 2D context from canvas');
     }
     this.audioContext = new AudioContext();
+    this.#setupEventListeners();
+  }
+
+  /**
+   * Setup centralized event listeners for canvas transformations
+   */
+  #setupEventListeners(): void {
+    this.canvas.addEventListener('pointerdown', this.#onPointerDown.bind(this));
+    this.canvas.addEventListener('pointermove', this.#onPointerMove.bind(this));
+    this.canvas.addEventListener('pointerup', this.#onPointerUp.bind(this));
+    this.canvas.addEventListener('pointerleave', this.#onPointerUp.bind(this));
+  }
+
+  /**
+   * Delegate pointer down to selected layer
+   */
+  #onPointerDown(event: PointerEvent): void {
+    const selectedLayer = this.layers.find(layer => layer.selected);
+    if (selectedLayer) {
+      selectedLayer.onPointerDown(event);
+    }
+  }
+
+  /**
+   * Delegate pointer move to selected layer
+   */
+  #onPointerMove(event: PointerEvent): void {
+    const selectedLayer = this.layers.find(layer => layer.selected);
+    if (selectedLayer) {
+      selectedLayer.onPointerMove(event);
+    }
+  }
+
+  /**
+   * Delegate pointer up to selected layer
+   */
+  #onPointerUp(event?: PointerEvent): void {
+    const selectedLayer = this.layers.find(layer => layer.selected);
+    if (selectedLayer) {
+      selectedLayer.onPointerUp();
+    }
   }
 
   /**
