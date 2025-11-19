@@ -129,7 +129,7 @@ export class HTMLVideoDemuxer {
       const onSeeked = (): void => {
         clearTimeout(timeoutId);
         this.video!.removeEventListener('seeked', onSeeked);
-        Canvas2DRender.drawScaled(this.video!, this.renderer.context, true);
+        Canvas2DRender.drawScaled(this.video!, this.renderer.context);
         const frame = this.renderer.getImageData(0, 0);
         resolve(frame);
       };

@@ -7,7 +7,7 @@ export type CanvasElement = HTMLCanvasElement | OffscreenCanvas;
 /**
  * Canvas 2D rendering wrapper class with TypeScript support
  */
-export class Canvas2DRender{
+export class Canvas2DRender {
   // @ts-ignore
   #canvas: HTMLCanvasElement | OffscreenCanvas;
   #ctx: ESRenderingContext2D;
@@ -16,11 +16,11 @@ export class Canvas2DRender{
   constructor(canvas?: HTMLCanvasElement) {
     if (canvas) {
       this.#canvas = canvas.transferControlToOffscreen();
-      this.#ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+      this.#ctx = canvas.getContext("2d", {willReadFrequently: true})!;
     } else {
       this.#canvas = document.createElement('canvas');
       this.#transferable = document.createElement('canvas').transferControlToOffscreen();
-      this.#ctx = this.#canvas.getContext('2d', { willReadFrequently: true })!;
+      this.#ctx = this.#canvas.getContext('2d', {willReadFrequently: true})!;
     }
   }
 
@@ -68,13 +68,13 @@ export class Canvas2DRender{
   // Context drawing methods
   clearRect(x: number = 0, y: number = 0, width: number | null = null, height: number | null = null): void {
     if (!this.#ctx || !this.#canvas) return;
-    
+
     const w = width !== null ? width : this.#canvas.width;
     const h = height !== null ? height : this.#canvas.height;
     this.#ctx.clearRect(x, y, w, h);
   }
 
-  drawFrame(frame:Frame): void {
+  drawFrame(frame: Frame): void {
     const x = frame.x + this.width / 2 - this.width / 2;
     const y = frame.y + this.height / 2 - this.height / 2;
     this.#drawImage(
@@ -88,15 +88,15 @@ export class Canvas2DRender{
   }
 
   #drawImage(
-    image: CanvasImageSource, 
-    sx: number, 
-    sy: number, 
-    sWidth: number | null = null, 
-    sHeight: number | null = null, 
-    dx: number | null = null, 
-    dy: number | null = null, 
-    dWidth: number | null = null, 
-    dHeight: number | null = null
+      image: CanvasImageSource,
+      sx: number,
+      sy: number,
+      sWidth: number | null = null,
+      sHeight: number | null = null,
+      dx: number | null = null,
+      dy: number | null = null,
+      dWidth: number | null = null,
+      dHeight: number | null = null
   ): void {
     if (!this.#ctx) return;
 
@@ -112,19 +112,19 @@ export class Canvas2DRender{
 
   getImageData(sx: number = 0, sy: number = 0, sw: number | null = null, sh: number | null = null): ImageData | null {
     if (!this.#ctx || !this.#canvas) return null;
-    
+
     const w = sw !== null ? sw : this.#canvas.width;
     const h = sh !== null ? sh : this.#canvas.height;
     return this.#ctx.getImageData(sx, sy, w, h);
   }
 
-  measureText(text: string): TextMetrics{
+  measureText(text: string): TextMetrics {
     return this.#ctx.measureText(text);
   }
 
   fillText(text: string, x: number, y: number, maxWidth: number | null = null): void {
     if (!this.#ctx) return;
-    
+
     if (maxWidth !== null) {
       this.#ctx.fillText(text, x, y, maxWidth);
     } else {
@@ -210,25 +210,16 @@ export class Canvas2DRender{
 
   // Static method for standalone usage (maintains backward compatibility)
   static drawScaled(
-    ctxFrom: HTMLVideoElement | ESRenderingContext2D,
-    ctxOutTo: ESRenderingContext2D,
-    video: boolean = false
+      ctxFrom: HTMLVideoElement | ESRenderingContext2D,
+      ctxOutTo: ESRenderingContext2D
   ): void {
-    const width = video && ctxFrom instanceof HTMLVideoElement
-      ? ctxFrom.videoWidth
-      : ctxFrom instanceof Canvas2DRender
-        ? ctxFrom.clientWidth
-        : (ctxFrom as any).canvas?.clientWidth ?? 0;
-
-    const height = video && ctxFrom instanceof HTMLVideoElement
-      ? ctxFrom.videoHeight
-      : ctxFrom instanceof Canvas2DRender
-        ? ctxFrom.clientHeight
-        : (ctxFrom as any).canvas?.clientHeight ?? 0;
+    const isVideo = ctxFrom instanceof HTMLVideoElement;
+    const width = isVideo ? ctxFrom.videoWidth : (ctxFrom as ESRenderingContext2D).canvas.width ?? 0;
+    const height = isVideo ? ctxFrom.videoHeight : (ctxFrom as ESRenderingContext2D).canvas.height ?? 0;
 
     let {ratio, offset_width, offset_height} = getCoordinates(width, height, ctxOutTo.canvas);
     ctxOutTo.drawImage(
-        video ? ctxFrom as HTMLVideoElement : (ctxFrom as ESRenderingContext2D).canvas as CanvasImageSource,
+        isVideo ? ctxFrom : (ctxFrom as ESRenderingContext2D).canvas as CanvasImageSource,
         0, 0,
         width, height,
         offset_width, offset_height,
