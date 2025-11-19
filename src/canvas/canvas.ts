@@ -28,7 +28,6 @@ export class VideoCanvas {
   public width = 0;
   public height = 0;
   public layers: CanvasLayer[] = [];
-  public layerTransformedListener: LayerTransformedListener = (layer: AbstractMedia) => {};
   private studioState: StudioState;
 
   constructor(studioState: StudioState) {
@@ -96,21 +95,15 @@ export class VideoCanvas {
 
   addLayers(layers: AbstractMedia[]): void {
     this.layers = layers.map(layer => {
-      const playerLayer = new CanvasLayer(layer, this.canvas);
+      const canvasLayer = new CanvasLayer(layer, this.canvas);
       if (this.#selectedLayer === layer) {
-        playerLayer.selected = true;
+        canvasLayer.selected = true;
       }
-      playerLayer.setTransformCallback(this.#onLayerTransformed.bind(this));
-      return playerLayer;
+      canvasLayer.setTransformCallback((layer: AbstractMedia) => {
+        this.#eventBus.emit(new PlayerLayerTransformedEvent(layer));
+      });
+      return canvasLayer;
     });
-  }
-
-  /**
-   * Handle media transformation events
-   */
-  #onLayerTransformed(layer: AbstractMedia): void {
-    this.layerTransformedListener(layer);
-    this.#eventBus.emit(new PlayerLayerTransformedEvent(layer));
   }
 
   /**

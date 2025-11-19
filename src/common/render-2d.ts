@@ -77,7 +77,6 @@ export class Canvas2DRender{
   drawFrame(frame:Frame): void {
     const x = frame.x + this.width / 2 - this.width / 2;
     const y = frame.y + this.height / 2 - this.height / 2;
-    this.clearRect();
     this.#drawImage(
         frame.videoData as VideoFrame,
         0, 0,

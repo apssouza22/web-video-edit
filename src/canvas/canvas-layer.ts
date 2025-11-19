@@ -24,7 +24,7 @@ export class CanvasLayer {
   #initialTransform: FrameTransform | null = null;
   #handles: TransformHandle[] = [];
   #rotationHandle: TransformHandle | null = null;
-  #onTransformCallback: LayerTransformedListener | null = null;
+  #onTransformCallback: LayerTransformedListener = (media: AbstractMedia) => {};
   #currentTime = 0;
 
   /**
@@ -132,11 +132,7 @@ export class CanvasLayer {
       this.#transforming = false;
       this.#transformType = null;
       this.#canvas.style.cursor = 'default';
-      
-      // Notify callback of transformation completion
-      if (this.#onTransformCallback) {
-        this.#onTransformCallback(this._media);
-      }
+      this.#onTransformCallback(this._media);
     }
   }
 
