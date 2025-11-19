@@ -2,6 +2,7 @@ import {createFrameService, Frame} from '@/frame';
 import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
 import {loadVideo, VideoStreaming} from "@/video";
+import {Canvas2DRender} from '@/common/render-2d';
 
 export class VideoMedia extends AbstractMedia {
   private videoStreaming: VideoStreaming | undefined = undefined;
@@ -58,16 +59,18 @@ export class VideoMedia extends AbstractMedia {
       return;
     }
 
+    const frame = await this.getFrame(currentTime);
+    if (!frame) {
+      return;
+    }
+
     if (!this.shouldReRender(currentTime)) {
-      this.drawScaled(this.ctx, ctxOut);
+      Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
       return;
     }
-    const videoFrame = await this.getFrame(currentTime);
-    if (!videoFrame) {
-      return;
-    }
-    this.renderer.drawFrame(videoFrame)
-    this.drawScaled(this.renderer.context, ctxOut);
+    
+    this.renderer.drawFrame(frame);
+    Canvas2DRender.drawTransformed(this.renderer.context, ctxOut, frame);
     this.updateRenderCache(currentTime);
   }
 

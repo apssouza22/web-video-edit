@@ -1,6 +1,7 @@
 import {FlexibleLayer} from './media-common';
-import {LayerCoordinates, LayerFile} from './types';
-import {Frame} from '@/frame';
+import {LayerFile} from './types';
+import {Canvas2DRender} from '@/common/render-2d';
+import {StudioState} from "@/common";
 
 export class ImageMedia extends FlexibleLayer {
   private img: HTMLImageElement;
@@ -18,6 +19,7 @@ export class ImageMedia extends FlexibleLayer {
           this.width = this.img.naturalWidth;
           this.height = this.img.naturalHeight;
           this.renderer.setSize(this.width, this.height);
+          StudioState.getInstance().setMinVideoSizes(this.width, this.height)
           this.ready = true;
           this.loadUpdateListener(this, 100, this.ctx);
         }).bind(this));
@@ -36,19 +38,19 @@ export class ImageMedia extends FlexibleLayer {
       return;
     }
 
-    // Check if we need to re-render this frame
-    if (!this.shouldReRender(currentTime)) {
-      this.drawScaled(this.ctx, ctxTo);
-      return;
-    }
-
     const frame = await this.getFrame(currentTime);
     if (!frame) {
       return;
     }
+
+    if (!this.shouldReRender(currentTime)) {
+      Canvas2DRender.drawTransformed(this.ctx, ctxTo, frame);
+      return;
+    }
+
     frame.videoData = this.img;
     this.renderer.drawFrame(frame);
-    this.drawScaled(this.ctx, ctxTo);
+    Canvas2DRender.drawTransformed(this.ctx, ctxTo, frame);
     this.updateRenderCache(currentTime);
   }
 }

@@ -1,5 +1,6 @@
 import {FlexibleLayer} from './media-common';
 import {LayerChange, LayerFile} from './types';
+import {Canvas2DRender} from '@/common/render-2d';
 
 export class TextMedia extends FlexibleLayer {
   public color: string;
@@ -36,24 +37,23 @@ export class TextMedia extends FlexibleLayer {
       return;
     }
 
-    if (!this.shouldReRender(refTime)) {
-      this.drawScaled(this.ctx, ctxOut);
-      return;
-    }
-
     const frame = await this.getFrame(refTime);
     if (!frame) {
       return;
     }
 
-    const scale = frame.scale;
-    this.renderer.font = Math.floor(scale * 30) + "px sans-serif";
+    if (!this.shouldReRender(refTime)) {
+      Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
+      return;
+    }
+
+    this.renderer.font = "30px sans-serif";
     const rect = this.renderer.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
     
-    const x = frame.x + this.renderer.width / 2;
-    const y = frame.y + this.renderer.height / 2;
+    const x = this.renderer.width / 2;
+    const y = this.renderer.height / 2;
     
     if (this.shadow) {
       this.renderer.shadowColor = "black";
@@ -65,13 +65,9 @@ export class TextMedia extends FlexibleLayer {
     
     this.renderer.fillStyle = this.color;
     this.renderer.clearRect();
-    this.renderer.save();
-    this.renderer.translate(x, y);
-    this.renderer.rotate(frame.rotation * (Math.PI / 180));
     this.renderer.textAlign = "center";
-    this.renderer.fillText(this.name, 0, 0);
-    this.renderer.restore();
-    this.drawScaled(this.renderer.context, ctxOut);
+    this.renderer.fillText(this.name, x, y);
+    Canvas2DRender.drawTransformed(this.renderer.context, ctxOut, frame);
     this.updateRenderCache(refTime);
   }
 }

@@ -199,8 +199,6 @@ export class VideoCanvas {
     for (const layer of this.layers) {
       layer.render(this.ctx, this.time, this.playing);
     }
-
-    this.ctx.restore();
   }
 
   #updateTotalTime(): void {

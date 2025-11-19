@@ -75,15 +75,13 @@ export class Canvas2DRender {
   }
 
   drawFrame(frame: Frame): void {
-    const x = frame.x + this.width / 2 - this.width / 2;
-    const y = frame.y + this.height / 2 - this.height / 2;
     this.#drawImage(
         frame.videoData as VideoFrame,
         0, 0,
         this.width, this.height,
-        x, y,
-        frame.scale * this.width,
-        frame.scale * this.height
+        0, 0,
+        this.width,
+        this.height
     );
   }
 
@@ -226,40 +224,75 @@ export class Canvas2DRender {
         ratio * width, ratio * height
     );
   }
+
+  static drawTransformed(
+      ctxFrom: ESRenderingContext2D,
+      ctxOutTo: ESRenderingContext2D,
+      frame: Frame
+  ): void {
+    const width = ctxFrom.canvas.width ?? 0;
+    const height = ctxFrom.canvas.height ?? 0;
+    const bounding = getBoundingBox(width, height, ctxOutTo.canvas);
+
+    ctxOutTo.save();
+    ctxOutTo.translate(
+      bounding.centerX + frame.x * bounding.ratio * bounding.scaleFactor, 
+      bounding.centerY + frame.y * bounding.ratio * bounding.scaleFactor
+    );
+    
+    if (frame.rotation) {
+      ctxOutTo.rotate((frame.rotation * Math.PI) / 180);
+    }
+    
+    const scaledWidth = bounding.width * frame.scale * bounding.scaleFactor;
+    const scaledHeight = bounding.height * frame.scale * bounding.scaleFactor;
+    
+    ctxOutTo.drawImage(
+        ctxFrom.canvas as CanvasImageSource,
+        0, 0,
+        width, height,
+        -scaledWidth / 2, -scaledHeight / 2,
+        scaledWidth, scaledHeight
+    );
+    
+    ctxOutTo.restore();
+  }
 }
 
 export function getBoundingBox(width: number, height: number, canvas: CanvasElement) {
   const {ratio, offset_width, offset_height} = getCoordinates(width, height, canvas);
+  const canvasScaled = canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
+  const scaleFactor = canvasScaled ? dpr : 1;
+  const baseWidth = ratio * width;
+  const baseHeight = ratio * height;
+  
   return {
     x: offset_width,
     y: offset_height,
-    width: ratio * width,
-    height: ratio * height,
-    ratio: ratio
+    width: baseWidth,
+    height: baseHeight,
+    ratio: ratio,
+    scaleFactor: scaleFactor,
+    centerX: (offset_width + baseWidth / 2) * scaleFactor,
+    centerY: (offset_height + baseHeight / 2) * scaleFactor
   };
 }
 
 function getCoordinates(width: number, height: number, canvas: CanvasElement) {
   const in_ratio = width / height;
   // Check if the output canvas context has been scaled by device pixel ratio
-  // by comparing actual canvas size to client size
   const canvasScaled = canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
-
-  // Use appropriate dimensions based on whether canvas is scaled
   const outLogicalWidth = canvasScaled ? canvas.width / dpr : canvas.width;
   const outLogicalHeight = canvasScaled ? canvas.height / dpr : canvas.height;
-
   const out_ratio = outLogicalWidth / outLogicalHeight;
 
   let ratio = 1;
   let offset_width = 0;
   let offset_height = 0;
-  if (in_ratio > out_ratio) { // input is wider
-    // match width
+  if (in_ratio > out_ratio) { // input is wider - match width
     ratio = outLogicalWidth / width;
     offset_height = (outLogicalHeight - (ratio * height)) / 2;
-  } else { // output is wider
-    // match height
+  } else { // output is wider - match height
     ratio = outLogicalHeight / height;
     offset_width = (outLogicalWidth - (ratio * width)) / 2;
   }

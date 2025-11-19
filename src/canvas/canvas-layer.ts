@@ -348,17 +348,19 @@ export class CanvasLayer {
     
     const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
     
-    // Transform frame position from media canvas coordinates to output canvas coordinates
-    // The bounding box gives us where the media canvas appears in the output canvas
-    // frame.x and frame.y are positions in the media canvas space
-    const x = bounding.x + frame.x * bounding.ratio;
-    const y = bounding.y + frame.y * bounding.ratio;
+    const baseWidth = bounding.width * bounding.scaleFactor;
+    const baseHeight = bounding.height * bounding.scaleFactor;
     
-    // Apply both the canvas scaling ratio and the frame scale to get final dimensions
-    const width = this._media.width * frame.scale * bounding.ratio;
-    const height = this._media.height * frame.scale * bounding.ratio;
+    const transformedCenterX = bounding.centerX + frame.x * bounding.ratio * bounding.scaleFactor;
+    const transformedCenterY = bounding.centerY + frame.y * bounding.ratio * bounding.scaleFactor;
+    
+    const scaledWidth = baseWidth * frame.scale;
+    const scaledHeight = baseHeight * frame.scale;
+    
+    const x = transformedCenterX - scaledWidth / 2;
+    const y = transformedCenterY - scaledHeight / 2;
 
-    return { x, y, width, height };
+    return { x, y, width: scaledWidth, height: scaledHeight };
   }
 
   /**
