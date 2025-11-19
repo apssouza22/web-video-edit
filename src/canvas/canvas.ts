@@ -168,7 +168,7 @@ export class VideoCanvas {
     this.lastPausedTime = this.time;
   }
 
-  render(realtime: number): number {
+  async render(realtime: number): Promise<number> {
     if (this.lastTImestampFrame === null) {
       this.lastTImestampFrame = realtime;
     }
@@ -188,16 +188,16 @@ export class VideoCanvas {
 
       this.setTime(newTime);
     }
-    this.renderLayers();
+    await this.renderLayers();
     this.lastTImestampFrame = realtime;
     return this.time;
   }
 
-  renderLayers(): void {
+  async renderLayers(): Promise<void> {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
     for (const layer of this.layers) {
-      layer.render(this.ctx, this.time, this.playing);
+      await layer.render(this.ctx, this.time, this.playing);
     }
   }
 

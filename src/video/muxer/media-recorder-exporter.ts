@@ -117,7 +117,7 @@ export class MediaRecorderExporter {
         
         this.#setupAudioForExport();
 
-        const renderFrame = (currentTime: number): void => {
+        const renderFrame = async (currentTime: number): Promise<void> => {
             if (lastTimestamp === null) {
                 lastTimestamp = currentTime;
             }
@@ -126,7 +126,7 @@ export class MediaRecorderExporter {
 
             const deltaTime = currentTime - lastTimestamp;
             this.recordingTime += deltaTime;
-            this.#renderLayersAtTime(this.recordingTime);
+            await this.#renderLayersAtTime(this.recordingTime);
 
             if (this.recordingTime >= this.totalDuration) {
                 this.mediaRecorder?.stop();
@@ -153,7 +153,7 @@ export class MediaRecorderExporter {
     /**
      * Render all medias to the recording canvas at a specific time
      */
-    #renderLayersAtTime(time: number): void {
+    async #renderLayersAtTime(time: number): Promise<void> {
         if (!this.recordingCtx || !this.recordingCanvas) return;
 
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
@@ -161,7 +161,7 @@ export class MediaRecorderExporter {
 
         for (const layer of medias) {
             // Pass playing=true to ensure audio medias start at correct time
-            layer.render(this.recordingCtx, time, true);
+            await layer.render(this.recordingCtx, time, true);
         }
     }
 

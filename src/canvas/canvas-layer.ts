@@ -456,9 +456,9 @@ export class CanvasLayer {
   /**
    * Render the media content
    */
-  render(ctx: CanvasContext2D, time: number, playing: boolean): void {
+  async render(ctx: CanvasContext2D, time: number, playing: boolean): Promise<void> {
     this.#currentTime = time;
-    this._media.render(ctx, time, playing);
-    this.#markLayerArea(ctx);
+    await this._media.render(ctx, time, playing);
+    await this.#markLayerArea(ctx);
   }
 }

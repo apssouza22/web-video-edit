@@ -230,7 +230,7 @@ export class VideoStudio {
     })
   }
 
-  #loop(realtime: number): void {
+  async #loop(realtime: number): Promise<void> {
     // Process updates for selected media
     const selectedLayer = this.getSelectedLayer();
     if (selectedLayer && this.update) {
@@ -242,7 +242,7 @@ export class VideoStudio {
       this.timeline.addLayers(this.getMedias());
     }
 
-    this.player.render(realtime)
+    await this.player.render(realtime);
     this.timeline.render();
     window.requestAnimationFrame(this.#loop.bind(this));
   }
