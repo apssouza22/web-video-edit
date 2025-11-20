@@ -28,9 +28,6 @@ export class Timeline {
   timeMarker: TimeMarker;
   layerRenderer: TimelineLayerRender;
   dragHandler: DragLayerHandler;
-  timeUpdateListener: ((hoverTime: number, playerTime: number) => void) = () => {
-  };
-  layerUpdateListener: (kind: LayerUpdateKind, layer: MediaInterface, oldLayer?: MediaInterface, extra?: any) => void;
   private zoomHandler: TimelineZoomHandler;
   #eventBus = getEventBus();
 
@@ -66,8 +63,6 @@ export class Timeline {
     );
     this.dragHandler = new DragLayerHandler(this);
     this.zoomHandler = new TimelineZoomHandler(this);
-    this.layerUpdateListener = () => {
-    };
 
     this.#addEventListeners();
     this.#setupPinchHandler();
@@ -81,7 +76,6 @@ export class Timeline {
   }
 
   #onClick() {
-    this.timeUpdateListener(this.time, this.playerTime);
     this.#eventBus.emit(new TimelineTimeUpdateEvent(this.time, this.playerTime));
   }
 
@@ -101,11 +95,9 @@ export class Timeline {
       return;
     }
     if (oldSelectedLayer) {
-      this.layerUpdateListener('select', newSelectedLayer, oldSelectedLayer);
       this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer, oldSelectedLayer));
       return
     }
-    this.layerUpdateListener('select', newSelectedLayer);
     this.#eventBus.emit(new TimelineLayerUpdateEvent('select', newSelectedLayer));
   }
 
@@ -147,7 +139,6 @@ export class Timeline {
         console.log('No media selected. Please select a media first.');
         return;
       }
-      this.layerUpdateListener('delete', this.selectedLayer);
       this.#eventBus.emit(new TimelineLayerUpdateEvent('delete', this.selectedLayer));
     });
 
@@ -156,7 +147,6 @@ export class Timeline {
         console.log('No media selected. Please select a media first.');
         return;
       }
-      this.layerUpdateListener('split', this.selectedLayer);
       this.#eventBus.emit(new TimelineLayerUpdateEvent('split', this.selectedLayer));
     });
 
@@ -165,7 +155,6 @@ export class Timeline {
         console.log('No media selected. Please select a media first.');
         return;
       }
-      this.layerUpdateListener('clone', this.selectedLayer);
       this.#eventBus.emit(new TimelineLayerUpdateEvent('clone', this.selectedLayer));
     });
   }

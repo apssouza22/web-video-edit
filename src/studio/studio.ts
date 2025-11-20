@@ -176,10 +176,9 @@ export class VideoStudio {
    * Remove a media from the studio
    */
   remove(media: AbstractMedia): void {
-    const idx = this.getMedias().indexOf(media);
-    if (idx > -1) {
-      this.getMedias().splice(idx, 1);
-    }
+    console.log(`Removing media: ${this.getMedias().length} layers before removal.`);
+    this.studioState.removeMedia(media);
+    console.log(`Removed media: ${this.getMedias().length} layers after removal.`);
     if (media instanceof AudioMedia) {
       media.disconnect();
     }
@@ -192,6 +191,8 @@ export class VideoStudio {
     if (this.player.time > this.player.total_time) {
       this.player.time = this.player.total_time;
     }
+    this.timeline.addLayers(this.getMedias());
+    this.player.addLayers(this.getMedias());
   }
 
   /**

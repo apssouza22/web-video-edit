@@ -77,6 +77,13 @@ class StudioState {
     const layer = this.medias.splice(fromIndex, 1)[0];
     this.medias.splice(adjustedToIndex, 0, layer);
   }
+
+  removeMedia(media: AbstractMedia) {
+    const idx = this.medias.indexOf(media);
+    if (idx > -1) {
+      this.medias.splice(idx, 1);
+    }
+  }
 }
 
 export const studioState = StudioState.getInstance();

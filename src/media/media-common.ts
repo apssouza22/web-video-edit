@@ -237,13 +237,6 @@ export abstract class AbstractMedia {
     return this.framesCollection.getFrame(time, this.start_time);
   }
 
-  drawScaled(
-      ctxFrom: HTMLVideoElement | ESRenderingContext2D,
-      ctxOutTo: CanvasRenderingContext2D, video: boolean = false
-  ): void {
-    Canvas2DRender.drawScaled(ctxFrom, ctxOutTo, video);
-  }
-
   // Speed control methods
   setSpeed(speed: number): void {
     this.speedController.setSpeed(speed);
