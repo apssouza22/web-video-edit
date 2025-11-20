@@ -39,7 +39,7 @@ export class SampleExtractor {
 
   async #extractSceneChangeSamples(media: AbstractMedia): Promise<FrameSample[]> {
     const samples: FrameSample[] = [];
-    const totalFrames = media.framesCollection.getLength();
+    const totalFrames = media.frameService.getLength();
     const sampleEvery = Math.max(1, Math.floor(totalFrames / (this.#config.maxSamples * 2)));
 
     let previousImageData: ImageData | null = null;
@@ -154,7 +154,7 @@ export class SampleExtractor {
       return samples;
     }
 
-    const totalFrames = media.framesCollection.getLength();
+    const totalFrames = media.frameService.getLength();
     const neededSamples = this.#config.minSamples - samples.length;
     const step = Math.floor(totalFrames / neededSamples);
 

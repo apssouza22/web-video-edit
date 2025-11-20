@@ -1,9 +1,9 @@
-import {FlexibleLayer} from './media-common';
+import {FlexibleMedia} from './media-common';
 import {LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 import {StudioState} from "@/common";
 
-export class ImageMedia extends FlexibleLayer {
+export class ImageMedia extends FlexibleMedia {
   private img: HTMLImageElement;
   private reader: FileReader;
 

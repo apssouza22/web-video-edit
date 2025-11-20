@@ -25,7 +25,7 @@ export class SpeedController {
     }
 
     // Store original frames if this is the first speed change
-    if (this.originalFrames === null && this.layer.framesCollection) {
+    if (this.originalFrames === null && this.layer.frameService) {
       this.#preserveOriginalFrames();
     }
     this.currentSpeed = speed;
@@ -42,8 +42,8 @@ export class SpeedController {
    * Preserve the original frames before any speed modifications
    */
   #preserveOriginalFrames(): void {
-    if (this.layer.framesCollection && this.layer.framesCollection.frames) {
-      this.originalFrames = this.layer.framesCollection.frames.map(frame => frame.clone());
+    if (this.layer.frameService && this.layer.frameService.frames) {
+      this.originalFrames = this.layer.frameService.frames.map(frame => frame.clone());
     }
   }
 
@@ -55,7 +55,7 @@ export class SpeedController {
   }
 
   #adjustFramesForSpeed(speed: number): void {
-    if (!this.originalFrames || !this.layer.framesCollection) {
+    if (!this.originalFrames || !this.layer.frameService) {
       return;
     }
 
@@ -65,20 +65,20 @@ export class SpeedController {
     if (speed > 1.0) {
       // Fast forward: skip frames with smart sampling
       this.#createFastForwardFrames(speed, originalFrameCount, newFrames);
-      this.layer.framesCollection.frames = newFrames;
+      this.layer.frameService.frames = newFrames;
       return;
     }
 
     if (speed < 1.0) {
       // Slow motion: duplicate frames with interpolation
       this.#createSlowMotionFrames(speed, originalFrameCount, newFrames);
-      this.layer.framesCollection.frames = newFrames;
+      this.layer.frameService.frames = newFrames;
       return;
     }
 
     // Normal speed: use original frames
     newFrames.push(...this.originalFrames.map(frame => frame.clone()));
-    this.layer.framesCollection.frames = newFrames;
+    this.layer.frameService.frames = newFrames;
   }
 
   /**

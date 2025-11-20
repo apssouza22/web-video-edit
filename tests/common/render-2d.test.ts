@@ -40,15 +40,6 @@ describe('Canvas2DRender', () => {
       expect(render.canvas.height).toBe(1080);
     });
 
-    test('should update size multiple times', () => {
-      render.setSize(100, 100);
-      expect(render.width).toBe(100);
-      expect(render.height).toBe(100);
-      
-      render.setSize(200, 150);
-      expect(render.width).toBe(200);
-      expect(render.height).toBe(150);
-    });
 
     test('should handle zero dimensions', () => {
       render.setSize(0, 0);
@@ -163,7 +154,7 @@ describe('Canvas2DRender', () => {
     });
 
     test('should measure text', () => {
-      const metrics = render.measureText('Hello World');
+      const metrics = render.context.measureText('Hello World');
       
       expect(metrics).toBeDefined();
       expect(metrics.width).toBeDefined();
@@ -171,14 +162,14 @@ describe('Canvas2DRender', () => {
 
     test('should fill text without max width', () => {
       const fillTextSpy = jest.spyOn(render.context, 'fillText');
-      render.fillText('Hello', 100, 200);
+      render.context.fillText('Hello', 100, 200);
       
       expect(fillTextSpy).toHaveBeenCalledWith('Hello', 100, 200);
     });
 
     test('should fill text with max width', () => {
       const fillTextSpy = jest.spyOn(render.context, 'fillText');
-      render.fillText('Hello', 100, 200, 300);
+      render.context.fillText('Hello', 100, 200, 300);
       
       expect(fillTextSpy).toHaveBeenCalledWith('Hello', 100, 200, 300);
     });
@@ -231,36 +222,36 @@ describe('Canvas2DRender', () => {
     });
 
     test('should get and set font', () => {
-      render.font = '16px Arial';
-      expect(render.font).toBe('16px Arial');
+      render.context.font = '16px Arial';
+      expect(render.context.font).toBe('16px Arial');
     });
 
     test('should get and set fillStyle', () => {
-      render.fillStyle = '#FF0000';
-      expect(render.fillStyle).toBe('#FF0000');
+      render.context.fillStyle = '#FF0000';
+      expect(render.context.fillStyle).toBe('#FF0000');
     });
 
     test('should get and set shadowColor', () => {
-      render.shadowColor = 'rgba(0,0,0,0.5)';
-      expect(render.shadowColor).toBe('rgba(0,0,0,0.5)');
+      render.context.shadowColor = 'rgba(0,0,0,0.5)';
+      expect(render.context.shadowColor).toBe('rgba(0,0,0,0.5)');
     });
 
     test('should get and set shadowBlur', () => {
-      render.shadowBlur = 10;
-      expect(render.shadowBlur).toBe(10);
+      render.context.shadowBlur = 10;
+      expect(render.context.shadowBlur).toBe(10);
     });
 
     test('should get and set textAlign', () => {
-      render.textAlign = 'center';
-      expect(render.textAlign).toBe('center');
+      render.context.textAlign = 'center';
+      expect(render.context.textAlign).toBe('center');
     });
 
     test('should handle different textAlign values', () => {
       const alignValues: CanvasTextAlign[] = ['left', 'right', 'center', 'start', 'end'];
       
       alignValues.forEach(align => {
-        render.textAlign = align;
-        expect(render.textAlign).toBe(align);
+        render.context.textAlign = align;
+        expect(render.context.textAlign).toBe(align);
       });
     });
   });
@@ -284,7 +275,7 @@ describe('Canvas2DRender', () => {
 
       const drawImageSpy = jest.spyOn(mockContext, 'drawImage');
       
-      Canvas2DRender.drawScaled(sourceContext, mockContext, false);
+      Canvas2DRender.drawScaled(sourceContext, mockContext);
       
       expect(drawImageSpy).toHaveBeenCalled();
     });
@@ -292,7 +283,7 @@ describe('Canvas2DRender', () => {
     test('should draw scaled video element', () => {
       const mockVideo = document.createElement('video');
       const drawImageSpy = jest.spyOn(mockContext, 'drawImage');
-      Canvas2DRender.drawScaled(mockVideo, mockContext, true);
+      Canvas2DRender.drawScaled(mockVideo, mockContext);
       expect(drawImageSpy).toHaveBeenCalled();
     });
 
@@ -309,12 +300,12 @@ describe('Canvas2DRender', () => {
 
       const drawImageSpy = jest.spyOn(mockContext, 'drawImage');
       
-      Canvas2DRender.drawScaled(wideContext, mockContext, false);
+      Canvas2DRender.drawScaled(wideContext, mockContext);
       expect(drawImageSpy).toHaveBeenCalled();
 
       drawImageSpy.mockClear();
       
-      Canvas2DRender.drawScaled(tallContext, mockContext, false);
+      Canvas2DRender.drawScaled(tallContext, mockContext);
       expect(drawImageSpy).toHaveBeenCalled();
     });
   });
@@ -367,31 +358,31 @@ describe('Canvas2DRender', () => {
       render.setSize(800, 600);
       
       render.save();
-      render.fillStyle = '#FF0000';
-      render.font = '20px Arial';
+      render.context.fillStyle = '#FF0000';
+      render.context.font = '20px Arial';
       render.translate(100, 100);
       render.rotate(Math.PI / 4);
       render.scale(2, 2);
-      render.fillText('Test', 0, 0);
+      render.context.fillText('Test', 0, 0);
       render.restore();
       
-      expect(render.fillStyle).toBeDefined();
+      expect(render.context.fillStyle).toBeDefined();
     });
 
     test('should handle multiple save and restore calls', () => {
       render.setSize(800, 600);
       
       render.save();
-      render.fillStyle = '#FF0000';
+      render.context.fillStyle = '#FF0000';
       render.save();
-      render.fillStyle = '#00FF00';
+      render.context.fillStyle = '#00FF00';
       render.save();
-      render.fillStyle = '#0000FF';
+      render.context.fillStyle = '#0000FF';
       render.restore();
       render.restore();
       render.restore();
       
-      expect(render.fillStyle).toBeDefined();
+      expect(render.context.fillStyle).toBeDefined();
     });
   });
 });

@@ -27,8 +27,8 @@ export class VideoMedia extends AbstractMedia {
     this.width = metadata.width;
     this.height = metadata.height;
 
-    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
-    this.framesCollection.initializeFrames();
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
+    this.frameService.initializeFrames();
     this.videoStreaming = metadata.frames;
 
     this.renderer.setSize(this.width, this.height);
@@ -40,9 +40,9 @@ export class VideoMedia extends AbstractMedia {
    * Removes a video interval by removing frames from the media
    */
   removeInterval(startTime: number, endTime: number): boolean {
-    const success = this.framesCollection.removeInterval(startTime, endTime);
+    const success = this.frameService.removeInterval(startTime, endTime);
     if (success) {
-      this.totalTimeInMilSeconds = this.framesCollection.getTotalTimeInMilSec();
+      this.totalTimeInMilSeconds = this.frameService.getTotalTimeInMilSec();
       console.log("Video clipping successful");
     }
     return success;
@@ -79,11 +79,11 @@ export class VideoMedia extends AbstractMedia {
   }
 
   async getFrame(currentTime: number): Promise<Frame | null> {
-    const index = this.framesCollection.getIndex(currentTime, this.start_time);
-    if (index < 0 || index >= this.framesCollection.getLength()) {
+    const index = this.frameService.getIndex(currentTime, this.start_time);
+    if (index < 0 || index >= this.frameService.getLength()) {
       return null;
     }
-    const frame = this.framesCollection.frames[index];
+    const frame = this.frameService.frames[index];
     const videoFrame = await this.videoStreaming?.getFrameAtIndex(index);
     if (!videoFrame) {
       return null;

@@ -62,10 +62,10 @@ export class MediaService {
 
   private splitVideoLayer(mediaOriginal: AbstractMedia, mediaClone: AbstractMedia, splitTime: number): void {
     const pct = (splitTime - mediaOriginal.start_time) / mediaOriginal.totalTimeInMilSeconds;
-    const split_idx = Math.round(pct * mediaOriginal.framesCollection.frames.length);
+    const split_idx = Math.round(pct * mediaOriginal.frameService.getLength());
 
     mediaClone.name = mediaOriginal.name + " [Split]";
-    mediaClone.framesCollection.frames = mediaOriginal.framesCollection.frames.splice(0, split_idx);
+    mediaClone.frameService.frames = mediaOriginal.frameService.frames.splice(0, split_idx);
     mediaClone.totalTimeInMilSeconds = pct * mediaOriginal.totalTimeInMilSeconds;
 
     mediaOriginal.start_time = mediaOriginal.start_time + mediaClone.totalTimeInMilSeconds;

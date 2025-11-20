@@ -113,9 +113,9 @@ export class MediaLoader {
         layer.totalTimeInMilSeconds = layer_d.total_time;
 
         if (layer_d.frames) {
-          layer.framesCollection.frames = [];
+          layer.frameService.frames = [];
           for (const f of layer_d.frames) {
-            layer.framesCollection.push(Frame.fromArray(new Float32Array(f)));
+            layer.frameService.push(Frame.fromArray(new Float32Array(f)));
           }
         }
       });

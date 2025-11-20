@@ -116,20 +116,6 @@ export class Canvas2DRender {
     return this.#ctx.getImageData(sx, sy, w, h);
   }
 
-  measureText(text: string): TextMetrics {
-    return this.#ctx.measureText(text);
-  }
-
-  fillText(text: string, x: number, y: number, maxWidth: number | null = null): void {
-    if (!this.#ctx) return;
-
-    if (maxWidth !== null) {
-      this.#ctx.fillText(text, x, y, maxWidth);
-    } else {
-      this.#ctx.fillText(text, x, y);
-    }
-  }
-
   save(): void {
     if (!this.#ctx) return;
     this.#ctx.save();
@@ -145,66 +131,11 @@ export class Canvas2DRender {
     this.#ctx.translate(x, y);
   }
 
-  rotate(angle: number): void {
-    if (!this.#ctx) return;
-    this.#ctx.rotate(angle);
-  }
-
   scale(x: number, y: number): void {
     if (!this.#ctx) return;
     this.#ctx.scale(x, y);
   }
 
-  // Style properties
-  set font(value: string) {
-    if (this.#ctx) {
-      this.#ctx.font = value;
-    }
-  }
-
-  get font(): string {
-    return this.#ctx?.font ?? '';
-  }
-
-  set fillStyle(value: string | CanvasGradient | CanvasPattern) {
-    if (this.#ctx) {
-      this.#ctx.fillStyle = value;
-    }
-  }
-
-  get fillStyle(): string | CanvasGradient | CanvasPattern {
-    return this.#ctx?.fillStyle ?? '';
-  }
-
-  set shadowColor(value: string) {
-    if (this.#ctx) {
-      this.#ctx.shadowColor = value;
-    }
-  }
-
-  get shadowColor(): string {
-    return this.#ctx?.shadowColor ?? '';
-  }
-
-  set shadowBlur(value: number) {
-    if (this.#ctx) {
-      this.#ctx.shadowBlur = value;
-    }
-  }
-
-  get shadowBlur(): number {
-    return this.#ctx?.shadowBlur ?? 0;
-  }
-
-  set textAlign(value: CanvasTextAlign) {
-    if (this.#ctx) {
-      this.#ctx.textAlign = value;
-    }
-  }
-
-  get textAlign(): CanvasTextAlign {
-    return this.#ctx?.textAlign ?? 'start';
-  }
 
   // Static method for standalone usage (maintains backward compatibility)
   static drawScaled(

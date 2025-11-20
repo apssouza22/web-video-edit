@@ -31,7 +31,7 @@ export abstract class AbstractMedia {
   public renderer: Canvas2DRender;
   public loadUpdateListener: LayerLoadUpdateListener;
   public lastRenderedTime: number;
-  public framesCollection: FrameService;
+  public frameService: FrameService;
   public speedController: SpeedController;
 
   constructor(file?: LayerFile) {
@@ -55,7 +55,7 @@ export abstract class AbstractMedia {
     };
     this.lastRenderedTime = -1;
 
-    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
     this.speedController = new SpeedController(this);
     addElementToBackground(this.renderer.canvas as HTMLElement);
     this.updateName(this.name);
@@ -78,7 +78,7 @@ export abstract class AbstractMedia {
    * Adjusts the total time of the video media by adding or removing frames
    */
   adjustTotalTime(diff: number): void {
-    if (!this.ready || !this.framesCollection) {
+    if (!this.ready || !this.frameService) {
       console.warn('VideoMedia not ready or frames collection not available');
       return;
     }
@@ -86,8 +86,8 @@ export abstract class AbstractMedia {
       console.log("Audio media cannot adjust total time");
       return;
     }
-    this.framesCollection.adjustTotalTime(diff);
-    this.totalTimeInMilSeconds = this.framesCollection.getTotalTimeInMilSec();
+    this.frameService.adjustTotalTime(diff);
+    this.totalTimeInMilSeconds = this.frameService.getTotalTimeInMilSec();
     this.#resetRenderCache();
   }
 
@@ -186,8 +186,8 @@ export abstract class AbstractMedia {
       const canvasWidth = this.renderer.width;
       const canvasHeight = this.renderer.height;
 
-      for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        const frame = this.framesCollection.frames[i];
+      for (let i = 0; i < this.frameService.getLength(); ++i) {
+        const frame = this.frameService.frames[i];
         const distanceFromCenterX = frame.x - (canvasWidth / 2);
         const distanceFromCenterY = frame.y - (canvasHeight / 2);
         const scaleFactor = newScale / frame.scale;
@@ -202,22 +202,22 @@ export abstract class AbstractMedia {
     }
 
     if (change.x !== undefined) {
-      for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i].x = change.x;
+      for (let i = 0; i < this.frameService.getLength(); ++i) {
+        this.frameService.frames[i].x = change.x;
       }
       hasChanges = true;
     }
 
     if (change.y !== undefined) {
-      for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i].y = change.y;
+      for (let i = 0; i < this.frameService.getLength(); ++i) {
+        this.frameService.frames[i].y = change.y;
       }
       hasChanges = true;
     }
 
     if (change.rotation !== undefined) {
-      for (let i = 0; i < this.framesCollection.getLength(); ++i) {
-        this.framesCollection.frames[i].rotation = f.rotation + change.rotation;
+      for (let i = 0; i < this.frameService.getLength(); ++i) {
+        this.frameService.frames[i].rotation = f.rotation + change.rotation;
       }
       hasChanges = true;
     }
@@ -234,7 +234,7 @@ export abstract class AbstractMedia {
    * Returns null if no frame is found
    */
   async getFrame(time: number): Promise<Frame | null> {
-    return this.framesCollection.getFrame(time, this.start_time);
+    return this.frameService.getFrame(time, this.start_time);
   }
 
   // Speed control methods
@@ -247,7 +247,7 @@ export abstract class AbstractMedia {
   }
 
   getTotalFrames(): number {
-    return this.framesCollection.getLength();
+    return this.frameService.getLength();
   }
 
   isVideo(): boolean {
@@ -263,17 +263,17 @@ export abstract class AbstractMedia {
 /**
  * Non-video medias that can be resized and have their total time adjusted.
  */
-export class FlexibleLayer extends AbstractMedia {
+export class FlexibleMedia extends AbstractMedia {
   constructor(file?: LayerFile) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;
-    this.framesCollection = createFrameService(this.totalTimeInMilSeconds, this.start_time);
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.start_time);
   }
 
   dump(): LayerDumpData {
     let obj = super.dump();
     obj.frames = [];
-    for (let f of this.framesCollection.frames) {
+    for (let f of this.frameService.frames) {
       obj.frames.push(f.toArray());
     }
     return obj;

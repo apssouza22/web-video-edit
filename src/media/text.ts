@@ -1,8 +1,8 @@
-import {FlexibleLayer} from './media-common';
+import {FlexibleMedia} from './media-common';
 import {LayerChange, LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 
-export class TextMedia extends FlexibleLayer {
+export class TextMedia extends FlexibleMedia {
   public color: string;
   public shadow: boolean;
 
@@ -26,7 +26,7 @@ export class TextMedia extends FlexibleLayer {
    * Update the media's dimensions and text properties
    */
   async update(change: LayerChange, refTime: number): Promise<void> {
-    const rect = this.renderer.measureText(this.name);
+    const rect = this.renderer.context.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
     super.update(change, refTime);
@@ -47,8 +47,9 @@ export class TextMedia extends FlexibleLayer {
       return;
     }
 
-    this.renderer.font = "30px sans-serif";
-    const rect = this.renderer.measureText(this.name);
+    const context = this.renderer.context;
+    context.font = "30px sans-serif";
+    const rect = context.measureText(this.name);
     this.width = rect.width;
     this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
     
@@ -56,18 +57,19 @@ export class TextMedia extends FlexibleLayer {
     const y = this.renderer.height / 2;
     
     if (this.shadow) {
-      this.renderer.shadowColor = "black";
-      this.renderer.shadowBlur = 7;
+      context.shadowColor = "black";
+      context.shadowBlur = 7;
     } else {
-      this.renderer.shadowColor = '';
-      this.renderer.shadowBlur = 1;
+      context.shadowColor = '';
+      context.shadowBlur = 1;
     }
     
-    this.renderer.fillStyle = this.color;
+    context.fillStyle = this.color;
     this.renderer.clearRect();
-    this.renderer.textAlign = "center";
-    this.renderer.fillText(this.name, x, y);
-    Canvas2DRender.drawTransformed(this.renderer.context, ctxOut, frame);
+    context.textAlign = "center";
+    context.fillText(this.name, x, y);
+
+    Canvas2DRender.drawTransformed(context, ctxOut, frame);
     this.updateRenderCache(refTime);
   }
 }
