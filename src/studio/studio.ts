@@ -198,17 +198,19 @@ export class VideoStudio {
   /**
    * Clone a media by creating a copy with slightly modified properties
    */
-  cloneLayer(layer: AbstractMedia): AbstractMedia {
-    const clonedLayer = this.mediaService.clone(layer);
-    this.addLayer(clonedLayer);
-    this.setSelectedLayer(clonedLayer);
-    return clonedLayer;
+  cloneLayer(layer: AbstractMedia): void {
+    const clonedLayer = layer.clone();
+    if (!clonedLayer) {
+      console.log('Cloning layer failed.');
+    }
+    this.addLayer(clonedLayer!);
+    this.setSelectedLayer(clonedLayer!);
   }
 
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
     if (!skipInit) {
       layer.start_time = this.player.time;
-      layer.init(this.player.width, this.player.height, this.player.audioContext);
+      layer.init(layer.width, layer.height, this.player.audioContext);
     }
     this.medias.push(layer);
     this.studioState.addMedia(layer);
@@ -302,7 +304,7 @@ export class VideoStudio {
       layer: AbstractMedia,
       progress: number,
       ctx: ESRenderingContext2D | null,
-      audioBuffer?: AudioBuffer
+      audioBuffer?: AudioBuffer | null
   ): void {
     this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
     if (progress === 100) {

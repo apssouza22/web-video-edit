@@ -11,7 +11,7 @@ export type LayerLoadUpdateListener = (
   layer: any,
   progress: number,
   ctx: ESRenderingContext2D | null,
-  audioBuffer?: AudioBuffer | undefined
+  audioBuffer?: AudioBuffer | null
 ) => void;
 
 /**

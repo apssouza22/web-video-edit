@@ -43,12 +43,12 @@ export class MediaLoader {
    * @returns The added medias
    */
   addMediaFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
-    const layers: AbstractMedia[] = [];
+    const medias: AbstractMedia[] = [];
     createMediaFromFile(file, onMediaLoadUpdate)
     .forEach(layer => {
-      layers.push(this.studio.addLayer(layer));
+      medias.push(this.studio.addLayer(layer));
     });
-    return layers;
+    return medias;
   }
 
   /**

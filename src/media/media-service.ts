@@ -1,18 +1,18 @@
-import {TextMedia} from "./text";
-import {VideoMedia} from "./video";
-import {ImageMedia} from "./image";
-import {AudioMedia} from "./audio";
 import {LayerLoadUpdateListener} from "./types";
 import {AbstractMedia} from "@/media/media-common";
 import {AudioService} from "@/audio";
 import {ESRenderingContext2D} from "@/common/render-2d";
+import {AudioMedia} from "./audio";
+import {VideoMedia} from "./video";
+import {TextMedia} from "./text";
+import {ImageMedia} from "./image";
 
 export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener = (
       layer: any,
       progress: number,
       ctx: ESRenderingContext2D | null,
-      audioBuffer?: AudioBuffer | undefined
+      audioBuffer?: AudioBuffer | null
   ) => void {};
   private audioService: AudioService;
 
@@ -47,20 +47,23 @@ export class MediaService {
   }
 
   splitMedia(selectedMedia: AbstractMedia, splitTime: number): AbstractMedia {
-    const mediaClone = this.clone(selectedMedia);
-    if (selectedMedia instanceof VideoMedia) {
-      this.splitVideoLayer(selectedMedia, mediaClone, splitTime);
-    }
-
+    const mediaClone = selectedMedia.clone();
     if (selectedMedia instanceof AudioMedia) {
       this.audioService.splitAudio(selectedMedia, mediaClone, splitTime);
+      return mediaClone;
     }
-
+    this.splitFrameBasedMedia(selectedMedia, mediaClone, splitTime);
     return mediaClone;
   }
 
 
-  private splitVideoLayer(mediaOriginal: AbstractMedia, mediaClone: AbstractMedia, splitTime: number): void {
+  /**
+   * Splits frame-based media (Video, Text, Image) at the specified time
+   * @param mediaOriginal - The original media to split
+   * @param mediaClone - The cloned media that will become the first part
+   * @param splitTime - The time at which to split
+   */
+  private splitFrameBasedMedia(mediaOriginal: AbstractMedia, mediaClone: AbstractMedia, splitTime: number): void {
     const pct = (splitTime - mediaOriginal.start_time) / mediaOriginal.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * mediaOriginal.frameService.getLength());
 
@@ -94,66 +97,14 @@ export class MediaService {
     }
   }
 
-  clone(layer: any): any | null {
-    const newLayer = this.createClone(layer);
+  clone(layer: AbstractMedia): AbstractMedia | null {
+    const newLayer = layer.clone();
     if (!newLayer) {
-      console.error('Cannot clone media of type:', layer.constructor.name);
       return null;
     }
 
-    const cloneStartTime = layer.start_time + 100; // 100ms offset
-    newLayer.start_time = layer.start_time;
-    newLayer.id = layer.id + '-clone';
-    newLayer.start_time = cloneStartTime;
-    newLayer.color = layer.color;
-    newLayer.shadow = layer.shadow;
-    newLayer.totalTimeInMilSeconds = layer.totalTimeInMilSeconds;
-    newLayer.width = layer.width;
-    newLayer.height = layer.height;
-    newLayer.canvas.width = layer.canvas.width;
-    newLayer.canvas.height = layer.canvas.height;
-    newLayer.framesCollection.frames = [...layer.framesCollection.frames];
-    newLayer.ready = true;
-    newLayer.addLoadUpdateListener((l: any, progress: number, ctx: CanvasRenderingContext2D | null, audioBuffer?: AudioBuffer) => {
-      this.onLayerLoadUpdate(l, progress, ctx, audioBuffer);
-    });
-    newLayer.loadUpdateListener(newLayer, 100, newLayer.ctx, newLayer.audioBuffer);
+
     return newLayer;
-  }
-
-  private createClone(layer: any): any | null {
-    if (!layer.ready) {
-      console.error('Cannot clone VideoMedia that is not ready');
-      return null;
-    }
-
-    const cloneName = layer.name + " [Clone]";
-
-    if (layer instanceof TextMedia) {
-      return new TextMedia(cloneName);
-    }
-
-    if (layer instanceof VideoMedia) {
-      const videoLayer = new VideoMedia(layer.file!, true);
-      videoLayer.name = cloneName;
-      return videoLayer;
-    }
-
-    if (layer instanceof AudioMedia) {
-      const audioLayer = new AudioMedia(layer.file!, true);
-      audioLayer.name = cloneName;
-      audioLayer.playerAudioContext = layer.playerAudioContext;
-      audioLayer.audioBuffer = layer.audioBuffer;
-      return audioLayer;
-    }
-
-    if (layer instanceof ImageMedia) {
-      const imageLayer = new ImageMedia(layer.file!);
-      imageLayer.name = cloneName;
-      return imageLayer;
-    }
-
-    return null;
   }
 
   setOnLayerLoadUpdateListener(onLayerLoadUploadListener: LayerLoadUpdateListener) {

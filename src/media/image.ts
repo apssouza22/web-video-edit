@@ -53,4 +53,8 @@ export class ImageMedia extends FlexibleMedia {
     Canvas2DRender.drawTransformed(this.ctx, ctxTo, frame);
     this.updateRenderCache(currentTime);
   }
+
+  protected _createCloneInstance(): this {
+    return new ImageMedia(this.file!) as this;
+  }
 }

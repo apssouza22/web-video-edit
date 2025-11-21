@@ -153,4 +153,11 @@ export class AudioMedia extends AbstractMedia {
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this.speedController.getSpeed();
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
   }
+
+  protected _createCloneInstance(): AbstractMedia {
+    const audioLayer = new AudioMedia(this.file!, true) as this;
+    audioLayer.playerAudioContext = this.playerAudioContext;
+    audioLayer.audioBuffer = this.audioBuffer;
+    return audioLayer;
+  }
 }

@@ -8,38 +8,32 @@ Only proceed to the *next* unchecked item after confirming the previous one is c
 Ensure one class per file and use PascalCase for class names.
 Also use private methods for any helper functions that are not intended to be used outside the class.
 Avoid using global variables or functions that are not encapsulated within a class.
-Avoid coupling packages. Preference to use events for communication between different packages.Ensure self-contained packages.
+Avoid coupling packages. Preference to use events for communication between different packages. Ensure self-contained packages.
+Ensure cohesion keeping related functionality together within the package.
 Avoid adding code that is not being used in the current task.
 Avoid comments describing functionality ensure self describing code
 
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- `src/`: Core source (ES modules). Domains: `audio/`, `demux/`, `muxer/`, `timeline/`, `studio/`, `record/`, `frame/`, `media/`, `common/`, `transcription/`.
-- `assets/css/`: Styles and fonts.  `index.html`: app shell for local dev.
-- `tests/`: Jest tests, setup, and mocks. Key files: `tests/setup.js`, `tests/services/*.test.js`.
-- Config: `package.json` (scripts), `jest.config.js` (jsdom, coverage), `.github/` (automation), `README.md` (usage).
-
 ## Build, Test, and Development Commands
 - `npm install`: Install dependencies.
-- `npm start`: Serve locally at `http://localhost:8080` using `http-server`.
+- `npm start`: Start development server (if applicable).
+- `npm run build`: Build production files (outputs to `dist/`).
 - `npm test`: Run Jest tests.
 - `npm run test:watch`: Re-run tests on change.
-- `npm run test:coverage`: Generate coverage (targets `src/**/*.{js,ts}`, excluding entry/worker files).
-- Example (single file): `npm test tests/services/frame-service.test.js`.
+- Example (single file): `npm test tests/domain-package/frame-service.test.js`.
 
 ## Coding Style & Naming Conventions
-- Language: Vanilla JS (ES modules), browser-first. Avoid Node-only APIs in `src`.
-- Indentation: 2 spaces; line width ~100 chars.
+- Language: Typescript, browser-first. Avoid Node-only APIs in `src`.
+- Indentation: 2 spaces; line width ~120 chars.
 - Filenames/dirs: kebab-case (e.g., `media-image.js`, `video-export.js`).
 - Symbols: `camelCase` for functions/vars, `PascalCase` for classes, `UPPER_SNAKE_CASE` for constants.
-- Module imports: relative from `src`. In tests, `@/` maps to `src/` via Jest.
+- Module imports: relative from the package. In tests, `@/` maps to `src/` via Jest.
 
 ## Testing Guidelines
 - Framework: Jest with `jsdom` environment.
-- Location: Place new tests under `tests/services/` (or create a subfolder mirroring `src` domain).
+- Location: Place new tests under `tests/` (or create a subfolder mirroring `src` domain).
 - Naming: `*.test.js` or `*.spec.js` (matched by Jest config).
-- Coverage: Keep or improve coverage (`npm run test:coverage`). Use `tests/setup.js` mocks for Web APIs (MediaRecorder, Worker, Canvas, etc.).
 
 ## Commit & Pull Request Guidelines
 - Commits: Imperative, concise subject (≤ 50 chars). Example: `Add video speed control`. Use additional body lines for rationale and tradeoffs.

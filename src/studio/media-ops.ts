@@ -30,10 +30,6 @@ export class MediaOps {
     }
     const layer = this.studioState.getSelectedMedia()!;
 
-    // Check if media is VideoMedia or AudioMedia
-    if (!(isMediaVideo(layer)) && !(isMediaAudio(layer))) {
-      return false;
-    }
     if (!layer.ready) {
       return false;
     }

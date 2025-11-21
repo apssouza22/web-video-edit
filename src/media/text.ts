@@ -1,4 +1,4 @@
-import {FlexibleMedia} from './media-common';
+import {AbstractMedia, FlexibleMedia} from './media-common';
 import {LayerChange, LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 
@@ -71,5 +71,21 @@ export class TextMedia extends FlexibleMedia {
 
     Canvas2DRender.drawTransformed(context, ctxOut, frame);
     this.updateRenderCache(refTime);
+  }
+
+  protected _createCloneInstance(): AbstractMedia {
+    return new TextMedia(this.name) as AbstractMedia;
+  }
+
+  /**
+   * Override clone to also copy TextMedia-specific properties
+   */
+  clone(): AbstractMedia {
+    const cloned = super.clone();
+    if (cloned) {
+      (cloned as TextMedia).color = this.color;
+      (cloned as TextMedia).shadow = this.shadow;
+    }
+    return cloned;
   }
 }

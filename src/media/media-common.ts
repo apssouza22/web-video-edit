@@ -258,12 +258,39 @@ export abstract class AbstractMedia {
     return this.constructor.name === 'AudioMedia' //To avoid circular dependency
   }
 
+  /**
+   * Creates a new instance of the concrete media class for cloning
+   * Each subclass must implement this to return a new instance of itself
+   */
+  protected abstract _createCloneInstance(): AbstractMedia;
+
+  /**
+   * Creates a clone of this media layer
+   * @returns A new instance of the media with copied properties
+   */
+  clone(): AbstractMedia {
+    const newMedia = this._createCloneInstance();
+    const cloneStartTime = this.start_time // 10ms offset
+    newMedia.id = this.id + '-clone';
+    newMedia.name = this.name + ' [Clone]';
+    newMedia.start_time = cloneStartTime;
+    newMedia.totalTimeInMilSeconds = this.totalTimeInMilSeconds;
+    newMedia.width = this.width;
+    newMedia.height = this.height;
+    newMedia.renderer.setSize(this.renderer.width, this.renderer.height);
+    newMedia.frameService.frames = [...this.frameService.frames];
+    newMedia.ready = true;
+    newMedia.loadUpdateListener = this.loadUpdateListener;
+    newMedia.loadUpdateListener(newMedia, 100, newMedia.ctx, newMedia.audioBuffer);
+    return newMedia;
+  }
+
 }
 
 /**
  * Non-video medias that can be resized and have their total time adjusted.
  */
-export class FlexibleMedia extends AbstractMedia {
+export abstract class FlexibleMedia extends AbstractMedia {
   constructor(file?: LayerFile) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;

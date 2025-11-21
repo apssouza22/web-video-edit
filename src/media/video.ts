@@ -97,4 +97,8 @@ export class VideoMedia extends AbstractMedia {
       this.videoStreaming = undefined;
     }
   }
+
+  protected _createCloneInstance(): this {
+    return new VideoMedia(this.file!, true) as this;
+  }
 }
