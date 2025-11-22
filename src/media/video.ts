@@ -27,8 +27,7 @@ export class VideoMedia extends AbstractMedia {
     this.width = metadata.width;
     this.height = metadata.height;
 
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime, false);
-    this.frameService.initializeFrames();
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
     this.videoStreaming = metadata.frames;
 
     this.renderer.setSize(this.width, this.height);
@@ -75,7 +74,11 @@ export class VideoMedia extends AbstractMedia {
   }
 
   async getFrameAtIndex(index: number): Promise<VideoFrame | null> {
-    return this.videoStreaming!.getFrameAtIndex(index);
+    const frame =this.frameService.frames[index];
+    if (!frame) {
+      return null;
+    }
+    return this.videoStreaming!.getFrameAtIndex(frame.index!);
   }
 
   async getFrame(currentTime: number): Promise<Frame | null> {
@@ -84,7 +87,7 @@ export class VideoMedia extends AbstractMedia {
       return null;
     }
     const frame = this.frameService.frames[index];
-    const videoFrame = await this.videoStreaming?.getFrameAtIndex(index);
+    const videoFrame = await this.videoStreaming?.getFrameAtIndex(frame.index!);
     if (!videoFrame) {
       return null;
     }
@@ -98,7 +101,11 @@ export class VideoMedia extends AbstractMedia {
     }
   }
 
-  protected _createCloneInstance(): this {
-    return new VideoMedia(this.file!, true) as this;
+  protected _createCloneInstance(): AbstractMedia {
+    const videoMedia = new VideoMedia(this.file!, true);
+    videoMedia.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
+    videoMedia.frameService.initializeFrames();
+    videoMedia.videoStreaming = this.videoStreaming;
+    return videoMedia;
   }
 }

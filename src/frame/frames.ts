@@ -5,19 +5,16 @@ import {Frame} from './frame';
 export class FrameService {
   public frames: Frame[] = [];
   public totalTimeInSeconds: number = 0;
-  public startTime: number = 0;
   public startTime: number;
   public totalTimeInMilSeconds: number;
   public timeAdjustHandler: FrameAdjustHandler;
 
-  constructor(milSeconds: number, startTime: number, flexibleLayer: boolean = true) {
+  constructor(milSeconds: number, startTime: number) {
     this.startTime = startTime;
     this.totalTimeInMilSeconds = milSeconds;
     this.totalTimeInSeconds = milSeconds / 1000;
     this.timeAdjustHandler = new FrameAdjustHandler(this);
-    if (flexibleLayer) {
-      this.initializeFrames();
-    }
+    this.initializeFrames();
   }
 
   adjustTotalTime(diff: number): void {
@@ -31,6 +28,7 @@ export class FrameService {
   initializeFrames(): void {
     for (let i = 0; i < this.totalTimeInSeconds * fps; ++i) {
       const f = new Frame(null, 0, 0, 1, 0, false);
+      f.index = i;
       this.frames.push(f);
     }
     this.frames[0].anchor = true; // set first frame as anchor

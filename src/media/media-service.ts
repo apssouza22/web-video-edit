@@ -4,8 +4,6 @@ import {AudioService} from "@/audio";
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {AudioMedia} from "./audio";
 import {VideoMedia} from "./video";
-import {TextMedia} from "./text";
-import {ImageMedia} from "./image";
 
 export class MediaService {
   private onLayerLoadUpdate: LayerLoadUpdateListener = (
@@ -44,35 +42,6 @@ export class MediaService {
     } catch (error) {
       console.error('Error removing audio interval:', error);
     }
-  }
-
-  splitMedia(selectedMedia: AbstractMedia, splitTime: number): AbstractMedia {
-    const mediaClone = selectedMedia.clone();
-    if (selectedMedia instanceof AudioMedia) {
-      this.audioService.splitAudio(selectedMedia, mediaClone, splitTime);
-      return mediaClone;
-    }
-    this.splitFrameBasedMedia(selectedMedia, mediaClone, splitTime);
-    return mediaClone;
-  }
-
-
-  /**
-   * Splits frame-based media (Video, Text, Image) at the specified time
-   * @param mediaOriginal - The original media to split
-   * @param mediaClone - The cloned media that will become the first part
-   * @param splitTime - The time at which to split
-   */
-  private splitFrameBasedMedia(mediaOriginal: AbstractMedia, mediaClone: AbstractMedia, splitTime: number): void {
-    const pct = (splitTime - mediaOriginal.startTime) / mediaOriginal.totalTimeInMilSeconds;
-    const split_idx = Math.round(pct * mediaOriginal.frameService.getLength());
-
-    mediaClone.name = mediaOriginal.name + " [Split]";
-    mediaClone.frameService.frames = mediaOriginal.frameService.frames.splice(0, split_idx);
-    mediaClone.totalTimeInMilSeconds = pct * mediaOriginal.totalTimeInMilSeconds;
-
-    mediaOriginal.startTime = mediaOriginal.startTime + mediaClone.totalTimeInMilSeconds;
-    mediaOriginal.totalTimeInMilSeconds = mediaOriginal.totalTimeInMilSeconds - mediaClone.totalTimeInMilSeconds;
   }
 
 

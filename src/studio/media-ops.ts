@@ -40,7 +40,7 @@ export class MediaOps {
       return false;
     }
 
-    const newMedia = this.mediaService.splitMedia(layer, this.studioState.getPlayingTime());
+    const newMedia = layer.split(this.studioState.getPlayingTime())
     this.studio.addLayer(newMedia, true);
     return true
   }

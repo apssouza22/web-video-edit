@@ -1,6 +1,7 @@
 import { TimelineLayerFactory } from './timeline-layer-factory';
 import type { MediaInterface } from './types';
 import type { TimelineLayer } from './timeline-layer';
+import {AbstractMedia} from "@/media";
 
 /**
  * Class responsible for managing timeline media rendering using the new TimelineLayer system
@@ -43,8 +44,8 @@ export class TimelineLayerRender {
    * Get or create a timeline media renderer for the given media
    * @param {MediaInterface} layer - The media to get renderer for
    */
-  #getLayerRenderer(layer: MediaInterface) {
-    const layerId = layer.id;
+  #getLayerRenderer(layer: AbstractMedia) {
+    const layerId = layer.id + '-' + layer.getTotalFrames();
     
     if (!this.#layerRenderers.has(layerId)) {
       const renderer = TimelineLayerFactory.createTimelineLayer(
@@ -66,7 +67,7 @@ export class TimelineLayerRender {
    * @param {number} height - The height of the media track
    * @param {boolean} selected - Whether the media is selected
    */
-  renderLayer(layer: MediaInterface, yPos: number, height: number, selected: boolean = false) {
+  renderLayer(layer: AbstractMedia, yPos: number, height: number, selected: boolean = false) {
     if(layer.totalTimeInMilSeconds === 0) {
       return;
     }

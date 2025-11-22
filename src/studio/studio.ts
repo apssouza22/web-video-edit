@@ -200,10 +200,7 @@ export class VideoStudio {
    */
   cloneLayer(layer: AbstractMedia): void {
     const clonedLayer = layer.clone();
-    if (!clonedLayer) {
-      console.log('Cloning layer failed.');
-    }
-    this.addLayer(clonedLayer!);
+    this.addLayer(clonedLayer);
     this.setSelectedLayer(clonedLayer!);
   }
 

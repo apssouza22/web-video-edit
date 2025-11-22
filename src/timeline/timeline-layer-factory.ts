@@ -4,6 +4,8 @@ import { ImageTimelineLayer } from './layers/image-timeline-layer';
 import { TextTimelineLayer } from './layers/text-timeline-layer';
 import type { MediaInterface } from './types';
 import type { TimelineLayer } from './timeline-layer';
+import {AbstractMedia} from "@/media";
+import type {VideoMedia} from "@/media/video";
 
 /**
  * Factory class for creating timeline media renderers
@@ -19,7 +21,7 @@ export class TimelineLayerFactory {
    */
   static createTimelineLayer(
     ctx: CanvasRenderingContext2D,
-    layer: MediaInterface,
+    layer: AbstractMedia,
     totalTime: number,
     canvasWidth: number
   ): TimelineLayer {
@@ -29,7 +31,7 @@ export class TimelineLayerFactory {
       case 'AudioMedia':
         return new AudioTimelineLayer(ctx, layer, totalTime, canvasWidth);
       case 'VideoMedia':
-        return new VideoTimelineLayer(ctx, layer, totalTime, canvasWidth);
+        return new VideoTimelineLayer(ctx, layer as VideoMedia, totalTime, canvasWidth);
       case 'ImageMedia':
         return new ImageTimelineLayer(ctx, layer, totalTime, canvasWidth);
       case 'TextMedia':

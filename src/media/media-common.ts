@@ -45,7 +45,7 @@ export abstract class AbstractMedia {
     }
     
     this.ready = false;
-    this.totalTimeInMilSeconds = 0;
+    this.totalTimeInMilSeconds = 1;
     this.startTime = 0;
     this.width = 0;
     this.height = 0;
@@ -55,7 +55,7 @@ export abstract class AbstractMedia {
     };
     this.lastRenderedTime = -1;
 
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime, false);
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
     this.speedController = new SpeedController(this);
     addElementToBackground(this.renderer.canvas as HTMLElement);
     this.updateName(this.name);
@@ -283,6 +283,36 @@ export abstract class AbstractMedia {
     newMedia.loadUpdateListener = this.loadUpdateListener;
     newMedia.loadUpdateListener(newMedia, 100, newMedia.ctx, newMedia.audioBuffer);
     return newMedia;
+  }
+
+  /**
+   * Splits this media at the specified time
+   * @param splitTime - The time at which to split (in milliseconds)
+   * @returns The first part of the split (clone), or null if split failed
+   */
+  split(splitTime: number): AbstractMedia {
+    const mediaClone = this.clone();
+    this._performSplit(mediaClone, splitTime);
+    return mediaClone;
+  }
+
+  /**
+   * Performs the actual split operation
+   * Default implementation handles frame-based splitting for Video, Text, and Image media
+   * @param mediaClone - The cloned media that will become the first part
+   * @param splitTime - The time at which to split (in milliseconds)
+   */
+  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): void {
+    const pct = (splitTime - this.startTime) / this.totalTimeInMilSeconds;
+    const split_idx = Math.round(pct * this.frameService.getLength());
+
+    mediaClone.name = this.name + " [Split]";
+    mediaClone.frameService.frames = this.frameService.frames.slice(0, split_idx);
+    mediaClone.totalTimeInMilSeconds = pct * this.totalTimeInMilSeconds;
+
+    this.frameService.frames = this.frameService.frames.slice(split_idx);
+    this.startTime = this.startTime + mediaClone.totalTimeInMilSeconds;
+    this.totalTimeInMilSeconds = this.totalTimeInMilSeconds - mediaClone.totalTimeInMilSeconds;
   }
 
 }

@@ -5,10 +5,9 @@ import { FrameService } from './frames';
  */
 export function createFrameService(
   startTime: number,
-  totalTimeInMilliseconds: number,
-  isFlexibleLayer: boolean = true
+  totalTimeInMilliseconds: number
 ): FrameService {
-  return new FrameService(startTime, totalTimeInMilliseconds, isFlexibleLayer);
+  return new FrameService(startTime, totalTimeInMilliseconds);
 }
 
 // Re-export all types and classes for convenience

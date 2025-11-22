@@ -11,6 +11,7 @@ export class Frame implements FrameTransform {
     public rotation: number;
     public anchor: boolean;
     public videoData: VideoData;
+    public index?: number;
 
     /**
      * Creates a new Frame instance
