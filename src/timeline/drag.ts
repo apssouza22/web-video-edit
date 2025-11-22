@@ -49,7 +49,7 @@ export class DragLayerHandler {
     this.dragStartY = startY;
     this.dragMode = 'none';
     
-    const endTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
+    const endTime = selectedLayer.startTime + selectedLayer.totalTimeInMilSeconds;
     
     // If the click is at the media's end time, adjust the total time. Change the width of the media
     if (this.timeline.intersectsTime(endTime, time)) {
@@ -59,14 +59,14 @@ export class DragLayerHandler {
     }
 
     // If the click is at the media's start time, adjust the total time. Change the width of the media
-    if (this.timeline.intersectsTime(selectedLayer.start_time, time)) {
+    if (this.timeline.intersectsTime(selectedLayer.startTime, time)) {
       this.dragging = this.#getMoveLayerStartFn(selectedLayer);
       this.dragMode = 'horizontal';
       return;
     }
 
     // If the click is within the media's time, determine drag mode based on movement
-    if (time < endTime && time > selectedLayer.start_time) {
+    if (time < endTime && time > selectedLayer.startTime) {
       this.selectedLayer = selectedLayer;
       this.initialTime = time;
     }
@@ -148,11 +148,11 @@ export class DragLayerHandler {
   }
 
   #getMoveLayerStartFn(selectedLayer: MediaInterface) {
-    let baseTime = selectedLayer.start_time;
+    let baseTime = selectedLayer.startTime;
     return (time: number, selectedLayer: MediaInterface) => {
       let diff = time - baseTime;
       baseTime = time;
-      selectedLayer.start_time += diff;
+      selectedLayer.startTime += diff;
     };
   }
 
@@ -161,7 +161,7 @@ export class DragLayerHandler {
     return  (t: number, l: MediaInterface) => {
       let diff = t - baseTime;
       baseTime = t;
-      l.start_time += diff;
+      l.startTime += diff;
     };
   }
 
@@ -172,7 +172,7 @@ export class DragLayerHandler {
    */
   #getResizeLayerEndFn(selectedLayer: MediaInterface) {
     console.log("Resizing media:", selectedLayer.name);
-    let baseTime = selectedLayer.start_time + selectedLayer.totalTimeInMilSeconds;
+    let baseTime = selectedLayer.startTime + selectedLayer.totalTimeInMilSeconds;
     return (time: number, selectedLayer: MediaInterface) => {
       let diff = time - baseTime;
       baseTime = time;

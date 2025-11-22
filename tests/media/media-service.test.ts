@@ -18,7 +18,7 @@ describe('MediaService', () => {
         // Create a text media with 2000ms duration
         const textMedia = new TextMedia('Test Text');
         textMedia.ready = true;
-        textMedia.start_time = 0;
+        textMedia.startTime = 0;
         textMedia.totalTimeInMilSeconds = 2000;
 
         // Mock frame service with 10 frames
@@ -41,18 +41,18 @@ describe('MediaService', () => {
         // Clone should have frames from 0 to split point (5 frames)
         expect(clonedMedia?.frameService.frames.length).toBe(5);
         expect(clonedMedia?.totalTimeInMilSeconds).toBe(1000);
-        expect(clonedMedia?.start_time).toBe(100); // Original start_time + 100ms offset from clone
+        expect(clonedMedia?.startTime).toBe(100); // Original startTime + 100ms offset from clone
 
         // Original should have remaining frames (5 frames)
         expect(textMedia.frameService.frames.length).toBe(5);
         expect(textMedia.totalTimeInMilSeconds).toBe(1000);
-        expect(textMedia.start_time).toBe(1000); // Updated to start after clone
+        expect(textMedia.startTime).toBe(1000); // Updated to start after clone
       });
 
       it('should handle split at different percentages', () => {
         const textMedia = new TextMedia('Test Text');
         textMedia.ready = true;
-        textMedia.start_time = 1000;
+        textMedia.startTime = 1000;
         textMedia.totalTimeInMilSeconds = 4000;
 
         // Mock frame service with 20 frames
@@ -64,7 +64,7 @@ describe('MediaService', () => {
           anchor: { x: 0, y: 0 }
         }));
 
-        // Split at 3000ms (50% of duration, starting from start_time of 1000ms)
+        // Split at 3000ms (50% of duration, starting from startTime of 1000ms)
         const splitTime = 3000;
         const clonedMedia = mediaService.splitMedia(textMedia, splitTime);
 
@@ -77,7 +77,7 @@ describe('MediaService', () => {
         // Original should have 10 frames (remaining 50%)
         expect(textMedia.frameService.frames.length).toBe(10);
         expect(textMedia.totalTimeInMilSeconds).toBe(2000);
-        expect(textMedia.start_time).toBe(3000); // 1000 + 2000
+        expect(textMedia.startTime).toBe(3000); // 1000 + 2000
       });
     });
 
@@ -89,7 +89,7 @@ describe('MediaService', () => {
 
         // Manually set up the image media (since we can't load actual images in tests)
         imageMedia.ready = true;
-        imageMedia.start_time = 0;
+        imageMedia.startTime = 0;
         imageMedia.totalTimeInMilSeconds = 3000;
 
         // Mock frame service with 15 frames
@@ -117,7 +117,7 @@ describe('MediaService', () => {
         // Original should have remaining frames (~7-8 frames)
         expect(imageMedia.frameService.frames.length).toBeCloseTo(7.5, 0);
         expect(imageMedia.totalTimeInMilSeconds).toBe(1500);
-        expect(imageMedia.start_time).toBe(1500);
+        expect(imageMedia.startTime).toBe(1500);
       });
 
       it('should return null if media is not ready', () => {
@@ -139,7 +139,7 @@ describe('MediaService', () => {
       it('should handle split at the beginning of media', () => {
         const textMedia = new TextMedia('Test Text');
         textMedia.ready = true;
-        textMedia.start_time = 1000;
+        textMedia.startTime = 1000;
         textMedia.totalTimeInMilSeconds = 2000;
 
         textMedia.frameService.frames = Array(10).fill(null).map(() => ({
@@ -150,7 +150,7 @@ describe('MediaService', () => {
           anchor: { x: 0, y: 0 }
         }));
 
-        // Split at the very start (1000ms = start_time)
+        // Split at the very start (1000ms = startTime)
         const splitTime = 1000;
         const clonedMedia = mediaService.splitMedia(textMedia, splitTime);
 
@@ -167,7 +167,7 @@ describe('MediaService', () => {
       it('should handle split at the end of media', () => {
         const textMedia = new TextMedia('Test Text');
         textMedia.ready = true;
-        textMedia.start_time = 1000;
+        textMedia.startTime = 1000;
         textMedia.totalTimeInMilSeconds = 2000;
 
         textMedia.frameService.frames = Array(10).fill(null).map(() => ({
@@ -178,7 +178,7 @@ describe('MediaService', () => {
           anchor: { x: 0, y: 0 }
         }));
 
-        // Split at the very end (3000ms = start_time + totalTime)
+        // Split at the very end (3000ms = startTime + totalTime)
         const splitTime = 3000;
         const clonedMedia = mediaService.splitMedia(textMedia, splitTime);
 

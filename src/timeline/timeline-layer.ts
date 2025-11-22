@@ -86,7 +86,7 @@ export class TimelineLayer {
    */
   #calculateDimensions() {
     const scale = this.canvasWidth / this.totalTime;
-    const start = scale * this.media.start_time;
+    const start = scale * this.media.startTime;
     const length = scale * this.media.totalTimeInMilSeconds;
     
     return { start, length, scale };

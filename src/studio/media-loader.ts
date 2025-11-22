@@ -15,7 +15,7 @@ interface LayerJsonData {
   uri?: string;
   width: number;
   height: number;
-  start_time: number;
+  startTime: number;
   total_time: number;
   frames?: Float32Array[];
 }
@@ -109,7 +109,7 @@ export class MediaLoader {
         layer.name = layer.name;
         layer.width = layer_d.width;
         layer.height = layer_d.height;
-        layer.start_time = layer_d.start_time;
+        layer.startTime = layer_d.startTime;
         layer.totalTimeInMilSeconds = layer_d.total_time;
 
         if (layer_d.frames) {

@@ -153,7 +153,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn()
       };
 
@@ -166,7 +166,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn()
       };
 
@@ -183,7 +183,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn()
       };
 
@@ -192,25 +192,25 @@ describe('VideoStudio', () => {
       expect(mockLayer.init).not.toHaveBeenCalled();
     });
 
-    test('should set layer start_time to current player time', () => {
+    test('should set layer startTime to current player time', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn()
       };
       studio.player.time = 5000;
 
       studio.addLayer(mockLayer as any);
 
-      expect(mockLayer.start_time).toBe(5000);
+      expect(mockLayer.startTime).toBe(5000);
     });
 
     test('should add layer to studio state', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn()
       };
       const addMediaSpy = jest.spyOn(studio.studioState, 'addMedia');
@@ -226,7 +226,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         totalTimeInMilSeconds: 5000,
         init: jest.fn()
       };
@@ -243,7 +243,7 @@ describe('VideoStudio', () => {
       const mockAudioLayer = {
         id: '1',
         name: 'audio',
-        start_time: 0,
+        startTime: 0,
         totalTimeInMilSeconds: 5000,
         init: jest.fn(),
         disconnect: jest.fn()
@@ -263,14 +263,14 @@ describe('VideoStudio', () => {
       const mockLayer1 = {
         id: '1',
         name: 'test1',
-        start_time: 0,
+        startTime: 0,
         totalTimeInMilSeconds: 10000,
         init: jest.fn()
       };
       const mockLayer2 = {
         id: '2',
         name: 'test2',
-        start_time: 0,
+        startTime: 0,
         totalTimeInMilSeconds: 5000,
         init: jest.fn()
       };
@@ -287,7 +287,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         totalTimeInMilSeconds: 5000
       };
 
@@ -364,7 +364,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn(),
         resize: jest.fn()
       };
@@ -441,7 +441,7 @@ describe('VideoStudio', () => {
       const mockLayer = {
         id: '1',
         name: 'test',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn(),
         dump: jest.fn(() => ({ id: '1', type: 'video' }))
       };
@@ -457,14 +457,14 @@ describe('VideoStudio', () => {
       const mockLayer1 = {
         id: '1',
         name: 'test1',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn(),
         dump: jest.fn(() => ({ id: '1' }))
       };
       const mockLayer2 = {
         id: '2',
         name: 'test2',
-        start_time: 0,
+        startTime: 0,
         init: jest.fn(),
         dump: jest.fn(() => ({ id: '2' }))
       };

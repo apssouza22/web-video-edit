@@ -116,7 +116,7 @@ export class AudioMedia extends AbstractMedia {
       this.connectAudioSource(this.playerAudioContext!);
     }
 
-    let time = currentTime - this.start_time;
+    let time = currentTime - this.startTime;
     if (time < 0 || time > this.totalTimeInMilSeconds) {
       return;
     }

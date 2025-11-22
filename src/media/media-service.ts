@@ -64,14 +64,14 @@ export class MediaService {
    * @param splitTime - The time at which to split
    */
   private splitFrameBasedMedia(mediaOriginal: AbstractMedia, mediaClone: AbstractMedia, splitTime: number): void {
-    const pct = (splitTime - mediaOriginal.start_time) / mediaOriginal.totalTimeInMilSeconds;
+    const pct = (splitTime - mediaOriginal.startTime) / mediaOriginal.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * mediaOriginal.frameService.getLength());
 
     mediaClone.name = mediaOriginal.name + " [Split]";
     mediaClone.frameService.frames = mediaOriginal.frameService.frames.splice(0, split_idx);
     mediaClone.totalTimeInMilSeconds = pct * mediaOriginal.totalTimeInMilSeconds;
 
-    mediaOriginal.start_time = mediaOriginal.start_time + mediaClone.totalTimeInMilSeconds;
+    mediaOriginal.startTime = mediaOriginal.startTime + mediaClone.totalTimeInMilSeconds;
     mediaOriginal.totalTimeInMilSeconds = mediaOriginal.totalTimeInMilSeconds - mediaClone.totalTimeInMilSeconds;
   }
 

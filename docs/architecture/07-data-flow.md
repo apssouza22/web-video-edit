@@ -330,7 +330,7 @@ sequenceDiagram
     
     par Split frames
         MediaService->>Original: Remove frames before split
-        MediaService->>Original: Adjust start_time
+        MediaService->>Original: Adjust startTime
     and
         MediaService->>Clone: Keep frames before split
         MediaService->>Clone: Set duration

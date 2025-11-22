@@ -6,12 +6,12 @@ export class FrameService {
   public frames: Frame[] = [];
   public totalTimeInSeconds: number = 0;
   public startTime: number = 0;
-  public start_time: number;
+  public startTime: number;
   public totalTimeInMilSeconds: number;
   public timeAdjustHandler: FrameAdjustHandler;
 
   constructor(milSeconds: number, startTime: number, flexibleLayer: boolean = true) {
-    this.start_time = startTime;
+    this.startTime = startTime;
     this.totalTimeInMilSeconds = milSeconds;
     this.totalTimeInSeconds = milSeconds / 1000;
     this.timeAdjustHandler = new FrameAdjustHandler(this);

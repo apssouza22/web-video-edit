@@ -9,7 +9,7 @@ export class AudioSplitHandler {
       return;
     }
 
-    const layerRelativeTime = (time - mediaOriginal.start_time) / 1000; // Convert to seconds
+    const layerRelativeTime = (time - mediaOriginal.startTime) / 1000; // Convert to seconds
 
     if (layerRelativeTime <= 0 || layerRelativeTime >= mediaOriginal.audioBuffer.duration) {
       console.error('Split time is outside mediaOriginal bounds');
@@ -30,7 +30,7 @@ export class AudioSplitHandler {
 
     mediaOriginal.audioBuffer = secondBuffer;
     mediaOriginal.totalTimeInMilSeconds = secondBuffer.duration * 1000;
-    mediaOriginal.start_time = mediaOriginal.start_time + mediaClone.totalTimeInMilSeconds;
+    mediaOriginal.startTime = mediaOriginal.startTime + mediaClone.totalTimeInMilSeconds;
     console.log(`Successfully split AudioLayer: "${mediaOriginal.name}" at ${layerRelativeTime}s`);
   }
 

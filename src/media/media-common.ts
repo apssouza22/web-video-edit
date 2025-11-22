@@ -25,7 +25,7 @@ export abstract class AbstractMedia {
   public uri?: string;
   public ready: boolean;
   public totalTimeInMilSeconds: number;
-  public start_time: number;
+  public startTime: number;
   public width: number;
   public height: number;
   public renderer: Canvas2DRender;
@@ -46,7 +46,7 @@ export abstract class AbstractMedia {
     
     this.ready = false;
     this.totalTimeInMilSeconds = 0;
-    this.start_time = 0;
+    this.startTime = 0;
     this.width = 0;
     this.height = 0;
     this.renderer = new Canvas2DRender();
@@ -55,7 +55,7 @@ export abstract class AbstractMedia {
     };
     this.lastRenderedTime = -1;
 
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime, false);
     this.speedController = new SpeedController(this);
     addElementToBackground(this.renderer.canvas as HTMLElement);
     this.updateName(this.name);
@@ -99,7 +99,7 @@ export abstract class AbstractMedia {
    * Checks if the media is visible at the given time
    */
   isLayerVisible(time: number): boolean {
-    return time >= this.start_time && time < this.start_time + this.totalTimeInMilSeconds;
+    return time >= this.startTime && time < this.startTime + this.totalTimeInMilSeconds;
   }
 
   /**
@@ -121,7 +121,7 @@ export abstract class AbstractMedia {
       width: this.width,
       height: this.height,
       name: this.name,
-      start_time: this.start_time,
+      startTime: this.startTime,
       total_time: this.totalTimeInMilSeconds,
       uri: this.uri,
       type: this.constructor.name
@@ -234,7 +234,7 @@ export abstract class AbstractMedia {
    * Returns null if no frame is found
    */
   async getFrame(time: number): Promise<Frame | null> {
-    return this.frameService.getFrame(time, this.start_time);
+    return this.frameService.getFrame(time, this.startTime);
   }
 
   // Speed control methods
@@ -270,10 +270,10 @@ export abstract class AbstractMedia {
    */
   clone(): AbstractMedia {
     const newMedia = this._createCloneInstance();
-    const cloneStartTime = this.start_time // 10ms offset
+    const cloneStartTime = this.startTime // 10ms offset
     newMedia.id = this.id + '-clone';
     newMedia.name = this.name + ' [Clone]';
-    newMedia.start_time = cloneStartTime;
+    newMedia.startTime = cloneStartTime;
     newMedia.totalTimeInMilSeconds = this.totalTimeInMilSeconds;
     newMedia.width = this.width;
     newMedia.height = this.height;
@@ -294,7 +294,7 @@ export abstract class FlexibleMedia extends AbstractMedia {
   constructor(file?: LayerFile) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.start_time);
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
   }
 
   dump(): LayerDumpData {

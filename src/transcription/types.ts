@@ -5,7 +5,7 @@
 // Transcription data structures
 export interface TranscriptionChunk {
   text: string;
-  timestamp: [number, number]; // [start_time, end_time] in seconds
+  timestamp: [number, number]; // [startTime, end_time] in seconds
 }
 
 export interface TranscriptionResult {

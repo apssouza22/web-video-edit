@@ -41,7 +41,7 @@ export interface LayerDumpData {
   width: number;
   height: number;
   name: string;
-  start_time: number;
+  startTime: number;
   total_time: number;
   uri?: string;
   type: string;

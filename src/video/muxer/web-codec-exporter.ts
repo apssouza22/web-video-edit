@@ -309,7 +309,7 @@ export class WebCodecExporter {
     #getTotalDuration(): number {
         let maxDuration = 0;
         for (const layer of this.studioState.getMedias()) {
-            const layerEnd = layer.start_time + layer.totalTimeInMilSeconds;
+            const layerEnd = layer.startTime + layer.totalTimeInMilSeconds;
             if (layerEnd > maxDuration) {
                 maxDuration = layerEnd;
             }

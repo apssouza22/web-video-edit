@@ -10,7 +10,7 @@ class MockMedia extends AbstractMedia {
     this.name = 'MockMedia';
     this.audioBuffer = null;
     this.playerAudioContext = null;
-    this.start_time = 0;
+    this.startTime = 0;
     this.totalTimeInMilSeconds = 0;
   }
 }
@@ -32,7 +32,7 @@ describe('AudioSplitHandler', () => {
     mockMediaOriginal.audioBuffer = mockAudioBuffer;
     mockMediaOriginal.playerAudioContext = audioContext;
     mockMediaOriginal.totalTimeInMilSeconds = mockAudioBuffer.duration * 1000;
-    mockMediaOriginal.start_time = 1000;
+    mockMediaOriginal.startTime = 1000;
     mockMediaOriginal.name = 'Test Audio';
   });
 
@@ -42,7 +42,7 @@ describe('AudioSplitHandler', () => {
 
   describe('split', () => {
     test('should split audio buffer successfully at middle point', () => {
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -54,7 +54,7 @@ describe('AudioSplitHandler', () => {
     });
 
     test('should update clone total time correctly', () => {
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -62,7 +62,7 @@ describe('AudioSplitHandler', () => {
     });
 
     test('should update original total time correctly', () => {
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
       const originalDuration = mockMediaOriginal.totalTimeInMilSeconds;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
@@ -71,12 +71,12 @@ describe('AudioSplitHandler', () => {
     });
 
     test('should update original start time correctly', () => {
-      const originalStartTime = mockMediaOriginal.start_time;
+      const originalStartTime = mockMediaOriginal.startTime;
       const splitTime = originalStartTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
-      expect(mockMediaOriginal.start_time).toBe(originalStartTime + 1000);
+      expect(mockMediaOriginal.startTime).toBe(originalStartTime + 1000);
     });
 
     test('should handle split at different positions', () => {
@@ -88,7 +88,7 @@ describe('AudioSplitHandler', () => {
         media.audioBuffer = audioContext.createBuffer(2, 88200, 44100);
         media.playerAudioContext = audioContext;
         media.totalTimeInMilSeconds = media.audioBuffer.duration * 1000;
-        media.start_time = 0;
+        media.startTime = 0;
 
         const splitTime = position * media.totalTimeInMilSeconds;
 
@@ -103,7 +103,7 @@ describe('AudioSplitHandler', () => {
     test('should preserve audio channels count', () => {
       const multiChannelBuffer = audioContext.createBuffer(6, 88200, 44100);
       mockMediaOriginal.audioBuffer = multiChannelBuffer;
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -112,7 +112,7 @@ describe('AudioSplitHandler', () => {
     });
 
     test('should preserve sample rate', () => {
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -121,7 +121,7 @@ describe('AudioSplitHandler', () => {
     });
 
     test('should set clone name with [Split] suffix', () => {
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
       mockMediaOriginal.name = 'My Audio Track';
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
@@ -134,7 +134,7 @@ describe('AudioSplitHandler', () => {
     test('should handle missing audioBuffer gracefully', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockMediaOriginal.audioBuffer = null;
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -149,7 +149,7 @@ describe('AudioSplitHandler', () => {
     test('should handle missing playerAudioContext gracefully', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockMediaOriginal.playerAudioContext = null;
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -163,7 +163,7 @@ describe('AudioSplitHandler', () => {
 
     test('should reject split time at or before start', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time;
+      const splitTime = mockMediaOriginal.startTime;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -177,7 +177,7 @@ describe('AudioSplitHandler', () => {
 
     test('should reject split time before start', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time - 100;
+      const splitTime = mockMediaOriginal.startTime - 100;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -191,7 +191,7 @@ describe('AudioSplitHandler', () => {
 
     test('should reject split time at or after end', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time + mockMediaOriginal.totalTimeInMilSeconds;
+      const splitTime = mockMediaOriginal.startTime + mockMediaOriginal.totalTimeInMilSeconds;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -205,7 +205,7 @@ describe('AudioSplitHandler', () => {
 
     test('should reject split time after end', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time + mockMediaOriginal.totalTimeInMilSeconds + 100;
+      const splitTime = mockMediaOriginal.startTime + mockMediaOriginal.totalTimeInMilSeconds + 100;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -221,7 +221,7 @@ describe('AudioSplitHandler', () => {
   describe('createAudioBufferSegment', () => {
     test('should handle segment creation failure', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const invalidTime = mockMediaOriginal.start_time + 100000;
+      const invalidTime = mockMediaOriginal.startTime + 100000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, invalidTime);
 
@@ -232,7 +232,7 @@ describe('AudioSplitHandler', () => {
 
     test('should log segment creation success', () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -247,7 +247,7 @@ describe('AudioSplitHandler', () => {
   describe('edge cases', () => {
     test('should handle very small first segment', () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time + 10;
+      const splitTime = mockMediaOriginal.startTime + 10;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -259,7 +259,7 @@ describe('AudioSplitHandler', () => {
 
     test('should handle very small second segment', () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      const splitTime = mockMediaOriginal.start_time + mockMediaOriginal.totalTimeInMilSeconds - 10;
+      const splitTime = mockMediaOriginal.startTime + mockMediaOriginal.totalTimeInMilSeconds - 10;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -272,7 +272,7 @@ describe('AudioSplitHandler', () => {
     test('should handle mono audio', () => {
       const monoBuffer = audioContext.createBuffer(1, 88200, 44100);
       mockMediaOriginal.audioBuffer = monoBuffer;
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -286,7 +286,7 @@ describe('AudioSplitHandler', () => {
       mockMediaOriginal.audioBuffer = highSampleBuffer;
       mockMediaOriginal.playerAudioContext = highSampleRateContext;
       mockMediaOriginal.totalTimeInMilSeconds = 2000;
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -297,7 +297,7 @@ describe('AudioSplitHandler', () => {
     test('should handle split at sample boundary', () => {
       const sampleDuration = 1 / mockAudioBuffer.sampleRate;
       const exactSampleTime = Math.floor(1000 / sampleDuration) * sampleDuration;
-      const splitTime = mockMediaOriginal.start_time + exactSampleTime;
+      const splitTime = mockMediaOriginal.startTime + exactSampleTime;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -312,7 +312,7 @@ describe('AudioSplitHandler', () => {
       const firstSamples = Array.from(originalData.slice(0, 100));
       const middleSamples = Array.from(originalData.slice(44100, 44200));
 
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -327,7 +327,7 @@ describe('AudioSplitHandler', () => {
     });
 
     test('should handle all channels correctly', () => {
-      const splitTime = mockMediaOriginal.start_time + 1000;
+      const splitTime = mockMediaOriginal.startTime + 1000;
 
       audioSplitHandler.split(mockMediaOriginal, mockMediaClone, splitTime);
 
@@ -349,13 +349,13 @@ describe('AudioSplitHandler', () => {
       media1.audioBuffer = audioContext.createBuffer(2, 176400, 44100);
       media1.playerAudioContext = audioContext;
       media1.totalTimeInMilSeconds = 4000;
-      media1.start_time = 0;
+      media1.startTime = 0;
 
       const clone1 = new MockMedia();
       audioSplitHandler.split(media1, clone1, 1000);
 
       const clone2 = new MockMedia();
-      audioSplitHandler.split(media1, clone2, media1.start_time + 1000);
+      audioSplitHandler.split(media1, clone2, media1.startTime + 1000);
 
       expect(clone1.audioBuffer).not.toBeNull();
       expect(clone2.audioBuffer).not.toBeNull();

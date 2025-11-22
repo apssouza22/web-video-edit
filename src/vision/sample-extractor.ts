@@ -45,7 +45,7 @@ export class SampleExtractor {
     let previousImageData: ImageData | null = null;
 
     for (let i = 0; i < totalFrames && samples.length < this.#config.maxSamples; i += sampleEvery) {
-      const time = media.start_time + (i * (media.totalTimeInMilSeconds / totalFrames));
+      const time = media.startTime + (i * (media.totalTimeInMilSeconds / totalFrames));
       const imageData = await this.#extractFrameAtTime(media, time);
       await delay(500);
       if (!imageData) continue;
@@ -76,8 +76,8 @@ export class SampleExtractor {
     const maxInterval = Math.max(minInterval * 2, durationSeconds / this.#config.minSamples);
 
     let currentInterval = minInterval;
-    let currentTime = media.start_time;
-    const endTime = media.start_time + media.totalTimeInMilSeconds;
+    let currentTime = media.startTime;
+    const endTime = media.startTime + media.totalTimeInMilSeconds;
     let consecutiveSimilar = 0;
 
     const firstFrame = await this.#extractFrameAtTime(media, currentTime);
@@ -160,7 +160,7 @@ export class SampleExtractor {
 
     for (let i = 0; i < neededSamples; i++) {
       const frameIndex = i * step;
-      const time = media.start_time + (frameIndex * (media.totalTimeInMilSeconds / totalFrames));
+      const time = media.startTime + (frameIndex * (media.totalTimeInMilSeconds / totalFrames));
 
       const alreadySampled = samples.some(s =>
           Math.abs(s.timestamp - time) < 100

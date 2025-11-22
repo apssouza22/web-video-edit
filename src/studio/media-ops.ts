@@ -33,10 +33,10 @@ export class MediaOps {
     if (!layer.ready) {
       return false;
     }
-    if (layer.start_time > this.studioState.getPlayingTime()) {
+    if (layer.startTime > this.studioState.getPlayingTime()) {
       return false;
     }
-    if (layer.start_time + layer.totalTimeInMilSeconds < this.studioState.getPlayingTime()) {
+    if (layer.startTime + layer.totalTimeInMilSeconds < this.studioState.getPlayingTime()) {
       return false;
     }
 

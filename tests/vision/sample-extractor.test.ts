@@ -16,7 +16,7 @@ describe('SampleExtractor', () => {
       width: 640,
       height: 480,
       totalTimeInMilSeconds: 10000,
-      start_time: 0,
+      startTime: 0,
       framesCollection: {
         getLength: jest.fn().mockReturnValue(300),
         getIndex: jest.fn((time: number, startTime: number) => {

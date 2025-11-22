@@ -204,8 +204,8 @@ export class VideoCanvas {
   #updateTotalTime(): void {
     for (const l of this.layers) {
       const layer = l.media;
-      if (layer.start_time + layer.totalTimeInMilSeconds > this.total_time) {
-        this.total_time = layer.start_time + layer.totalTimeInMilSeconds;
+      if (layer.startTime + layer.totalTimeInMilSeconds > this.total_time) {
+        this.total_time = layer.startTime + layer.totalTimeInMilSeconds;
       }
     }
   }

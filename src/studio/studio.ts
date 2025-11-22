@@ -184,8 +184,8 @@ export class VideoStudio {
     }
     this.player.total_time = 0;
     for (const layer of this.getMedias()) {
-      if (layer.start_time + layer.totalTimeInMilSeconds > this.player.total_time) {
-        this.player.total_time = layer.start_time + layer.totalTimeInMilSeconds;
+      if (layer.startTime + layer.totalTimeInMilSeconds > this.player.total_time) {
+        this.player.total_time = layer.startTime + layer.totalTimeInMilSeconds;
       }
     }
     if (this.player.time > this.player.total_time) {
@@ -209,7 +209,7 @@ export class VideoStudio {
 
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
     if (!skipInit) {
-      layer.start_time = this.player.time;
+      layer.startTime = this.player.time;
       layer.init(layer.width, layer.height, this.player.audioContext);
     }
     this.medias.push(layer);

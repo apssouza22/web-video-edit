@@ -152,7 +152,7 @@ describe('ControlsHandler', () => {
         id: 'text-1',
         type: 'TextMedia',
         ready: true,
-        start_time: 0,
+        startTime: 0,
         totalTimeInMilSeconds: 5000
       };
       mockStudioState.getSelectedMedia.mockReturnValue(textLayer);
@@ -172,7 +172,7 @@ describe('ControlsHandler', () => {
     });
 
     test('should not split when current time is before layer start', () => {
-      mockVideoLayer.start_time = 6000;
+      mockVideoLayer.startTime = 6000;
       mockStudioState.getPlayingTime.mockReturnValue(5000);
       mockStudioState.getSelectedMedia.mockReturnValue(mockVideoLayer);
 
@@ -182,7 +182,7 @@ describe('ControlsHandler', () => {
     });
 
     test('should not split when current time is after layer end', () => {
-      mockVideoLayer.start_time = 0;
+      mockVideoLayer.startTime = 0;
       mockVideoLayer.totalTimeInMilSeconds = 5000;
       mockStudioState.getPlayingTime.mockReturnValue(6000);
       mockStudioState.getSelectedMedia.mockReturnValue(mockVideoLayer);
@@ -209,7 +209,7 @@ describe('ControlsHandler', () => {
         id: 'video-1',
         type: 'VideoLayer',
         ready: true,
-        start_time: 0
+        startTime: 0
       };
       mockStudioState.getSelectedMedia.mockReturnValue(incompleteLayer);
 
@@ -223,7 +223,7 @@ describe('ControlsHandler', () => {
         id: 'video-1',
         type: 'VideoLayer',
         ready: true,
-        start_time: 5000,
+        startTime: 5000,
         totalTimeInMilSeconds: 0
       };
       mockStudioState.getSelectedMedia.mockReturnValue(zeroLayer);

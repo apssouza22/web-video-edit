@@ -232,10 +232,10 @@ export class Timeline {
     this.timelineCanvas.className = "";
 
     if (this.selectedLayer) {
-      if (this.intersectsTime(this.selectedLayer.start_time, time)) {
+      if (this.intersectsTime(this.selectedLayer.startTime, time)) {
         document.body.style.cursor = "col-resize";
       }
-      const endTime = this.selectedLayer.start_time + this.selectedLayer.totalTimeInMilSeconds;
+      const endTime = this.selectedLayer.startTime + this.selectedLayer.totalTimeInMilSeconds;
       if (this.intersectsTime(endTime, time)) {
         document.body.style.cursor = "col-resize";
       }
@@ -357,11 +357,11 @@ export class Timeline {
    * @returns {boolean} - Whether the media can be selected
    */
   #canSelectLayer(layer: MediaInterface) {
-    if (layer.start_time > (1.01 * this.time)) {
+    if (layer.startTime > (1.01 * this.time)) {
       return false;
     }
 
-    if (layer.start_time + layer.totalTimeInMilSeconds < (0.99 * this.time)) {
+    if (layer.startTime + layer.totalTimeInMilSeconds < (0.99 * this.time)) {
       return false;
     }
     return true;
@@ -375,7 +375,7 @@ export class Timeline {
 
     this.totalTime = 0;
     for (let layer of layers) {
-      const layerEndTime = layer.start_time + layer.totalTimeInMilSeconds;
+      const layerEndTime = layer.startTime + layer.totalTimeInMilSeconds;
       if (layerEndTime > this.totalTime) {
         this.totalTime = layerEndTime;
       }

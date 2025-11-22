@@ -34,7 +34,7 @@ export class VideoTimelineLayer extends TimelineLayer {
     }
 
     const scale = this.canvasWidth / this.totalTime;
-    const start = scale * this.media.start_time;
+    const start = scale * this.media.startTime;
     const length = scale * this.media.totalTimeInMilSeconds;
     if (length < height) {
       return;

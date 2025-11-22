@@ -5,7 +5,7 @@
 export interface MediaInterface {
   id: string;
   name?: string;
-  start_time: number; // ms
+  startTime: number; // ms
   totalTimeInMilSeconds: number; // ms
   // Adjust end time by diff milliseconds
   adjustTotalTime: (diff: number) => void;

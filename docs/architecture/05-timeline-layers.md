@@ -106,7 +106,7 @@ classDiagram
         <<abstract>>
         +id: string
         +name: string
-        +start_time: number
+        +startTime: number
         +totalTimeInMilSeconds: number
         +width: number
         +height: number
@@ -164,7 +164,7 @@ classDiagram
 All media layers share:
 - **Position**: `x`, `y` coordinates on canvas
 - **Size**: `width`, `height` dimensions
-- **Timing**: `start_time`, `totalTimeInMilSeconds`
+- **Timing**: `startTime`, `totalTimeInMilSeconds`
 - **Transform**: `rotation`, scale, opacity
 - **Canvas**: Own canvas for rendering
 - **State**: `ready` flag, loading progress
@@ -332,7 +332,7 @@ class DragHandler {
   onMouseDown(event: MouseEvent, layer: AbstractMedia): void {
     this.draggedLayer = layer;
     this.dragStartX = event.clientX;
-    this.dragStartTime = layer.start_time;
+    this.dragStartTime = layer.startTime;
   }
   
   onMouseMove(event: MouseEvent): void {
@@ -341,7 +341,7 @@ class DragHandler {
     const deltaX = event.clientX - this.dragStartX;
     const deltaTime = this.pixelsToTime(deltaX);
     
-    this.draggedLayer.start_time = this.dragStartTime + deltaTime;
+    this.draggedLayer.startTime = this.dragStartTime + deltaTime;
     this.emit(new TimelineLayerUpdateEvent('select', this.draggedLayer));
   }
 }
@@ -402,8 +402,8 @@ sequenceDiagram
     MediaService->>Clone: Clone layer
     MediaService->>Original: Truncate frames before T
     MediaService->>Clone: Keep frames before T
-    Original->>Original: Adjust start_time
-    Clone->>Clone: Keep original start_time
+    Original->>Original: Adjust startTime
+    Clone->>Clone: Keep original startTime
     MediaService->>Timeline: Return cloned layer
     Timeline->>Timeline: Add both layers
 ```
@@ -414,7 +414,7 @@ splitMedia(layer: AbstractMedia, splitTime: number): AbstractMedia {
   const clone = this.clone(layer);
   
   // Calculate percentage through layer
-  const pct = (splitTime - layer.start_time) / layer.totalTimeInMilSeconds;
+  const pct = (splitTime - layer.startTime) / layer.totalTimeInMilSeconds;
   const splitIndex = Math.round(pct * layer.framesCollection.frames.length);
   
   // Clone gets frames before split
@@ -422,7 +422,7 @@ splitMedia(layer: AbstractMedia, splitTime: number): AbstractMedia {
   clone.totalTimeInMilSeconds = pct * layer.totalTimeInMilSeconds;
   
   // Original gets frames after split
-  layer.start_time = layer.start_time + clone.totalTimeInMilSeconds;
+  layer.startTime = layer.startTime + clone.totalTimeInMilSeconds;
   layer.totalTimeInMilSeconds -= clone.totalTimeInMilSeconds;
   
   return clone;
@@ -446,7 +446,7 @@ sequenceDiagram
     MediaService->>Clone: Create new instance
     MediaService->>Clone: Copy all properties
     MediaService->>Clone: Copy frame references
-    Clone->>Clone: Offset start_time (+100ms)
+    Clone->>Clone: Offset startTime (+100ms)
     MediaService->>Timeline: Return clone
     Timeline->>Timeline: Add to layers
 ```
@@ -510,8 +510,8 @@ class CanvasLayer {
     const media = this.media;
     
     // Check if layer is active at current time
-    if (time < media.start_time || 
-        time > media.start_time + media.totalTimeInMilSeconds) {
+    if (time < media.startTime || 
+        time > media.startTime + media.totalTimeInMilSeconds) {
       return;
     }
     
@@ -523,7 +523,7 @@ class CanvasLayer {
     ctx.globalAlpha = media.opacity || 1;
     
     // Render layer content
-    media.render(ctx, time - media.start_time, playing);
+    media.render(ctx, time - media.startTime, playing);
     
     // Draw selection border if selected
     if (this.selected) {
@@ -605,7 +605,7 @@ class ZoomHandler {
 interface MediaInterface {
   id: string;
   name?: string;
-  start_time: number;              // milliseconds
+  startTime: number;              // milliseconds
   totalTimeInMilSeconds: number;   // milliseconds
   
   // Adjust duration

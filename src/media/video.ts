@@ -27,7 +27,7 @@ export class VideoMedia extends AbstractMedia {
     this.width = metadata.width;
     this.height = metadata.height;
 
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.start_time, false);
+    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime, false);
     this.frameService.initializeFrames();
     this.videoStreaming = metadata.frames;
 
@@ -79,7 +79,7 @@ export class VideoMedia extends AbstractMedia {
   }
 
   async getFrame(currentTime: number): Promise<Frame | null> {
-    const index = this.frameService.getIndex(currentTime, this.start_time);
+    const index = this.frameService.getIndex(currentTime, this.startTime);
     if (index < 0 || index >= this.frameService.getLength()) {
       return null;
     }

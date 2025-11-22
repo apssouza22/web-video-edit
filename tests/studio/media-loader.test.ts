@@ -160,7 +160,7 @@ describe('MediaLoader', () => {
         uri: 'https://example.com/video.mp4',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 5000
       }];
 
@@ -178,7 +178,7 @@ describe('MediaLoader', () => {
         uri: 'https://example.com/image.jpg',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 3000
       }];
 
@@ -194,7 +194,7 @@ describe('MediaLoader', () => {
         name: 'Hello World',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 2000
       }];
 
@@ -211,7 +211,7 @@ describe('MediaLoader', () => {
           name: 'Text 1',
           width: 1920,
           height: 1080,
-          start_time: 0,
+          startTime: 0,
           total_time: 2000
         },
         {
@@ -219,7 +219,7 @@ describe('MediaLoader', () => {
           name: 'Text 2',
           width: 1920,
           height: 1080,
-          start_time: 2000,
+          startTime: 2000,
           total_time: 2000
         }
       ];
@@ -236,7 +236,7 @@ describe('MediaLoader', () => {
         name: 'test-video',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 5000
       }];
 
@@ -253,7 +253,7 @@ describe('MediaLoader', () => {
         name: 'unknown',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 1000
       }];
 
@@ -268,7 +268,7 @@ describe('MediaLoader', () => {
         name: 'test',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 1000,
         frames: [
           new Float32Array([1, 0, 0, 0, 1, 0, 100, 100, 1])
@@ -298,7 +298,7 @@ describe('MediaLoader', () => {
         uri: 'https://example.com/video.mp4',
         width: 1920,
         height: 1080,
-        start_time: 0,
+        startTime: 0,
         total_time: 5000
       }];
 

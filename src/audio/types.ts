@@ -7,7 +7,7 @@ import {ESAudioContext} from "@/media/media-common";
 export interface Media{
   id: string;
   name?: string;
-  start_time: number; // ms
+  startTime: number; // ms
   totalTimeInMilSeconds: number; // ms
 
   audioBuffer: AudioBuffer | null;
