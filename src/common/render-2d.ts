@@ -174,10 +174,14 @@ export class Canvas2DRender {
     if (frame.rotation) {
       ctxOutTo.rotate((frame.rotation * Math.PI) / 180);
     }
-    
-    const scaledWidth = bounding.width * frame.scale * bounding.scaleFactor;
-    const scaledHeight = bounding.height * frame.scale * bounding.scaleFactor;
-    
+    let scaledWidth = bounding.width * frame.scale * bounding.scaleFactor;
+    let scaledHeight = bounding.height * frame.scale * bounding.scaleFactor;
+
+    if (width < ctxOutTo.canvas.width || height < ctxOutTo.canvas.height) {
+      scaledWidth = width * frame.scale * bounding.scaleFactor;
+      scaledHeight = height * frame.scale * bounding.scaleFactor;
+    }
+
     ctxOutTo.drawImage(
         ctxFrom.canvas as CanvasImageSource,
         0, 0,

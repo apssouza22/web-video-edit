@@ -25,6 +25,7 @@ export class CanvasLayer {
   #rotationHandle: TransformHandle | null = null;
   #onTransformCallback: LayerTransformedListener = (media: AbstractMedia) => {};
   #currentTime = 0;
+  #ctx: CanvasRenderingContext2D;
 
   /**
    * Class to handle transformations of a media in the player.
@@ -32,6 +33,7 @@ export class CanvasLayer {
   constructor(media: AbstractMedia, canvas: CanvasElement) {
     this._media = media;
     this.#canvas = canvas;
+    this.#ctx = canvas.getContext('2d')!;
     this.#initializeHandles();
   }
 
@@ -378,8 +380,13 @@ export class CanvasLayer {
     
     const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
     
-    const baseWidth = bounding.width * bounding.scaleFactor;
-    const baseHeight = bounding.height * bounding.scaleFactor;
+    let baseWidth = bounding.width * bounding.scaleFactor;
+    let baseHeight = bounding.height * bounding.scaleFactor;
+
+    if (this._media.width < this.#ctx.canvas.width || this.#ctx.canvas.height < this.#canvas.height) {
+      baseWidth = this._media.width * bounding.scaleFactor;
+      baseHeight = this._media.height * bounding.scaleFactor;
+    }
     
     const transformedCenterX = bounding.centerX + frame.x * bounding.ratio * bounding.scaleFactor;
     const transformedCenterY = bounding.centerY + frame.y * bounding.ratio * bounding.scaleFactor;

@@ -1,10 +1,12 @@
 import {AbstractMedia, FlexibleMedia} from './media-common';
 import {LayerChange, LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
+import {dpr} from '@/constants';
 
 export class TextMedia extends FlexibleMedia {
-  public color: string;
-  public shadow: boolean;
+  private _color: string;
+  private _shadow: boolean;
+  private _fontSize = 30;
 
   constructor(text: string) {
     // @ts-ignore
@@ -13,23 +15,95 @@ export class TextMedia extends FlexibleMedia {
     };
     
     super(fakeFile);
-    this.color = "#ffffff";
-    this.shadow = true;
+    this._color = "#ffffff";
+    this._shadow = true;
     this.ready = true;
+    
+    this.#drawText();
     
     setTimeout(() => {
       this.loadUpdateListener(this, 100, this.ctx);
     }, 10);
   }
 
-  /**
-   * Update the media's dimensions and text properties
-   */
-  async update(change: LayerChange, refTime: number): Promise<void> {
-    const rect = this.renderer.context.measureText(this.name);
-    this.width = rect.width;
-    this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
-    super.update(change, refTime);
+  get color(): string {
+    return this._color;
+  }
+
+  set color(value: string) {
+    if (this._color !== value) {
+      this._color = value;
+      this.#drawText();
+    }
+  }
+
+  get shadow(): boolean {
+    return this._shadow;
+  }
+
+  set shadow(value: boolean) {
+    if (this._shadow !== value) {
+      this._shadow = value;
+      this.#drawText();
+    }
+  }
+
+  get fontSize(): number {
+    return this._fontSize;
+  }
+
+  set fontSize(value: number) {
+    if (this._fontSize !== value) {
+      this._fontSize = value;
+      this.#drawText();
+    }
+  }
+
+  updateName(name: string): void {
+    if (this.name !== name) {
+      super.updateName(name);
+      this.#drawText();
+    }
+  }
+
+  #drawText(): void {
+    this.ctx.font = `${this._fontSize}px sans-serif`;
+    const rect = this.ctx.measureText(this.name);
+    
+    const textRectWidth = Math.max(rect.width, 100);
+    const textRectHeight = Math.max(rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent, 30);
+
+    const newWidth = textRectWidth * dpr;
+    const newHeight = textRectHeight * dpr;
+    
+    if (this.width !== newWidth || this.height !== newHeight) {
+      this.width = newWidth;
+      this.height = newHeight;
+      this.renderer.setSize(this.width, this.height);
+    } else {
+      this.renderer.clearRect();
+    }
+
+    this.#renderText();
+  }
+
+  #renderText(): void {
+    if (this._shadow) {
+      this.ctx.shadowColor = "black";
+      this.ctx.shadowBlur = 7;
+    } else {
+      this.ctx.shadowColor = '';
+      this.ctx.shadowBlur = 0;
+    }
+
+    this.ctx.font = `${this._fontSize}px sans-serif`;
+    this.ctx.fillStyle = this._color;
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "middle";
+
+    const x = this.width / 2;
+    const y = this.height / 2;
+    this.ctx.fillText(this.name, x, y);
   }
 
   async render(ctxOut: CanvasRenderingContext2D, refTime: number, playing: boolean = false): Promise<void> {
@@ -42,49 +116,26 @@ export class TextMedia extends FlexibleMedia {
       return;
     }
 
-    if (!this.shouldReRender(refTime)) {
-      Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
-      return;
+    if (this.shouldReRender(refTime)) {
+      console.log('RENDER TEXT', frame.scale);
+      this.renderer.clearRect();
+      this.#renderText();
+      this.updateRenderCache(refTime);
     }
 
-    const context = this.renderer.context;
-    context.font = "30px sans-serif";
-    const rect = context.measureText(this.name);
-    this.width = rect.width;
-    this.height = rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent;
-    
-    const x = this.renderer.width / 2;
-    const y = this.renderer.height / 2;
-    
-    if (this.shadow) {
-      context.shadowColor = "black";
-      context.shadowBlur = 7;
-    } else {
-      context.shadowColor = '';
-      context.shadowBlur = 1;
-    }
-    
-    context.fillStyle = this.color;
-    this.renderer.clearRect();
-    context.textAlign = "center";
-    context.fillText(this.name, x, y);
-
-    Canvas2DRender.drawTransformed(context, ctxOut, frame);
-    this.updateRenderCache(refTime);
+    Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
   }
 
   protected _createCloneInstance(): AbstractMedia {
     return new TextMedia(this.name) as AbstractMedia;
   }
 
-  /**
-   * Override clone to also copy TextMedia-specific properties
-   */
   clone(): AbstractMedia {
     const cloned = super.clone();
     if (cloned) {
-      (cloned as TextMedia).color = this.color;
-      (cloned as TextMedia).shadow = this.shadow;
+      (cloned as TextMedia).color = this._color;
+      (cloned as TextMedia).shadow = this._shadow;
+      (cloned as TextMedia).fontSize = this._fontSize;
     }
     return cloned;
   }
