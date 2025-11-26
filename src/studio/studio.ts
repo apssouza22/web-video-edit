@@ -69,23 +69,21 @@ export class VideoStudio {
   }
 
   init(): void {
-    this.setUpVideoExport()
+    this.setUpVideoExport();
+    this.setUpJsonExport();
     this.transcriptionManager.loadModel();
     this.visionService.loadModel();
     this.speedControlManager.init();
   }
 
-  private setUpVideoExport() {
-    const exportButton = document.getElementById('export');
-    if (!exportButton) {
+  private setUpVideoExport(): void {
+    const exportVideoBtn = document.getElementById('export-video-btn');
+    if (!exportVideoBtn) {
       return;
     }
     const exportId = 'video-export';
-    exportButton.addEventListener('click', (ev: MouseEvent) => {
-      if (ev.shiftKey) {
-        exportToJson();
-        return;
-      }
+    
+    exportVideoBtn.addEventListener('click', () => {
       if (this.getMedias().length === 0) {
         alert("Nothing to export.");
         return;
@@ -93,26 +91,63 @@ export class VideoStudio {
 
       this.loadingPopup.startLoading(exportId, '', 'Exporting Video...');
 
-      const exportButton = document.getElementById('export') as HTMLButtonElement;
-      if (!exportButton) {
-        console.error('Export button not found');
-        return;
+      const progressContainer = document.getElementById('export-progress');
+      const progressFill = document.getElementById('export-progress-fill');
+      const progressText = document.getElementById('export-progress-text');
+      
+      if (progressContainer) {
+        progressContainer.style.display = 'block';
       }
 
-      const tempText = exportButton.textContent || 'Export';
-      exportButton.textContent = "Exporting...";
+      exportVideoBtn.setAttribute('disabled', 'true');
+      exportVideoBtn.classList.add('exporting');
 
       const progressCallback = (progress: number): void => {
         this.loadingPopup.updateProgress(exportId, progress);
+        if (progressFill) {
+          progressFill.style.width = `${progress}%`;
+        }
+        if (progressText) {
+          progressText.textContent = `${Math.round(progress)}%`;
+        }
       };
 
       const completionCallback = (): void => {
-        exportButton.textContent = tempText;
+        exportVideoBtn.removeAttribute('disabled');
+        exportVideoBtn.classList.remove('exporting');
         this.loadingPopup.updateProgress(exportId, 100);
+        if (progressContainer) {
+          setTimeout(() => {
+            progressContainer.style.display = 'none';
+            if (progressFill) progressFill.style.width = '0%';
+            if (progressText) progressText.textContent = '0%';
+          }, 2000);
+        }
       };
+      
       this.player.pause();
       this.videoExporter.export(progressCallback, completionCallback);
     });
+  }
+
+  private setUpJsonExport(): void {
+    const exportJsonBtn = document.getElementById('export-json-btn');
+    if (!exportJsonBtn) {
+      return;
+    }
+    
+    exportJsonBtn.addEventListener('click', () => {
+      exportToJson();
+    });
+  }
+
+  uploadFiles(files: FileList): void {
+    if (!uploadSupportedType(files)) {
+      return;
+    }
+    for (const file of files) {
+      this.addLayerFromFile(file);
+    }
   }
 
   getMediaById(id: string): AbstractMedia | null {
@@ -145,9 +180,12 @@ export class VideoStudio {
   }
 
   #setupAspectRatioSelector(): void {
-    const header = document.getElementById('header');
-    if (header) {
-      this.aspectRatioSelector.mount(header);
+    const settingsTab = document.getElementById('settings');
+    if (settingsTab) {
+      const settingsForm = settingsTab.querySelector('.settings-form');
+      if (settingsForm) {
+        this.aspectRatioSelector.mount(settingsForm as HTMLElement);
+      }
     }
 
     this.aspectRatioSelector.onRatioChange((newRatio: string) => {

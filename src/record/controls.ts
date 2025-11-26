@@ -2,52 +2,31 @@ import {popup} from "@/common/utils";
 import {createUserMediaRecordingService} from "./index";
 import {UserMediaRecordingService} from "@/record/service";
 
-// Interface for error objects with user messages
 interface RecordingError extends Error {
   userMessage?: string;
 }
 
-
 export class RecordingControls {
-  // Private properties
   #userMediaRecorder: UserMediaRecordingService;
-  #recordBtn: HTMLElement | null;
-  #recordMenu: HTMLElement | null;
   #recordScreenBtn: HTMLElement | null;
   #recordVideoBtn: HTMLElement | null;
   #stopBtn: HTMLElement | null;
+  #recordTabBtn: HTMLElement | null;
+  #recordOptions: HTMLElement | null;
 
   constructor() {
     this.#userMediaRecorder = createUserMediaRecordingService();
-    this.#recordBtn = document.getElementById('record-btn');
-    this.#recordMenu = document.getElementById('record-menu');
     this.#recordScreenBtn = document.getElementById('record-screen-btn');
     this.#recordVideoBtn = document.getElementById('record-video-btn');
     this.#stopBtn = document.getElementById('stop-recording-btn');
+    this.#recordTabBtn = document.querySelector('.tab-button[data-tab="record"]');
+    this.#recordOptions = document.querySelector('.record-options');
   }
 
   init(): void {
-    if (this.#recordBtn) {
-      this.#recordBtn.addEventListener('click', this.#toggleDropdown.bind(this));
-    }
-    document.addEventListener('click', this.#closeDropdownOnOutsideClick.bind(this));
     this.#recordScreenBtn?.addEventListener('click', this.#startScreenRecording.bind(this));
     this.#recordVideoBtn?.addEventListener('click', this.#startCameraRecording.bind(this));
     this.#stopBtn?.addEventListener('click', this.#stopRecording.bind(this));
-  }
-
-  #toggleDropdown(event: Event): void {
-    event.stopPropagation();
-    if (this.#recordMenu) {
-      this.#recordMenu.classList.toggle('show');
-    }
-  }
-
-  #closeDropdownOnOutsideClick(event: Event): void {
-    const target = event.target as Element;
-    if (!target.closest('.dropdown')) {
-      this.#recordMenu?.classList.remove('show');
-    }
   }
 
   #displayUserError(error: RecordingError): void {
@@ -64,10 +43,8 @@ export class RecordingControls {
   async #startScreenRecording(): Promise<void> {
     try {
       console.log('Starting screen recording...');
-      this.#recordMenu?.classList.remove('show'); // Close dropdown
       this.#toggleRecordingButtons(true);
       await this.#userMediaRecorder.startScreenCapture();
-
     } catch (error: any) {
       console.error('Failed to start screen recording:', error);
       this.#toggleRecordingButtons(false);
@@ -78,7 +55,6 @@ export class RecordingControls {
   async #startCameraRecording(): Promise<void> {
     try {
       console.log('Starting camera recording...');
-      this.#recordMenu?.classList.remove('show'); // Close dropdown
       this.#toggleRecordingButtons(true);
       await this.#userMediaRecorder.startCameraCapture();
     } catch (error: any) {
@@ -101,11 +77,13 @@ export class RecordingControls {
 
   #toggleRecordingButtons(isRecording: boolean): void {
     if (isRecording) {
-      this.#recordBtn!.style.display = 'none';
-      this.#stopBtn!.style.display = 'block';
+      if (this.#recordOptions) this.#recordOptions.style.display = 'none';
+      if (this.#stopBtn) this.#stopBtn.style.display = 'flex';
+      this.#recordTabBtn?.classList.add('recording-active');
     } else {
-      this.#recordBtn!.style.display = 'block';
-      this.#stopBtn!.style.display = 'none';
+      if (this.#recordOptions) this.#recordOptions.style.display = 'flex';
+      if (this.#stopBtn) this.#stopBtn.style.display = 'none';
+      this.#recordTabBtn?.classList.remove('recording-active');
     }
   }
 }

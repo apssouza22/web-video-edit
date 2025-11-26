@@ -1,5 +1,5 @@
-import { fps, max_size, setFps, setMaxSize } from '../constants.js';
-import { popup } from '../common/utils.ts';
+import { fps, max_size, setFps, setMaxSize } from '@/constants';
+import { popup } from '@/common/utils';
 
 export class SettingsPopup {
   private divBox: HTMLDivElement;

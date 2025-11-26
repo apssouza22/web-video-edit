@@ -117,7 +117,6 @@ export class TextMedia extends FlexibleMedia {
     }
 
     if (this.shouldReRender(refTime)) {
-      console.log('RENDER TEXT', frame.scale);
       this.renderer.clearRect();
       this.#renderText();
       this.updateRenderCache(refTime);

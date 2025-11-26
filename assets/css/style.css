@@ -142,7 +142,7 @@ text-align: center;
   left: 0;
   top: 0;
   bottom: 30%;
-  width: 90%;
+  width: 100%;
   display: flex;
   flex-direction: row;
 }
@@ -165,33 +165,75 @@ text-align: center;
   display: flex;
   background: rgba(37, 37, 40, 0.95);
   border-bottom: 1px solid rgba(60, 60, 65, 0.8);
-  padding: 0;
+  padding: 4px 8px;
   flex-shrink: 0;
+  gap: 2px;
+  justify-content: center;
 }
 
 #leftNav .tab-button {
-  flex: 1;
-  padding: 12px 20px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgb(192, 200, 213);
+  color: rgb(150, 158, 171);
   background: transparent;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
+  border: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
   user-select: none;
+  position: relative;
+}
+
+#leftNav .tab-button svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
 }
 
 #leftNav .tab-button:hover {
-  background: rgba(53, 53, 58, 0.5);
+  background: rgba(53, 53, 58, 0.7);
   color: rgb(220, 225, 235);
+}
+
+#leftNav .tab-button:hover svg {
+  transform: scale(1.1);
 }
 
 #leftNav .tab-button.active {
   color: rgb(169, 225, 250);
-  border-bottom-color: rgb(169, 225, 250);
-  background: rgba(43, 47, 51, 0.9);
+  background: rgba(169, 225, 250, 0.15);
+}
+
+#leftNav .tab-button.active svg {
+  filter: drop-shadow(0 0 3px rgba(169, 225, 250, 0.5));
+}
+
+/* Tooltip for tab buttons */
+#leftNav .tab-button::after {
+  content: attr(title);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(20, 20, 22, 0.95);
+  color: rgb(220, 225, 235);
+  font-size: 11px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+  margin-top: 4px;
+}
+
+#leftNav .tab-button:hover::after {
+  opacity: 1;
+  visibility: visible;
 }
 
 #leftNav .tab-content-wrapper {
@@ -321,6 +363,308 @@ text-align: center;
   font-style: italic;
 }
 
+/* Tab Section Titles */
+.tab-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(150, 158, 171);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(60, 60, 65, 0.5);
+}
+
+.tab-section-title:not(:first-child) {
+  margin-top: 24px;
+}
+
+/* Action Buttons */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgb(53, 53, 58);
+  color: rgb(192, 200, 213);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'JupiterSans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.action-button:hover {
+  background: rgb(63, 63, 68);
+  color: rgb(220, 225, 235);
+  border-color: rgba(80, 80, 85, 0.8);
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, rgb(69, 155, 255), rgb(100, 180, 255));
+  color: white;
+  border-color: transparent;
+}
+
+.action-button.primary:hover {
+  background: linear-gradient(135deg, rgb(89, 175, 255), rgb(120, 200, 255));
+  box-shadow: 0 2px 8px rgba(69, 155, 255, 0.3);
+}
+
+.action-button.secondary {
+  background: transparent;
+  border: 1px solid rgba(169, 225, 250, 0.4);
+  color: rgb(169, 225, 250);
+}
+
+.action-button.secondary:hover {
+  background: rgba(169, 225, 250, 0.1);
+  border-color: rgba(169, 225, 250, 0.6);
+}
+
+.action-button.danger {
+  background: rgba(220, 53, 69, 0.8);
+  color: white;
+  border-color: transparent;
+}
+
+.action-button.danger:hover {
+  background: rgba(220, 53, 69, 1);
+}
+
+.action-button.large {
+  padding: 14px 24px;
+  font-size: 15px;
+}
+
+.action-button svg {
+  flex-shrink: 0;
+}
+
+/* Media Tab Styles */
+.media-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  border: 2px dashed rgba(169, 225, 250, 0.3);
+  border-radius: 10px;
+  background: rgba(53, 53, 58, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  gap: 8px;
+}
+
+.media-upload-area:hover {
+  border-color: rgba(169, 225, 250, 0.6);
+  background: rgba(53, 53, 58, 0.5);
+}
+
+.media-upload-area.dragover {
+  border-color: rgb(169, 225, 250);
+  background: rgba(169, 225, 250, 0.1);
+}
+
+.media-upload-area svg {
+  color: rgb(150, 158, 171);
+  margin-bottom: 8px;
+}
+
+.media-upload-area span {
+  color: rgb(192, 200, 213);
+  font-size: 14px;
+}
+
+.media-upload-area .media-formats {
+  color: rgb(120, 128, 141);
+  font-size: 11px;
+}
+
+.media-library {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.media-library-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(53, 53, 58, 0.5);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.media-library-item:hover {
+  background: rgba(53, 53, 58, 0.8);
+}
+
+.media-library-item .thumb {
+  width: 40px;
+  height: 40px;
+  background: rgb(30, 30, 32);
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.media-library-item .info {
+  flex: 1;
+  min-width: 0;
+}
+
+.media-library-item .name {
+  font-size: 12px;
+  color: rgb(192, 200, 213);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-library-item .duration {
+  font-size: 10px;
+  color: rgb(120, 128, 141);
+}
+
+/* Text Tab Styles */
+.text-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.text-input-area textarea {
+  width: 100%;
+  padding: 12px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  color: rgb(220, 225, 235);
+  font-size: 14px;
+  font-family: 'JupiterSans', sans-serif;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+}
+
+.text-input-area textarea:focus {
+  outline: none;
+  border-color: rgb(169, 225, 250);
+}
+
+.text-input-area textarea::placeholder {
+  color: rgb(120, 128, 141);
+}
+
+.text-layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.text-layer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(53, 53, 58, 0.5);
+  border-radius: 6px;
+}
+
+.text-layer-item span {
+  font-size: 13px;
+  color: rgb(192, 200, 213);
+}
+
+/* Record Tab Styles */
+.record-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+#stop-recording-btn {
+  margin-top: 16px;
+}
+
+/* Settings Tab Styles */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-row label {
+  font-size: 13px;
+  color: rgb(192, 200, 213);
+}
+
+.settings-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  color: rgb(220, 225, 235);
+  font-size: 14px;
+  font-family: 'JupiterSans', monospace;
+  box-sizing: border-box;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: rgb(169, 225, 250);
+}
+
+/* Export Tab Styles */
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-progress {
+  margin-top: 20px;
+}
+
+.export-progress .progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgb(53, 53, 58);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.export-progress .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgb(69, 155, 255), rgb(169, 225, 250));
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.export-progress .progress-text {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: rgb(169, 225, 250);
+  margin-top: 8px;
+}
+
 
 /* Video canvas takes up 50% width */
 #center-panel #video-canvas-panel {
@@ -352,18 +696,7 @@ text-align: center;
   object-fit: contain;
 }
 
-#layer_holder {
-  position: absolute;
-  background: rgb(31,31,31);
-  overflow: scroll;
-  scrollbar-width: none;
-  right: 0;
-  top: 0;
-  bottom: 20%;
-  width: 10%;
-  color: rgb(192,200,213);
-  font-family: 'JupiterSans';
-}
+/* Layer holder removed - functionality moved to leftNav tabs */
 
 #cursor_preview {
   display: none;
@@ -379,13 +712,6 @@ text-align: center;
   font-family: 'JupiterSans';
 }
 
-#header {
-  background: rgb(43,47,51);
-  text-align: center;
-  font-size: 12px;
-  font-family: 'JupiterSans';
-}
-
 a {
   color: rgb(255,255,255);
 }
@@ -393,42 +719,9 @@ a:visited {
   color: rgb(255,255,255);
 }
 
-#header div {
-  display: inline-block;
-  padding: 4px;
-  margin: 4px;
-}
-
-#header a {
-  padding: 4px;
-  margin: 4px;
-}
-
-#header div:hover,
 #layers div a:hover,
 #layers div canvas:hover {
   cursor: pointer;
-}
-
-/* Screen recording button styles */
-#record-screen-btn {
-  background-color: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  border-radius: 4px;
-}
-
-#record-screen-btn:hover {
-  background-color: rgba(220, 53, 69, 0.2);
-}
-
-#stop-recording-btn {
-  background-color: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.3);
-  border-radius: 4px;
-}
-
-#stop-recording-btn:hover {
-  background-color: rgba(255, 193, 7, 0.2);
 }
 
 /* Recording indicator animation */
@@ -438,8 +731,18 @@ a:visited {
   100% { opacity: 1; }
 }
 
-#record-screen-btn.recording {
+.recording-active {
   animation: recording-pulse 1s infinite;
+}
+
+/* Recording tab indicator when actively recording */
+#leftNav .tab-button[data-tab="record"].recording-active {
+  color: rgb(220, 53, 69);
+  background: rgba(220, 53, 69, 0.15);
+}
+
+#leftNav .tab-button[data-tab="record"].recording-active svg {
+  fill: rgb(220, 53, 69);
 }
 
 #layers .preview {
@@ -760,58 +1063,7 @@ a:visited {
   margin: 0;
 }
 
-/* Dropdown Menu Styles */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-toggle {
-  cursor: pointer;
-  user-select: none;
-  padding: 8px 12px;
-  background: rgb(43,47,51);
-  color: white;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.dropdown-toggle:hover {
-  background: rgb(53,57,61);
-}
-
-#header .dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  min-width: 140px;
-  background: rgb(43,47,51);
-  border: 1px solid rgb(60,64,68);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  z-index: 1000;
-}
-
-#header .dropdown-menu.show {
-  display: block;
-}
-
-.dropdown-item {
-  padding: 10px 15px;
-  cursor: pointer;
-  color: white;
-  border-bottom: 1px solid rgb(60,64,68);
-  transition: background 0.2s;
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.dropdown-item:hover {
-  background: rgb(53,57,61);
-}
+/* Dropdown Menu Styles - Preserved for potential future use */
 
 /* Aspect Ratio Selector Dropdown */
 #aspect-ratio-dropdown {
