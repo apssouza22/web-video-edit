@@ -61,6 +61,13 @@ export class TranscriptionSeekEvent extends BaseEvent {
   }
 }
 
+export class TranscriptionCompletedEvent extends BaseEvent {
+  readonly name = 'transcription:completed';
+  constructor(public transcriptionData: any, public layer?: AbstractMedia) {
+    super();
+  }
+}
+
 export class VisionAnalysisCompleteEvent extends BaseEvent {
   readonly name = 'vision:analysisComplete';
   constructor(public result: any) {

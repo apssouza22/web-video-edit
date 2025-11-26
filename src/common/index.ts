@@ -10,6 +10,7 @@ export {
   TranscriptionRemoveIntervalEvent,
   TranscriptionSeekEvent,
   VisionAnalysisCompleteEvent,
+  TranscriptionCompletedEvent,
   UiSpeedChangeEvent,
   UiAspectRatioChangeEvent,
   MediaLoadUpdateEvent

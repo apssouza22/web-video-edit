@@ -23,7 +23,7 @@ export class VisionView {
       console.error('Invalid vision result provided');
       return;
     }
-    this.show()
+    this.showTabContent()
     this.displayResult(result);
   }
 
@@ -61,7 +61,7 @@ export class VisionView {
     this.#resultContainer.appendChild(itemContainer);
   }
 
-  private show(): void {
+  private showTabContent(): void {
     const visionTab = document.querySelector('.tab-button[data-tab="vision"]');
     if (visionTab) {
       (visionTab as HTMLElement).click();

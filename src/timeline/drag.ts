@@ -1,6 +1,7 @@
 import { LayerReorderHandler } from './layer-reorder-handler';
 import type { MediaInterface } from './types';
 import {Timeline} from "./timeline";
+import {AbstractMedia} from "@/media";
 
 /**
  * Handles media dragging and scrubbing in the timeline
@@ -14,7 +15,7 @@ export class DragLayerHandler {
   dragStartX: number;
   dragStartY: number;
   dragThreshold: number;
-  selectedLayer?: MediaInterface | null;
+  selectedLayer?: AbstractMedia | null;
   initialTime?: number;
 
   /**
@@ -44,7 +45,7 @@ export class DragLayerHandler {
   /**
    * Handle the media drag operation based on current time position
    */
-  startLayerDrag(selectedLayer: MediaInterface, time: number, startX: number, startY: number) {
+  startLayerDrag(selectedLayer: AbstractMedia, time: number, startX: number, startY: number) {
     this.dragStartX = startX;
     this.dragStartY = startY;
     this.dragMode = 'none';

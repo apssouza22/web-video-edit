@@ -57,7 +57,6 @@ import { MyComponent } from '@/studio/my-component';
 
 ### Phase 2: Event Handlers
 - **`studio-controls.test.ts`** - Tests for keyboard shortcuts, drag-and-drop, paste, and window event handling
-- **`drag-handler.test.ts`** - Tests for pointer-based drag operations on media layers
 - **`pinch-handler.test.ts`** - Tests for pinch/zoom/rotation gesture handling (Safari gestures and wheel events)
 
 ### Phase 3: Service Classes

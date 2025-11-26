@@ -7,13 +7,16 @@ import type {
   TranscriptionServiceConfig,
   AudioTransformResult
 } from './types.js';
-import { getEventBus, TranscriptionRemoveIntervalEvent, TranscriptionSeekEvent } from '@/common/event-bus';
+import {
+  getEventBus,
+  TranscriptionCompletedEvent,
+  TranscriptionRemoveIntervalEvent,
+  TranscriptionSeekEvent
+} from '@/common/event-bus';
 
 export class TranscriptionService {
   private worker: Worker;
   private transcriptionView: TranscriptionView;
-  private onRemoveIntervalListener: RemoveIntervalCallback;
-  private onSeekListener: SeekCallback;
   #eventBus = getEventBus();
 
   constructor(config?: TranscriptionServiceConfig) {
@@ -21,9 +24,6 @@ export class TranscriptionService {
       type: "module",
     });
     this.transcriptionView = new TranscriptionView(this);
-    this.onRemoveIntervalListener = (startTime: number, endTime: number) => {};
-    this.onSeekListener = (timestamp: number) => {};
-
     this.#addEventListener();
   }
 
@@ -66,29 +66,6 @@ export class TranscriptionService {
     }).bind(this));
   }
 
-  /**
-   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TRANSCRIPTION_REMOVE_INTERVAL, handler)
-   */
-  addRemoveIntervalListener(callback: RemoveIntervalCallback): void {
-    if (typeof callback === 'function') {
-      this.onRemoveIntervalListener = callback;
-    } else {
-      console.error("Callback must be a function");
-    }
-  }
-
-  /**
-   * Adds a seek listener callback
-   * @param callback - Callback function that takes a timestamp parameter
-   * @deprecated Use EventBus instead: getEventBus().subscribe(EVENT_NAMES.TRANSCRIPTION_SEEK, handler)
-   */
-  addSeekListener(callback: SeekCallback): void {
-    if (typeof callback === 'function') {
-      this.onSeekListener = callback;
-    } else {
-      console.error("Callback must be a function");
-    }
-  }
 
   /**
    * Removes an interval from the transcription
@@ -96,7 +73,6 @@ export class TranscriptionService {
    * @param endTime - End time in seconds
    */
   removeInterval(startTime: number, endTime: number): void {
-    this.onRemoveIntervalListener(startTime, endTime);
     this.#eventBus.emit(new TranscriptionRemoveIntervalEvent(startTime, endTime));
   }
 
@@ -105,13 +81,13 @@ export class TranscriptionService {
    * @param timestamp - The timestamp to seek to in seconds
    */
   seekToTimestamp(timestamp: number): void {
-    this.onSeekListener(timestamp);
     this.#eventBus.emit(new TranscriptionSeekEvent(timestamp));
   }
 
   #onTranscriptionComplete(data: TranscriptionResult): void {
     console.log("Transcription complete:", data);
     this.transcriptionView.updateTranscription(data);
+    this.#eventBus.emit(new TranscriptionCompletedEvent(data));
   }
 
   loadModel(): void {

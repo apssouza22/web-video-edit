@@ -41,6 +41,7 @@ export class TranscriptionView {
     transcriptionData.chunks.forEach((chunk, index) => {
       this.#addTextChunk(chunk, index);
     });
+    this.#showTabContent()
   }
 
   /**
@@ -196,6 +197,13 @@ export class TranscriptionView {
   showLoading(): void {
     if (this.textChunksContainer) {
       this.textChunksContainer.innerHTML = 'Transcribing... Please wait.';
+    }
+  }
+
+  #showTabContent(): void {
+    const visionTab = document.querySelector('.tab-button[data-tab="transcription"]');
+    if (visionTab) {
+      (visionTab as HTMLElement).click();
     }
   }
 }
