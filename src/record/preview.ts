@@ -58,6 +58,7 @@ export class RecordingPreview {
         z-index: 1000;
         object-fit: contain;
         transition: all 0.3s ease;
+        padding: 10px;
       `;
 
       // Add preview controls overlay

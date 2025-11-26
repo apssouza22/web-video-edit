@@ -211,7 +211,7 @@ export class UserMediaRecordingService {
     } catch (cleanupError) {
       console.error('Error during interruption cleanup:', cleanupError);
     } finally {
-      this.#cleanupRecordingResources();
+      this.#cleanup();
     }
   }
 
@@ -319,13 +319,14 @@ export class UserMediaRecordingService {
         console.log('Processing recorded data - State: processing → complete');
         const videoFile = this.#createVideoFile(videoBlob);
         this.#eventBus.emit(new RecordVideoFileCreatedEvent(videoFile));
-        this.#cleanupRecordingResources();
+        this.#cleanup();
       } else {
         throw new Error('Failed to create video blob from recorded chunks');
       }
     } catch (error) {
       console.error('Error stopping recording:', error);
       this.isRecording = false;
+      this.#preview.cleanup();
       throw error;
     }
   }
@@ -458,14 +459,12 @@ export class UserMediaRecordingService {
 
     this.#mediaRecorder = null;
     this.#mediaStream = null;
-
-    console.log('Recording resources cleaned up, preview remains active');
   }
 
   /**
    * Clean up all resources including preview
    */
-  cleanup(): void {
+  #cleanup(): void {
     this.#cleanupRecordingResources();
     this.#preview.cleanup();
     console.log('All resources and preview elements cleaned up');
