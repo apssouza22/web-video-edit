@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This medialibrary provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -111,7 +111,7 @@ The codebase is **incrementally migrating from JavaScript to TypeScript**:
 - **Constants**: `UPPER_SNAKE_CASE`
 
 ### Class Structure
-- **One class per file** (use PascalCase for class name matching file name)
+- **One class per medialibrary** (use PascalCase for class name matching medialibrary name)
 - **Private methods** for helpers not intended for external use (use `#privateMethod()` or `private` keyword)
 - **Avoid global variables/functions** - encapsulate within classes
 - **Avoid package coupling** - use EventBus for cross-package communication
@@ -131,13 +131,13 @@ This is configured in `tsconfig.json` (`paths`) and `jest.config.js` (`moduleNam
 **IMPORTANT**: Based on `.cursor/rules/general-rules.mdc`, follow this workflow for non-trivial tasks:
 
 1. **Plan the task step-by-step** before writing code
-2. **Create a task file**: `tasks/name-of-the-task.md` with GitHub-style checkboxes
+2. **Create a task medialibrary**: `tasks/name-of-the-task.md` with GitHub-style checkboxes
 3. **List all implementation steps** as `- [ ] Step Description`
 4. **Update checkboxes** after completing each step: change `- [ ]` to `- [x]`
 5. **Proceed sequentially**: only move to next step after checking off previous one
 6. **Announce which step you are starting** before implementing it
 
-Example task file structure:
+Example task medialibrary structure:
 ```markdown
 # Task: Add Speed Control to Timeline
 

@@ -44,7 +44,7 @@ Event-driven architecture using a centralized EventBus:
 - UI events (speed changes, aspect ratio)
 - Media events (load updates)
 - Transcription events (seek, remove interval)
-- Recording events (video file created)
+- Recording events (video medialibrary created)
 
 ### 4. [Video Pipeline](./04-video-pipeline.md)
 Complete video processing flow:

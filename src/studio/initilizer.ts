@@ -6,12 +6,14 @@ import {StudioState} from "@/common";
 import {createAudioService} from "@/audio";
 import {createMediaService} from "@/media";
 import {StudioControls} from "@/studio/controls";
+import {getMediaLibrary} from "@/medialibrary";
 
 export function initStudio(): VideoStudio {
   initScreenRecording();
   const audioService = createAudioService();
   const mediaService = createMediaService(audioService);
-  const studio = new VideoStudio(mediaService);
+  const mediaLibrary = getMediaLibrary();
+  const studio = new VideoStudio(mediaService, mediaLibrary);
   studio.init();
 
   const studioControls = new StudioControls(studio);

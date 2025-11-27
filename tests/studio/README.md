@@ -8,7 +8,7 @@ Studio tests use mocks to isolate the studio package from external dependencies.
 
 ### setup-mocks.ts
 
-The `setup-mocks.ts` file serves as a **reference** for mock implementations of external packages:
+The `setup-mocks.ts` medialibrary serves as a **reference** for mock implementations of external packages:
 
 - **@/canvas** - Video canvas rendering
 - **@/timeline** - Timeline UI and layer management
@@ -20,13 +20,13 @@ The `setup-mocks.ts` file serves as a **reference** for mock implementations of 
 
 ### ⚠️ Important: Jest Mock Hoisting
 
-Jest automatically hoists `jest.mock()` calls to the top of a file, but **ONLY** within the same file. Importing mocks from another file does NOT work.
+Jest automatically hoists `jest.mock()` calls to the top of a medialibrary, but **ONLY** within the same medialibrary. Importing mocks from another medialibrary does NOT work.
 
 ### Usage Patterns
 
 #### For Components with Heavy Dependencies (VideoStudio, MediaLoader, etc.)
 
-Copy the relevant `jest.mock()` calls **directly** into your test file BEFORE imports:
+Copy the relevant `jest.mock()` calls **directly** into your test medialibrary BEFORE imports:
 
 ```typescript
 import { jest } from '@jest/globals';
@@ -41,7 +41,7 @@ import { VideoStudio } from '@/studio/studio';
 
 #### For Simple Components (Utils, UI components)
 
-You can try importing `setup-mocks.ts`, but if you get errors about null properties, move the mocks directly into your test file:
+You can try importing `setup-mocks.ts`, but if you get errors about null properties, move the mocks directly into your test medialibrary:
 
 ```typescript
 import './setup-mocks';  // May work for simple cases
@@ -51,7 +51,7 @@ import { MyComponent } from '@/studio/my-component';
 ## Test Files
 
 ### Phase 1: Utilities and UI Components
-- **`utils.test.ts`** - Tests for utility functions including file type validation, mime type detection, popup creation, and JSON export/import
+- **`utils.test.ts`** - Tests for utility functions including medialibrary type validation, mime type detection, popup creation, and JSON export/import
 - **`aspect-ratio-selector.test.ts`** - Tests for the aspect ratio dropdown selector component
 - **`loading-popup.test.ts`** - Tests for the loading progress popup component
 
@@ -74,7 +74,7 @@ Run all studio tests:
 npm test -- tests/studio
 ```
 
-Run a specific test file:
+Run a specific test medialibrary:
 ```bash
 npm test -- tests/studio/utils.test.ts
 ```

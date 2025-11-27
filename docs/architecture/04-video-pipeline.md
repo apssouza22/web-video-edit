@@ -144,7 +144,7 @@ sequenceDiagram
     participant Canvas as Canvas2D
     participant Frame as FrameService
 
-    Loader->>Demux: initialize(file, canvas)
+    Loader->>Demux: initialize(medialibrary, canvas)
     Demux->>MediaBunny: Load video data
     MediaBunny->>MediaBunny: Parse container
     MediaBunny->>Decoder: Create VideoDecoder
@@ -182,9 +182,9 @@ sequenceDiagram
     participant AudioDecoder
     participant Main as Main Thread
 
-    Loader->>Demux: initialize(file)
+    Loader->>Demux: initialize(medialibrary)
     Demux->>Worker: Create Web Worker
-    Demux->>Worker: Send file buffer
+    Demux->>Worker: Send medialibrary buffer
     
     Worker->>MP4Box: Initialize
     MP4Box->>MP4Box: Parse MP4 structure
@@ -236,7 +236,7 @@ sequenceDiagram
     participant Canvas as Canvas2D
     participant Frame as FrameService
 
-    Loader->>Demux: initialize(file)
+    Loader->>Demux: initialize(medialibrary)
     Demux->>Video: Create video element
     Demux->>Video: Set video source
     Video->>Video: Load metadata
@@ -484,7 +484,7 @@ Frames are extracted asynchronously to maintain UI responsiveness.
 ### Demuxing Errors
 ```typescript
 try {
-  await demuxer.initialize(file, renderer);
+  await demuxer.initialize(medialibrary, renderer);
 } catch (error) {
   if (error.name === 'UnsupportedFormatError') {
     // Try fallback demuxer

@@ -226,7 +226,7 @@ The application uses a centralized EventBus for decoupled communication between 
 **Payload**:
 ```typescript
 {
-  videoFile: File  // Recorded video file
+  videoFile: File  // Recorded video medialibrary
 }
 ```
 

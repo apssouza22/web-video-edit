@@ -66,7 +66,7 @@ This diagram shows the main components of the Web Video Edit application and the
 Components communicate through the EventBus rather than direct coupling:
 - Player emits time updates → Timeline synchronizes
 - Timeline emits layer updates → Player refreshes
-- Record emits video file created → Studio loads media
+- Record emits video medialibrary created → Studio loads media
 - UI emits speed changes → Media layers adjust
 
 ### Direct Dependencies (shown with solid lines)

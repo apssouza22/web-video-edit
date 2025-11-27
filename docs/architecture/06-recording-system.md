@@ -209,7 +209,7 @@ sequenceDiagram
     end
     
     Service->>Service: Stop and process
-    Service->>Service: Create video file
+    Service->>Service: Create video medialibrary
 ```
 
 ## Component Details
@@ -663,7 +663,7 @@ sequenceDiagram
     Record->>EventBus: emit(RecordVideoFileCreatedEvent)
     
     EventBus->>Studio: Notify subscribers
-    Studio->>Loader: Load video file
+    Studio->>Loader: Load video medialibrary
     
     Loader->>VideoMedia: Create VideoMedia
     VideoMedia->>VideoMedia: Load and demux
@@ -744,7 +744,7 @@ cleanup(): void {
 Set reasonable limits and warn users when approaching them.
 
 ### 3. Provide Clear Feedback
-Show preview, duration, and file size during recording.
+Show preview, duration, and medialibrary size during recording.
 
 ### 4. Handle Interruptions Gracefully
 Save partial recordings when possible.
@@ -753,7 +753,7 @@ Save partial recordings when possible.
 Different browsers have different codec and API support.
 
 ### 6. Optimize Bitrate
-Balance quality and file size based on use case.
+Balance quality and medialibrary size based on use case.
 
 ### 7. Fix WebM Metadata
 Always fix duration after recording WebM files.

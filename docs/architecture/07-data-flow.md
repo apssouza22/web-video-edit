@@ -101,11 +101,11 @@ sequenceDiagram
     participant EventBus
     participant Studio
 
-    User->>UI: Upload video file
-    UI->>Loader: loadMedia(file)
+    User->>UI: Upload video medialibrary
+    UI->>Loader: loadMedia(medialibrary)
     
-    Loader->>VideoLoader: loadVideo(file)
-    VideoLoader->>Demux: initDemux(file)
+    Loader->>VideoLoader: loadVideo(medialibrary)
+    VideoLoader->>Demux: initDemux(medialibrary)
     
     Demux->>Demux: Select demuxer strategy
     

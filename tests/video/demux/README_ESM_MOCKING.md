@@ -2,7 +2,7 @@
 
 ## Overview
 
-This test file properly implements ESM (ECMAScript Modules) mocking following Jest best practices for ES modules.
+This test medialibrary properly implements ESM (ECMAScript Modules) mocking following Jest best practices for ES modules.
 
 ## Why ESM Mocking is Different
 

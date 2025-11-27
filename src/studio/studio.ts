@@ -14,7 +14,7 @@ import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 import {createVisionService, VisionService} from "@/vision";
-import {getMediaLibrary, MediaLibrary} from "./media-library";
+import {getMediaLibrary, MediaLibrary} from "src/medialibrary";
 
 /**
  * Update data structure for media transformations
@@ -45,7 +45,7 @@ export class VideoStudio {
   mediaLibrary: MediaLibrary;
   private visionService: VisionService;
 
-  constructor(mediaService: MediaService) {
+  constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
     this.mediaService = mediaService;
     this.update = null;
     this.videoCanvas = document.getElementById('video-canvas')!;
@@ -62,7 +62,7 @@ export class VideoStudio {
     this.visionService = createVisionService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
-    this.mediaLibrary = getMediaLibrary();
+    this.mediaLibrary = mediaLibrary;
 
     window.requestAnimationFrame(this.#loop.bind(this));
 

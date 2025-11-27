@@ -1,11 +1,11 @@
 # Task execution plan
 Important: Always plan the task step by step before writing code. Ask for permission to proceed with the plan .
-Important: Before proceed with the plan, create a new file named `tasks/name-of-the-task.md`. Based on the approved plan, list all necessary implementation steps as GitHub-style checkboxes (`- [ ] Step Description`). Use sub-bullets for granular details within each main step.
-**CRITICAL: After you successfully complete each step, you MUST update the `tasks/name-of-the-task.md` file by changing the corresponding checkbox from `- [ ]` to `- [x]`.**
-Only proceed to the *next* unchecked item after confirming the previous one is checked off in the file. Announce which step you are starting.
+Important: Before proceed with the plan, create a new medialibrary named `tasks/name-of-the-task.md`. Based on the approved plan, list all necessary implementation steps as GitHub-style checkboxes (`- [ ] Step Description`). Use sub-bullets for granular details within each main step.
+**CRITICAL: After you successfully complete each step, you MUST update the `tasks/name-of-the-task.md` medialibrary by changing the corresponding checkbox from `- [ ]` to `- [x]`.**
+Only proceed to the *next* unchecked item after confirming the previous one is checked off in the medialibrary. Announce which step you are starting.
 
 ## Javascript and TypeScript Code Style Guide
-Ensure one class per file and use PascalCase for class names.
+Ensure one class per medialibrary and use PascalCase for class names.
 Also use private methods for any helper functions that are not intended to be used outside the class.
 Avoid using global variables or functions that are not encapsulated within a class.
 Avoid coupling packages. Preference to use events for communication between different packages. Ensure self-contained packages.
@@ -21,7 +21,7 @@ Avoid comments describing functionality ensure self describing code
 - `npm run build`: Build production files (outputs to `dist/`).
 - `npm test`: Run Jest tests.
 - `npm run test:watch`: Re-run tests on change.
-- Example (single file): `npm test tests/domain-package/frame-service.test.js`.
+- Example (single medialibrary): `npm test tests/domain-package/frame-service.test.js`.
 
 ## Coding Style & Naming Conventions
 - Language: Typescript, browser-first. Avoid Node-only APIs in `src`.

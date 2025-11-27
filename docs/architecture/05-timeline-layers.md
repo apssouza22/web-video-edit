@@ -123,7 +123,7 @@ classDiagram
     }
     
     class VideoMedia {
-        +file: File
+        +medialibrary: File
         +videoMetadata: VideoMetadata
         +fps: number
         +loadVideo()

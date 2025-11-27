@@ -1,4 +1,4 @@
-import { getFileStorage, StoredFileMetadata } from '@/file';
+import { getFileStorage, StoredFileMetadata } from './file-storage';
 import { uploadSupportedType } from '@/common/utils';
 
 export class MediaLibrary {

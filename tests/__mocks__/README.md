@@ -12,7 +12,7 @@ Mock for the HuggingFace Transformers library used in the transcription module.
 
 ### Why is this needed?
 
-The `src/transcription/model.ts` file imports from:
+The `src/transcription/model.ts` medialibrary imports from:
 ```javascript
 import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers";
 ```
@@ -41,7 +41,7 @@ Mock for the webm-duration-fix library used for fixing WebM video blob durations
 
 ### Why is this needed?
 
-The `src/common/utils.ts` file imports from:
+The `src/common/utils.ts` medialibrary imports from:
 ```javascript
 import webmDurationFix from 'https://cdn.jsdelivr.net/npm/webm-duration-fix@1.0.4/+esm';
 ```
@@ -68,7 +68,7 @@ The mock provides:
 
 If you encounter other CDN import errors in tests:
 
-1. Create a mock file in `tests/__mocks__/` with appropriate exports
+1. Create a mock medialibrary in `tests/__mocks__/` with appropriate exports
 2. Add a `moduleNameMapper` entry in `jest.config.js`
 3. Escape special regex characters in the URL (`.`, `@`, `+`, etc.)
 4. Document the mock here
