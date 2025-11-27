@@ -489,8 +489,17 @@ text-align: center;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
+  padding: 4px 0;
+}
+
+.media-library-empty {
+  text-align: center;
+  padding: 20px;
+  color: rgb(120, 128, 141);
+  font-size: 13px;
+  font-style: italic;
 }
 
 .media-library-item {
@@ -500,28 +509,54 @@ text-align: center;
   padding: 8px 10px;
   background: rgba(53, 53, 58, 0.5);
   border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  cursor: grab;
+  transition: all 0.2s ease;
+  position: relative;
+  border: 1px solid transparent;
 }
 
 .media-library-item:hover {
   background: rgba(53, 53, 58, 0.8);
+  border-color: rgba(169, 225, 250, 0.3);
 }
 
-.media-library-item .thumb {
+.media-library-item:active {
+  cursor: grabbing;
+}
+
+.media-library-item.dragging {
+  opacity: 0.5;
+  border-color: rgba(169, 225, 250, 0.6);
+}
+
+.media-library-thumb {
   width: 40px;
   height: 40px;
+  min-width: 40px;
   background: rgb(30, 30, 32);
   border-radius: 4px;
-  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(169, 225, 250);
 }
 
-.media-library-item .info {
+.media-library-thumb svg {
+  width: 20px;
+  height: 20px;
+}
+
+.media-library-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.media-library-item .name {
+.media-library-name {
   font-size: 12px;
   color: rgb(192, 200, 213);
   white-space: nowrap;
@@ -529,9 +564,35 @@ text-align: center;
   text-overflow: ellipsis;
 }
 
-.media-library-item .duration {
+.media-library-meta {
   font-size: 10px;
   color: rgb(120, 128, 141);
+}
+
+.media-library-delete {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: rgb(120, 128, 141);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.media-library-item:hover .media-library-delete {
+  opacity: 1;
+}
+
+.media-library-delete:hover {
+  background: rgba(220, 53, 69, 0.2);
+  color: rgb(220, 53, 69);
 }
 
 /* Text Tab Styles */
@@ -1190,4 +1251,11 @@ a:visited {
 
 #timeline_content canvas:active {
   cursor: grabbing;
+}
+
+/* Timeline drop target for media library */
+#timeline_content.drop-target {
+  outline: 2px dashed rgba(169, 225, 250, 0.8);
+  outline-offset: -2px;
+  background: rgba(169, 225, 250, 0.1);
 }

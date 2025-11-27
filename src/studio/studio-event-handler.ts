@@ -1,5 +1,6 @@
 import {
   getEventBus,
+  MediaLibraryDropEvent,
   PlayerLayerTransformedEvent,
   PlayerTimeUpdateEvent,
   RecordVideoFileCreatedEvent,
@@ -95,7 +96,13 @@ export class StudioEventHandler {
 
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(RecordVideoFileCreatedEvent, (event) => {
-        this.#studio.addLayerFromFile(event.videoFile);
+        this.#studio.mediaLibrary.addFile(event.videoFile);
+      })
+    );
+
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(MediaLibraryDropEvent, (event) => {
+        this.#studio.createMediaFromLibrary(event.fileId);
       })
     );
   }

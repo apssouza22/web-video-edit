@@ -14,6 +14,7 @@ import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 import {createVisionService, VisionService} from "@/vision";
+import {getMediaLibrary, MediaLibrary} from "./media-library";
 
 /**
  * Update data structure for media transformations
@@ -41,6 +42,7 @@ export class VideoStudio {
   speedControlManager: SpeedControlInput;
   pinchHandler?: PinchHandler;
   studioState: StudioState;
+  mediaLibrary: MediaLibrary;
   private visionService: VisionService;
 
   constructor(mediaService: MediaService) {
@@ -60,6 +62,7 @@ export class VideoStudio {
     this.visionService = createVisionService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
+    this.mediaLibrary = getMediaLibrary();
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
@@ -74,6 +77,7 @@ export class VideoStudio {
     this.transcriptionManager.loadModel();
     this.visionService.loadModel();
     this.speedControlManager.init();
+    this.mediaLibrary.init();
   }
 
   private setUpVideoExport(): void {
@@ -141,13 +145,11 @@ export class VideoStudio {
     });
   }
 
-  uploadFiles(files: FileList): void {
+  async uploadFiles(files: FileList): Promise<void> {
     if (!uploadSupportedType(files)) {
       return;
     }
-    for (const file of files) {
-      this.addLayerFromFile(file);
-    }
+    await this.mediaLibrary.addFiles(files);
   }
 
   getMediaById(id: string): AbstractMedia | null {
@@ -286,24 +288,30 @@ export class VideoStudio {
   }
 
   upload(): void {
-    const layers: AbstractMedia[] = []
     const filePicker = document.getElementById('filepicker') as HTMLInputElement;
     if (!filePicker) return;
 
-    filePicker.addEventListener('input', (e: Event) => {
+    const handleInput = async (e: Event) => {
       const target = e.target as HTMLInputElement;
       if (!target.files || !uploadSupportedType(target.files)) {
-        return
+        return;
       }
-      for (const file of target.files) {
-        this.addLayerFromFile(file)
-        .forEach(layer => {
-          layers.push(layer);
-        });
-      }
+      await this.mediaLibrary.addFiles(target.files);
       filePicker.value = '';
-    });
+      filePicker.removeEventListener('input', handleInput);
+    };
+
+    filePicker.addEventListener('input', handleInput);
     filePicker.click();
+  }
+
+  async createMediaFromLibrary(fileId: string): Promise<AbstractMedia[]> {
+    const file = await this.mediaLibrary.getFile(fileId);
+    if (!file) {
+      console.error(`File not found in library: ${fileId}`);
+      return [];
+    }
+    return this.addLayerFromFile(file);
   }
 
   public addLayerFromFile(file: File): AbstractMedia[] {

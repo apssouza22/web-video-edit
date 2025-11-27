@@ -108,6 +108,13 @@ export class RecordVideoFileCreatedEvent extends BaseEvent {
   }
 }
 
+export class MediaLibraryDropEvent extends BaseEvent {
+  readonly name = 'mediaLibrary:drop';
+  constructor(public fileId: string) {
+    super();
+  }
+}
+
 type EventHandler<T extends BaseEvent> = (event: T) => void;
 type EventClass<T extends BaseEvent> = new (...args: any[]) => T;
 

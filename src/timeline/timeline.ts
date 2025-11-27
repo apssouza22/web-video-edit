@@ -4,7 +4,7 @@ import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './tllayer-render';
 import {dpr} from '@/constants';
 import type {LayerUpdateKind, MediaInterface} from './types';
-import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
+import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 import {AbstractMedia} from "@/media";
 
 /**
@@ -122,6 +122,34 @@ export class Timeline {
     this.timelineCanvas.addEventListener('pointerup', this.#onPointerLeave.bind(this));
     this.timelineCanvas.addEventListener('click', this.#onClick.bind(this));
     this.#setupTimelineHeaderButtons();
+    this.#setupMediaLibraryDrop();
+  }
+
+  #setupMediaLibraryDrop() {
+    this.timelineHolder.addEventListener('dragover', (e) => {
+      const hasMediaLibraryId = e.dataTransfer?.types.includes('application/x-media-library-id');
+      if (hasMediaLibraryId) {
+        e.preventDefault();
+        e.dataTransfer!.dropEffect = 'copy';
+        this.timelineHolder.classList.add('drop-target');
+      }
+    });
+
+    this.timelineHolder.addEventListener('dragleave', (e) => {
+      if (!this.timelineHolder.contains(e.relatedTarget as Node)) {
+        this.timelineHolder.classList.remove('drop-target');
+      }
+    });
+
+    this.timelineHolder.addEventListener('drop', (e) => {
+      e.preventDefault();
+      this.timelineHolder.classList.remove('drop-target');
+
+      const fileId = e.dataTransfer?.getData('application/x-media-library-id');
+      if (fileId) {
+        this.#eventBus.emit(new MediaLibraryDropEvent(fileId));
+      }
+    });
   }
 
   /**

@@ -51,5 +51,6 @@ node --experimental-vm-modules
 - Add captions and subtitles support
 - Add background removal feature - https://huggingface.co/spaces/Xenova/webgpu-video-background-removal
 - Add option of add audio only media
+- Add object detection with [YOLOv9](https://huggingface.co/spaces/Xenova/video-object-detection)
 - Consider using [Granite](https://huggingface.co/spaces/ibm-granite/Granite-4.0-Nano-WebGPU) for agents
 - Consider using video tracking with [DINO]()(ttps://huggingface.co/spaces/webml-community/DINOv3-video-tracking)

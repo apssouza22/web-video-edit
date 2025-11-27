@@ -76,7 +76,7 @@ export class Canvas2DRender {
 
   drawFrame(frame: Frame): void {
     this.#drawImage(
-        frame.videoData as VideoFrame,
+        frame.videoData as CanvasImageSource,
         0, 0,
         this.width, this.height,
         0, 0,

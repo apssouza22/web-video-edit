@@ -13,7 +13,8 @@ export {
   TranscriptionCompletedEvent,
   UiSpeedChangeEvent,
   UiAspectRatioChangeEvent,
-  MediaLoadUpdateEvent
+  MediaLoadUpdateEvent,
+  MediaLibraryDropEvent
 } from './event-bus';
 export { StudioState } from './studio-state';
 export {PinchHandler} from './pinch-handler';
