@@ -19,36 +19,8 @@ window.addEventListener('load', function () {
 });
 
 function initLeftNavControls(): void {
-  initMediaUpload();
   initTextControls();
   initSettingsControls();
-}
-
-function initMediaUpload(): void {
-  const uploadArea = document.getElementById('media-upload-area');
-  if (!uploadArea) return;
-
-  uploadArea.addEventListener('click', () => {
-    studio.upload();
-  });
-
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-  });
-
-  uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-  });
-
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      studio.uploadFiles(files);
-    }
-  });
 }
 
 function initTextControls(): void {

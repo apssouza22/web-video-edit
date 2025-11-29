@@ -6,7 +6,7 @@ import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
 import {PinchHandler} from '@/common';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
-import {exportToJson, uploadSupportedType} from '@/common/utils';
+import {exportToJson} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
@@ -145,13 +145,6 @@ export class VideoStudio {
     });
   }
 
-  async uploadFiles(files: FileList): Promise<void> {
-    if (!uploadSupportedType(files)) {
-      return;
-    }
-    await this.mediaLibrary.addFiles(files);
-  }
-
   getMediaById(id: string): AbstractMedia | null {
     return this.studioState.getMediaById(id);
   }
@@ -285,24 +278,6 @@ export class VideoStudio {
     await this.player.render(realtime);
     this.timeline.render();
     window.requestAnimationFrame(this.#loop.bind(this));
-  }
-
-  upload(): void {
-    const filePicker = document.getElementById('filepicker') as HTMLInputElement;
-    if (!filePicker) return;
-
-    const handleInput = async (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (!target.files || !uploadSupportedType(target.files)) {
-        return;
-      }
-      await this.mediaLibrary.addFiles(target.files);
-      filePicker.value = '';
-      filePicker.removeEventListener('input', handleInput);
-    };
-
-    filePicker.addEventListener('input', handleInput);
-    filePicker.click();
   }
 
   async createMediaFromLibrary(fileId: string): Promise<AbstractMedia[]> {

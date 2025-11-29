@@ -1,4 +1,4 @@
-import { AudioContext } from '../constants.js';
+import { AudioContext } from '@/constants';
 
 /**
  * AudioLoader handles loading and decoding audio files

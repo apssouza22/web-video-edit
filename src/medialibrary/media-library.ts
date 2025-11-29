@@ -1,17 +1,32 @@
 import { getFileStorage, StoredFileMetadata } from './file-storage';
 import { uploadSupportedType } from '@/common/utils';
+import { FileUpload } from './file-upload';
 
 export class MediaLibrary {
   private container: HTMLElement | null = null;
   private fileStorage = getFileStorage();
   private items: StoredFileMetadata[] = [];
+  private fileUpload: FileUpload;
+
+  constructor() {
+    this.fileUpload = new FileUpload(this.addFiles.bind(this));
+  }
 
   async init(): Promise<void> {
     this.container = document.getElementById('media-library');
     if (!this.container) return;
 
+    this.fileUpload.init();
     await this.loadStoredFiles();
     this.render();
+  }
+
+  openFilePicker(): void {
+    this.fileUpload.openFilePicker();
+  }
+
+  async uploadFiles(files: FileList): Promise<void> {
+    await this.fileUpload.uploadFiles(files);
   }
 
   async addFile(file: File): Promise<StoredFileMetadata | null> {
@@ -123,7 +138,6 @@ export class MediaLibrary {
       e.dataTransfer.setData('application/x-media-library-id', item.id);
       e.dataTransfer.setData('text/plain', item.name);
       e.dataTransfer.effectAllowed = 'copy';
-
       element.classList.add('dragging');
     });
 
