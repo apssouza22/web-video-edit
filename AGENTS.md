@@ -26,7 +26,7 @@ Avoid comments describing functionality ensure self describing code
 ## Coding Style & Naming Conventions
 - Language: Typescript, browser-first. Avoid Node-only APIs in `src`.
 - Indentation: 2 spaces; line width ~120 chars.
-- Filenames/dirs: kebab-case (e.g., `media-image.js`, `video-export.js`).
+- Filenames/dirs: kebab-case (e.g., `medialayer-image.js`, `video-export.js`).
 - Symbols: `camelCase` for functions/vars, `PascalCase` for classes, `UPPER_SNAKE_CASE` for constants.
 - Module imports: relative from the package. In tests, `@/` maps to `src/` via Jest.
 
@@ -41,5 +41,5 @@ Avoid comments describing functionality ensure self describing code
 - PRs: Provide clear description, reproduction steps, and screenshots/GIFs for UI changes. Link related issues. Note any known limitations and follow-up tasks.
 
 ## Security & Configuration Tips
-- Do not commit large media assets; prefer small samples in `assets/` for demos/tests.
+- Do not commit large medialayer assets; prefer small samples in `assets/` for demos/tests.
 - Keep browser compatibility in mind (see `src/common/browser-support.js`). Gate experimental APIs behind checks and fallbacks.

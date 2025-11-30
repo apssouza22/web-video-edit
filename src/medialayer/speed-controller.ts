@@ -1,6 +1,6 @@
 import {fps} from '@/constants';
 import {Frame} from '@/frame';
-import {AbstractMedia} from "@/media/media-common";
+import {AbstractMedia} from "@/medialayer/media-common";
 
 /**
  * Handles speed control calculations and frame manipulation for video medias

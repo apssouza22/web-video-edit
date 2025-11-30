@@ -1,4 +1,4 @@
-import {AbstractMedia} from "@/media/media-common";
+import {AbstractMedia} from "@/medialayer/media-common";
 import {AudioService} from "@/audio";
 import {AudioMedia} from "./audio";
 import {VideoMedia} from "./video";

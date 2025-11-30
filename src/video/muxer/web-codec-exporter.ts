@@ -8,7 +8,7 @@ import {
     Output,
     QUALITY_HIGH,
 } from "mediabunny";
-import {AbstractMedia, isMediaAudio} from "@/media";
+import {AbstractMedia, isMediaAudio} from "@/medialayer";
 import {StudioState} from "@/common";
 import {fps} from "@/constants";
 

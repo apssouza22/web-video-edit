@@ -9,7 +9,7 @@ import {
   LayerChange,
   LayerDumpData,
 } from './types';
-import {VideoMedia} from "@/media/video";
+import {VideoMedia} from "@/medialayer/video";
 
 export type ESAudioContext = AudioContext | OfflineAudioContext;
 

@@ -14,9 +14,9 @@ jest.unstable_mockModule('@/timeline', () => ({
 
 // Use dynamic imports for ESM
 const { VideoStudio } = await import('@/studio/studio');
-const {VideoMedia} = await import("@/media/video");
-const {createMediaService} = await import( "../../src/media");
-const {createAudioService} = await import("../../src/audio");
+const {VideoMedia} = await import("@/medialayer/video");
+const {createMediaService} = await import( "@/medialayer");
+const {createAudioService} = await import("@/audio");
 
 describe('VideoStudio', () => {
   // @ts-ignore

@@ -4,7 +4,7 @@ import {AudioMedia} from './audio';
 import {MediaService} from './media-service';
 import {LayerLoadUpdateListener} from './types';
 import {AbstractMedia} from './media-common';
-import {TextMedia} from "@/media/text";
+import {TextMedia} from "@/medialayer/text";
 import {AudioService} from "@/audio";
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
 

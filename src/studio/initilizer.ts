@@ -4,7 +4,7 @@ import {initScreenRecording} from "@/record/controls";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
 import {createAudioService} from "@/audio";
-import {createMediaService} from "@/media";
+import {createMediaService} from "@/medialayer";
 import {StudioControls} from "@/studio/controls";
 import {getMediaLibrary} from "@/medialibrary";
 

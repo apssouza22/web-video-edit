@@ -1,4 +1,4 @@
-import {VideoMetadata} from "@/media/types";
+import {VideoMetadata} from "@/medialayer/types";
 import {VideoStreaming} from "@/video";
 
 

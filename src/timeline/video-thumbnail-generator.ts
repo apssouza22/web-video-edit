@@ -1,4 +1,4 @@
-import type { VideoMedia } from '@/media/video';
+import type { VideoMedia } from '@/medialayer/video';
 
 export class VideoThumbnailGenerator {
   #videoMedia: VideoMedia;

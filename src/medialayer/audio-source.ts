@@ -1,4 +1,4 @@
-import {ESAudioContext} from "@/media/media-common";
+import {ESAudioContext} from "@/medialayer/media-common";
 import {AudioService, createAudioService} from "@/audio";
 
 export class AudioSource {

@@ -1,6 +1,6 @@
-import { MediaService } from '@/media/media-service';
-import { TextMedia } from '@/media/text';
-import { ImageMedia } from '@/media/image';
+import { MediaService } from '@/medialayer/media-service';
+import { TextMedia } from '@/medialayer/text';
+import { ImageMedia } from '@/medialayer/image';
 import { AudioService } from '@/audio';
 
 describe('MediaService', () => {

@@ -1,7 +1,7 @@
 import { TimelineLayerFactory } from './timeline-layer-factory';
 import type { MediaInterface } from './types';
 import type { TimelineLayer } from './timeline-layer';
-import {AbstractMedia} from "@/media";
+import {AbstractMedia} from "@/medialayer";
 
 /**
  * Class responsible for managing timeline media rendering using the new TimelineLayer system

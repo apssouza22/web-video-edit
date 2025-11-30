@@ -4,8 +4,8 @@ import {AudioCutter} from "@/audio/audio-cutter";
 import {PitchPreservationProcessor} from "@/audio/pitch-preservation-processor";
 
 export {AudioService} from './audio-service';
-export {AudioLoader} from '../media/audio-loader';
-export {AudioSource} from '../media/audio-source';
+export {AudioLoader} from '@/medialayer/audio-loader';
+export {AudioSource} from '@/medialayer/audio-source';
 
 
 export function createAudioService() {

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Timeline system provides a visual interface for arranging and manipulating media. Media layers represent different types of content (video, audio, image, text) with unified interfaces for both timeline display and canvas rendering.
+The Timeline system provides a visual interface for arranging and manipulating medialayer. Media layers represent different types of content (video, audio, image, text) with unified interfaces for both timeline display and canvas rendering.
 
 ## Timeline System Architecture
 
@@ -98,7 +98,7 @@ graph TB
 
 ### AbstractMedia Base Class
 
-All media types inherit from `AbstractMedia`, providing a unified interface.
+All medialayer types inherit from `AbstractMedia`, providing a unified interface.
 
 ```mermaid
 classDiagram
@@ -161,7 +161,7 @@ classDiagram
 
 ### Common Properties
 
-All media layers share:
+All medialayer layers share:
 - **Position**: `x`, `y` coordinates on canvas
 - **Size**: `width`, `height` dimensions
 - **Timing**: `startTime`, `totalTimeInMilSeconds`
@@ -175,7 +175,7 @@ All media layers share:
 
 ### Timeline Layer Factory
 
-Creates appropriate timeline renderers based on media type.
+Creates appropriate timeline renderers based on medialayer type.
 
 ```typescript
 class TimelineLayerFactory {
@@ -213,8 +213,8 @@ sequenceDiagram
 
     Timeline->>Render: render()
     
-    loop For each media layer
-        Render->>Factory: createTimelineLayer(media)
+    loop For each medialayer layer
+        Render->>Factory: createTimelineLayer(medialayer)
         Factory->>TLLayer: new VideoTimelineLayer()
         TLLayer->>Media: Get properties
         Render->>TLLayer: render(yPos, height, selected)
@@ -507,23 +507,23 @@ graph TD
 ```typescript
 class CanvasLayer {
   render(ctx: CanvasRenderingContext2D, time: number, playing: boolean): void {
-    const media = this.media;
+    const medialayer = this.medialayer;
     
     // Check if layer is active at current time
-    if (time < media.startTime || 
-        time > media.startTime + media.totalTimeInMilSeconds) {
+    if (time < medialayer.startTime || 
+        time > medialayer.startTime + medialayer.totalTimeInMilSeconds) {
       return;
     }
     
     ctx.save();
     
     // Apply transformations
-    ctx.translate(media.x, media.y);
-    ctx.rotate(media.rotation * Math.PI / 180);
-    ctx.globalAlpha = media.opacity || 1;
+    ctx.translate(medialayer.x, medialayer.y);
+    ctx.rotate(medialayer.rotation * Math.PI / 180);
+    ctx.globalAlpha = medialayer.opacity || 1;
     
     // Render layer content
-    media.render(ctx, time - media.startTime, playing);
+    medialayer.render(ctx, time - medialayer.startTime, playing);
     
     // Draw selection border if selected
     if (this.selected) {

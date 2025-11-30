@@ -196,7 +196,7 @@ sequenceDiagram
     Service->>Browser: getUserMedia({video, audio})
     Browser->>User: Request camera permission
     User->>Browser: Allow
-    Browser->>Service: Return media stream
+    Browser->>Service: Return medialayer stream
     
     Service->>Recorder: Setup MediaRecorder
     Service->>Preview: Show camera preview

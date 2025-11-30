@@ -1,8 +1,8 @@
-import {addElementToBackground} from '@/media/';
+import {addElementToBackground} from '@/medialayer/';
 import {fps} from '@/constants';
 import {Canvas2DRender} from '@/common/render-2d';
 import {FrameMetadata, FrameQuality} from './frame-quality';
-import {LayerFile, VideoMetadata} from '@/media/types';
+import {LayerFile, VideoMetadata} from '@/medialayer/types';
 import {CompleteCallback, MetadataCallback, ProgressCallback} from "@/video/demux/types";
 
 export class HTMLVideoDemuxer {

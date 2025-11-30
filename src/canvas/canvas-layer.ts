@@ -10,7 +10,7 @@ import {
   TransformHandle
 } from './types';
 import type {FrameTransform} from '@/frame';
-import {AbstractMedia} from "@/media";
+import {AbstractMedia} from "@/medialayer";
 import {getBoundingBox} from "@/common/render-2d";
 
 export class CanvasLayer {

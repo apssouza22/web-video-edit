@@ -1,5 +1,5 @@
 import {dpr} from '@/constants';
-import {AbstractMedia, isMediaAudio} from '@/media';
+import {AbstractMedia, isMediaAudio} from '@/medialayer';
 import {CanvasLayer} from './canvas-layer.js';
 import type {
   AudioContextType,

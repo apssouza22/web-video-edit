@@ -48,7 +48,7 @@ The codebase is organized into domain-driven packages under `src/`:
 - **`studio/`**: Main orchestration, UI controls, and event handling
 - **`canvas/`**: Video canvas rendering and playback (`VideoCanvas`, `CanvasLayer`)
 - **`timeline/`**: Timeline UI, drag/drop, and layer visualization
-- **`media/`**: Media layer abstractions (`AbstractMedia`, `VideoMedia`, `AudioMedia`, `ImageMedia`, `TextMedia`)
+- **`medialayer/`**: Media layer abstractions (`AbstractMedia`, `VideoMedia`, `AudioMedia`, `ImageMedia`, `TextMedia`)
 - **`video/`**: Video demuxing (MP4Box, MediaBunny, HTML5) and muxing (MediaRecorder, WebCodecs)
 - **`audio/`**: Audio processing, pitch preservation, and Web Audio API integration
 - **`record/`**: Screen/camera recording using MediaRecorder API
@@ -75,7 +75,7 @@ Components communicate through typed events via the centralized EventBus. Key ev
 - `transcription:seek` - Seek to timestamp (TranscriptionView → Timeline, Canvas)
 - `ui:speedChange` - Playback speed changed (SpeedControl → Media layers)
 - `ui:aspectRatioChange` - Canvas aspect ratio changed (AspectRatioSelector → Canvas)
-- `media:loadUpdate` - Media loading progress (MediaLoader → Studio, LoadingPopup)
+- `medialayer:loadUpdate` - Media loading progress (MediaLoader → Studio, LoadingPopup)
 - `record:videoFileCreated` - Recording complete (RecordService → Studio)
 
 See `docs/architecture/03-event-system.md` for detailed event flow diagrams.
@@ -120,7 +120,7 @@ The codebase is **incrementally migrating from JavaScript to TypeScript**:
 Use the `@/` alias for absolute imports:
 ```typescript
 import { EventBus } from '@/common';
-import { VideoMedia } from '@/media';
+import { VideoMedia } from '@/medialayer';
 import { Timeline } from '@/timeline';
 ```
 
@@ -143,7 +143,7 @@ Example task medialibrary structure:
 
 - [ ] Add speed input UI component
 - [ ] Wire up speed change event
-- [ ] Update media layer speed in MediaService
+- [ ] Update medialayer layer speed in MediaService
 - [ ] Apply pitch preservation to audio
 - [ ] Update timeline visualization
 - [ ] Add tests for speed control
@@ -160,9 +160,9 @@ Media layers implement cloning via the **Template Method pattern**:
 
 ### Frame Management
 - Frames are stored in `FrameService` and indexed by time
-- Each media layer has its own `FrameService` instance
+- Each medialayer layer has its own `FrameService` instance
 - Video frames reference `VideoFrame` objects from WebCodecs API
-- Non-video media (text, image) use static frames with transformation data
+- Non-video medialayer (text, image) use static frames with transformation data
 
 ### Render Caching
 Media layers implement render caching to avoid redundant rendering:
@@ -190,7 +190,7 @@ Comprehensive architecture documentation is available in `docs/architecture/`:
 2. **Module Structure** - Detailed package organization and responsibilities
 3. **Event System** - Complete event catalog and flow patterns
 4. **Video Pipeline** - Demuxing, rendering, and export flow
-5. **Timeline & Layers** - Timeline system and media layer architecture
+5. **Timeline & Layers** - Timeline system and medialayer layer architecture
 6. **Recording System** - Screen/camera recording architecture
 7. **Data Flow** - End-to-end data flow patterns
 

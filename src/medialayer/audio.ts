@@ -1,6 +1,6 @@
 import {AbstractMedia, ESAudioContext} from './media-common';
 import {AudioLoader} from './audio-loader';
-import {AudioSource} from '@/media/audio-source';
+import {AudioSource} from '@/medialayer/audio-source';
 import type {LayerFile} from "./types";
 
 export class AudioMedia extends AbstractMedia {

@@ -1,6 +1,6 @@
 import {popup, StudioState, TabController} from '@/common';
 import {initStudio} from "@/studio/initilizer.js";
-import {createMediaText} from "@/media";
+import {createMediaText} from "@/medialayer";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
 
 const studio = initStudio();

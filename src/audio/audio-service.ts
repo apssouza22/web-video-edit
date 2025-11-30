@@ -2,7 +2,7 @@ import {AudioSplitHandler} from "@/audio/AudioSplitHandler";
 import {Media} from "@/audio/types";
 import {AudioCutter} from "@/audio/audio-cutter";
 import {PitchPreservationProcessor} from "@/audio/pitch-preservation-processor";
-import {ESAudioContext} from "@/media/media-common";
+import {ESAudioContext} from "@/medialayer/media-common";
 
 export class AudioService {
   private audioSplitHandler: AudioSplitHandler;

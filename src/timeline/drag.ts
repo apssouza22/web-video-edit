@@ -1,7 +1,7 @@
 import { LayerReorderHandler } from './layer-reorder-handler';
 import type { MediaInterface } from './types';
 import {Timeline} from "./timeline";
-import {AbstractMedia} from "@/media";
+import {AbstractMedia} from "@/medialayer";
 
 /**
  * Handles media dragging and scrubbing in the timeline
