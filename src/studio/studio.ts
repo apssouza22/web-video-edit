@@ -14,7 +14,7 @@ import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 import {createVisionService, VisionService} from "@/vision";
-import {getMediaLibrary, MediaLibrary} from "src/medialibrary";
+import {MediaLibrary} from "@/medialibrary";
 
 /**
  * Update data structure for media transformations
@@ -77,7 +77,6 @@ export class VideoStudio {
     this.transcriptionManager.loadModel();
     this.visionService.loadModel();
     this.speedControlManager.init();
-    this.mediaLibrary.init();
   }
 
   private setUpVideoExport(): void {
@@ -86,7 +85,7 @@ export class VideoStudio {
       return;
     }
     const exportId = 'video-export';
-    
+
     exportVideoBtn.addEventListener('click', () => {
       if (this.getMedias().length === 0) {
         alert("Nothing to export.");
@@ -98,7 +97,7 @@ export class VideoStudio {
       const progressContainer = document.getElementById('export-progress');
       const progressFill = document.getElementById('export-progress-fill');
       const progressText = document.getElementById('export-progress-text');
-      
+
       if (progressContainer) {
         progressContainer.style.display = 'block';
       }
@@ -128,7 +127,7 @@ export class VideoStudio {
           }, 2000);
         }
       };
-      
+
       this.player.pause();
       this.videoExporter.export(progressCallback, completionCallback);
     });
@@ -139,7 +138,7 @@ export class VideoStudio {
     if (!exportJsonBtn) {
       return;
     }
-    
+
     exportJsonBtn.addEventListener('click', () => {
       exportToJson();
     });

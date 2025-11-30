@@ -1,18 +1,18 @@
-import { uploadSupportedType } from '@/common/utils';
+import {uploadSupportedType} from '@/common/utils';
+import {MediaLibrary} from "@/medialibrary/media-library";
 
-export type FileUploadCallback = (files: FileList) => Promise<void>;
 
 export class FileUpload {
   private uploadAreaId: string;
   private filePickerId: string;
-  private onFilesAdded: FileUploadCallback;
+  private mediaLibrary: MediaLibrary;
 
   constructor(
-    onFilesAdded: FileUploadCallback,
-    uploadAreaId: string = 'media-upload-area',
-    filePickerId: string = 'filepicker'
+      mediaLibrary: MediaLibrary,
+      uploadAreaId: string = 'media-upload-area',
+      filePickerId: string = 'filepicker'
   ) {
-    this.onFilesAdded = onFilesAdded;
+    this.mediaLibrary = mediaLibrary;
     this.uploadAreaId = uploadAreaId;
     this.filePickerId = filePickerId;
   }
@@ -25,7 +25,7 @@ export class FileUpload {
     if (!uploadSupportedType(files)) {
       return;
     }
-    await this.onFilesAdded(files);
+    await this.mediaLibrary.addFiles(files);
   }
 
   openFilePicker(): void {
@@ -37,7 +37,7 @@ export class FileUpload {
       if (!target.files || !uploadSupportedType(target.files)) {
         return;
       }
-      await this.onFilesAdded(target.files);
+      await this.mediaLibrary.addFiles(target.files);
       filePicker.value = '';
       filePicker.removeEventListener('input', handleInput);
     };
