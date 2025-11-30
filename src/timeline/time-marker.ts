@@ -19,6 +19,7 @@ export class TimeMarker {
   /**
    * Render time markers at the top of the timeline
    * Shows second markers along the timeline
+   *
    * @param {CanvasRenderingContext2D} ctx - Canvas context to render on
    * @param {number} width - Width of the canvas
    * @param {number} totalTime - Total timeline duration in milliseconds

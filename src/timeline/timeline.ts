@@ -6,6 +6,7 @@ import {dpr} from '@/constants';
 import type {LayerUpdateKind, MediaInterface} from './types';
 import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 import {AbstractMedia} from "@/media";
+import {renderLineMarker} from "@/timeline/line-marker";
 
 /**
  * Class representing a timeline for a video player
@@ -320,29 +321,28 @@ export class Timeline {
       return;
     }
 
+    this.renderLayers();
+    this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
+    renderLineMarker(this.playerTime, this.timelineCtx, this.totalTime, this.timeMarker.height);
+
+    if (this.isHover) {
+      renderLineMarker(this.time, this.timelineCtx, this.totalTime, this.timeMarker.height);
+    }
+    this.dragHandler.renderFeedback(this.timelineCtx);
+  }
+
+  private renderLayers() {
     // Calculate vertical positions starting from top (below time marker)
     let yPos = this.timeMarker.height + this.contentPadding;
 
     for (let layer of this.layers) {
       const layerHeight = this.getLayerHeight(layer);
       const layerSpacing = this.minLayerSpacing + layerHeight;
-
       yPos += layerSpacing / 2;
-
       let selected = this.selectedLayer === layer;
       this.layerRenderer.renderLayer(layer, yPos, layerHeight, selected);
-
       yPos += layerSpacing / 2;
     }
-
-    this.timeMarker.render(this.timelineCtx, this.timelineCanvas.clientWidth, this.totalTime);
-    this.#renderLineMarker(this.playerTime);
-
-    if (this.isHover) {
-      this.#renderLineMarker(this.time);
-    }
-
-    this.dragHandler.renderFeedback(this.timelineCtx);
   }
 
   /**
@@ -384,7 +384,7 @@ export class Timeline {
    * @param {MediaInterface} layer - The media to check
    * @returns {boolean} - Whether the media can be selected
    */
-  #canSelectLayer(layer: MediaInterface) {
+  #canSelectLayer(layer: MediaInterface): boolean {
     if (layer.startTime > (1.01 * this.time)) {
       return false;
     }
@@ -395,7 +395,7 @@ export class Timeline {
     return true;
   }
 
-  #updateTotalTime(layers: MediaInterface[]) {
+  #updateTotalTime(layers: AbstractMedia[]) {
     if (layers.length === 0) {
       this.totalTime = 0;
       return;
@@ -410,42 +410,4 @@ export class Timeline {
     }
   }
 
-  #renderLineMarker(time: number) {
-    if (this.totalTime === 0) {
-      return;
-    }
-
-    const scale = this.timelineCanvas.clientWidth / this.totalTime;
-    const markerX = time * scale;
-
-    // Draw the main line marker
-    this.timelineCtx.beginPath();
-    this.timelineCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    this.timelineCtx.lineWidth = 2;
-    this.timelineCtx.moveTo(markerX, 0);
-    this.timelineCtx.lineTo(markerX, this.timelineCanvas.clientHeight);
-    this.timelineCtx.stroke();
-
-    // Draw time display
-    this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    this.timelineCtx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-    this.timelineCtx.textAlign = 'left';
-    this.timelineCtx.textBaseline = 'top';
-
-    // Position text to avoid overlapping with time marker
-    const textX = markerX + 5;
-    const textY = this.timeMarker.height + 5;
-
-    // Draw background for better readability
-    const timeText = time.toFixed(2) + 's';
-    const textMetrics = this.timelineCtx.measureText(timeText);
-    const textWidth = textMetrics.width + 6;
-    const textHeight = 16;
-
-    this.timelineCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    this.timelineCtx.fillRect(textX - 3, textY - 2, textWidth, textHeight);
-
-    this.timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    this.timelineCtx.fillText(timeText, textX, textY);
-  }
 }

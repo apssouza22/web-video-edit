@@ -29,9 +29,9 @@ export function delay(ms: number): Promise<void> {
 export const ext_map: Record<string, string> = {
   'mp4': 'video/mp4',
   'mpeg4': 'video/mp4',
-  // 'mpeg': 'video/mpeg',
-  // 'ogv': 'video/ogg',
-  // 'webm': 'video/webm',
+  'mpeg': 'video/mpeg',
+  'ogv': 'video/ogg',
+  'webm': 'video/webm',
   'gif': 'image/gif',
   'jpg': 'image/jpeg',
   'jpeg': 'image/jpeg',

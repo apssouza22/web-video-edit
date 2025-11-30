@@ -1,6 +1,6 @@
-import {FileStorage, getFileStorage, MediaFile, StoredFile, StoredFileMetadata} from './file-storage';
-import { uploadSupportedType } from '@/common/utils';
-import { FileUpload } from './file-upload';
+import {FileStorage, getFileStorage, MediaFile, StoredFileMetadata} from './file-storage';
+import {uploadSupportedType} from '@/common/utils';
+import {FileUpload} from './file-upload';
 import {createItemElement} from "@/medialibrary/ui-components";
 import {ThumbnailGenerator} from "@/medialibrary/thumbnail";
 
