@@ -114,13 +114,6 @@ export function exportToJson(): void {
   popup(text);
 }
 
-export function addText(): void {
-  const t = prompt("Enter text:");
-  if (t) {
-    window.studio.addLayer(createMediaText(t, (l, progress, ctx, audioBuffer) => {
-    }));
-  }
-}
 
 export function uploadSupportedType(files: FileList): boolean {
   const badUserExtensions: File[] = [];

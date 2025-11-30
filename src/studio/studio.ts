@@ -55,7 +55,6 @@ export class VideoStudio {
     this.player = createVideoCanvas(this.studioState);
     this.player.mount(this.videoCanvas);
     this.timeline = createTimeline();
-    this.mediaService.setOnLayerLoadUpdateListener(this.#onLayerLoadUpdate.bind(this));
     this.mediaLoader = new MediaLoader(this);
     this.videoExporter = createVideoMuxer();
     this.transcriptionManager = createTranscriptionService();
@@ -285,43 +284,17 @@ export class VideoStudio {
       console.error(`File not found in library: ${fileId}`);
       return [];
     }
-    return this.addLayerFromFile(file);
-  }
-
-  public addLayerFromFile(file: File): AbstractMedia[] {
-    const layers = this.mediaLoader.addMediaFromFile(file, this.#onLayerLoadUpdate.bind(this));
+    const layers = this.mediaLoader.addMediaFromFile(file);
     layers.forEach(layer => {
       this.loadingPopup.startLoading(layer.id.toString(), file.name);
     })
     return layers;
   }
 
-  async loadLayersFromJson(uri: string): Promise<void> {
-    if (!uri) {
-      return;
-    }
-    const extension = uri.split(/[#?]/)[0].split('.').pop()?.trim();
-
-    if (extension !== 'json') {
-      console.error("File is not a json file");
-      return
-    }
-
-    // Show loading popup for JSON loading
-    this.loadingPopup.startLoading('json-load', 'Project JSON');
-    this.loadingPopup.updateProgress('json-load', 50);
-
-    const response = await fetch(uri);
-    const layers = await response.json();
-    await this.mediaLoader.loadLayersFromJson(layers);
-    this.loadingPopup.updateProgress('json-load', 100);
-  }
-
-  #onLayerLoadUpdate(
+  onLayerLoadUpdate(
       layer: AbstractMedia,
       progress: number,
-      ctx: ESRenderingContext2D | null,
-      audioBuffer?: AudioBuffer | null
+      audioBuffer?: AudioBuffer
   ): void {
     this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
     if (progress === 100) {
@@ -329,6 +302,7 @@ export class VideoStudio {
       if (isMediaVideo(layer)) {
         this.visionService.analyzeVideo(layer);
       }
+      this.addLayer(layer);
     }
     if (audioBuffer) {
       this.transcriptionManager.startTranscription(audioBuffer);

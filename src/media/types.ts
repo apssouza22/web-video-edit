@@ -10,7 +10,6 @@ export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 export type LayerLoadUpdateListener = (
   layer: any,
   progress: number,
-  ctx: ESRenderingContext2D | null,
   audioBuffer?: AudioBuffer | null
 ) => void;
 

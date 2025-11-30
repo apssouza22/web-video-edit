@@ -15,7 +15,6 @@ window.popup = popup;
 
 window.addEventListener('load', function () {
   initLeftNavControls();
-  onLoadHandler();
 });
 
 function initLeftNavControls(): void {
@@ -56,29 +55,4 @@ function initSettingsControls(): void {
     });
   }
 }
-
-function onLoadHandler(): void {
-  let file = decodeURIComponent(location.hash.substring(1));
-  if (file) {
-    console.log("Loading example", file);
-    for (let uri of file.split(',')) {
-      studio.loadLayersFromJson(uri);
-    }
-    location.hash = "";
-    return;
-  }
-  const localStorage = window.localStorage;
-  let seen = localStorage.getItem('_seen');
-  if (!seen || false) {
-    const text = document.createElement('div');
-    text.innerHTML = `Welcome!
-      <br>
-      <br>
-      To start, use the Media tab to add images or videos, or drag files onto the upload area.
-      `;
-    popup(text);
-    localStorage.setItem('_seen', 'true');
-  }
-}
-
 

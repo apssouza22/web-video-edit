@@ -94,8 +94,7 @@ export class MediaLoadUpdateEvent extends BaseEvent {
   constructor(
     public layer: AbstractMedia,
     public progress: number,
-    public ctx?: CanvasRenderingContext2D,
-    public audioBuffer?: AudioBuffer
+    public audioBuffer?: AudioBuffer | null
   ) {
     super();
   }

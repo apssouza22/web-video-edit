@@ -10,7 +10,6 @@ export class StudioControls {
   }
 
   init(): void {
-    window.addEventListener('drop', this.#onFileDrop.bind(this));
     window.addEventListener('keydown', this.#onKeydown.bind(this));
     window.addEventListener('paste',  this.#onPaste.bind(this));
 
@@ -34,34 +33,6 @@ export class StudioControls {
     }
   }
 
-  #onFileDrop(ev: DragEvent): void {
-    ev.preventDefault();
-    if (!ev.dataTransfer?.items) {
-      return
-    }
-    for (let i = 0; i < ev.dataTransfer.items.length; i++) {
-      const item = ev.dataTransfer.items[i];
-      if (item.kind === 'file') {
-        const file = item.getAsFile();
-        if (file) {
-          this.studio.mediaLoader.addMediaFromFile(file, (
-              layer: any,
-              progress: number,
-              ctx: ESRenderingContext2D | null,
-              audioBuffer?: AudioBuffer | undefined
-          ) => {
-            console.log(`Loading ${layer}: ${progress * 100}%`);
-          });
-        }
-        return;
-      }
-      if (item.kind === 'string' && item.type === 'text/uri-list') {
-        item.getAsString((uri: string) => {
-          this.studio.mediaLoader.loadMediaFromURI(uri);
-        });
-      }
-    }
-  }
 
   #onKeydown(ev: KeyboardEvent): void {
     if (ev.code === "Space") {

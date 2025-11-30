@@ -1,6 +1,6 @@
 import {
-  getEventBus,
-  MediaLibraryDropEvent,
+  getEventBus, MediaLayerLoadUpdateEvent,
+  MediaLibraryDropEvent, MediaLoadUpdateEvent,
   PlayerLayerTransformedEvent,
   PlayerTimeUpdateEvent,
   RecordVideoFileCreatedEvent,
@@ -103,6 +103,12 @@ export class StudioEventHandler {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(MediaLibraryDropEvent, (event) => {
         this.#studio.createMediaFromLibrary(event.fileId);
+      })
+    );
+
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(MediaLoadUpdateEvent, (event) => {
+        this.#studio.onLayerLoadUpdate(event.layer, event.progress, event.audioBuffer);
       })
     );
   }

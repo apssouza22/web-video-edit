@@ -1,17 +1,9 @@
-import {LayerLoadUpdateListener} from "./types";
 import {AbstractMedia} from "@/media/media-common";
 import {AudioService} from "@/audio";
-import {ESRenderingContext2D} from "@/common/render-2d";
 import {AudioMedia} from "./audio";
 import {VideoMedia} from "./video";
 
 export class MediaService {
-  private onLayerLoadUpdate: LayerLoadUpdateListener = (
-      layer: any,
-      progress: number,
-      ctx: ESRenderingContext2D | null,
-      audioBuffer?: AudioBuffer | null
-  ) => void {};
   private audioService: AudioService;
 
   constructor(audioService: AudioService) {
@@ -76,7 +68,4 @@ export class MediaService {
     return newLayer;
   }
 
-  setOnLayerLoadUpdateListener(onLayerLoadUploadListener: LayerLoadUpdateListener) {
-    this.onLayerLoadUpdate = onLayerLoadUploadListener;
-  }
 }

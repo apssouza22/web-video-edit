@@ -42,11 +42,11 @@ export class MediaLoader {
    * @param onMediaLoadUpdate - Whether to use HTML demuxing for video
    * @returns The added medias
    */
-  addMediaFromFile(file: File, onMediaLoadUpdate: LayerLoadUpdateListener): AbstractMedia[] {
+  addMediaFromFile(file: File): AbstractMedia[] {
     const medias: AbstractMedia[] = [];
-    createMediaFromFile(file, onMediaLoadUpdate)
+    createMediaFromFile(file)
     .forEach(layer => {
-      medias.push(this.studio.addLayer(layer));
+      medias.push(layer);
     });
     return medias;
   }
@@ -77,73 +77,7 @@ export class MediaLoader {
     const file = new File([data], name, metadata) as File & { uri?: string };
     file.uri = uri;
 
-    return this.addMediaFromFile(file, (l, progress, ctx, audioBuffer) => {});
+    return this.addMediaFromFile(file);
   }
 
-  /**
-   * Load medias from JSON data
-   * @param layers - Array of media data objects
-   * @returns Promise that resolves when all medias are loaded
-   */
-  async loadLayersFromJson(layers: LayerJsonData[]): Promise<AbstractMedia[]> {
-    const allLayers: AbstractMedia[] = [];
-    for (const layer_d of layers) {
-      const layersCreated = await this.#loadMediaType(layer_d);
-
-      if (!layersCreated.length) {
-        alert("Layer couldn't be processed.");
-        continue;
-      }
-      allLayers.push(...layersCreated);
-      this.#addOnLoadUpdateListener(layersCreated, layer_d);
-    }
-    return allLayers;
-  }
-
-  #addOnLoadUpdateListener(layersCreated: AbstractMedia[], layer_d: LayerJsonData): void {
-    layersCreated.forEach(layer => {
-      layer.addLoadUpdateListener((l, progress, ctx, audioBuffer) => {
-        if (progress < 100) {
-          return
-        }
-        layer.name = layer.name;
-        layer.width = layer_d.width;
-        layer.height = layer_d.height;
-        layer.startTime = layer_d.startTime;
-        layer.totalTimeInMilSeconds = layer_d.total_time;
-
-        if (layer_d.frames) {
-          layer.frameService.frames = [];
-          for (const f of layer_d.frames) {
-            layer.frameService.push(Frame.fromArray(new Float32Array(f)));
-          }
-        }
-      });
-    })
-  }
-
-  async #loadMediaType(layer_d: LayerJsonData): Promise<AbstractMedia[]> {
-    const layersCreated: AbstractMedia[] = [];
-    if (layer_d.type === "VideoMedia") {
-      if (layer_d.uri) {
-        const l = await this.loadMediaFromURI(layer_d.uri);
-        if (l) {
-          layersCreated.push(...l);
-        }
-      }
-    }
-    if (layer_d.type === "TextMedia") {
-      const layer = this.studio.addLayer(createMediaText(layer_d.name, (l, progress, ctx, audioBuffer) => {}));
-      layersCreated.push(layer);
-    }
-    if (layer_d.type === "ImageMedia") {
-      if (layer_d.uri) {
-        const l = await this.loadMediaFromURI(layer_d.uri);
-        if (l) {
-          layersCreated.push(...l);
-        }
-      }
-    }
-    return layersCreated;
-  }
 }

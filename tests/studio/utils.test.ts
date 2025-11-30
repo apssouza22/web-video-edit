@@ -5,7 +5,6 @@ const {
   ext_map,
   popup,
   exportToJson,
-  addText,
   uploadSupportedType,
   getSupportedMimeTypes
 } = await import('../../src/common/utils');
@@ -250,52 +249,5 @@ describe('Studio Utils', () => {
 
   });
 
-  describe('addText', () => {
-    beforeEach(() => {
-      // Mock window.studio
-      (window as any).studio = {
-        addLayer: jest.fn()
-      };
-      
-      // Mock prompt
-      global.prompt = jest.fn();
-    });
-
-    afterEach(() => {
-      delete (window as any).studio;
-    });
-
-    test('should prompt user for text input', () => {
-      (global.prompt as jest.Mock).mockReturnValue(null);
-      
-      addText();
-
-      expect(global.prompt).toHaveBeenCalledWith('Enter text:');
-    });
-
-    test('should add text layer when user provides text', () => {
-      (global.prompt as jest.Mock).mockReturnValue('Test text');
-      
-      addText();
-
-      expect((window as any).studio.addLayer).toHaveBeenCalled();
-    });
-
-    test('should not add layer when user cancels prompt', () => {
-      (global.prompt as jest.Mock).mockReturnValue(null);
-      
-      addText();
-
-      expect((window as any).studio.addLayer).not.toHaveBeenCalled();
-    });
-
-    test('should not add layer when user provides empty text', () => {
-      (global.prompt as jest.Mock).mockReturnValue('');
-      
-      addText();
-
-      expect((window as any).studio.addLayer).not.toHaveBeenCalled();
-    });
-  });
 });
 

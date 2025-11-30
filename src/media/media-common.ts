@@ -50,7 +50,7 @@ export abstract class AbstractMedia {
     this.width = 0;
     this.height = 0;
     this.renderer = new Canvas2DRender();
-    this.loadUpdateListener = (layer, progress, ctx, audioBuffer) => {
+    this.loadUpdateListener = (layer, progress, audioBuffer) => {
       // Default empty listener
     };
     this.lastRenderedTime = -1;
@@ -281,7 +281,7 @@ export abstract class AbstractMedia {
     newMedia.frameService.frames = [...this.frameService.frames];
     newMedia.ready = true;
     newMedia.loadUpdateListener = this.loadUpdateListener;
-    newMedia.loadUpdateListener(newMedia, 100, newMedia.ctx, newMedia.audioBuffer);
+    newMedia.loadUpdateListener(newMedia, 100, newMedia.audioBuffer);
     return newMedia;
   }
 

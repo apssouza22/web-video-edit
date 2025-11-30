@@ -50,7 +50,7 @@ export class AudioMedia extends AbstractMedia {
       console.warn("Failed to load audio media: " + this.name + ". Audio buffer duration is 0.");
     }
     this.ready = true;
-    this.loadUpdateListener(this, 100, null, audioBuffer);
+    this.loadUpdateListener(this, 100, audioBuffer);
   }
 
   updateName(name: string): void {

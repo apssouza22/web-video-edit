@@ -21,7 +21,7 @@ export class ImageMedia extends FlexibleMedia {
           this.renderer.setSize(this.width, this.height);
           StudioState.getInstance().setMinVideoSizes(this.width, this.height)
           this.ready = true;
-          this.loadUpdateListener(this, 100, this.ctx);
+          this.loadUpdateListener(this, 100);
         }).bind(this));
       }
     }).bind(this), false);

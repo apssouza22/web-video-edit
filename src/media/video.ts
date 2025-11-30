@@ -19,7 +19,7 @@ export class VideoMedia extends AbstractMedia {
   }
 
   private onVideoLoadUpdateCallback(progress: number, metadata: VideoMetadata | null) {
-    this.loadUpdateListener(this, progress -1, this.ctx);
+    this.loadUpdateListener(this, progress -1);
     if (progress < 100 || !metadata?.frames) {
       return;
     }
@@ -32,7 +32,7 @@ export class VideoMedia extends AbstractMedia {
 
     this.renderer.setSize(this.width, this.height);
     this.ready = true;
-    this.loadUpdateListener(this, 100, this.ctx);
+    this.loadUpdateListener(this, 100);
   }
 
   /**

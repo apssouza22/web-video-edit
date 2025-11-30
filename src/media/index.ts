@@ -6,6 +6,7 @@ import {LayerLoadUpdateListener} from './types';
 import {AbstractMedia} from './media-common';
 import {TextMedia} from "@/media/text";
 import {AudioService} from "@/audio";
+import {getEventBus, MediaLoadUpdateEvent} from "@/common";
 
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
@@ -18,7 +19,7 @@ export function createMediaService(audioService: AudioService): MediaService {
   return new MediaService( audioService);
 }
 
-export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadUpdateListener): Array<AbstractMedia> {
+export function createMediaFromFile(file: File): Array<AbstractMedia> {
   const layers: AbstractMedia[] = [];
   if (file.type.indexOf('video') >= 0) {
     layers.push(new AudioMedia(file));
@@ -36,7 +37,15 @@ export function createMediaFromFile(file: File, onLoadUpdateListener: LayerLoadU
   return layers;
 }
 
-export function createMediaText(text: string, onLoadUpdateListener: LayerLoadUpdateListener): AbstractMedia {
+export function onLoadUpdateListener(
+    layer: any,
+    progress: number,
+    audioBuffer?: AudioBuffer | null
+): void {
+  getEventBus().emit(new MediaLoadUpdateEvent(layer, progress, audioBuffer));
+}
+
+export function createMediaText(text: string): AbstractMedia {
   return new TextMedia(text)
 }
 

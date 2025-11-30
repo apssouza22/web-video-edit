@@ -22,7 +22,7 @@ export class TextMedia extends FlexibleMedia {
     this.#drawText();
     
     setTimeout(() => {
-      this.loadUpdateListener(this, 100, this.ctx);
+      this.loadUpdateListener(this, 100);
     }, 10);
   }
 

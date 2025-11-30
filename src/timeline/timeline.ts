@@ -33,7 +33,7 @@ export class Timeline {
   #eventBus = getEventBus();
 
 
-  constructor() {
+  constructor(container: HTMLElement) {
     this.selectedLayer = null;
     this.isHover = false;
     this.time = 0;
@@ -44,7 +44,7 @@ export class Timeline {
     this.timelineCanvas = document.createElement('canvas');
     this.timelineCtx = this.timelineCanvas.getContext('2d') as CanvasRenderingContext2D;
 
-    this.timelineHolder = document.getElementById('timeline_content') as HTMLElement;
+    this.timelineHolder = container
     this.timelineHolder.appendChild(this.timelineCanvas);
 
     // Configuration for timeline elements
@@ -123,35 +123,8 @@ export class Timeline {
     this.timelineCanvas.addEventListener('pointerup', this.#onPointerLeave.bind(this));
     this.timelineCanvas.addEventListener('click', this.#onClick.bind(this));
     this.#setupTimelineHeaderButtons();
-    this.#setupMediaLibraryDrop();
   }
 
-  #setupMediaLibraryDrop() {
-    this.timelineHolder.addEventListener('dragover', (e) => {
-      const hasMediaLibraryId = e.dataTransfer?.types.includes('application/x-media-library-id');
-      if (hasMediaLibraryId) {
-        e.preventDefault();
-        e.dataTransfer!.dropEffect = 'copy';
-        this.timelineHolder.classList.add('drop-target');
-      }
-    });
-
-    this.timelineHolder.addEventListener('dragleave', (e) => {
-      if (!this.timelineHolder.contains(e.relatedTarget as Node)) {
-        this.timelineHolder.classList.remove('drop-target');
-      }
-    });
-
-    this.timelineHolder.addEventListener('drop', (e) => {
-      e.preventDefault();
-      this.timelineHolder.classList.remove('drop-target');
-
-      const fileId = e.dataTransfer?.getData('application/x-media-library-id');
-      if (fileId) {
-        this.#eventBus.emit(new MediaLibraryDropEvent(fileId));
-      }
-    });
-  }
 
   /**
    * Set up click event listeners for timeline header buttons
