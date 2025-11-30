@@ -1,9 +1,10 @@
-import { AudioTimelineLayer } from './layers/audio-timeline-layer';
-import { VideoTimelineLayer } from './layers/video-timeline-layer';
-import { ImageTimelineLayer } from './layers/image-timeline-layer';
-import { TextTimelineLayer } from './layers/text-timeline-layer';
-import type { MediaInterface } from './types';
-import type { TimelineLayer } from './timeline-layer';
+import {AudioTimelineLayer} from './layers/audio-timeline-layer';
+import {VideoTimelineLayer} from './layers/video-timeline-layer';
+import {ImageTimelineLayer} from './layers/image-timeline-layer';
+import {TextTimelineLayer} from './layers/text-timeline-layer';
+import {CaptionTimelineLayer} from './layers/caption-timeline-layer';
+import type {MediaInterface} from './types';
+import type {TimelineLayer} from './timeline-layer';
 import {AbstractMedia} from "@/medialayer";
 import type {VideoMedia} from "@/medialayer/video";
 
@@ -36,6 +37,8 @@ export class TimelineLayerFactory {
         return new ImageTimelineLayer(ctx, layer, totalTime, canvasWidth);
       case 'TextMedia':
         return new TextTimelineLayer(ctx, layer, totalTime, canvasWidth);
+      case 'CaptionMedia':
+        return new CaptionTimelineLayer(ctx, layer, totalTime, canvasWidth);
       default:
         console.warn(`Unknown layer type: ${layerType}, defaulting to TextTimelineLayer`);
         return new TextTimelineLayer(ctx, layer, totalTime, canvasWidth);

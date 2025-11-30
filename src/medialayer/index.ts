@@ -5,15 +5,17 @@ import {MediaService} from './media-service';
 import {LayerLoadUpdateListener} from './types';
 import {AbstractMedia} from './media-common';
 import {TextMedia} from "@/medialayer/text";
+import {CaptionMedia, TranscriptionChunk} from "@/medialayer/caption";
 import {AudioService} from "@/audio";
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
+import type { TranscriptionResult } from '@/transcription/types';
 
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
 
 /**
- * Creates a LayerService instance with the provided listener.
+ * Creates a LayerService instance
  */
 export function createMediaService(audioService: AudioService): MediaService {
   return new MediaService( audioService);
@@ -37,7 +39,7 @@ export function createMediaFromFile(file: File): Array<AbstractMedia> {
   return layers;
 }
 
-export function onLoadUpdateListener(
+function onLoadUpdateListener(
     layer: any,
     progress: number,
     audioBuffer?: AudioBuffer | null
@@ -47,6 +49,10 @@ export function onLoadUpdateListener(
 
 export function createMediaText(text: string): AbstractMedia {
   return new TextMedia(text)
+}
+
+export function createMediaCaption(transcription: TranscriptionChunk[]): AbstractMedia {
+  return new CaptionMedia(transcription);
 }
 
 export function isMediaAudio(layer: AbstractMedia):boolean {

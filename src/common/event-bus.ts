@@ -114,6 +114,13 @@ export class MediaLibraryDropEvent extends BaseEvent {
   }
 }
 
+export class CaptionCreateEvent extends BaseEvent {
+  readonly name = 'caption:create';
+  constructor(public transcriptionData: any) {
+    super();
+  }
+}
+
 type EventHandler<T extends BaseEvent> = (event: T) => void;
 type EventClass<T extends BaseEvent> = new (...args: any[]) => T;
 

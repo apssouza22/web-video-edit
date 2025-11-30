@@ -294,7 +294,7 @@ export class VideoStudio {
   onLayerLoadUpdate(
       layer: AbstractMedia,
       progress: number,
-      audioBuffer?: AudioBuffer
+      audioBuffer?: AudioBuffer | null
   ): void {
     this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
     if (progress === 100) {

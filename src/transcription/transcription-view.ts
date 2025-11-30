@@ -1,15 +1,15 @@
 import type { TranscriptionService } from './transcription.js';
 import type { TranscriptionResult, TranscriptionChunk } from './types.js';
+import { getEventBus, CaptionCreateEvent } from '@/common/event-bus';
 
 export class TranscriptionView {
   private transcriptionManager: TranscriptionService;
   private transcriptionElement: HTMLElement | null;
   private textChunksContainer: HTMLElement | null;
+  private currentTranscription: TranscriptionResult | null = null;
+  private addCaptionButton: HTMLButtonElement | null = null;
+  #eventBus = getEventBus();
 
-  /**
-   * Constructor for TranscriptionView
-   * @param manager - The transcription service instance
-   */
   constructor(manager: TranscriptionService) {
     this.transcriptionManager = manager;
     this.transcriptionElement = document.getElementById('transcription');
@@ -24,23 +24,45 @@ export class TranscriptionView {
       console.error('Text chunks container not found');
       return;
     }
+
+    this.#createAddCaptionButton();
   }
 
-  /**
-   * Updates the transcription view with new transcription data
-   * @param transcriptionData - The transcription data with text and chunks
-   */
+  #createAddCaptionButton(): void {
+    if (!this.transcriptionElement) return;
+
+    this.addCaptionButton = document.createElement('button');
+    this.addCaptionButton.className = 'action-button primary';
+    this.addCaptionButton.textContent = 'Add Caption Layer';
+    this.addCaptionButton.style.display = 'none';
+    this.addCaptionButton.style.marginBottom = '10px';
+    
+    this.addCaptionButton.addEventListener('click', () => {
+      if (this.currentTranscription) {
+        this.#eventBus.emit(new CaptionCreateEvent(this.currentTranscription));
+      }
+    });
+
+    this.transcriptionElement.insertBefore(this.addCaptionButton, this.textChunksContainer);
+  }
+
   updateTranscription(transcriptionData: TranscriptionResult): void {
     if (!transcriptionData || !transcriptionData.chunks) {
       console.error('Invalid transcription data provided');
       return;
     }
 
+    this.currentTranscription = transcriptionData;
     this.#clearChunks();
 
     transcriptionData.chunks.forEach((chunk, index) => {
       this.#addTextChunk(chunk, index);
     });
+
+    if (this.addCaptionButton) {
+      this.addCaptionButton.style.display = 'block';
+    }
+
     this.#showTabContent()
   }
 

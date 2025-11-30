@@ -9,8 +9,8 @@ export class FrameService {
   public totalTimeInMilSeconds: number;
   public timeAdjustHandler: FrameAdjustHandler;
 
-  constructor(milSeconds: number, startTime: number) {
-    this.startTime = startTime;
+  constructor(milSeconds: number, startTime?: number) {
+    this.startTime = startTime || 0;
     this.totalTimeInMilSeconds = milSeconds;
     this.totalTimeInSeconds = milSeconds / 1000;
     this.timeAdjustHandler = new FrameAdjustHandler(this);

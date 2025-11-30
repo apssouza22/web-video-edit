@@ -39,7 +39,6 @@ export class MediaLoader {
    * Add a media from a file
    *
    * @param file - The file to add as a media
-   * @param onMediaLoadUpdate - Whether to use HTML demuxing for video
    * @returns The added medias
    */
   addMediaFromFile(file: File): AbstractMedia[] {

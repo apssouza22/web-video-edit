@@ -1,5 +1,5 @@
 import {
-  getEventBus, MediaLayerLoadUpdateEvent,
+  getEventBus,
   MediaLibraryDropEvent, MediaLoadUpdateEvent,
   PlayerLayerTransformedEvent,
   PlayerTimeUpdateEvent,
@@ -8,11 +8,13 @@ import {
   TimelineTimeUpdateEvent,
   TranscriptionRemoveIntervalEvent,
   TranscriptionSeekEvent,
-  UiSpeedChangeEvent
+  UiSpeedChangeEvent,
+  CaptionCreateEvent
 } from '@/common/event-bus';
 import {VideoStudio} from "@/studio/studio";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
+import {createMediaCaption} from "@/medialayer";
 
 export class StudioEventHandler {
   #studio: VideoStudio;
@@ -109,6 +111,14 @@ export class StudioEventHandler {
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(MediaLoadUpdateEvent, (event) => {
         this.#studio.onLayerLoadUpdate(event.layer, event.progress, event.audioBuffer);
+      })
+    );
+
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(CaptionCreateEvent, (event) => {
+        const captionMedia = createMediaCaption(event.transcriptionData.chunks);
+        this.#studio.addLayer(captionMedia);
+        this.#studio.setSelectedLayer(captionMedia);
       })
     );
   }

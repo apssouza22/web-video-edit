@@ -67,15 +67,20 @@ export class TextMedia extends FlexibleMedia {
   }
 
   #drawText(): void {
+    this.calculateDimensions();
+    this.#renderText();
+  }
+
+  protected calculateDimensions() {
     this.ctx.font = `${this._fontSize}px sans-serif`;
     const rect = this.ctx.measureText(this.name);
-    
+
     const textRectWidth = Math.max(rect.width, 100);
     const textRectHeight = Math.max(rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent, 30);
 
     const newWidth = textRectWidth * dpr;
     const newHeight = textRectHeight * dpr;
-    
+
     if (this.width !== newWidth || this.height !== newHeight) {
       this.width = newWidth;
       this.height = newHeight;
@@ -83,8 +88,6 @@ export class TextMedia extends FlexibleMedia {
     } else {
       this.renderer.clearRect();
     }
-
-    this.#renderText();
   }
 
   #renderText(): void {

@@ -4,10 +4,10 @@ import { FrameService } from './frames';
  * Creates a FrameService instance for managing frames in a video media.
  */
 export function createFrameService(
-  startTime: number,
-  totalTimeInMilliseconds: number
+  totalTimeInMilliseconds: number,
+  startTime?: number,
 ): FrameService {
-  return new FrameService(startTime, totalTimeInMilliseconds);
+  return new FrameService(totalTimeInMilliseconds, startTime);
 }
 
 // Re-export all types and classes for convenience
