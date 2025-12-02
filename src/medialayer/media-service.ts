@@ -1,13 +1,8 @@
 import {AbstractMedia} from "@/medialayer/media-common";
-import {AudioService} from "@/audio";
-import {AudioMedia} from "./audio";
-import {VideoMedia} from "./video";
 
 export class MediaService {
-  private audioService: AudioService;
 
-  constructor(audioService: AudioService) {
-    this.audioService = audioService;
+  constructor() {
   }
 
   /**
@@ -25,11 +20,8 @@ export class MediaService {
       }
       audioMedias.forEach((audioMedia, index) => {
         console.log(`Clipping audio layer ${index + 1}: "${audioMedia.name}"`);
-        const newBuffer = this.audioService.removeInterval(audioMedia, startTime, endTime);
-        if (newBuffer && newBuffer !== audioMedia.audioBuffer) {
-          (audioMedia as AudioMedia).updateBuffer(newBuffer);
-          console.log(`Successfully updated audio layer: "${audioMedia.name}"`);
-        }
+        audioMedia.removeInterval(startTime, endTime);
+
       });
     } catch (error) {
       console.error('Error removing audio interval:', error);
@@ -51,7 +43,7 @@ export class MediaService {
       }
       videoLayers.forEach((videoLayer, index) => {
         console.log(`Processing video layer ${index + 1}: "${videoLayer.name}"`);
-        (videoLayer as VideoMedia).removeInterval(startTime, endTime);
+        videoLayer.removeInterval(startTime, endTime);
       });
     } catch (error) {
       console.error('Error removing video interval:', error);

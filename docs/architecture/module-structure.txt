@@ -87,7 +87,6 @@ flowchart TB
         s9
     end
     subgraph s11["audio/"]
-        AudioService["audio-service.ts"]
         AudioCutter["audio-cutter.ts"]
         AudioSplit["AudioSplitHandler.ts"]
         PitchProcessor["pitch-preservation-processor.ts"]

@@ -39,7 +39,6 @@ export class MediaOps {
     if (layer.startTime + layer.totalTimeInMilSeconds < this.studioState.getPlayingTime()) {
       return false;
     }
-
     const newMedia = layer.split(this.studioState.getPlayingTime())
     this.studio.addLayer(newMedia, true);
     return true

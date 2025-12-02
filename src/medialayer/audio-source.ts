@@ -1,14 +1,14 @@
-import {ESAudioContext} from "@/medialayer/media-common";
-import {AudioService, createAudioService} from "@/audio";
+import {ESAudioContext} from "@/medialayer";
+import {PitchPreservationProcessor} from "@/audio/pitch-preservation-processor";
 
 export class AudioSource {
   #audioContext: ESAudioContext | null = null;
   #source: AudioBufferSourceNode | null = null;
-  private audioService: AudioService
+  private pitchPreservationProcessor: PitchPreservationProcessor;
 
   constructor(audioCtx: ESAudioContext) {
     this.#audioContext = audioCtx;
-    this.audioService = createAudioService();
+    this.pitchPreservationProcessor = new PitchPreservationProcessor();
   }
 
   disconnect(): void {
@@ -42,7 +42,7 @@ export class AudioSource {
 
   #handlePitch(speed: number, buffer: AudioBuffer): void {
     if (speed !== 1.0) {
-      this.#source!.buffer = this.audioService.createPitchPreservedBuffer(buffer, speed, this.#audioContext!);
+      this.#source!.buffer = this.pitchPreservationProcessor.createPitchPreservedBuffer(buffer, speed, this.#audioContext!);
       this.#source!.playbackRate.value = 1.0; // Don't apply playbackRate since time-stretching handles the speed change
     } else {
       this.#source!.buffer = buffer;

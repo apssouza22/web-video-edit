@@ -3,15 +3,13 @@ import {StudioEventHandler} from "@/studio/studio-event-handler";
 import {initScreenRecording} from "@/record/controls";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
-import {createAudioService} from "@/audio";
 import {createMediaService} from "@/medialayer";
 import {StudioControls} from "@/studio/controls";
 import {getMediaLibrary} from "@/medialibrary";
 
 export function initStudio(): VideoStudio {
   initScreenRecording();
-  const audioService = createAudioService();
-  const mediaService = createMediaService(audioService);
+  const mediaService = createMediaService();
   const mediaLibrary = getMediaLibrary();
   const studio = new VideoStudio(mediaService, mediaLibrary);
   studio.init();

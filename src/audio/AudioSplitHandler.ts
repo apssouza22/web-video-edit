@@ -1,4 +1,4 @@
-import {ESAudioContext} from "@/medialayer/media-common";
+import {ESAudioContext} from "@/medialayer";
 import {Media} from "@/audio/types";
 
 export class AudioSplitHandler {
@@ -35,7 +35,7 @@ export class AudioSplitHandler {
   }
 
 
-  private createAudioBufferSegment(originalBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: ESAudioContext): AudioBuffer | null {
+  public createAudioBufferSegment(originalBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: ESAudioContext): AudioBuffer | null {
     if (!originalBuffer || startTime >= endTime || startTime < 0 || endTime > originalBuffer.duration) {
       console.error('Invalid parameters for createAudioBufferSegment');
       return null;

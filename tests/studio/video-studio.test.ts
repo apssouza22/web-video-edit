@@ -16,7 +16,6 @@ jest.unstable_mockModule('@/timeline', () => ({
 const { VideoStudio } = await import('@/studio/studio');
 const {VideoMedia} = await import("@/medialayer/video");
 const {createMediaService} = await import( "@/medialayer");
-const {createAudioService} = await import("@/audio");
 
 describe('VideoStudio', () => {
   // @ts-ignore
@@ -57,8 +56,7 @@ describe('VideoStudio', () => {
 
     // Mock alert
     global.alert = jest.fn();
-    const audioService = createAudioService();
-    const mediaService = createMediaService(audioService);
+    const mediaService = createMediaService();
     studio = new VideoStudio(mediaService);
   });
 

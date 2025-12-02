@@ -242,6 +242,7 @@ export class VideoStudio {
     }
     this.medias.push(layer);
     this.studioState.addMedia(layer);
+    console.log(`Added media: ${this.getMedias().length} layers now in studio.`);
     return layer;
   }
 

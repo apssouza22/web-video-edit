@@ -143,6 +143,11 @@ export abstract class AbstractMedia implements MediaLayer {
     this._name = name;
   }
 
+  removeInterval(startTime: number, endTime: number): boolean {
+    console.log("Remove interval not implemented for this media type");
+    return false;
+  }
+
   dump(): LayerDumpData {
     return {
       width: this._width,
@@ -309,8 +314,6 @@ export abstract class AbstractMedia implements MediaLayer {
     newMedia._renderer.setSize(this._renderer.width, this._renderer.height);
     newMedia._frameService.frames = [...this._frameService.frames];
     newMedia._ready = true;
-    newMedia._loadUpdateListener = this._loadUpdateListener;
-    newMedia._loadUpdateListener(newMedia, 100, newMedia._audioBuffer);
     return newMedia;
   }
 

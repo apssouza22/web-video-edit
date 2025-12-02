@@ -1,21 +1,25 @@
 import {AbstractMedia} from './media-common';
 import {AudioLoader} from './audio-loader';
 import {AudioSource} from '@/medialayer/audio-source';
-import type {LayerFile, ESAudioContext} from "./types";
+import type {ESAudioContext, LayerFile} from "./types";
+import {AudioSplitHandler} from "@/audio/AudioSplitHandler";
+import {AudioCutter} from "@/audio/audio-cutter";
 
 export class AudioMedia extends AbstractMedia {
   private audioLoader: AudioLoader;
   private source: AudioSource | null = null;
-  private playing: boolean = false;
   private currentSpeed: number = 1.0;
   private lastAppliedSpeed: number = 1.0;
   private originalTotalTimeInMilSeconds: number = 0;
   private started: boolean = false;
+  private audioSplitHandler: AudioSplitHandler;
+  private audioCutter: AudioCutter;
 
   constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
     this.audioLoader = new AudioLoader();
-
+    this.audioSplitHandler = new AudioSplitHandler();
+    this.audioCutter = new AudioCutter();
     if (skipLoading) {
       return;
     }
@@ -153,10 +157,10 @@ export class AudioMedia extends AbstractMedia {
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const audioLayer = new AudioMedia(this._file!, true) as this;
+    const audioLayer = new AudioMedia(this._file!, true);
     audioLayer._playerAudioContext = this._playerAudioContext;
     audioLayer._audioBuffer = this._audioBuffer;
-    return audioLayer;
+    return audioLayer as AbstractMedia;
   }
 
   /**
@@ -175,8 +179,8 @@ export class AudioMedia extends AbstractMedia {
       return;
     }
 
-    const firstBuffer = this.#createAudioBufferSegment(this._audioBuffer, 0, layerRelativeTime, this._playerAudioContext);
-    const secondBuffer = this.#createAudioBufferSegment(this._audioBuffer, layerRelativeTime, this._audioBuffer.duration, this._playerAudioContext);
+    const firstBuffer = this.audioSplitHandler.createAudioBufferSegment(this._audioBuffer, 0, layerRelativeTime, this._playerAudioContext);
+    const secondBuffer = this.audioSplitHandler.createAudioBufferSegment(this._audioBuffer, layerRelativeTime, this._audioBuffer.duration, this._playerAudioContext);
 
     if (!firstBuffer || !secondBuffer) {
       console.error('Failed to create audio buffer segments');
@@ -184,7 +188,7 @@ export class AudioMedia extends AbstractMedia {
     }
 
     // Update clone (first part)
-    mediaClone._name = this._name + " [Split]";
+    (mediaClone as AudioMedia)._name = this._name + " [Split]";
     (mediaClone as AudioMedia)._audioBuffer = firstBuffer;
     mediaClone.totalTimeInMilSeconds = firstBuffer.duration * 1000;
 
@@ -196,48 +200,23 @@ export class AudioMedia extends AbstractMedia {
     console.log(`Successfully split AudioMedia: "${this._name}" at ${layerRelativeTime}s`);
   }
 
-  /**
-   * Creates a segment of an audio buffer between startTime and endTime
-   */
-  #createAudioBufferSegment(originalBuffer: AudioBuffer, startTime: number, endTime: number, audioContext: ESAudioContext): AudioBuffer | null {
-    if (!originalBuffer || startTime >= endTime || startTime < 0 || endTime > originalBuffer.duration) {
-      console.error('Invalid parameters for createAudioBufferSegment');
-      return null;
+  removeInterval(startTime: number, endTime: number): boolean {
+    if (!this._audioBuffer || !this._playerAudioContext) {
+      console.warn(`Audio layer "${this._name}" missing audioBuffer or playerAudioContext`);
+      return false;
     }
 
-    const sampleRate = originalBuffer.sampleRate;
-    const numberOfChannels = originalBuffer.numberOfChannels;
-
-    // Convert time to sample indices
-    const startSample = Math.floor(startTime * sampleRate);
-    const endSample = Math.ceil(endTime * sampleRate);
-
-    // Clamp to valid ranges
-    const clampedStartSample = Math.max(0, Math.min(startSample, originalBuffer.length));
-    const clampedEndSample = Math.max(clampedStartSample, Math.min(endSample, originalBuffer.length));
-    const segmentLength = clampedEndSample - clampedStartSample;
-
-    if (segmentLength <= 0) {
-      console.error('Invalid segment length');
-      return null;
+    if (startTime < 0 || endTime <= startTime) {
+      console.error('Invalid time interval provided:', startTime, endTime);
+      return false;
     }
 
-    try {
-      const newBuffer = audioContext.createBuffer(numberOfChannels, segmentLength, sampleRate);
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const originalChannelData = originalBuffer.getChannelData(channel);
-        const newChannelData = newBuffer.getChannelData(channel);
-
-        for (let i = 0; i < segmentLength; i++) {
-          newChannelData[i] = originalChannelData[clampedStartSample + i];
-        }
-      }
-      console.log(`Created audio buffer segment: ${startTime}s-${endTime}s, duration: ${newBuffer.duration}s`);
-      return newBuffer;
-
-    } catch (error) {
-      console.error('Error creating audio buffer segment:', error);
-      return null;
+    const newBuffer = this.audioCutter.removeInterval(this._audioBuffer, this._playerAudioContext, startTime, endTime);
+    if (newBuffer && newBuffer !== this._audioBuffer) {
+      this.updateBuffer(newBuffer);
+      console.log(`Successfully updated audio layer: "${this._name}" after removing interval ${startTime}s to ${endTime}s`);
+      return true;
     }
+    return false;
   }
 }
