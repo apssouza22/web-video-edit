@@ -1,4 +1,4 @@
-import {FlexibleMedia} from './media-common';
+import {AbstractMedia, FlexibleMedia} from './media-common';
 import {LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 import {StudioState} from "@/common";
@@ -16,12 +16,12 @@ export class ImageMedia extends FlexibleMedia {
       if (typeof this.reader.result === 'string') {
         this.img.src = this.reader.result;
         this.img.addEventListener('load', ((): void => {
-          this.width = this.img.naturalWidth;
-          this.height = this.img.naturalHeight;
-          this.renderer.setSize(this.width, this.height);
-          StudioState.getInstance().setMinVideoSizes(this.width, this.height)
-          this.ready = true;
-          this.loadUpdateListener(this, 100);
+          this._width = this.img.naturalWidth;
+          this._height = this.img.naturalHeight;
+          this._renderer.setSize(this._width, this._height);
+          StudioState.getInstance().setMinVideoSizes(this._width, this._height)
+          this._ready = true;
+          this._loadUpdateListener(this, 100);
         }).bind(this));
       }
     }).bind(this), false);
@@ -31,7 +31,7 @@ export class ImageMedia extends FlexibleMedia {
 
 
   async render(ctxTo: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
-    if (!this.ready) {
+    if (!this._ready) {
       return;
     }
     if (!this.isLayerVisible(currentTime)) {
@@ -49,12 +49,12 @@ export class ImageMedia extends FlexibleMedia {
     }
 
     frame.videoData = this.img;
-    this.renderer.drawFrame(frame);
+    this._renderer.drawFrame(frame);
     Canvas2DRender.drawTransformed(this.ctx, ctxTo, frame);
     this.updateRenderCache(currentTime);
   }
 
-  protected _createCloneInstance(): this {
-    return new ImageMedia(this.file!) as this;
+  protected _createCloneInstance(): AbstractMedia {
+    return new ImageMedia(this._file!);
   }
 }

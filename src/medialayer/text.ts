@@ -17,12 +17,12 @@ export class TextMedia extends FlexibleMedia {
     super(fakeFile);
     this._color = "#ffffff";
     this._shadow = true;
-    this.ready = true;
+    this._ready = true;
     
     this.#drawText();
     
     setTimeout(() => {
-      this.loadUpdateListener(this, 100);
+      this._loadUpdateListener(this, 100);
     }, 10);
   }
 
@@ -60,7 +60,7 @@ export class TextMedia extends FlexibleMedia {
   }
 
   updateName(name: string): void {
-    if (this.name !== name) {
+    if (this._name !== name) {
       super.updateName(name);
       this.#drawText();
     }
@@ -73,7 +73,7 @@ export class TextMedia extends FlexibleMedia {
 
   protected calculateDimensions() {
     this.ctx.font = `${this._fontSize}px sans-serif`;
-    const rect = this.ctx.measureText(this.name);
+    const rect = this.ctx.measureText(this._name);
 
     const textRectWidth = Math.max(rect.width, 100);
     const textRectHeight = Math.max(rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent, 30);
@@ -81,12 +81,12 @@ export class TextMedia extends FlexibleMedia {
     const newWidth = textRectWidth * dpr;
     const newHeight = textRectHeight * dpr;
 
-    if (this.width !== newWidth || this.height !== newHeight) {
-      this.width = newWidth;
-      this.height = newHeight;
-      this.renderer.setSize(this.width, this.height);
+    if (this._width !== newWidth || this._height !== newHeight) {
+      this._width = newWidth;
+      this._height = newHeight;
+      this._renderer.setSize(this._width, this._height);
     } else {
-      this.renderer.clearRect();
+      this._renderer.clearRect();
     }
   }
 
@@ -104,9 +104,9 @@ export class TextMedia extends FlexibleMedia {
     this.ctx.textAlign = "center";
     this.ctx.textBaseline = "middle";
 
-    const x = this.width / 2;
-    const y = this.height / 2;
-    this.ctx.fillText(this.name, x, y);
+    const x = this._width / 2;
+    const y = this._height / 2;
+    this.ctx.fillText(this._name, x, y);
   }
 
   async render(ctxOut: CanvasRenderingContext2D, refTime: number, playing: boolean = false): Promise<void> {
@@ -120,7 +120,7 @@ export class TextMedia extends FlexibleMedia {
     }
 
     if (this.shouldReRender(refTime)) {
-      this.renderer.clearRect();
+      this._renderer.clearRect();
       this.#renderText();
       this.updateRenderCache(refTime);
     }
@@ -129,7 +129,7 @@ export class TextMedia extends FlexibleMedia {
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    return new TextMedia(this.name) as AbstractMedia;
+    return new TextMedia(this._name) as AbstractMedia;
   }
 
   clone(): AbstractMedia {

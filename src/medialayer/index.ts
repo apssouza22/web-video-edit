@@ -2,7 +2,7 @@ import {VideoMedia} from './video';
 import {ImageMedia} from './image';
 import {AudioMedia} from './audio';
 import {MediaService} from './media-service';
-import {LayerLoadUpdateListener} from './types';
+import {LayerLoadUpdateListener, MediaLayer} from './types';
 import {AbstractMedia} from './media-common';
 import {TextMedia} from "@/medialayer/text";
 import {CaptionMedia, TranscriptionChunk} from "@/medialayer/caption";
@@ -13,6 +13,7 @@ import type { TranscriptionResult } from '@/transcription/types';
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
+export type {MediaLayer} from './types';
 
 /**
  * Creates a LayerService instance

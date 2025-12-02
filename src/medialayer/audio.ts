@@ -1,18 +1,16 @@
-import {AbstractMedia, ESAudioContext} from './media-common';
+import {AbstractMedia} from './media-common';
 import {AudioLoader} from './audio-loader';
 import {AudioSource} from '@/medialayer/audio-source';
-import type {LayerFile} from "./types";
+import type {LayerFile, ESAudioContext} from "./types";
 
 export class AudioMedia extends AbstractMedia {
   private audioLoader: AudioLoader;
-  public audioBuffer: AudioBuffer | null = null;
-  public source: AudioSource | null = null;
-  public playing: boolean = false;
-  public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
-  public currentSpeed: number = 1.0; // Track current playback speed
-  public lastAppliedSpeed: number = 1.0; // Track last applied speed for change detection
-  public originalTotalTimeInMilSeconds: number = 0; // Store original duration before speed changes
-  public started: boolean = false; // Track if audio source has started playing
+  private source: AudioSource | null = null;
+  private playing: boolean = false;
+  private currentSpeed: number = 1.0;
+  private lastAppliedSpeed: number = 1.0;
+  private originalTotalTimeInMilSeconds: number = 0;
+  private started: boolean = false;
 
   constructor(file: LayerFile, skipLoading: boolean = false) {
     super(file);
@@ -43,18 +41,18 @@ export class AudioMedia extends AbstractMedia {
    * @param audioBuffer - The loaded audio buffer
    */
   #onAudioLoadSuccess(audioBuffer: AudioBuffer): void {
-    this.audioBuffer = audioBuffer;
-    this.originalTotalTimeInMilSeconds = this.audioBuffer.duration * 1000;
+    this._audioBuffer = audioBuffer;
+    this.originalTotalTimeInMilSeconds = this._audioBuffer.duration * 1000;
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds;
     if (this.totalTimeInMilSeconds === 0) {
-      console.warn("Failed to load audio media: " + this.name + ". Audio buffer duration is 0.");
+      console.warn("Failed to load audio media: " + this._name + ". Audio buffer duration is 0.");
     }
-    this.ready = true;
-    this.loadUpdateListener(this, 100, audioBuffer);
+    this._ready = true;
+    this._loadUpdateListener(this, 100, audioBuffer);
   }
 
   updateName(name: string): void {
-    this.name = name + " [Audio] ";
+    this._name = name + " [Audio] ";
   }
 
   disconnect(): void {
@@ -77,7 +75,7 @@ export class AudioMedia extends AbstractMedia {
   init(canvasWidth: number, canvasHeight: number, playerAudioContext?: AudioContext): void {
     super.init(canvasWidth, canvasHeight);
     if (playerAudioContext) {
-      this.playerAudioContext = playerAudioContext;
+      this._playerAudioContext = playerAudioContext;
     }
   }
 
@@ -88,20 +86,20 @@ export class AudioMedia extends AbstractMedia {
 
   connectAudioSource(playerAudioContext: ESAudioContext): void {
     this.disconnect();
-    this.currentSpeed = this.speedController.getSpeed();
+    this.currentSpeed = this._speedController.getSpeed();
     this.lastAppliedSpeed = this.currentSpeed;
     this.source = new AudioSource(playerAudioContext);
-    if (this.audioStreamDestination) {
+    if (this._audioStreamDestination) {
       //Used for video exporting
-      this.source.connect(this.audioStreamDestination, this.currentSpeed, this.audioBuffer!);
+      this.source.connect(this._audioStreamDestination, this.currentSpeed, this._audioBuffer!);
     } else {
-      this.source.connect(playerAudioContext.destination, this.currentSpeed, this.audioBuffer!);
+      this.source.connect(playerAudioContext.destination, this.currentSpeed, this._audioBuffer!);
     }
     this.started = false;
   }
 
   async render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
-    if (!this.ready) {
+    if (!this._ready) {
       return;
     }
     if (!this.isLayerVisible(currentTime)) {
@@ -111,9 +109,9 @@ export class AudioMedia extends AbstractMedia {
       return;
     }
 
-    const currentSpeed = this.speedController.getSpeed();
+    const currentSpeed = this._speedController.getSpeed();
     if (currentSpeed !== this.lastAppliedSpeed && this.source) {
-      this.connectAudioSource(this.playerAudioContext!);
+      this.connectAudioSource(this._playerAudioContext!);
     }
 
     let time = currentTime - this.startTime;
@@ -142,22 +140,22 @@ export class AudioMedia extends AbstractMedia {
     }
 
     this.disconnect();
-    this.audioBuffer = newBuffer;
+    this._audioBuffer = newBuffer;
     this.originalTotalTimeInMilSeconds = newBuffer.duration * 1000;
-    this.currentSpeed = this.speedController.getSpeed();
+    this.currentSpeed = this._speedController.getSpeed();
     this.#updateTotalTimeForSpeed();
-    this.connectAudioSource(this.playerAudioContext!);
+    this.connectAudioSource(this._playerAudioContext!);
   }
 
   #updateTotalTimeForSpeed(): void {
-    this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this.speedController.getSpeed();
+    this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this._speedController.getSpeed();
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const audioLayer = new AudioMedia(this.file!, true) as this;
-    audioLayer.playerAudioContext = this.playerAudioContext;
-    audioLayer.audioBuffer = this.audioBuffer;
+    const audioLayer = new AudioMedia(this._file!, true) as this;
+    audioLayer._playerAudioContext = this._playerAudioContext;
+    audioLayer._audioBuffer = this._audioBuffer;
     return audioLayer;
   }
 
@@ -165,20 +163,20 @@ export class AudioMedia extends AbstractMedia {
    * Override split to handle audio-specific splitting
    */
   protected _performSplit(mediaClone: AbstractMedia, splitTime: number): void {
-    if (!this.audioBuffer || !this.playerAudioContext) {
+    if (!this._audioBuffer || !this._playerAudioContext) {
       console.error('AudioMedia missing audioBuffer or playerAudioContext');
       return;
     }
 
     const layerRelativeTime = (splitTime - this.startTime) / 1000; // Convert to seconds
 
-    if (layerRelativeTime <= 0 || layerRelativeTime >= this.audioBuffer.duration) {
+    if (layerRelativeTime <= 0 || layerRelativeTime >= this._audioBuffer.duration) {
       console.error('Split time is outside audio bounds');
       return;
     }
 
-    const firstBuffer = this.#createAudioBufferSegment(this.audioBuffer, 0, layerRelativeTime, this.playerAudioContext);
-    const secondBuffer = this.#createAudioBufferSegment(this.audioBuffer, layerRelativeTime, this.audioBuffer.duration, this.playerAudioContext);
+    const firstBuffer = this.#createAudioBufferSegment(this._audioBuffer, 0, layerRelativeTime, this._playerAudioContext);
+    const secondBuffer = this.#createAudioBufferSegment(this._audioBuffer, layerRelativeTime, this._audioBuffer.duration, this._playerAudioContext);
 
     if (!firstBuffer || !secondBuffer) {
       console.error('Failed to create audio buffer segments');
@@ -186,16 +184,16 @@ export class AudioMedia extends AbstractMedia {
     }
 
     // Update clone (first part)
-    mediaClone.name = this.name + " [Split]";
-    (mediaClone as AudioMedia).audioBuffer = firstBuffer;
+    mediaClone._name = this._name + " [Split]";
+    (mediaClone as AudioMedia)._audioBuffer = firstBuffer;
     mediaClone.totalTimeInMilSeconds = firstBuffer.duration * 1000;
 
     // Update original (second part)
-    this.audioBuffer = secondBuffer;
+    this._audioBuffer = secondBuffer;
     this.totalTimeInMilSeconds = secondBuffer.duration * 1000;
     this.startTime = this.startTime + mediaClone.totalTimeInMilSeconds;
 
-    console.log(`Successfully split AudioMedia: "${this.name}" at ${layerRelativeTime}s`);
+    console.log(`Successfully split AudioMedia: "${this._name}" at ${layerRelativeTime}s`);
   }
 
   /**

@@ -1,16 +1,21 @@
 import {fps} from '@/constants';
 import {Frame} from '@/frame';
-import {AbstractMedia} from "@/medialayer/media-common";
+import type {MediaLayer} from "@/medialayer/types";
+import {FrameService} from "@/frame";
+
+interface SpeedControllable extends MediaLayer {
+  readonly frameService: FrameService;
+}
 
 /**
  * Handles speed control calculations and frame manipulation for video medias
  */
 export class SpeedController {
-  private layer: AbstractMedia;
+  private layer: SpeedControllable;
   private originalFrames: Frame[] | null;
   private currentSpeed: number;
 
-  constructor(layer: AbstractMedia) {
+  constructor(layer: SpeedControllable) {
     this.layer = layer;
     this.originalFrames = null; // Store original frames for preservation
     this.currentSpeed = 1.0;

@@ -8,86 +8,116 @@ import {
   LayerLoadUpdateListener,
   LayerChange,
   LayerDumpData,
+  MediaLayer,
+  ESAudioContext,
 } from './types';
 import {VideoMedia} from "@/medialayer/video";
 
-export type ESAudioContext = AudioContext | OfflineAudioContext;
+export abstract class AbstractMedia implements MediaLayer {
+  protected _audioBuffer: AudioBuffer | null = null;
+  protected _playerAudioContext: ESAudioContext | null = null;
+  protected _audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
 
-export abstract class AbstractMedia {
-  public audioBuffer: AudioBuffer | null = null;
-  public playerAudioContext: ESAudioContext | null = null;
-  public audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
+  protected _file?: LayerFile;
+  protected _name: string;
+  protected _id: string;
+  protected _uri?: string;
+  protected _ready: boolean;
+  protected _width: number;
+  protected _height: number;
+  protected _renderer: Canvas2DRender;
+  protected _loadUpdateListener: LayerLoadUpdateListener;
+  protected _lastRenderedTime: number;
+  protected _frameService: FrameService;
+  protected _speedController: SpeedController;
 
-  public file?: LayerFile;
-  public name: string;
-  public id: string;
-  public description: string | null;
-  public uri?: string;
-  public ready: boolean;
   public totalTimeInMilSeconds: number;
   public startTime: number;
-  public width: number;
-  public height: number;
-  public renderer: Canvas2DRender;
-  public loadUpdateListener: LayerLoadUpdateListener;
-  public lastRenderedTime: number;
-  public frameService: FrameService;
-  public speedController: SpeedController;
 
   constructor(file?: LayerFile) {
-    this.file = file;
-    this.name = file?.name || 'Layer';
-    this.id = this.name + "-" + crypto.randomUUID();
-    this.description = null;
+    this._file = file;
+    this._name = file?.name || 'Layer';
+    this._id = this._name + "-" + crypto.randomUUID();
     
     if (file?.uri) {
-      this.uri = file.uri;
+      this._uri = file.uri;
     }
     
-    this.ready = false;
+    this._ready = false;
     this.totalTimeInMilSeconds = 1;
     this.startTime = 0;
-    this.width = 0;
-    this.height = 0;
-    this.renderer = new Canvas2DRender();
-    this.loadUpdateListener = (layer, progress, audioBuffer) => {
+    this._width = 0;
+    this._height = 0;
+    this._renderer = new Canvas2DRender();
+    this._loadUpdateListener = (layer, progress, audioBuffer) => {
       // Default empty listener
     };
-    this.lastRenderedTime = -1;
+    this._lastRenderedTime = -1;
 
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
-    this.speedController = new SpeedController(this);
-    addElementToBackground(this.renderer.canvas as HTMLElement);
-    this.updateName(this.name);
+    this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
+    this._speedController = new SpeedController(this);
+    addElementToBackground(this._renderer.canvas as HTMLElement);
+    this.updateName(this._name);
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get name(): string {
+    return this._name;
+  }
+
+  get uri(): string | undefined {
+    return this._uri;
+  }
+
+  get ready(): boolean {
+    return this._ready;
+  }
+
+  get width(): number {
+    return this._width;
+  }
+
+  get height(): number {
+    return this._height;
+  }
+
+  get audioBuffer(): AudioBuffer | null {
+    return this._audioBuffer;
+  }
+
+  get frameService(): FrameService {
+    return this._frameService;
   }
 
   playStart(time: number): void {
     // This is a no-op for non-audio medias
   }
 
-  // Getters for backward compatibility
-  get canvas(): HTMLCanvasElement | OffscreenCanvas {
-    return this.renderer.canvas;
+  protected get canvas(): HTMLCanvasElement | OffscreenCanvas {
+    return this._renderer.canvas;
   }
 
-  get ctx(): ESRenderingContext2D{
-    return this.renderer.context;
+  protected get ctx(): ESRenderingContext2D {
+    return this._renderer.context;
   }
 
   /**
    * Adjusts the total time of the video media by adding or removing frames
    */
   adjustTotalTime(diff: number): void {
-    if (!this.ready || !this.frameService) {
+    if (!this._ready || !this._frameService) {
       console.warn('VideoMedia not ready or frames collection not available');
       return;
     }
-    if (this.audioBuffer) {
+    if (this._audioBuffer) {
       console.log("Audio media cannot adjust total time");
       return;
     }
-    this.frameService.adjustTotalTime(diff);
-    this.totalTimeInMilSeconds = this.frameService.getTotalTimeInMilSec();
+    this._frameService.adjustTotalTime(diff);
+    this.totalTimeInMilSeconds = this._frameService.getTotalTimeInMilSec();
     this.#resetRenderCache();
   }
 
@@ -106,24 +136,21 @@ export abstract class AbstractMedia {
    * Listens for the load event and calls the provided function when the media is ready
    */
   addLoadUpdateListener(listener: LayerLoadUpdateListener): void {
-    if (typeof listener !== 'function') {
-      throw new Error('onLoadUpdate listener must be a function');
-    }
-    this.loadUpdateListener = listener;
+    this._loadUpdateListener = listener;
   }
 
   updateName(name: string): void {
-    this.name = name;
+    this._name = name;
   }
 
   dump(): LayerDumpData {
     return {
-      width: this.width,
-      height: this.height,
-      name: this.name,
+      width: this._width,
+      height: this._height,
+      name: this._name,
       startTime: this.startTime,
       total_time: this.totalTimeInMilSeconds,
-      uri: this.uri,
+      uri: this._uri,
       type: this.constructor.name
     };
   }
@@ -139,14 +166,14 @@ export abstract class AbstractMedia {
    */
   shouldReRender(currentTime: number): boolean {
     // Only re-render if time has changed
-    return currentTime !== this.lastRenderedTime;
+    return currentTime !== this._lastRenderedTime;
   }
 
   /**
    * Updates the rendering cache information
    */
   updateRenderCache(currentTime: number): void {
-    this.lastRenderedTime = currentTime;
+    this._lastRenderedTime = currentTime;
   }
 
   /**
@@ -155,16 +182,18 @@ export abstract class AbstractMedia {
    * like updates to position, scale, or rotation
    */
   #resetRenderCache(): void {
-    this.lastRenderedTime = -1;
+    this._lastRenderedTime = -1;
   }
 
   init(canvasWidth: number = 500, canvasHeight: number = 500, audioContext?: AudioContext): void {
-    this.renderer.setSize(canvasWidth, canvasHeight);
+    this._renderer.setSize(canvasWidth, canvasHeight);
   }
 
   resize(width: number, height: number): void {
     console.log("Resizing media to width:", width, "height:", height);
-    this.renderer.setSize(width, height);
+    this._width = width;
+    this._height = height;
+    this._renderer.setSize(this._width, this._height);
     this.#resetRenderCache();
   }
 
@@ -183,11 +212,11 @@ export abstract class AbstractMedia {
 
     if (change.scale) {
       const newScale = f.scale * change.scale;
-      const canvasWidth = this.renderer.width;
-      const canvasHeight = this.renderer.height;
+      const canvasWidth = this._renderer.width;
+      const canvasHeight = this._renderer.height;
 
-      for (let i = 0; i < this.frameService.getLength(); ++i) {
-        const frame = this.frameService.frames[i];
+      for (let i = 0; i < this._frameService.getLength(); ++i) {
+        const frame = this._frameService.frames[i];
         const distanceFromCenterX = frame.x - (canvasWidth / 2);
         const distanceFromCenterY = frame.y - (canvasHeight / 2);
         const scaleFactor = newScale / frame.scale;
@@ -202,22 +231,22 @@ export abstract class AbstractMedia {
     }
 
     if (change.x !== undefined) {
-      for (let i = 0; i < this.frameService.getLength(); ++i) {
-        this.frameService.frames[i].x = change.x;
+      for (let i = 0; i < this._frameService.getLength(); ++i) {
+        this._frameService.frames[i].x = change.x;
       }
       hasChanges = true;
     }
 
     if (change.y !== undefined) {
-      for (let i = 0; i < this.frameService.getLength(); ++i) {
-        this.frameService.frames[i].y = change.y;
+      for (let i = 0; i < this._frameService.getLength(); ++i) {
+        this._frameService.frames[i].y = change.y;
       }
       hasChanges = true;
     }
 
     if (change.rotation !== undefined) {
-      for (let i = 0; i < this.frameService.getLength(); ++i) {
-        this.frameService.frames[i].rotation = f.rotation + change.rotation;
+      for (let i = 0; i < this._frameService.getLength(); ++i) {
+        this._frameService.frames[i].rotation = f.rotation + change.rotation;
       }
       hasChanges = true;
     }
@@ -234,20 +263,20 @@ export abstract class AbstractMedia {
    * Returns null if no frame is found
    */
   async getFrame(time: number): Promise<Frame | null> {
-    return this.frameService.getFrame(time, this.startTime);
+    return this._frameService.getFrame(time, this.startTime);
   }
 
   // Speed control methods
   setSpeed(speed: number): void {
-    this.speedController.setSpeed(speed);
+    this._speedController.setSpeed(speed);
   }
 
   getSpeed(): number {
-    return this.speedController.getSpeed();
+    return this._speedController.getSpeed();
   }
 
   getTotalFrames(): number {
-    return this.frameService.getLength();
+    return this._frameService.getLength();
   }
 
   isVideo(): boolean {
@@ -271,17 +300,17 @@ export abstract class AbstractMedia {
   clone(): AbstractMedia {
     const newMedia = this._createCloneInstance();
     const cloneStartTime = this.startTime // 10ms offset
-    newMedia.id = this.id + '-clone';
-    newMedia.name = this.name + ' [Clone]';
+    newMedia._id = this._id + '-clone';
+    newMedia._name = this._name + ' [Clone]';
     newMedia.startTime = cloneStartTime;
     newMedia.totalTimeInMilSeconds = this.totalTimeInMilSeconds;
-    newMedia.width = this.width;
-    newMedia.height = this.height;
-    newMedia.renderer.setSize(this.renderer.width, this.renderer.height);
-    newMedia.frameService.frames = [...this.frameService.frames];
-    newMedia.ready = true;
-    newMedia.loadUpdateListener = this.loadUpdateListener;
-    newMedia.loadUpdateListener(newMedia, 100, newMedia.audioBuffer);
+    newMedia._width = this._width;
+    newMedia._height = this._height;
+    newMedia._renderer.setSize(this._renderer.width, this._renderer.height);
+    newMedia._frameService.frames = [...this._frameService.frames];
+    newMedia._ready = true;
+    newMedia._loadUpdateListener = this._loadUpdateListener;
+    newMedia._loadUpdateListener(newMedia, 100, newMedia._audioBuffer);
     return newMedia;
   }
 
@@ -304,13 +333,13 @@ export abstract class AbstractMedia {
    */
   protected _performSplit(mediaClone: AbstractMedia, splitTime: number): void {
     const pct = (splitTime - this.startTime) / this.totalTimeInMilSeconds;
-    const split_idx = Math.round(pct * this.frameService.getLength());
+    const split_idx = Math.round(pct * this._frameService.getLength());
 
-    mediaClone.name = this.name + " [Split]";
-    mediaClone.frameService.frames = this.frameService.frames.slice(0, split_idx);
+    mediaClone._name = this._name + " [Split]";
+    mediaClone._frameService.frames = this._frameService.frames.slice(0, split_idx);
     mediaClone.totalTimeInMilSeconds = pct * this.totalTimeInMilSeconds;
 
-    this.frameService.frames = this.frameService.frames.slice(split_idx);
+    this._frameService.frames = this._frameService.frames.slice(split_idx);
     this.startTime = this.startTime + mediaClone.totalTimeInMilSeconds;
     this.totalTimeInMilSeconds = this.totalTimeInMilSeconds - mediaClone.totalTimeInMilSeconds;
   }
@@ -324,13 +353,13 @@ export abstract class FlexibleMedia extends AbstractMedia {
   constructor(file?: LayerFile) {
     super(file);
     this.totalTimeInMilSeconds = 2 * 1000;
-    this.frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
+    this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
   }
 
   dump(): LayerDumpData {
     let obj = super.dump();
     obj.frames = [];
-    for (let f of this.frameService.frames) {
+    for (let f of this._frameService.frames) {
       obj.frames.push(f.toArray());
     }
     return obj;

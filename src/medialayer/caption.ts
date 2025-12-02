@@ -7,6 +7,7 @@ export interface TranscriptionChunk {
   text: string;
   timestamp: [number, number]; // [startTime, end_time] in seconds
 }
+
 interface CaptionScene {
   chunks: TranscriptionChunk[];
   startIndex: number;
@@ -28,13 +29,13 @@ export class CaptionMedia extends TextMedia {
     this.#calculateDuration();
     this.#buildScenes();
     this.calculateDimensions();
-    this.width = 600;
-    this.renderer.setSize(this.width, this.height);
-    this.frameService = createFrameService(this.totalTimeInMilSeconds);
+    this._width = 600;
+    this._renderer.setSize(this._width, this._height);
+    this._frameService = createFrameService(this.totalTimeInMilSeconds);
 
     setTimeout(() => {
-      this.ready = true;
-      this.loadUpdateListener(this, 100);
+      this._ready = true;
+      this._loadUpdateListener(this, 100);
     }, 10);
   }
 
@@ -134,7 +135,7 @@ export class CaptionMedia extends TextMedia {
   }
 
   #renderCaptionScene(scene: CaptionScene, activeChunkIndex: number): void {
-    this.renderer.clearRect();
+    this._renderer.clearRect();
 
     this.ctx.font = `bold ${this.fontSize}px sans-serif`;
     this.ctx.textBaseline = 'middle';
@@ -143,8 +144,8 @@ export class CaptionMedia extends TextMedia {
     const totalText = words.join(' ');
     const totalWidth = this.ctx.measureText(totalText).width;
 
-    let startX = (this.width - totalWidth) / 2;
-    const y = this.height / 2;
+    let startX = (this._width - totalWidth) / 2;
+    const y = this._height / 2;
 
     const activeWordInScene = activeChunkIndex - scene.startIndex;
 
