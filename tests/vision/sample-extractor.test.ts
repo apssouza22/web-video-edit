@@ -2,7 +2,7 @@ import { SampleExtractor } from '@/vision/sample-extractor';
 import { FrameComparator, ComparisonMethod } from '@/vision/frame-comparator';
 import { SamplingStrategy } from '@/vision/types';
 import { AbstractMedia } from '@/medialayer/media-common';
-import { FrameService } from '@/frame';
+import { FrameService } from '../../src/medialayer/frame';
 
 describe('SampleExtractor', () => {
   let sampleExtractor: SampleExtractor;

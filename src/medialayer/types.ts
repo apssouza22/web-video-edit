@@ -1,4 +1,4 @@
-import {Frame} from '@/frame';
+import {Frame} from '@/medialayer/frame';
 import {ESRenderingContext2D} from "@/common/render-2d";
 import {VideoStreaming} from "@/video";
 

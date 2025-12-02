@@ -1,7 +1,7 @@
 import {AbstractMedia} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {TextMedia} from "@/medialayer/text";
-import {createFrameService} from "@/frame";
+import {createFrameService} from "@/medialayer/frame";
 
 export interface TranscriptionChunk {
   text: string;

@@ -1,9 +1,9 @@
-import {AbstractMedia} from './media-common';
+import {AbstractMedia} from '../media-common';
 import {AudioLoader} from './audio-loader';
-import {AudioSource} from '@/medialayer/audio-source';
-import type {ESAudioContext, LayerFile} from "./types";
-import {AudioSplitHandler} from "@/audio/AudioSplitHandler";
-import {AudioCutter} from "@/audio/audio-cutter";
+import {AudioSource} from '@/medialayer/audio/audio-source';
+import type {ESAudioContext, LayerFile} from "../types";
+import {AudioSplitHandler} from "@/medialayer/audio/AudioSplitHandler";
+import {AudioCutter} from "@/medialayer/audio/audio-cutter";
 
 export class AudioMedia extends AbstractMedia {
   private audioLoader: AudioLoader;

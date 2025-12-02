@@ -1,7 +1,7 @@
 import {fps} from '@/constants';
-import {Frame} from '@/frame';
+import {Frame} from '@/medialayer/frame';
 import type {MediaLayer} from "@/medialayer/types";
-import {FrameService} from "@/frame";
+import {FrameService} from "@/medialayer/frame";
 
 interface SpeedControllable extends MediaLayer {
   readonly frameService: FrameService;

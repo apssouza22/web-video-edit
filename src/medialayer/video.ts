@@ -1,4 +1,4 @@
-import {createFrameService, Frame} from '@/frame';
+import {createFrameService, Frame} from '@/medialayer/frame';
 import {AbstractMedia} from './media-common';
 import {LayerFile, VideoMetadata} from './types';
 import {loadVideo, VideoStreaming} from "@/video";

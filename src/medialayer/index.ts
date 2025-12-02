@@ -1,11 +1,10 @@
 import {VideoMedia} from './video';
 import {ImageMedia} from './image';
-import {AudioMedia} from './audio';
+import {AudioMedia} from './audio/audio';
 import {MediaService} from './media-service';
-import {MediaLayer} from './types';
 import {AbstractMedia} from './media-common';
-import {TextMedia} from "@/medialayer/text";
-import {CaptionMedia, TranscriptionChunk} from "@/medialayer/caption";
+import {TextMedia} from "./text";
+import {CaptionMedia, TranscriptionChunk} from "./caption";
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
 
 export {AbstractMedia, addElementToBackground} from './media-common';

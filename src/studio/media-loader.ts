@@ -1,7 +1,7 @@
 import {AbstractMedia, createMediaFromFile, createMediaText} from '@/medialayer';
 
 import {ext_map} from '@/common';
-import {Frame} from '@/frame';
+import {Frame} from '@/medialayer/frame';
 import {LayerLoadUpdateListener} from "@/medialayer/types";
 import {VideoStudio} from "./studio";
 

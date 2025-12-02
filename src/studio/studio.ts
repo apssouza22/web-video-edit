@@ -1,7 +1,7 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
 import {AbstractMedia, isMediaVideo, MediaService} from '@/medialayer';
-import {AudioMedia} from '@/medialayer/audio';
+import {AudioMedia} from '@/medialayer/audio/audio';
 import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
 import {PinchHandler} from '@/common';

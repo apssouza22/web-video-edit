@@ -1,6 +1,6 @@
-import { createFrameService } from '@/frame';
-import { FrameService } from '@/frame';
-import { Frame } from '@/frame';
+import { createFrameService } from '@/medialayer/frame';
+import { FrameService } from '@/medialayer/frame';
+import { Frame } from '@/medialayer/frame';
 import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
 import { SpeedController } from './speed-controller';
 import { 

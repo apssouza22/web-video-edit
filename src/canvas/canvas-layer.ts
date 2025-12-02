@@ -9,7 +9,7 @@ import {
   Point2D,
   TransformHandle
 } from './types';
-import type {FrameTransform} from '@/frame';
+import type {FrameTransform} from '@/medialayer/frame';
 import {AbstractMedia} from "@/medialayer";
 import {getBoundingBox} from "@/common/render-2d";
 
