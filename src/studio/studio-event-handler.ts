@@ -123,8 +123,8 @@ export class StudioEventHandler {
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(SpeechGeneratedEvent, (event) => {
-        createMediaFromFile(event.audioBlob as File);
+      this.#eventBus.subscribe(SpeechGeneratedEvent, async (event) => {
+        await createMediaFromFile(event.audioBlob as File);
       })
     );
   }

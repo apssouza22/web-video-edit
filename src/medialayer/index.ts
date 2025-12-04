@@ -6,35 +6,58 @@ import {AbstractMedia} from './media-common';
 import {TextMedia} from "./text";
 import {CaptionMedia, TranscriptionChunk} from "./caption";
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
+import {MediaLoader} from "@/mediasource";
 
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
 export type {MediaLayer, ESAudioContext} from './types';
 
-/**
- * Creates a LayerService instance
- */
 export function createMediaService(): MediaService {
   return new MediaService();
 }
 
-export function createMediaFromFile(file: File): Array<AbstractMedia> {
+export async function createMediaFromFile(file: File): Promise<Array<AbstractMedia>> {
   const layers: AbstractMedia[] = [];
+  
   if (file.type.indexOf('video') >= 0) {
+    const frameSource = await MediaLoader.loadVideoMedia(file, (progress) => {
+      notifyProgress(layers, progress -1);
+    });
+    const videoMedia = new VideoMedia(file, frameSource);
     layers.push(new AudioMedia(file));
-    layers.push(new VideoMedia(file, false));
+    layers.push(videoMedia);
+    onLoadUpdateListener(videoMedia, 100);
   }
+  
   if (file.type.indexOf('image') >= 0) {
-    layers.push(new ImageMedia(file));
+    const frameSource = await MediaLoader.loadImageMedia(file, (progress) => {
+      notifyProgress(layers, progress);
+      if (progress === 100) {
+        onLoadUpdateListener(layers[0], 100);
+      }
+    });
+    const imageMedia = new ImageMedia(file, frameSource);
+    layers.push(imageMedia);
+    onLoadUpdateListener(imageMedia, 100);
   }
+  
   if (file.type.indexOf('audio') >= 0) {
     layers.push(new AudioMedia(file));
   }
+  
   layers.forEach(layer => {
+    if (!layer.addLoadUpdateListener) return;
     layer.addLoadUpdateListener(onLoadUpdateListener);
   });
+  
   return layers;
+}
+
+function notifyProgress(layers: AbstractMedia[], progress: number): void {
+  layers.forEach(layer => {
+    onLoadUpdateListener(layer, progress);
+  });
 }
 
 function onLoadUpdateListener(

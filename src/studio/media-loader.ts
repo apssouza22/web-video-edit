@@ -39,15 +39,10 @@ export class MediaLoader {
    * Add a media from a file
    *
    * @param file - The file to add as a media
-   * @returns The added medias
+   * @returns Promise that resolves to the added medias
    */
-  addMediaFromFile(file: File): AbstractMedia[] {
-    const medias: AbstractMedia[] = [];
-    createMediaFromFile(file)
-    .forEach(layer => {
-      medias.push(layer);
-    });
-    return medias;
+  async addMediaFromFile(file: File): Promise<AbstractMedia[]> {
+    return await createMediaFromFile(file);
   }
 
   /**
@@ -76,7 +71,7 @@ export class MediaLoader {
     const file = new File([data], name, metadata) as File & { uri?: string };
     file.uri = uri;
 
-    return this.addMediaFromFile(file);
+    return await this.addMediaFromFile(file);
   }
 
 }

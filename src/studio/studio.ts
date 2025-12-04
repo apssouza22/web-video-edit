@@ -288,10 +288,8 @@ export class VideoStudio {
       console.error(`File not found in library: ${fileId}`);
       return [];
     }
-    const layers = this.mediaLoader.addMediaFromFile(file);
-    layers.forEach(layer => {
-      this.loadingPopup.startLoading(layer.id.toString(), file.name);
-    })
+    this.loadingPopup.startLoading(file.name, file.name);
+    const layers = await this.mediaLoader.addMediaFromFile(file);
     return layers;
   }
 
@@ -300,7 +298,11 @@ export class VideoStudio {
       progress: number,
       audioBuffer?: AudioBuffer | null
   ): void {
-    this.loadingPopup.updateProgress(layer.id?.toString() || layer.name || 'unknown', progress);
+    if (!layer?.id) {
+      console.error('Layer has no id');
+      return;
+    }
+    this.loadingPopup.updateProgress(layer.name, progress);
     if (progress === 100) {
       this.setSelectedLayer(layer);
       if (isMediaVideo(layer)) {

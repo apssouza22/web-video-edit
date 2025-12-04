@@ -1,43 +1,33 @@
 import {createFrameService, Frame} from '@/medialayer/frame';
 import {AbstractMedia} from './media-common';
-import {LayerFile, VideoMetadata} from './types';
-import {loadVideo, VideoStreaming} from "@/video";
+import {LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
+import {FrameSource} from '@/mediasource';
 
 export class VideoMedia extends AbstractMedia {
-  private videoStreaming: VideoStreaming | undefined = undefined;
+  private frameSource: FrameSource | undefined;
 
-  constructor(file: LayerFile, skipLoading: boolean = false) {
+  constructor(file: LayerFile, frameSource?: FrameSource) {
     super(file);
 
-    // Empty VideoLayers (split() requires this)
-    if (skipLoading) {
+    if (!frameSource) {
       return;
     }
 
-    loadVideo(file, this.onVideoLoadUpdateCallback.bind(this));
+    this.initializeFromFrameSource(frameSource);
   }
 
-  private onVideoLoadUpdateCallback(progress: number, metadata: VideoMetadata | null) {
-    this._loadUpdateListener(this, progress -1);
-    if (progress < 100 || !metadata?.frames) {
-      return;
-    }
-    this.totalTimeInMilSeconds = metadata.totalTimeInMilSeconds;
-    this._width = metadata.width;
-    this._height = metadata.height;
+  private initializeFromFrameSource(frameSource: FrameSource): void {
+    this.frameSource = frameSource;
+    this.totalTimeInMilSeconds = frameSource.metadata.totalTimeInMilSeconds;
+    this._width = frameSource.metadata.width;
+    this._height = frameSource.metadata.height;
 
     this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
-    this.videoStreaming = metadata.frames;
-
     this._renderer.setSize(this._width, this._height);
     this._ready = true;
-    this._loadUpdateListener(this, 100);
   }
 
-  /**
-   * Removes a video interval by removing frames from the media
-   */
   removeInterval(startTime: number, endTime: number): boolean {
     const success = this._frameService.removeInterval(startTime, endTime);
     if (success) {
@@ -51,7 +41,7 @@ export class VideoMedia extends AbstractMedia {
     if (!this._ready) {
       return;
     }
-    if (!this.videoStreaming) {
+    if (!this.frameSource) {
       return;
     }
     if (!this.isLayerVisible(currentTime)) {
@@ -78,7 +68,8 @@ export class VideoMedia extends AbstractMedia {
     if (!frame) {
       return null;
     }
-    return this.videoStreaming!.getFrameAtIndex(frame.index!);
+    const videoFrame = await this.frameSource?.getFrameAtIndex(frame.index!);
+    return videoFrame as VideoFrame | null;
   }
 
   async getFrame(currentTime: number): Promise<Frame | null> {
@@ -87,7 +78,7 @@ export class VideoMedia extends AbstractMedia {
       return null;
     }
     const frame = this._frameService.frames[index];
-    const videoFrame = await this.videoStreaming?.getFrameAtIndex(frame.index!);
+    const videoFrame = await this.frameSource?.getFrameAtIndex(frame.index!);
     if (!videoFrame) {
       return null;
     }
@@ -95,17 +86,17 @@ export class VideoMedia extends AbstractMedia {
   }
 
   cleanup(): void {
-    if (this.videoStreaming) {
-      this.videoStreaming.cleanup();
-      this.videoStreaming = undefined;
+    if (this.frameSource) {
+      this.frameSource.cleanup();
+      this.frameSource = undefined;
     }
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const videoMedia = new VideoMedia(this._file!, true);
+    const videoMedia = new VideoMedia(this._file!);
     videoMedia._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
     videoMedia._frameService.initializeFrames();
-    videoMedia.videoStreaming = this.videoStreaming;
+    videoMedia.frameSource = this.frameSource;
     return videoMedia;
   }
 }
