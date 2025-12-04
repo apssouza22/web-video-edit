@@ -121,6 +121,13 @@ export class CaptionCreateEvent extends BaseEvent {
   }
 }
 
+export class SpeechGeneratedEvent extends BaseEvent {
+  readonly name = 'speech:generated';
+  constructor(public audioBlob: Blob, public audioUrl: string) {
+    super();
+  }
+}
+
 type EventHandler<T extends BaseEvent> = (event: T) => void;
 type EventClass<T extends BaseEvent> = new (...args: any[]) => T;
 

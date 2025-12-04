@@ -1259,3 +1259,320 @@ a:visited {
   outline-offset: -2px;
   background: rgba(169, 225, 250, 0.1);
 }
+
+/* Speech Synthesis Tab Styles */
+#speech {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.speech-input-section {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.speech-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 100px;
+  padding: 14px;
+  padding-right: 50px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 8px;
+  color: rgb(220, 225, 235);
+  font-size: 14px;
+  font-family: 'JupiterSans', sans-serif;
+  resize: vertical;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.speech-textarea:focus {
+  outline: none;
+  border-color: rgb(169, 225, 250);
+}
+
+.speech-textarea::placeholder {
+  color: rgb(120, 128, 141);
+}
+
+.speech-submit-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 36px;
+  height: 36px;
+  background: rgb(80, 80, 85);
+  border: none;
+  border-radius: 50%;
+  color: rgb(192, 200, 213);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.speech-submit-btn:hover:not(:disabled) {
+  background: rgb(100, 100, 105);
+  color: rgb(220, 225, 235);
+}
+
+.speech-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.speech-model-section {
+  display: flex;
+}
+
+.speech-model-select {
+  flex: 1;
+  padding: 12px 14px;
+  background: rgb(43, 47, 51);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 8px;
+  color: rgb(192, 200, 213);
+  font-size: 14px;
+  font-family: 'JupiterSans', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23969eab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+.speech-model-select:focus {
+  outline: none;
+  border-color: rgb(169, 225, 250);
+}
+
+.speech-model-select::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: rgb(120, 128, 141);
+}
+
+.speech-settings-section {
+  background: rgba(43, 47, 51, 0.5);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.speech-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.speech-settings-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(192, 200, 213);
+}
+
+.speech-reset-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: rgb(150, 158, 171);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.speech-reset-btn:hover {
+  background: rgba(60, 60, 65, 0.8);
+  color: rgb(220, 225, 235);
+}
+
+.speech-setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.speech-setting-row:last-child {
+  margin-bottom: 0;
+}
+
+.speech-setting-label {
+  font-size: 12px;
+  color: rgb(150, 158, 171);
+}
+
+.speech-voice-select {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  color: rgb(220, 225, 235);
+  font-size: 13px;
+  font-family: 'JupiterSans', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23969eab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.speech-voice-select:focus {
+  outline: none;
+  border-color: rgb(169, 225, 250);
+}
+
+.speech-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.speech-speed-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, rgb(53, 53, 58) 0%, rgb(80, 80, 85) 100%);
+  outline: none;
+}
+
+.speech-speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(169, 225, 250);
+  cursor: pointer;
+  border: 2px solid rgb(37, 37, 40);
+  transition: background 0.2s;
+}
+
+.speech-speed-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(169, 225, 250);
+  cursor: pointer;
+  border: 2px solid rgb(37, 37, 40);
+  transition: background 0.2s;
+}
+
+.speech-speed-slider::-webkit-slider-thumb:hover {
+  background: rgb(139, 205, 240);
+}
+
+.speech-speed-slider::-moz-range-thumb:hover {
+  background: rgb(139, 205, 240);
+}
+
+.speech-speed-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-width: 70px;
+}
+
+.speech-speed-input {
+  width: 40px;
+  background: transparent;
+  border: none;
+  color: rgb(220, 225, 235);
+  font-size: 13px;
+  font-family: 'JupiterSans', monospace;
+  text-align: right;
+  outline: none;
+}
+
+.speech-speed-input::-webkit-inner-spin-button,
+.speech-speed-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.speech-speed-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.speech-speed-unit {
+  font-size: 12px;
+  color: rgb(150, 158, 171);
+}
+
+.speech-status-section {
+  min-height: 20px;
+}
+
+.speech-status-message {
+  font-size: 12px;
+  color: rgb(150, 158, 171);
+  transition: color 0.2s ease;
+}
+
+.speech-status-message.speech-status-error {
+  color: rgb(255, 100, 90);
+}
+
+.speech-status-message.speech-status-success {
+  color: rgb(100, 200, 100);
+}
+
+.speech-status-message.speech-status-info {
+  color: rgb(169, 225, 250);
+}
+
+.speech-actions-section {
+  display: flex;
+  gap: 10px;
+}
+
+.speech-download-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  color: rgb(192, 200, 213);
+  font-size: 13px;
+  font-family: 'JupiterSans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speech-download-btn:hover:not(:disabled) {
+  background: rgb(63, 63, 68);
+  color: rgb(220, 225, 235);
+  border-color: rgba(80, 80, 85, 0.8);
+}
+
+.speech-download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

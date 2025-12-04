@@ -12,7 +12,7 @@ Mock for the HuggingFace Transformers library used in the transcription module.
 
 ### Why is this needed?
 
-The `src/transcription/model.ts` medialibrary imports from:
+The `src/transcription/model-factory.ts` medialibrary imports from:
 ```javascript
 import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers";
 ```

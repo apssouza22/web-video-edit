@@ -100,7 +100,7 @@ flowchart TB
     subgraph s13["transcription/"]
         Transcription["transcription.ts<br>TranscriptionService"]
         TranscriptionView["transcription-view.ts"]
-        TranscriptionModel["model.ts"]
+        TranscriptionModel["model-factory.ts"]
         TranscriptionWorker["worker.ts"]
         TranscriptionTypes["types.ts"]
         TranscriptionIndex["index.ts"]

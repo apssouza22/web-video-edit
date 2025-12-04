@@ -22,10 +22,12 @@
   "license": "ISC",
   "dependencies": {
     "http-server": "^14.1.1",
+    "kokoro-js": "^1.2.1",
     "mediabunny": "^1.0.2"
   },
   "devDependencies": {
     "@huggingface/transformers": "^3.7.2",
+    "kokoro-js": "^1.2.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^24.3.0",
     "jest": "^29.7.0",

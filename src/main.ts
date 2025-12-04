@@ -2,9 +2,11 @@ import {popup, StudioState, TabController} from '@/common';
 import {initStudio} from "@/studio/initilizer.js";
 import {createMediaText} from "@/medialayer";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
+import {SpeechService} from "@/speech";
 
 const studio = initStudio();
 const tabController = new TabController('leftNav');
+const speechService = new SpeechService();
 
 // @ts-ignore
 window.studio = studio;
@@ -12,6 +14,8 @@ window.studio = studio;
 window.studioState = StudioState.getInstance();
 // @ts-ignore
 window.popup = popup;
+// @ts-ignore
+window.speechService = speechService;
 
 window.addEventListener('load', function () {
   initLeftNavControls();
