@@ -123,8 +123,8 @@ export class AudioMedia extends AbstractMedia {
       return;
     }
 
-    if (!this.started) {
-      this.source!.start(0, time / 1000);
+    if (!this.started && this.source) {
+      this.source.start(0, time / 1000);
       this.started = true;
     }
   }

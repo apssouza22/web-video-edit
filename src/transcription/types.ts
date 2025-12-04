@@ -73,16 +73,6 @@ export interface ChunkElementData {
   endTime: number;
 }
 
-// Callback function types
-export type RemoveIntervalCallback = (startTime: number, endTime: number) => void;
-export type SeekCallback = (timestamp: number) => void;
-
-// Service configuration
-export interface TranscriptionServiceConfig {
-  workerUrl?: string;
-  mockDataForLocalhost?: boolean;
-}
-
 // Audio processing types
 export interface AudioTransformResult {
   audio: Float32Array;

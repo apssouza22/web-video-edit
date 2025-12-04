@@ -30,7 +30,10 @@ export class AudioSource {
   }
 
   start(when: number, offset: number): void {
-    this.#source!.start(when, offset);
+    if (!this.#source) {
+      return;
+    }
+    this.#source.start(when, offset);
   }
 
   #handleVolume(volume?: number): void {

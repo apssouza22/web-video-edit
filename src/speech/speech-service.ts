@@ -2,13 +2,13 @@ import { SpeechView } from './speech-view.js';
 import { getEventBus, SpeechGeneratedEvent } from '@/common/event-bus';
 import type { SpeechConfig, SpeechResult, WorkerResponseMessage } from './types.js';
 import { DEFAULT_SPEED, DEFAULT_VOICES } from './types.js';
+import {TTSAudio} from "@/speech/tts-audio";
 
 export class SpeechService {
   #worker: Worker;
   #view: SpeechView;
   #eventBus = getEventBus();
-  #currentAudioUrl: string | null = null;
-  #audioElement: HTMLAudioElement | null = null;
+  #currentAudio: TTSAudio | null = null;
 
   constructor() {
     this.#worker = new Worker(new URL('./worker.js', import.meta.url), {
@@ -16,8 +16,6 @@ export class SpeechService {
     });
     const eventListeners = {
       generateSpeech: this.generateSpeech.bind(this),
-      playAudio: this.playAudio.bind(this),
-      stopAudio: this.stopAudio.bind(this),
       downloadAudio: this.downloadAudio.bind(this)
     };
     this.#view = new SpeechView(eventListeners);
@@ -45,18 +43,10 @@ export class SpeechService {
           break;
 
         case 'initiate':
-          this.#view.updateProgress({
-            status: 'loading',
-            message: 'Initiating model...',
-          });
           break;
 
         case 'ready':
           console.log('Speech model ready');
-          this.#view.updateProgress({
-            status: 'complete',
-            message: 'Model loaded!',
-          });
           break;
 
         case 'error':
@@ -84,20 +74,18 @@ export class SpeechService {
   #onSpeechComplete(result: SpeechResult): void {
     console.log('Speech generation complete');
 
-    this.#cleanupCurrentAudio();
+    this.#currentAudio?.cleanupCurrentAudio();
 
     const audioBlob = this.#createWavBlob(result.audioData, result.sampleRate);
-    this.#currentAudioUrl = URL.createObjectURL(audioBlob);
+    this.#currentAudio = new TTSAudio(audioBlob);
 
     this.#view.updateProgress({
       status: 'complete',
       message: 'Speech generated successfully!',
     });
-    this.#view.enableDownload(this.#currentAudioUrl);
+    this.#view.enableDownload();
 
-    this.#eventBus.emit(new SpeechGeneratedEvent(audioBlob, this.#currentAudioUrl));
-
-    this.playAudio();
+    this.#eventBus.emit(new SpeechGeneratedEvent(audioBlob));
   }
 
   #createWavBlob(audioData: Float32Array, sampleRate: number): Blob {
@@ -168,53 +156,9 @@ export class SpeechService {
     });
   }
 
-  playAudio(): void {
-    if (!this.#currentAudioUrl) return;
-
-    if (this.#audioElement) {
-      this.#audioElement.pause();
-    }
-
-    this.#audioElement = new Audio(this.#currentAudioUrl);
-    this.#audioElement.play().catch((error) => {
-      console.error('Audio playback failed:', error);
-    });
-  }
-
-  stopAudio(): void {
-    if (this.#audioElement) {
-      this.#audioElement.pause();
-      this.#audioElement.currentTime = 0;
-    }
-  }
-
   downloadAudio(filename: string = 'speech.wav'): void {
-    if (!this.#currentAudioUrl) return;
-
-    const link = document.createElement('a');
-    link.href = this.#currentAudioUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (!this.#currentAudio) return;
+    this.#currentAudio.downloadAudio(filename);
   }
 
-  getDefaultVoice(): string {
-    return DEFAULT_VOICES[0].id;
-  }
-
-  getDefaultSpeed(): number {
-    return DEFAULT_SPEED;
-  }
-
-  #cleanupCurrentAudio(): void {
-    if (this.#currentAudioUrl) {
-      URL.revokeObjectURL(this.#currentAudioUrl);
-      this.#currentAudioUrl = null;
-    }
-    if (this.#audioElement) {
-      this.#audioElement.pause();
-      this.#audioElement = null;
-    }
-  }
 }

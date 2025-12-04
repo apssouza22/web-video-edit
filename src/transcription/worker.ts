@@ -25,7 +25,7 @@ self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
     }
     
     if (isLoadModelMessage(message)) {
-        console.log("Loading model...");
+        console.log("Loading transcription model...");
         try {
             await PipelineFactory.getInstance((data) => {
                 self.postMessage(data);

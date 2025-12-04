@@ -9,12 +9,12 @@ import {
   TranscriptionRemoveIntervalEvent,
   TranscriptionSeekEvent,
   UiSpeedChangeEvent,
-  CaptionCreateEvent
+  CaptionCreateEvent, SpeechGeneratedEvent
 } from '@/common/event-bus';
 import {VideoStudio} from "@/studio/studio";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
-import {createMediaCaption} from "@/medialayer";
+import {createMediaCaption, createMediaFromFile} from "@/medialayer";
 
 export class StudioEventHandler {
   #studio: VideoStudio;
@@ -119,6 +119,12 @@ export class StudioEventHandler {
         const captionMedia = createMediaCaption(event.transcriptionData.chunks);
         this.#studio.addLayer(captionMedia);
         this.#studio.setSelectedLayer(captionMedia);
+      })
+    );
+
+    this.#eventUnsubscribers.push(
+      this.#eventBus.subscribe(SpeechGeneratedEvent, (event) => {
+        createMediaFromFile(event.audioBlob as File);
       })
     );
   }

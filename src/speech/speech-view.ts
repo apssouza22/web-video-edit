@@ -3,8 +3,6 @@ import {DEFAULT_MODELS, DEFAULT_SPEED, DEFAULT_VOICES, MAX_SPEED, MIN_SPEED,} fr
 
 type EventListeners = {
   downloadAudio: (filename?: string) => void;
-  playAudio: () => void;
-  stopAudio: () => void;
   generateSpeech: (text: string, config: SpeechConfig) => void
 }
 
@@ -241,7 +239,7 @@ export class SpeechView {
     }
   }
 
-  enableDownload(audioUrl: string): void {
+  enableDownload(): void {
     if (this.#downloadButton) {
       this.#downloadButton.disabled = false;
     }

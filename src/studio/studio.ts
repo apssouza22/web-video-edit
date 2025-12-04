@@ -10,11 +10,11 @@ import {exportToJson} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
-import {ESRenderingContext2D} from "@/common/render-2d";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 import {createVisionService, VisionService} from "@/vision";
 import {MediaLibrary} from "@/medialibrary";
+import {createSpeechService, SpeechService} from "@/speech";
 
 /**
  * Update data structure for media transformations
@@ -44,6 +44,7 @@ export class VideoStudio {
   studioState: StudioState;
   mediaLibrary: MediaLibrary;
   private visionService: VisionService;
+  private speachService: SpeechService;
 
   constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
     this.mediaService = mediaService;
@@ -59,6 +60,7 @@ export class VideoStudio {
     this.videoExporter = createVideoMuxer();
     this.transcriptionManager = createTranscriptionService();
     this.visionService = createVisionService();
+    this.speachService = createSpeechService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
     this.mediaLibrary = mediaLibrary;
@@ -75,6 +77,7 @@ export class VideoStudio {
     this.setUpJsonExport();
     this.transcriptionManager.loadModel();
     this.visionService.loadModel();
+    this.speachService.loadModel();
     this.speedControlManager.init();
   }
 

@@ -1,12 +1,5 @@
-import { TranscriptionView } from './transcription-view.js';
-import type {
-  WorkerResponseMessage,
-  RemoveIntervalCallback,
-  SeekCallback,
-  TranscriptionResult,
-  TranscriptionServiceConfig,
-  AudioTransformResult
-} from './types.js';
+import {TranscriptionView} from './transcription-view.js';
+import type {TranscriptionResult, WorkerResponseMessage} from './types.js';
 import {
   getEventBus,
   TranscriptionCompletedEvent,
@@ -19,7 +12,7 @@ export class TranscriptionService {
   private transcriptionView: TranscriptionView;
   #eventBus = getEventBus();
 
-  constructor(config?: TranscriptionServiceConfig) {
+  constructor() {
     this.worker = new Worker(new URL("./worker.js", import.meta.url), {
       type: "module",
     });
@@ -42,10 +35,10 @@ export class TranscriptionService {
           break;
 
         case "initiate":
-          console.log("Initiating model loading");
           break;
+
         case "ready":
-          console.log("Model ready");
+          console.log("Transcription model ready");
           break;
         case "error":
           const errorMessage = message.data && typeof message.data === 'object' && 'message' in message.data 

@@ -123,7 +123,7 @@ export class CaptionCreateEvent extends BaseEvent {
 
 export class SpeechGeneratedEvent extends BaseEvent {
   readonly name = 'speech:generated';
-  constructor(public audioBlob: Blob, public audioUrl: string) {
+  constructor(public audioBlob: Blob) {
     super();
   }
 }
