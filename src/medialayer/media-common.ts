@@ -21,7 +21,6 @@ export abstract class AbstractMedia implements MediaLayer {
   protected _file?: LayerFile;
   protected _name: string;
   protected _id: string;
-  protected _uri?: string;
   protected _ready: boolean;
   protected _width: number;
   protected _height: number;
@@ -38,10 +37,6 @@ export abstract class AbstractMedia implements MediaLayer {
     this._file = file;
     this._name = file?.name || 'Layer';
     this._id = this._name + "-" + crypto.randomUUID();
-    
-    if (file?.uri) {
-      this._uri = file.uri;
-    }
     
     this._ready = false;
     this.totalTimeInMilSeconds = 1;
@@ -66,10 +61,6 @@ export abstract class AbstractMedia implements MediaLayer {
 
   get name(): string {
     return this._name;
-  }
-
-  get uri(): string | undefined {
-    return this._uri;
   }
 
   get ready(): boolean {
@@ -155,7 +146,6 @@ export abstract class AbstractMedia implements MediaLayer {
       name: this._name,
       startTime: this.startTime,
       total_time: this.totalTimeInMilSeconds,
-      uri: this._uri,
       type: this.constructor.name
     };
   }

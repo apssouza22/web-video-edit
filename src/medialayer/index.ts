@@ -21,13 +21,19 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
   const layers: AbstractMedia[] = [];
   
   if (file.type.indexOf('video') >= 0) {
-    const frameSource = await MediaLoader.loadVideoMedia(file, (progress) => {
-      notifyProgress(layers, progress -1);
-    });
+    const [frameSource, audioFrameSource] = await Promise.all([
+      MediaLoader.loadVideoMedia(file, (progress) => {
+        notifyProgress(layers, progress - 1);
+      }),
+      MediaLoader.loadAudioMedia(file)
+    ]);
+    
     const videoMedia = new VideoMedia(file, frameSource);
-    layers.push(new AudioMedia(file));
+    const audioMedia = new AudioMedia(file, audioFrameSource);
+    layers.push(audioMedia);
     layers.push(videoMedia);
     onLoadUpdateListener(videoMedia, 100);
+    onLoadUpdateListener(audioMedia, 100, audioFrameSource.audioBuffer);
   }
   
   if (file.type.indexOf('image') >= 0) {
@@ -43,7 +49,10 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
   }
   
   if (file.type.indexOf('audio') >= 0) {
-    layers.push(new AudioMedia(file));
+    const audioFrameSource = await MediaLoader.loadAudioMedia(file);
+    const audioMedia = new AudioMedia(file, audioFrameSource);
+    layers.push(audioMedia);
+    onLoadUpdateListener(audioMedia, 100, audioFrameSource.audioBuffer);
   }
   
   layers.forEach(layer => {

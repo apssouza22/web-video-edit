@@ -427,9 +427,7 @@ export class UserMediaRecordingService {
         type: videoBlob.type
       });
 
-      const file = new File([videoBlob], filename, {type: videoBlob.type});
-      (file as any).uri = videoUrl;
-      return file;
+      return  new File([videoBlob], filename, {type: videoBlob.type});
     } catch (error) {
       console.error('Error adding video to medias:', error);
       throw error;

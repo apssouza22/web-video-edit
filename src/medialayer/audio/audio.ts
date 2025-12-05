@@ -1,12 +1,12 @@
-import {AbstractMedia} from '../media-common';
-import {AudioLoader} from './audio-loader';
+import {AbstractMedia} from '@/medialayer/media-common';
 import {AudioSource} from '@/medialayer/audio/audio-source';
 import type {ESAudioContext, LayerFile} from "../types";
 import {AudioSplitHandler} from "@/medialayer/audio/AudioSplitHandler";
 import {AudioCutter} from "@/medialayer/audio/audio-cutter";
+import {AudioFrameSource} from "@/mediasource";
 
 export class AudioMedia extends AbstractMedia {
-  private audioLoader: AudioLoader;
+  private audioFrameSource: AudioFrameSource | undefined;
   private source: AudioSource | null = null;
   private currentSpeed: number = 1.0;
   private lastAppliedSpeed: number = 1.0;
@@ -15,44 +15,29 @@ export class AudioMedia extends AbstractMedia {
   private audioSplitHandler: AudioSplitHandler;
   private audioCutter: AudioCutter;
 
-  constructor(file: LayerFile, skipLoading: boolean = false) {
+  constructor(file: LayerFile, audioFrameSource?: AudioFrameSource) {
     super(file);
-    this.audioLoader = new AudioLoader();
     this.audioSplitHandler = new AudioSplitHandler();
     this.audioCutter = new AudioCutter();
-    if (skipLoading) {
+
+    if (!audioFrameSource) {
       return;
     }
-    this.#loadAudioFile(file);
+
+    this.initializeFromAudioSource(audioFrameSource);
   }
 
-  /**
-   * Loads an audio file using the AudioLoader
-   * @param file - The audio file to load
-   */
-  async #loadAudioFile(file: File): Promise<void> {
-    try {
-      const audioBuffer = await this.audioLoader.loadAudioFile(file);
-      this.#onAudioLoadSuccess(audioBuffer);
-    } catch (error) {
-      console.error(`Failed to load audio layer: ${this.name}`, error);
-      // TODO: Handle error appropriately
-    }
-  }
-
-  /**
-   * Handles successful audio loading
-   * @param audioBuffer - The loaded audio buffer
-   */
-  #onAudioLoadSuccess(audioBuffer: AudioBuffer): void {
-    this._audioBuffer = audioBuffer;
-    this.originalTotalTimeInMilSeconds = this._audioBuffer.duration * 1000;
+  private initializeFromAudioSource(audioFrameSource: AudioFrameSource): void {
+    this.audioFrameSource = audioFrameSource;
+    this._audioBuffer = audioFrameSource.audioBuffer;
+    this.originalTotalTimeInMilSeconds = audioFrameSource.metadata.totalTimeInMilSeconds;
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds;
+    
     if (this.totalTimeInMilSeconds === 0) {
       console.warn("Failed to load audio media: " + this._name + ". Audio buffer duration is 0.");
     }
+    
     this._ready = true;
-    this._loadUpdateListener(this, 100, audioBuffer);
   }
 
   updateName(name: string): void {
@@ -66,13 +51,10 @@ export class AudioMedia extends AbstractMedia {
     }
   }
 
-  /**
-   * Disposes of the audio media resources
-   */
   dispose(): void {
     this.disconnect();
-    if (this.audioLoader) {
-      this.audioLoader.dispose();
+    if (this.audioFrameSource) {
+      this.audioFrameSource.cleanup();
     }
   }
 
@@ -85,7 +67,7 @@ export class AudioMedia extends AbstractMedia {
 
   setSpeed(speed: number): void {
     super.setSpeed(speed);
-    this.#updateTotalTimeForSpeed();
+    this.updateTotalTimeForSpeed();
   }
 
   connectAudioSource(playerAudioContext: ESAudioContext): void {
@@ -147,19 +129,20 @@ export class AudioMedia extends AbstractMedia {
     this._audioBuffer = newBuffer;
     this.originalTotalTimeInMilSeconds = newBuffer.duration * 1000;
     this.currentSpeed = this._speedController.getSpeed();
-    this.#updateTotalTimeForSpeed();
+    this.updateTotalTimeForSpeed();
     this.connectAudioSource(this._playerAudioContext!);
   }
 
-  #updateTotalTimeForSpeed(): void {
+  private updateTotalTimeForSpeed(): void {
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds / this._speedController.getSpeed();
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const audioLayer = new AudioMedia(this._file!, true);
+    const audioLayer = new AudioMedia(this._file!);
     audioLayer._playerAudioContext = this._playerAudioContext;
     audioLayer._audioBuffer = this._audioBuffer;
+    audioLayer.audioFrameSource = this.audioFrameSource;
     return audioLayer as AbstractMedia;
   }
 
@@ -172,7 +155,7 @@ export class AudioMedia extends AbstractMedia {
       return;
     }
 
-    const layerRelativeTime = (splitTime - this.startTime) / 1000; // Convert to seconds
+    const layerRelativeTime = (splitTime - this.startTime) / 1000;
 
     if (layerRelativeTime <= 0 || layerRelativeTime >= this._audioBuffer.duration) {
       console.error('Split time is outside audio bounds');
