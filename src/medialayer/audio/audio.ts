@@ -15,8 +15,8 @@ export class AudioMedia extends AbstractMedia {
   private audioSplitHandler: AudioSplitHandler;
   private audioCutter: AudioCutter;
 
-  constructor(file: LayerFile, audioFrameSource?: AudioFrameSource) {
-    super(file);
+  constructor(name: string, audioFrameSource?: AudioFrameSource) {
+    super(name);
     this.audioSplitHandler = new AudioSplitHandler();
     this.audioCutter = new AudioCutter();
 
@@ -139,7 +139,7 @@ export class AudioMedia extends AbstractMedia {
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const audioLayer = new AudioMedia(this._file!);
+    const audioLayer = new AudioMedia(this.name);
     audioLayer._playerAudioContext = this._playerAudioContext;
     audioLayer._audioBuffer = this._audioBuffer;
     audioLayer.audioFrameSource = this.audioFrameSource;

@@ -2,7 +2,7 @@ import {ESAudioContext} from "@/medialayer";
 import {PitchPreservationProcessor} from "@/medialayer/audio/pitch-preservation-processor";
 
 export class AudioSource {
-  #audioContext: ESAudioContext | null = null;
+  #audioContext: ESAudioContext;
   #source: AudioBufferSourceNode | null = null;
   private pitchPreservationProcessor: PitchPreservationProcessor;
 

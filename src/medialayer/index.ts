@@ -28,8 +28,8 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
       MediaLoader.loadAudioMedia(file)
     ]);
     
-    const videoMedia = new VideoMedia(file, frameSource);
-    const audioMedia = new AudioMedia(file, audioFrameSource);
+    const videoMedia = new VideoMedia(file.name, frameSource);
+    const audioMedia = new AudioMedia(file.name, audioFrameSource);
     layers.push(audioMedia);
     layers.push(videoMedia);
     onLoadUpdateListener(videoMedia, 100);
@@ -43,14 +43,14 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
         onLoadUpdateListener(layers[0], 100);
       }
     });
-    const imageMedia = new ImageMedia(file, frameSource);
+    const imageMedia = new ImageMedia(file.name, frameSource);
     layers.push(imageMedia);
     onLoadUpdateListener(imageMedia, 100);
   }
   
   if (file.type.indexOf('audio') >= 0) {
     const audioFrameSource = await MediaLoader.loadAudioMedia(file);
-    const audioMedia = new AudioMedia(file, audioFrameSource);
+    const audioMedia = new AudioMedia(file.name, audioFrameSource);
     layers.push(audioMedia);
     onLoadUpdateListener(audioMedia, 100, audioFrameSource.audioBuffer);
   }

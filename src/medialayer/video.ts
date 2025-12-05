@@ -1,14 +1,13 @@
 import {createFrameService, Frame} from '@/medialayer/frame';
 import {AbstractMedia} from './media-common';
-import {LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 import {FrameSource} from '@/mediasource';
 
 export class VideoMedia extends AbstractMedia {
   private frameSource: FrameSource | undefined;
 
-  constructor(file: LayerFile, frameSource?: FrameSource) {
-    super(file);
+  constructor(name: string, frameSource?: FrameSource) {
+    super(name);
 
     if (!frameSource) {
       return;
@@ -93,7 +92,7 @@ export class VideoMedia extends AbstractMedia {
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const videoMedia = new VideoMedia(this._file!);
+    const videoMedia = new VideoMedia(this.name);
     videoMedia._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
     videoMedia._frameService.initializeFrames();
     videoMedia.frameSource = this.frameSource;

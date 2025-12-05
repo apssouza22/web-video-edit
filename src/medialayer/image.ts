@@ -1,5 +1,4 @@
 import {AbstractMedia, FlexibleMedia} from './media-common';
-import {LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 import {StudioState} from "@/common";
 import {FrameSource} from '@/mediasource';
@@ -7,8 +6,8 @@ import {FrameSource} from '@/mediasource';
 export class ImageMedia extends FlexibleMedia {
   private frameSource: FrameSource;
 
-  constructor(file: LayerFile, frameSource: FrameSource) {
-    super(file);
+  constructor(name: string, frameSource: FrameSource) {
+    super(name);
 
     this.frameSource = frameSource;
     this.initializeFromFrameSource(frameSource);
@@ -50,7 +49,7 @@ export class ImageMedia extends FlexibleMedia {
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    const imageMedia = new ImageMedia(this._file!, this.frameSource);
+    const imageMedia = new ImageMedia(this.name, this.frameSource);
     imageMedia.frameSource = this.frameSource;
     imageMedia._width = this._width;
     imageMedia._height = this._height;

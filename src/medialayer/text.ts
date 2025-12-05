@@ -9,12 +9,7 @@ export class TextMedia extends FlexibleMedia {
   private _fontSize = 30;
 
   constructor(text: string) {
-    // @ts-ignore
-    const fakeFile: LayerFile = {
-      name: text
-    };
-    
-    super(fakeFile);
+    super(text);
     this._color = "#ffffff";
     this._shadow = true;
     this._ready = true;

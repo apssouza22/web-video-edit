@@ -33,9 +33,8 @@ export abstract class AbstractMedia implements MediaLayer {
   public totalTimeInMilSeconds: number;
   public startTime: number;
 
-  constructor(file?: LayerFile) {
-    this._file = file;
-    this._name = file?.name || 'Layer';
+  protected constructor(name: string) {
+    this._name = name;
     this._id = this._name + "-" + crypto.randomUUID();
     
     this._ready = false;
@@ -343,8 +342,8 @@ export abstract class AbstractMedia implements MediaLayer {
  * Non-video medias that can be resized and have their total time adjusted.
  */
 export abstract class FlexibleMedia extends AbstractMedia {
-  constructor(file?: LayerFile) {
-    super(file);
+  protected constructor(name: string) {
+    super(name);
     this.totalTimeInMilSeconds = 2 * 1000;
     this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
   }
