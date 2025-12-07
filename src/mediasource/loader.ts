@@ -1,6 +1,9 @@
 import {loadVideo} from "@/video";
 import {LayerFile, VideoMetadata} from "@/medialayer/types";
-import {AudioFrameSource, FrameSource, FrameSourceMetadata, VideoFrameSource, ImageFrameSource, AudioBufferSource} from "@/mediasource/frame-source";
+import {AudioFrameSource, FrameSource, FrameSourceMetadata} from "./types";
+import {VideoFrameSource} from "./video-frame-source";
+import {ImageFrameSource} from "./image-frame-source";
+import {AudioBufferSource} from "./audio-frame-source";
 import {AudioContext} from "@/constants";
 
 export type LoadProgressCallback = (progress: number) => void;

@@ -27,8 +27,7 @@ export class FrameService {
 
   initializeFrames(): void {
     for (let i = 0; i < this.totalTimeInSeconds * fps; ++i) {
-      const f = new Frame(null, 0, 0, 1, 0, false);
-      f.index = i;
+      const f = new Frame(null, 0, 0, 1, 0, false, i);
       this.frames.push(f);
     }
     this.frames[0].anchor = true; // set first frame as anchor

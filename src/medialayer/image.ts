@@ -48,6 +48,7 @@ export class ImageMedia extends FlexibleMedia {
     this.updateRenderCache(currentTime);
   }
 
+
   protected _createCloneInstance(): AbstractMedia {
     const imageMedia = new ImageMedia(this.name, this.frameSource);
     imageMedia.frameSource = this.frameSource;

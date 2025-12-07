@@ -72,16 +72,16 @@ export class VideoMedia extends AbstractMedia {
   }
 
   async getFrame(currentTime: number): Promise<Frame | null> {
-    const index = this._frameService.getIndex(currentTime, this.startTime);
-    if (index < 0 || index >= this._frameService.getLength()) {
+    const frame = this._frameService.getFrame(currentTime, this.startTime);
+    if (!frame || frame.index === undefined) {
       return null;
     }
-    const frame = this._frameService.frames[index];
-    const videoFrame = await this.frameSource?.getFrameAtIndex(frame.index!);
+    const videoFrame = await this.frameSource?.getFrameAtIndex(frame.index);
     if (!videoFrame) {
       return null;
     }
-    return new Frame(videoFrame, frame.x, frame.y, frame.scale, frame.rotation, frame.anchor);
+    frame.videoData = videoFrame;
+    return frame;
   }
 
   cleanup(): void {

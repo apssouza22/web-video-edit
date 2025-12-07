@@ -11,7 +11,7 @@ export class Frame implements FrameTransform {
     public rotation: number;
     public anchor: boolean;
     public videoData: VideoData;
-    public index?: number;
+    public index: number;
 
     /**
      * Creates a new Frame instance
@@ -22,7 +22,8 @@ export class Frame implements FrameTransform {
         y: number = 0,
         scale: number = 1,
         rotation: number = 0,
-        anchor: boolean = false
+        anchor: boolean = false,
+        index: number
     ) {
         this.x = x;
         this.y = y;
@@ -30,6 +31,7 @@ export class Frame implements FrameTransform {
         this.rotation = rotation;
         this.anchor = anchor;
         this.videoData = frame;
+        this.index = index;
     }
 
     /**
@@ -43,6 +45,7 @@ export class Frame implements FrameTransform {
             array[2] || 1,    // scale
             array[3] || 0,    // rotation
             Boolean(array[4]), // anchor
+            0
         );
     }
 
@@ -56,6 +59,7 @@ export class Frame implements FrameTransform {
         array[2] = this.scale;
         array[3] = this.rotation;
         array[4] = this.anchor ? 1 : 0;
+        array[5] = this.index;
         return array;
     }
 
@@ -81,6 +85,7 @@ export class Frame implements FrameTransform {
             this.scale,
             this.rotation,
             this.anchor,
+            this.index
         );
     }
 
@@ -98,6 +103,7 @@ export class Frame implements FrameTransform {
             this.#lerp(this.scale, other.scale, weight),
             this.#lerp(this.rotation, other.rotation, weight),
             this.anchor, // Anchor property doesn't interpolate
+            this.index
         );
     }
 
