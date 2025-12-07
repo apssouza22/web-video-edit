@@ -6,7 +6,7 @@ import {AbstractMedia} from './media-common';
 import {TextMedia} from "./text";
 import {CaptionMedia, TranscriptionChunk} from "./caption";
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
-import {MediaLoader} from "@/mediasource";
+import {MediaLoader} from "@/mediaclip/mediasource";
 
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';

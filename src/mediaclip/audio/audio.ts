@@ -3,7 +3,7 @@ import {AudioSource} from '@/mediaclip/audio/audio-source';
 import type {ESAudioContext} from "../types";
 import {AudioSplitHandler} from "@/mediaclip/audio/AudioSplitHandler";
 import {AudioCutter} from "@/mediaclip/audio/audio-cutter";
-import {AudioFrameSource} from "@/mediasource";
+import {AudioFrameSource} from "@/mediaclip/mediasource";
 
 export class AudioMedia extends AbstractMedia {
   private audioFrameSource: AudioFrameSource | undefined;

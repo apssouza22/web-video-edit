@@ -1,7 +1,7 @@
 import {AbstractMedia, FlexibleMedia} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {StudioState} from "@/common";
-import {FrameSource} from '@/mediasource';
+import {FrameSource} from '@/mediaclip/mediasource';
 
 export class ImageMedia extends FlexibleMedia {
   private frameSource: FrameSource;

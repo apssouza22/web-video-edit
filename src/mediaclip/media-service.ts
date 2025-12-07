@@ -49,15 +49,4 @@ export class MediaService {
       console.error('Error removing video interval:', error);
     }
   }
-
-  clone(layer: AbstractMedia): AbstractMedia | null {
-    const newLayer = layer.clone();
-    if (!newLayer) {
-      return null;
-    }
-
-
-    return newLayer;
-  }
-
 }
