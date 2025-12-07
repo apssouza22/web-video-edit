@@ -31,7 +31,7 @@ Detailed package/domain organization:
 - `src/video/` - Video demuxing and muxing
 - `src/timeline/` - Timeline management and rendering
 - `src/studio/` - Main studio orchestration
-- `src/medialayer/` - Media layer abstractions
+- `src/mediaclip/` - Media layer abstractions
 - `src/canvas/` - Canvas rendering and player
 - `src/record/` - Screen recording functionality
 - `src/transcription/` - AI-powered transcription
@@ -54,7 +54,7 @@ Complete video processing flow:
 - Video export (MediaRecorder, WebCodecs)
 
 ### 5. [Timeline & Layers](./05-timeline-layers.md)
-Timeline system and medialayer layer architecture:
+Timeline system and mediaclip layer architecture:
 - Timeline rendering and interaction
 - Layer types (Video, Audio, Image, Text)
 - Layer transformations and updates
@@ -88,7 +88,7 @@ Factories are used to create complex objects:
 ### 3. Single Responsibility
 Each module has a clear, focused responsibility:
 - `VideoDemuxService` handles only video demuxing
-- `MediaService` manages medialayer operations (split, clone, etc.)
+- `MediaService` manages mediaclip operations (split, clone, etc.)
 - `Timeline` handles timeline rendering and interaction
 
 ### 4. Browser-First
@@ -108,12 +108,12 @@ The codebase is migrating from JavaScript to TypeScript:
 ### VideoStudio
 The main orchestrator that:
 - Initializes all subsystems
-- Manages medialayer layers
+- Manages mediaclip layers
 - Coordinates player and timeline
 - Handles aspect ratio and settings
 
 ### VideoCanvas (Player)
-Renders medialayer layers on canvas:
+Renders mediaclip layers on canvas:
 - Manages playback state
 - Synchronizes audio and video
 - Handles layer transformations
@@ -121,7 +121,7 @@ Renders medialayer layers on canvas:
 
 ### Timeline
 Visual timeline interface:
-- Displays medialayer layers
+- Displays mediaclip layers
 - Handles drag and drop
 - Manages time markers
 - Supports zoom and scroll

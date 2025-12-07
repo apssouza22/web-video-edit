@@ -1,6 +1,6 @@
 import type {ESRenderingContext2D} from '@/common/render-2d';
-import type {Frame} from '@/frame';
-import {MediaLayer} from "@/medialayer";
+import type {Frame} from '@/mediaclip/frame';
+import {MediaLayer} from "@/mediaclip";
 
 /**
  * Layer change interface for transformations

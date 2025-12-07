@@ -1,4 +1,4 @@
-import {ESAudioContext} from "@/medialayer/media-common";
+import {ESAudioContext} from "@/mediaclip/media-common";
 
 /**
  * AudioCutter provides audio cutting functionality

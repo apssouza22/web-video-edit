@@ -1,4 +1,4 @@
-import {AbstractMedia, addElementToBackground, isMediaAudio} from '@/medialayer';
+import {AbstractMedia, addElementToBackground, isMediaAudio} from '@/mediaclip';
 import {StudioState,getSupportedMimeTypes, fixWebmDuration} from '@/common';
 
 type ProgressCallback = (progress: number) => void;

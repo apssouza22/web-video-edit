@@ -1,6 +1,6 @@
 import {TimelineLayer} from '../timeline-layer';
 import {VideoThumbnailGenerator} from '../video-thumbnail-generator';
-import type {VideoMedia} from '@/medialayer/video';
+import type {VideoMedia} from '@/mediaclip/video';
 
 export class VideoTimelineLayer extends TimelineLayer {
   #thumbnailsInitialized: boolean = false;

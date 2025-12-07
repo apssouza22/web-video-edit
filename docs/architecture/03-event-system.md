@@ -40,7 +40,7 @@ The application uses a centralized EventBus for decoupled communication between 
 **Payload**:
 ```typescript
 {
-  layer: AbstractMedia  // The transformed medialayer layer
+  layer: AbstractMedia  // The transformed mediaclip layer
 }
 ```
 
@@ -95,7 +95,7 @@ The application uses a centralized EventBus for decoupled communication between 
 
 **Usage**:
 - Synchronize canvas layers with timeline
-- Update medialayer collections
+- Update mediaclip collections
 - Recalculate total timeline duration
 - Update layer rendering order
 
@@ -160,7 +160,7 @@ The application uses a centralized EventBus for decoupled communication between 
 ```
 
 **Usage**:
-- Update medialayer playback speed
+- Update mediaclip playback speed
 - Apply pitch preservation to audio
 - Recalculate frame timings
 - Update timeline visualization
@@ -192,11 +192,11 @@ The application uses a centralized EventBus for decoupled communication between 
 ---
 
 ### 9. MediaLoadUpdateEvent
-**Event Name**: `medialayer:loadUpdate`  
+**Event Name**: `mediaclip:loadUpdate`  
 **Published By**: `MediaLoader`, `MediaService`  
 **Subscribers**: `Studio`, `LoadingPopup`
 
-**Purpose**: Report progress during medialayer loading/processing
+**Purpose**: Report progress during mediaclip loading/processing
 
 **Payload**:
 ```typescript
@@ -335,9 +335,9 @@ sequenceDiagram
 
 ### MediaService
 **Subscribes To**:
-- `TimelineLayerUpdateEvent` → Track medialayer changes
+- `TimelineLayerUpdateEvent` → Track mediaclip changes
 - `TranscriptionRemoveIntervalEvent` → Remove audio/video intervals
-- `UiSpeedChangeEvent` → Update medialayer speed
+- `UiSpeedChangeEvent` → Update mediaclip speed
 
 **Publishes**:
 - `MediaLoadUpdateEvent` → Loading progress updates

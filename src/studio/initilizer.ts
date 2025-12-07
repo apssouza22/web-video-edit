@@ -3,7 +3,7 @@ import {StudioEventHandler} from "@/studio/studio-event-handler";
 import {initScreenRecording} from "@/record/controls";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
-import {createMediaService} from "@/medialayer";
+import {createMediaService} from "@/mediaclip";
 import {StudioControls} from "@/studio/controls";
 import {getMediaLibrary} from "@/medialibrary";
 

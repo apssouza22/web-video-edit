@@ -1,4 +1,4 @@
-import {VideoData} from "@/medialayer/frame";
+import {VideoData} from "@/mediaclip/frame";
 import {FrameSource, FrameSourceMetadata} from "./types";
 
 export class ImageFrameSource implements FrameSource {

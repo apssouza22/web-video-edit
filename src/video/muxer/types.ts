@@ -1,5 +1,5 @@
 import type {ESRenderingContext2D} from '@/common/render-2d';
-import {MediaLayer} from "@/medialayer";
+import {MediaLayer} from "@/mediaclip";
 
 export type ESAudioContext = AudioContext | OfflineAudioContext;
 

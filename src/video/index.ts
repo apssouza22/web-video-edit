@@ -1,5 +1,5 @@
-import {VideoLoader} from "@/medialayer/video-loader";
-import {LayerFile, VideoMetadata} from "@/medialayer/types";
+import {VideoLoader} from "@/mediaclip/video-loader";
+import {LayerFile, VideoMetadata} from "@/mediaclip/types";
 
 export { VideoStreaming } from './demux/video-streaming';
 

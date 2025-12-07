@@ -5,7 +5,7 @@ import {TimelineLayerRender} from './tllayer-render';
 import {dpr} from '@/constants';
 import type {LayerUpdateKind, MediaInterface} from './types';
 import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
-import {AbstractMedia} from "@/medialayer";
+import {AbstractMedia} from "@/mediaclip";
 import {renderLineMarker} from "@/timeline/line-marker";
 
 /**

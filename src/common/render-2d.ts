@@ -1,5 +1,5 @@
 import {dpr} from '@/constants';
-import {Frame} from "@/medialayer/frame";
+import {Frame} from "@/mediaclip/frame";
 
 export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 export type CanvasElement = HTMLCanvasElement | OffscreenCanvas;

@@ -1,24 +1,14 @@
-import { createFrameService } from '@/medialayer/frame';
-import { FrameService } from '@/medialayer/frame';
-import { Frame } from '@/medialayer/frame';
+import {createFrameService, Frame, FrameService} from '@/mediaclip/frame';
 import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
-import { SpeedController } from './speed-controller';
-import { 
-  LayerFile,
-  LayerLoadUpdateListener,
-  LayerChange,
-  LayerDumpData,
-  MediaLayer,
-  ESAudioContext,
-} from './types';
-import {VideoMedia} from "@/medialayer/video";
+import {SpeedController} from './speed-controller';
+import {ESAudioContext, LayerChange, LayerDumpData, LayerLoadUpdateListener, MediaLayer,} from './types';
+import {VideoMedia} from "@/mediaclip/video";
 
 export abstract class AbstractMedia implements MediaLayer {
+  audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
   protected _audioBuffer: AudioBuffer | null = null;
   protected _playerAudioContext: ESAudioContext | null = null;
-  protected _audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
 
-  protected _file?: LayerFile;
   protected _name: string;
   protected _id: string;
   protected _ready: boolean;

@@ -1,4 +1,4 @@
-import {AbstractMedia} from '@/medialayer';
+import {AbstractMedia} from '@/mediaclip';
 import {ComparisonMethod, FrameComparator} from './frame-comparator.js';
 import type {FrameSample, SampleExtractorConfig} from './types.js';
 import {SamplingStrategy as Strategy} from './types.js';

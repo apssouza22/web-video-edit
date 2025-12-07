@@ -12,7 +12,7 @@ The `setup-mocks.ts` medialibrary serves as a **reference** for mock implementat
 
 - **@/canvas** - Video canvas rendering
 - **@/timeline** - Timeline UI and layer management
-- **@/medialayer** - Media loading, processing, and services
+- **@/mediaclip** - Media loading, processing, and services
 - **@/video/muxer** - Video export functionality
 - **@/transcription** - Speech-to-text transcription
 - **@/frame** - Frame manipulation and transformations
@@ -60,9 +60,9 @@ import { MyComponent } from '@/studio/my-component';
 - **`pinch-handler.test.ts`** - Tests for pinch/zoom/rotation gesture handling (Safari gestures and wheel events)
 
 ### Phase 3: Service Classes
-- **`medialayer-loader.test.ts`** - Tests for loading medialayer from files, URIs, and JSON configurations
+- **`mediaclip-loader.test.ts`** - Tests for loading mediaclip from files, URIs, and JSON configurations
 - **`speed-control-input.test.ts`** - Tests for the speed control UI component with validation
-- **`control-handler.test.ts`** - Tests for medialayer editing operations (split, remove intervals)
+- **`control-handler.test.ts`** - Tests for mediaclip editing operations (split, remove intervals)
 
 ### Phase 4: Integration
 - **`video-studio.test.ts`** - Integration tests for the main VideoStudio orchestrator class

@@ -9,8 +9,8 @@ import {
   Point2D,
   TransformHandle
 } from './types';
-import type {FrameTransform} from '@/medialayer/frame';
-import {AbstractMedia} from "@/medialayer";
+import type {FrameTransform} from '@/mediaclip/frame';
+import {AbstractMedia} from "@/mediaclip";
 import {getBoundingBox} from "@/common/render-2d";
 
 export class CanvasLayer {

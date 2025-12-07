@@ -1,5 +1,5 @@
 import {loadVideo} from "@/video";
-import {LayerFile, VideoMetadata} from "@/medialayer/types";
+import {LayerFile, VideoMetadata} from "@/mediaclip/types";
 import {AudioFrameSource, FrameSource, FrameSourceMetadata} from "./types";
 import {VideoFrameSource} from "./video-frame-source";
 import {ImageFrameSource} from "./image-frame-source";

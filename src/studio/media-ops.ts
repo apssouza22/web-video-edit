@@ -1,4 +1,4 @@
-import {isMediaAudio, isMediaVideo, MediaService} from "@/medialayer";
+import {isMediaAudio, isMediaVideo, MediaService} from "@/mediaclip";
 import {VideoStudio} from "@/studio/studio";
 import {StudioState} from "@/common/studio-state";
 

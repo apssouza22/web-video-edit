@@ -39,7 +39,7 @@ describe('MediaLoader', () => {
 
       // Mock createMediaFromFile
       const mockCreateMediaFromFile = jest.fn(() => [mockLayer]);
-      jest.mock('@/medialayer', () => ({
+      jest.mock('src/mediaclip', () => ({
         createMediaFromFile: mockCreateMediaFromFile
       }));
 

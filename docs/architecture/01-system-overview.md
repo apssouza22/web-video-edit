@@ -10,7 +10,7 @@ This diagram shows the main components of the Web Video Edit application and the
 ### User Interface Layer
 - **HTML/CSS UI**: Static HTML structure and styles
 - **Studio Controls**: Play/pause, export, settings buttons
-- **Timeline Component**: Visual timeline for medialayer arrangement
+- **Timeline Component**: Visual timeline for mediaclip arrangement
 - **Video Canvas Display**: Main canvas for video preview
 
 ### Core Orchestration
@@ -19,9 +19,9 @@ This diagram shows the main components of the Web Video Edit application and the
 - **StudioState**: Singleton managing global application state
 
 ### Media Management
-- **MediaService**: Handles medialayer operations (split, clone, remove intervals)
-- **LayerLoader**: Manages loading of different medialayer types
-- **Media Layers**: Abstract medialayer representations (Video, Audio, Image, Text)
+- **MediaService**: Handles mediaclip operations (split, clone, remove intervals)
+- **LayerLoader**: Manages loading of different mediaclip types
+- **Media Layers**: Abstract mediaclip representations (Video, Audio, Image, Text)
 
 ### Playback & Rendering
 - **VideoCanvas**: Main player component with render loop
@@ -30,7 +30,7 @@ This diagram shows the main components of the Web Video Edit application and the
 
 ### Timeline System
 - **Timeline**: Timeline manager handling display and interactions
-- **Timeline Layers**: Visual representations of medialayer on timeline
+- **Timeline Layers**: Visual representations of mediaclip on timeline
 - **Time Marker**: Current time indicator
 - **Drag & Drop Handler**: Media manipulation on timeline
 
@@ -66,7 +66,7 @@ This diagram shows the main components of the Web Video Edit application and the
 Components communicate through the EventBus rather than direct coupling:
 - Player emits time updates → Timeline synchronizes
 - Timeline emits layer updates → Player refreshes
-- Record emits video medialibrary created → Studio loads medialayer
+- Record emits video medialibrary created → Studio loads mediaclip
 - UI emits speed changes → Media layers adjust
 
 ### Direct Dependencies (shown with solid lines)
@@ -102,7 +102,7 @@ sequenceDiagram
 
 ## Data Flow Summary
 
-1. **User uploads medialayer** → LayerLoader → Demux/AudioLoader → Media Layer → EventBus (load update)
+1. **User uploads mediaclip** → LayerLoader → Demux/AudioLoader → Media Layer → EventBus (load update)
 2. **User interacts with timeline** → Timeline → EventBus → Player updates
 3. **Playback** → Player render loop → Canvas Layers → Media Layers render
 4. **Export** → VideoExportService → Player renders frames → MediaRecorder/WebCodec → Download

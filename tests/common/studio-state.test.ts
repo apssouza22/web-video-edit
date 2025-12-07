@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, test} from '@jest/globals';
 
 // Use dynamic imports for ESM
 const {StudioState, studioState} = await import('@/common/studio-state');
-const {AbstractMedia} = await import('@/medialayer');
+const {AbstractMedia} = await import('src/mediaclip');
 const {AudioMedia} = await import("../../src/media/audio");
 const {VideoMedia} = await import("../../src/media/video");
 

@@ -1,4 +1,4 @@
-import {ESAudioContext} from "@/medialayer";
+import {ESAudioContext} from "@/mediaclip";
 
 /**
  * Pitch Preservation Processor

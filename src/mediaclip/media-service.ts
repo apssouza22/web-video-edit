@@ -1,4 +1,4 @@
-import {AbstractMedia} from "@/medialayer/media-common";
+import {AbstractMedia} from "@/mediaclip/media-common";
 
 export class MediaService {
 

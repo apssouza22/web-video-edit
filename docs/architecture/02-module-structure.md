@@ -15,13 +15,13 @@ The application is organized into domain-driven modules under `src/`. Each modul
 - `StudioEventHandler` - Handles DOM events and user interactions
 - `StudioControls` - Playback and export controls
 - `ControlsHandler` - Media transformation controls
-- `LayerLoader` - Loads medialayer files into layers
+- `LayerLoader` - Loads mediaclip files into layers
 - `DragHandler` - Canvas drag and transform functionality
 - `AspectRatioSelector` - Aspect ratio management
 - `SpeedControlInput` - Speed adjustment UI
 - `LoadingPopup` - Loading state UI
 
-**Dependencies**: canvas, timeline, medialayer, video, audio, record, transcription, common
+**Dependencies**: canvas, timeline, mediaclip, video, audio, record, transcription, common
 
 ---
 
@@ -39,12 +39,12 @@ The application is organized into domain-driven modules under `src/`. Each modul
 - Playback controls
 - Time-based rendering
 
-**Dependencies**: medialayer, common
+**Dependencies**: mediaclip, common
 
 ---
 
 ### ⏱️ timeline/
-**Responsibility**: Timeline UI and medialayer arrangement
+**Responsibility**: Timeline UI and mediaclip arrangement
 
 **Key Classes**:
 - `Timeline` - Timeline manager
@@ -55,30 +55,30 @@ The application is organized into domain-driven modules under `src/`. Each modul
 
 **Features**:
 - Visual timeline representation
-- Drag and drop medialayer
+- Drag and drop mediaclip
 - Zoom and pan
 - Time marker
 - Layer reordering
 - Waveform display for audio
 
-**Dependencies**: medialayer, common
+**Dependencies**: mediaclip, common
 
 ---
 
-### 🎬 medialayer/
+### 🎬 mediaclip/
 **Responsibility**: Media layer abstractions and operations
 
 **Key Classes**:
-- `AbstractMedia` - Base class for all medialayer types
-- `VideoMedia` - Video medialayer layer
-- `AudioMedia` - Audio medialayer layer
-- `ImageMedia` - Image medialayer layer
-- `TextMedia` - Text medialayer layer
+- `AbstractMedia` - Base class for all mediaclip types
+- `VideoMedia` - Video mediaclip layer
+- `AudioMedia` - Audio mediaclip layer
+- `ImageMedia` - Image mediaclip layer
+- `TextMedia` - Text mediaclip layer
 - `MediaService` - Media operations (split, clone, remove intervals)
 - `SpeedController` - Speed adjustment logic
 
 **Features**:
-- Unified medialayer interface
+- Unified mediaclip interface
 - Frame-based rendering
 - Time-based operations
 - Speed control
@@ -235,7 +235,7 @@ The application is organized into domain-driven modules under `src/`. Each modul
 
 ### ✅ Allowed Dependencies
 1. Any module can depend on `common/`
-2. Higher-level modules (studio) can depend on lower-level modules (medialayer, canvas, timeline)
+2. Higher-level modules (studio) can depend on lower-level modules (mediaclip, canvas, timeline)
 3. Services can depend on domain modules within their scope
 
 ### ❌ Forbidden Dependencies

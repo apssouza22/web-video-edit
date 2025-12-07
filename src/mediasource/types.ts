@@ -1,4 +1,4 @@
-import {VideoData} from "@/medialayer/frame";
+import {VideoData} from "@/mediaclip/frame";
 
 export interface FrameSourceMetadata {
   width: number;

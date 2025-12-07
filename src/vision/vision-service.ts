@@ -1,7 +1,7 @@
 import {VisionView} from './vision-view.js';
 import {FrameSample, VisionResult, WorkerResponseMessage} from './types.js';
 import {getEventBus, VisionAnalysisCompleteEvent} from '@/common/event-bus';
-import {AbstractMedia} from "@/medialayer";
+import {AbstractMedia} from "@/mediaclip";
 import {SampleExtractor} from './sample-extractor.js';
 
 

@@ -2,7 +2,7 @@ import {HTMLVideoDemuxer} from "./htmldemuxer/html-video-demuxer";
 import {MediaBunnyDemuxer} from "./mediabunny-demuxer";
 import {CodecDemuxer} from "./mp4boxdemuxer/codec-demuxer";
 import {Canvas2DRender} from "@/common/render-2d";
-import {VideoMetadata} from "@/medialayer/types";
+import {VideoMetadata} from "@/mediaclip/types";
 import {VideoStreaming} from "@/video";
 import {CompleteCallback, MetadataCallback, ProgressCallback} from "@/video/demux/types";
 

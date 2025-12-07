@@ -1,8 +1,8 @@
-import {AbstractMedia} from '@/medialayer/media-common';
-import {AudioSource} from '@/medialayer/audio/audio-source';
+import {AbstractMedia} from '@/mediaclip/media-common';
+import {AudioSource} from '@/mediaclip/audio/audio-source';
 import type {ESAudioContext} from "../types";
-import {AudioSplitHandler} from "@/medialayer/audio/AudioSplitHandler";
-import {AudioCutter} from "@/medialayer/audio/audio-cutter";
+import {AudioSplitHandler} from "@/mediaclip/audio/AudioSplitHandler";
+import {AudioCutter} from "@/mediaclip/audio/audio-cutter";
 import {AudioFrameSource} from "@/mediasource";
 
 export class AudioMedia extends AbstractMedia {
@@ -73,9 +73,9 @@ export class AudioMedia extends AbstractMedia {
     this.currentSpeed = this._speedController.getSpeed();
     this.lastAppliedSpeed = this.currentSpeed;
 
-    if (this._audioStreamDestination) {
+    if (this.audioStreamDestination) {
       //Used for video exporting
-      this.source.connect(playerAudioContext, this._audioStreamDestination, this.currentSpeed, this._audioBuffer!);
+      this.source.connect(playerAudioContext, this.audioStreamDestination, this.currentSpeed, this._audioBuffer!);
     } else {
       this.source.connect(playerAudioContext, playerAudioContext.destination, this.currentSpeed, this._audioBuffer!);
     }

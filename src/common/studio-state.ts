@@ -1,4 +1,4 @@
-import {AbstractMedia} from "@/medialayer";
+import {AbstractMedia} from "@/mediaclip";
 
 class StudioState {
   private static instance: StudioState | null = null;

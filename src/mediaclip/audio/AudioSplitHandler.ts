@@ -1,5 +1,5 @@
-import {ESAudioContext} from "@/medialayer";
-import {Media} from "@/medialayer/audio/types";
+import {ESAudioContext} from "@/mediaclip";
+import {Media} from "@/mediaclip/audio/types";
 
 export class AudioSplitHandler {
 

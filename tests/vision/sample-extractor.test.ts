@@ -1,8 +1,8 @@
 import { SampleExtractor } from '@/vision/sample-extractor';
 import { FrameComparator, ComparisonMethod } from '@/vision/frame-comparator';
 import { SamplingStrategy } from '@/vision/types';
-import { AbstractMedia } from '@/medialayer/media-common';
-import { FrameService } from '../../src/medialayer/frame';
+import { AbstractMedia } from '@/mediaclip/media-common';
+import { FrameService } from '../../src/mediaclip/frame';
 
 describe('SampleExtractor', () => {
   let sampleExtractor: SampleExtractor;

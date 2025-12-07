@@ -1,6 +1,6 @@
 
-import {MediaLayer} from "@/medialayer";
-import {ESAudioContext} from "@/medialayer";
+import {MediaLayer} from "@/mediaclip";
+import {ESAudioContext} from "@/mediaclip";
 
 /**
  * Local package representation of the media AbstractMedia

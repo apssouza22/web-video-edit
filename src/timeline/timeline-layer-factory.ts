@@ -5,8 +5,8 @@ import {TextTimelineLayer} from './layers/text-timeline-layer';
 import {CaptionTimelineLayer} from './layers/caption-timeline-layer';
 import type {MediaInterface} from './types';
 import type {TimelineLayer} from './timeline-layer';
-import {AbstractMedia} from "@/medialayer";
-import type {VideoMedia} from "@/medialayer/video";
+import {AbstractMedia} from "@/mediaclip";
+import type {VideoMedia} from "@/mediaclip/video";
 
 /**
  * Factory class for creating timeline media renderers

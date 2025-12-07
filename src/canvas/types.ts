@@ -1,5 +1,5 @@
 import {VideoCanvas} from "@/canvas/canvas";
-import { AbstractMedia } from "@/medialayer";
+import { AbstractMedia } from "@/mediaclip";
 
 export type LayerTransformedListener = (layer: AbstractMedia) => void;
 export type PlayerEndCallback = (player: VideoCanvas) => void;

@@ -1,4 +1,4 @@
-import {createFrameService, Frame} from '@/medialayer/frame';
+import {createFrameService, Frame} from '@/mediaclip/frame';
 import {AbstractMedia} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {FrameSource} from '@/mediasource';

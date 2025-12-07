@@ -1,11 +1,11 @@
 import {popup, StudioState, TabController} from '@/common';
 import {initStudio} from "@/studio/initilizer.js";
-import {createMediaText} from "@/medialayer";
+import {createMediaText} from "@/mediaclip";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
 import {SpeechService} from "@/speech";
 
 const studio = initStudio();
-const tabController = new TabController('leftNav');
+new TabController('leftNav');
 const speechService = new SpeechService();
 
 // @ts-ignore
@@ -35,7 +35,7 @@ function initTextControls(): void {
   addTextBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     if (text) {
-      studio.addLayer(createMediaText(text, () => {}));
+      studio.addLayer(createMediaText(text));
       textInput.value = '';
     }
   });

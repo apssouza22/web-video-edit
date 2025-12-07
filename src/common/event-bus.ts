@@ -1,4 +1,4 @@
-import type { AbstractMedia } from '@/medialayer';
+import type { AbstractMedia } from '@/mediaclip';
 import type { MediaInterface, LayerUpdateKind } from '@/timeline/types';
 
 /**

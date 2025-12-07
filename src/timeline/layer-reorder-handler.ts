@@ -2,7 +2,7 @@
  * Handles media reordering through vertical drag operations in the timeline
  */
 import {Timeline} from "./timeline";
-import {AbstractMedia} from "@/medialayer";
+import {AbstractMedia} from "@/mediaclip";
 
 export class LayerReorderHandler {
   timeline: Timeline;

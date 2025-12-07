@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `SampleExtractor` class intelligently samples frames from video medialayer for AI analysis. It uses various algorithms to detect frame differences and employs multiple sampling strategies to ensure diverse and meaningful frame selection.
+The `SampleExtractor` class intelligently samples frames from video mediaclip for AI analysis. It uses various algorithms to detect frame differences and employs multiple sampling strategies to ensure diverse and meaningful frame selection.
 
 ## Features
 

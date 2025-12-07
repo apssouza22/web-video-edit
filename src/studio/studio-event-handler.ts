@@ -14,7 +14,7 @@ import {
 import {VideoStudio} from "@/studio/studio";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
-import {createMediaCaption, createMediaFromFile} from "@/medialayer";
+import {createMediaCaption, createMediaFromFile} from "@/mediaclip";
 
 export class StudioEventHandler {
   #studio: VideoStudio;

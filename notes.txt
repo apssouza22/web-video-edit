@@ -10,7 +10,7 @@ List of modules
 https://huggingface.co/models?library=transformers.js&sort=likes&search=whisper
 
 https://webml-community-smolvlm-realtime-webgpu.static.hf.space/index.html
-https://github.com/omni-medialayer/omniclip/tree/main
+https://github.com/omni-mediaclip/omniclip/tree/main
 
 Demux
 https://w3c.github.io/webcodecs/samples/video-decode-display/

@@ -4,8 +4,8 @@ flowchart TB
         StudioInit["initilizer.ts"]
         StudioEvents["studio-event-handler.ts"]
         StudioControls["controls.ts"]
-        ControlHandler["medialayer-ops.ts"]
-        MediaLoader["medialayer-loader.ts"]
+        ControlHandler["mediaclip-ops.ts"]
+        MediaLoader["mediaclip-loader.ts"]
         AspectRatio["aspect-ratio-selector.ts"]
         SpeedControl["speed-control-input.ts"]
         LoadingPopup["loading-popup.ts"]
@@ -45,9 +45,9 @@ flowchart TB
         Timeline --> TLDrag
         Timeline --> TimeMarker
     end
-    subgraph s5["medialayer/"]
-        MediaService["medialayer-service.ts"]
-        MediaCommon["medialayer-common.ts<br>AbstractMedia"]
+    subgraph s5["mediaclip/"]
+        MediaService["mediaclip-service.ts"]
+        MediaCommon["mediaclip-common.ts<br>AbstractMedia"]
         MediaVideo["video.ts<br>VideoMedia"]
         MediaAudio["audio.ts<br>AudioMedia"]
         MediaImage["image.ts<br>ImageMedia"]
@@ -77,7 +77,7 @@ flowchart TB
     end
     subgraph s9["video/muxer/"]
         VideoExport["video-export-service.ts"]
-        MediaRecorderExp["medialayer-recorder-exporter.ts"]
+        MediaRecorderExp["mediaclip-recorder-exporter.ts"]
         WebCodecExp["web-codec-exporter.ts"]
         MuxerIndex["index.ts"]
     end

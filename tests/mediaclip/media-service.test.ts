@@ -1,7 +1,7 @@
-import { MediaService } from '@/medialayer/media-service';
-import { TextMedia } from '@/medialayer/text';
-import { ImageMedia } from '@/medialayer/image';
-import { AudioService } from '../../src/medialayer/audio/audio';
+import { MediaService } from '@/mediaclip/media-service';
+import { TextMedia } from '@/mediaclip/text';
+import { ImageMedia } from '@/mediaclip/image';
+import { AudioService } from '../../src/mediaclip/audio/audio';
 
 describe('MediaService', () => {
   let mediaService: MediaService;

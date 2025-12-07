@@ -1,4 +1,4 @@
-import {createMediaText} from "@/medialayer";
+import {createMediaText} from "@/mediaclip";
 
 // Minimal TS wrapper for webm-duration-fix via CDN ESM.
 // We keep the external URL to avoid adding a dependency right now.
