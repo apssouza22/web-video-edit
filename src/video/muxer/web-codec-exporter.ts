@@ -84,12 +84,11 @@ export class WebCodecExporter {
     }
 
     /**
-     * Create a separate OffscreenCanvas for recording at 1920x1080 resolution
+     * Create a separate OffscreenCanvas for recording
      */
     #createRecordingCanvas(): void {
         const dimensions = this.studioState.getMinVideoSizes()
         this.recordingCanvas = new OffscreenCanvas(dimensions.width, dimensions.height);
-        // Enhanced context settings for better quality
         this.recordingCtx = this.recordingCanvas.getContext('2d', {
             alpha: false,
             desynchronized: true, // Better performance

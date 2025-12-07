@@ -2,12 +2,11 @@ import {ESAudioContext} from "@/medialayer";
 import {PitchPreservationProcessor} from "@/medialayer/audio/pitch-preservation-processor";
 
 export class AudioSource {
-  #audioContext: ESAudioContext;
+  #audioContext: ESAudioContext | null = null;
   #source: AudioBufferSourceNode | null = null;
   private pitchPreservationProcessor: PitchPreservationProcessor;
 
-  constructor(audioCtx: ESAudioContext) {
-    this.#audioContext = audioCtx;
+  constructor() {
     this.pitchPreservationProcessor = new PitchPreservationProcessor();
   }
 
@@ -18,7 +17,12 @@ export class AudioSource {
     }
   }
 
-  connect(destination: AudioNode, speed: number, buffer: AudioBuffer): void {
+  get isConnected(): boolean {
+    return this.#source !== null;
+  }
+
+  connect(audioCtx: ESAudioContext, destination: AudioNode, speed: number, buffer: AudioBuffer): void {
+    this.#audioContext = audioCtx;
     if (speed <= 0) {
       speed = 0.1; // Prevent invalid speed values
     }

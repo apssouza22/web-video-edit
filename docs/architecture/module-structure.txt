@@ -56,7 +56,6 @@ flowchart TB
         SpeedController["speed-controller.ts"]
         MediaIndex["index.ts"]
         VideoLoader["video-loader.ts"]
-        AudioLoader["audio-loader.ts"]
         AudioSource["audio-source.ts"]
     end
     subgraph s6["htmldemuxer/"]

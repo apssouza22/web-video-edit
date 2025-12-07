@@ -1,13 +1,13 @@
 import {AbstractMedia} from '@/medialayer/media-common';
 import {AudioSource} from '@/medialayer/audio/audio-source';
-import type {ESAudioContext, LayerFile} from "../types";
+import type {ESAudioContext} from "../types";
 import {AudioSplitHandler} from "@/medialayer/audio/AudioSplitHandler";
 import {AudioCutter} from "@/medialayer/audio/audio-cutter";
 import {AudioFrameSource} from "@/mediasource";
 
 export class AudioMedia extends AbstractMedia {
   private audioFrameSource: AudioFrameSource | undefined;
-  private source: AudioSource | null = null;
+  private source: AudioSource;
   private currentSpeed: number = 1.0;
   private lastAppliedSpeed: number = 1.0;
   private originalTotalTimeInMilSeconds: number = 0;
@@ -19,7 +19,7 @@ export class AudioMedia extends AbstractMedia {
     super(name);
     this.audioSplitHandler = new AudioSplitHandler();
     this.audioCutter = new AudioCutter();
-
+    this.source = new AudioSource();
     if (!audioFrameSource) {
       return;
     }
@@ -45,10 +45,8 @@ export class AudioMedia extends AbstractMedia {
   }
 
   disconnect(): void {
-    if (this.source) {
       this.source.disconnect();
-      this.source = null;
-    }
+      this.started = false;
   }
 
   dispose(): void {
@@ -74,12 +72,12 @@ export class AudioMedia extends AbstractMedia {
     this.disconnect();
     this.currentSpeed = this._speedController.getSpeed();
     this.lastAppliedSpeed = this.currentSpeed;
-    this.source = new AudioSource(playerAudioContext);
+
     if (this._audioStreamDestination) {
       //Used for video exporting
-      this.source.connect(this._audioStreamDestination, this.currentSpeed, this._audioBuffer!);
+      this.source.connect(playerAudioContext, this._audioStreamDestination, this.currentSpeed, this._audioBuffer!);
     } else {
-      this.source.connect(playerAudioContext.destination, this.currentSpeed, this._audioBuffer!);
+      this.source.connect(playerAudioContext, playerAudioContext.destination, this.currentSpeed, this._audioBuffer!);
     }
     this.started = false;
   }
@@ -96,7 +94,7 @@ export class AudioMedia extends AbstractMedia {
     }
 
     const currentSpeed = this._speedController.getSpeed();
-    if (currentSpeed !== this.lastAppliedSpeed && this.source) {
+    if (currentSpeed !== this.lastAppliedSpeed && this.source.isConnected) {
       this.connectAudioSource(this._playerAudioContext!);
     }
 
@@ -105,14 +103,14 @@ export class AudioMedia extends AbstractMedia {
       return;
     }
 
-    if (!this.started && this.source) {
+    if (!this.started && this.source.isConnected) {
       this.source.start(0, time / 1000);
       this.started = true;
     }
   }
 
   playStart(time: number): void {
-    this.source!.start(time / 1000, 0);
+    this.source.start(time / 1000, 0);
   }
 
   /**
