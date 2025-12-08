@@ -1576,3 +1576,69 @@ a:visited {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Shapes Tab Styles */
+.shapes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.shape-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 16px;
+  background: rgba(53, 53, 58, 0.6);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 10px;
+  color: rgb(192, 200, 213);
+  font-family: 'JupiterSans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shape-button:hover {
+  background: rgba(63, 63, 68, 0.8);
+  border-color: rgba(169, 225, 250, 0.4);
+  color: rgb(220, 225, 235);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.shape-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.shape-button .shape-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(169, 225, 250, 0.1);
+  border-radius: 8px;
+  color: rgb(169, 225, 250);
+  transition: all 0.2s ease;
+}
+
+.shape-button:hover .shape-icon {
+  background: rgba(169, 225, 250, 0.2);
+  transform: scale(1.05);
+}
+
+.shape-button .shape-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.shape-button .shape-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

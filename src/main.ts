@@ -1,8 +1,9 @@
 import {popup, StudioState, TabController} from '@/common';
 import {initStudio} from "@/studio/initilizer.js";
-import {createMediaText} from "@/mediaclip";
+import {createMediaText, createMediaShape, ShapeType} from "@/mediaclip";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
 import {SpeechService} from "@/speech";
+import {ShapeView} from "@/shape";
 
 const studio = initStudio();
 new TabController('leftNav');
@@ -23,6 +24,7 @@ window.addEventListener('load', function () {
 
 function initLeftNavControls(): void {
   initTextControls();
+  initShapeControls();
   initSettingsControls();
 }
 
@@ -38,6 +40,12 @@ function initTextControls(): void {
       studio.addLayer(createMediaText(text));
       textInput.value = '';
     }
+  });
+}
+
+function initShapeControls(): void {
+  new ShapeView('shapes', (shapeType: ShapeType) => {
+    studio.addLayer(createMediaShape(shapeType));
   });
 }
 

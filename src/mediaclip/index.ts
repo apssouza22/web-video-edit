@@ -5,12 +5,15 @@ import {MediaService} from './media-service';
 import {AbstractMedia} from './media-common';
 import {TextMedia} from "./text";
 import {CaptionMedia, TranscriptionChunk} from "./caption";
+import {ShapeMedia, ShapeType} from './shape';
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
 import {MediaLoader} from "@/mediaclip/mediasource";
 
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
+export {ShapeMedia, ShapeType} from './shape';
+export type {ShapeStyle, ShapeConfig} from './shape';
 export type {MediaLayer, ESAudioContext} from './types';
 
 export function createMediaService(): MediaService {
@@ -83,6 +86,10 @@ export function createMediaText(text: string): AbstractMedia {
 
 export function createMediaCaption(transcription: TranscriptionChunk[]): AbstractMedia {
   return new CaptionMedia(transcription);
+}
+
+export function createMediaShape(shapeType: ShapeType): AbstractMedia {
+  return new ShapeMedia(shapeType);
 }
 
 export function isMediaAudio(layer: AbstractMedia):boolean {

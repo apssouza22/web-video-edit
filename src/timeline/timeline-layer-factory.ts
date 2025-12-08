@@ -3,6 +3,7 @@ import {VideoTimelineLayer} from './layers/video-timeline-layer';
 import {ImageTimelineLayer} from './layers/image-timeline-layer';
 import {TextTimelineLayer} from './layers/text-timeline-layer';
 import {CaptionTimelineLayer} from './layers/caption-timeline-layer';
+import {ShapeTimelineLayer} from './layers/shape-timeline-layer';
 import type {MediaInterface} from './types';
 import type {TimelineLayer} from './timeline-layer';
 import {AbstractMedia} from "@/mediaclip";
@@ -39,6 +40,8 @@ export class TimelineLayerFactory {
         return new TextTimelineLayer(ctx, layer, totalTime, canvasWidth);
       case 'CaptionMedia':
         return new CaptionTimelineLayer(ctx, layer, totalTime, canvasWidth);
+      case 'ShapeMedia':
+        return new ShapeTimelineLayer(ctx, layer, totalTime, canvasWidth);
       default:
         console.warn(`Unknown layer type: ${layerType}, defaulting to TextTimelineLayer`);
         return new TextTimelineLayer(ctx, layer, totalTime, canvasWidth);
