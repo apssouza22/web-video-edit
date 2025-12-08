@@ -57,12 +57,6 @@ export interface WorkerResponseMessage extends WorkerMessageBase {
 
 export type WorkerMessage = LoadModelMessage | GenerateSpeechMessage;
 
-export interface SpeechServiceConfig {
-  modelId?: string;
-  dtype?: 'fp32' | 'fp16' | 'q8' | 'q4' | 'q4f16';
-  device?: 'wasm' | 'webgpu';
-}
-
 export interface SpeechError extends Error {
   status?: string;
   task?: string;

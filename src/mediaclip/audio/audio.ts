@@ -103,6 +103,10 @@ export class AudioMedia extends AbstractMedia {
       return;
     }
 
+    if (!this.source.isConnected){
+      this.connectAudioSource(this._playerAudioContext!);
+    }
+
     if (!this.started && this.source.isConnected) {
       this.source.start(0, time / 1000);
       this.started = true;

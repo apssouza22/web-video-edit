@@ -94,8 +94,6 @@ export class VideoStudio {
         return;
       }
 
-      this.loadingPopup.startLoading(exportId, '', 'Exporting Video...');
-
       const progressContainer = document.getElementById('export-progress');
       const progressFill = document.getElementById('export-progress-fill');
       const progressText = document.getElementById('export-progress-text');
@@ -120,7 +118,7 @@ export class VideoStudio {
       const completionCallback = (): void => {
         exportVideoBtn.removeAttribute('disabled');
         exportVideoBtn.classList.remove('exporting');
-        this.loadingPopup.updateProgress(exportId, 100);
+
         if (progressContainer) {
           setTimeout(() => {
             progressContainer.style.display = 'none';

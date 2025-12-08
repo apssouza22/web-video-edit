@@ -3,6 +3,7 @@
 import {env, pipeline, PretrainedModelOptions} from "@huggingface/transformers";
 
 import type {ModelParams, Pipeline, ProgressCallback, TranscriptionError, TranscriptionResult} from './types.js';
+import {getExecDevice} from "@/common/device";
 
 // Disable local models
 env.allowLocalModels = false;
@@ -30,6 +31,7 @@ export class PipelineFactory {
       const options: PretrainedModelOptions = {
         progress_callback: progress_callback || undefined,
         dtype: "q8",
+        device: getExecDevice(),
         // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
         revision: this.model.includes("/whisper-medium") ? "no_attentions" : "output_attentions",
       };

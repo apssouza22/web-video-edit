@@ -185,7 +185,7 @@ export class WebCodecExporter {
     }
 
     /**
-     * Render frames synchronously following test2.js approach
+     * Render frames synchronously
      */
     async #renderFramesSynchronously(): Promise<void> {
         if (!this.canvasSource) {
@@ -249,7 +249,7 @@ export class WebCodecExporter {
         for (const layer of this.#getAudioLayers()) {
             if (layer.audioBuffer) {
                 layer.connectAudioSource(this.audioContext);
-                layer.playStart(0);
+                layer.playStart(layer.startTime);
             }
         }
 
@@ -298,7 +298,7 @@ export class WebCodecExporter {
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
         const medias = this.studioState.getMedias();
         for (const media of medias) {
-            await media.render(this.recordingCtx, currentTime);
+            await media.render(this.recordingCtx, currentTime, true);
         }
     }
 
