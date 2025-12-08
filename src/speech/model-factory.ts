@@ -41,7 +41,7 @@ export class SpeechModelFactory {
         message: 'Loading Kokoro TTS model...',
       });
       this.instance = await KokoroTTS.from_pretrained(modelId, {
-        dtype: SpeechModelFactory.DEFAULT_DTYPE,
+        dtype:  getExecDevice() === "wasm" ? SpeechModelFactory.DEFAULT_DTYPE : "fp32",
         device: getExecDevice(),
         progress_callback: (data) => {
           if (data.status !== 'progress') {
