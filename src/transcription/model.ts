@@ -30,13 +30,13 @@ export class PipelineFactory {
     if (this.instance === null) {
       const options: PretrainedModelOptions = {
         progress_callback: progress_callback || undefined,
-        dtype: "q8",
+        dtype: getExecDevice() === "wasm" ? "q8" : "fp32",
         device: getExecDevice(),
         // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
         revision: this.model.includes("/whisper-medium") ? "no_attentions" : "output_attentions",
       };
       // @ts-ignore
-      this.instance = pipeline(
+      this.instance = await pipeline(
           "automatic-speech-recognition",
           this.model,
           options

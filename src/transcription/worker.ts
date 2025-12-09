@@ -4,7 +4,6 @@ import type {
   WorkerResponseMessage,
   LoadModelMessage,
   TranscribeMessage,
-  TranscriptionResult,
   TranscriptionError
 } from "./types.js";
 
