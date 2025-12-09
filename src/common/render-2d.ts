@@ -137,7 +137,6 @@ export class Canvas2DRender {
   }
 
 
-  // Static method for standalone usage (maintains backward compatibility)
   static drawScaled(
       ctxFrom: HTMLVideoElement | ESRenderingContext2D,
       ctxOutTo: ESRenderingContext2D
@@ -187,7 +186,7 @@ export class Canvas2DRender {
         0, 0,
         width, height,
         -scaledWidth / 2, -scaledHeight / 2,
-        scaledWidth, scaledHeight
+        scaledWidth / bounding.scaleFactor, scaledHeight / bounding.scaleFactor
     );
     
     ctxOutTo.restore();
