@@ -233,7 +233,6 @@ export class VideoStudio {
   cloneLayer(layer: AbstractMedia): void {
     const clonedLayer = layer.clone();
     this.addLayer(clonedLayer);
-    this.setSelectedLayer(clonedLayer!);
   }
 
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
@@ -243,6 +242,7 @@ export class VideoStudio {
     }
     this.medias.push(layer);
     this.studioState.addMedia(layer);
+    this.setSelectedLayer(layer);
     console.log(`Added media: ${this.getMedias().length} layers now in studio.`);
     return layer;
   }
@@ -302,7 +302,6 @@ export class VideoStudio {
     }
     this.loadingPopup.updateProgress(layer.name, progress);
     if (progress === 100) {
-      this.setSelectedLayer(layer);
       if (isMediaVideo(layer)) {
         this.visionService.analyzeVideo(layer);
       }

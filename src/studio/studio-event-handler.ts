@@ -118,7 +118,6 @@ export class StudioEventHandler {
       this.#eventBus.subscribe(CaptionCreateEvent, (event) => {
         const captionMedia = createMediaCaption(event.transcriptionData.chunks);
         this.#studio.addLayer(captionMedia);
-        this.#studio.setSelectedLayer(captionMedia);
       })
     );
 

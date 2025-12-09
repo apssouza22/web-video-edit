@@ -20,9 +20,9 @@ export interface ShapeConfig {
 }
 
 export const DEFAULT_SHAPE_STYLE: ShapeStyle = {
-  fillColor: '#4a90d9',
-  strokeColor: '#2c5aa0',
-  strokeWidth: 2,
+  fillColor: 'transparent',
+  strokeColor: '#4a90d9',
+  strokeWidth: 3,
   opacity: 1
 };
 
@@ -41,7 +41,7 @@ export const SHAPE_PRESETS: Record<ShapeType, ShapeConfig> = {
   },
   [ShapeType.LINE]: {
     type: ShapeType.LINE,
-    style: { ...DEFAULT_SHAPE_STYLE, fillColor: 'transparent', strokeWidth: 4 },
+    style: { ...DEFAULT_SHAPE_STYLE, strokeWidth: 4 },
     width: 200,
     height: 4
   },
