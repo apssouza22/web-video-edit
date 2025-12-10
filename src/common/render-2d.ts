@@ -4,6 +4,29 @@ import {Frame} from "@/mediaclip/frame";
 export type ESRenderingContext2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 export type CanvasElement = HTMLCanvasElement | OffscreenCanvas;
 
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  centerX: number;
+  centerY: number;
+}
+
+export interface MediaBounds {
+  css: Rect;
+  physical: Rect;
+  ratio: number;
+  pixelRatio: number;
+  scaleFactor: number;
+}
+
+export interface FrameTransformInput {
+  x: number;
+  y: number;
+  scale: number;
+}
+
 /**
  * Canvas 2D rendering wrapper class with TypeScript support
  */
@@ -162,40 +185,33 @@ export class Canvas2DRender {
   ): void {
     const fromWidth = ctxFrom.canvas.width ?? 0;
     const fromHeight = ctxFrom.canvas.height ?? 0;
-    const bounding = getBoundingBox(fromWidth, fromHeight, ctxOutTo.canvas);
+    
+    const bounds = calculateMediaBounds(fromWidth, fromHeight, ctxOutTo.canvas, {
+      x: frame.x,
+      y: frame.y,
+      scale: frame.scale
+    });
 
     ctxOutTo.save();
-    ctxOutTo.translate(
-      bounding.centerX + frame.x * bounding.ratio * bounding.scaleFactor, 
-      bounding.centerY + frame.y * bounding.ratio * bounding.scaleFactor
-    );
+    ctxOutTo.translate(bounds.physical.centerX, bounds.physical.centerY);
     
     if (frame.rotation) {
       ctxOutTo.rotate((frame.rotation * Math.PI) / 180);
-    }
-    let scaledWidth = bounding.width * frame.scale * bounding.scaleFactor;
-    let scaledHeight = bounding.height * frame.scale * bounding.scaleFactor;
-
-    const logicalDimensions = getLogicalDimensions(ctxOutTo.canvas);
-    if (fromWidth < logicalDimensions.width || fromHeight < logicalDimensions.height) {
-      const pixelRatio = getPixelRatio(ctxOutTo.canvas);
-      scaledWidth = fromWidth * frame.scale * bounding.scaleFactor * pixelRatio;
-      scaledHeight = fromHeight * frame.scale * bounding.scaleFactor * pixelRatio;
     }
 
     ctxOutTo.drawImage(
         ctxFrom.canvas as CanvasImageSource,
         0, 0,
         fromWidth, fromHeight,
-        -scaledWidth / 2, -scaledHeight / 2,
-        scaledWidth, scaledHeight
+        -bounds.physical.width / 2, -bounds.physical.height / 2,
+        bounds.physical.width, bounds.physical.height
     );
     
     ctxOutTo.restore();
   }
 }
 
-export function getBoundingBox(width: number, height: number, canvas: CanvasElement) {
+function getBoundingBox(width: number, height: number, canvas: CanvasElement) {
   const {ratio, offset_width, offset_height} = getCoordinates(width, height, canvas);
   const scaleFactor = 1;
   const baseWidth = ratio * width;
@@ -212,7 +228,7 @@ export function getBoundingBox(width: number, height: number, canvas: CanvasElem
   };
 }
 
-export function getLogicalDimensions(canvas: CanvasElement): {width: number, height: number} {
+function getLogicalDimensions(canvas: CanvasElement): {width: number, height: number} {
   if (canvas instanceof HTMLCanvasElement && canvas.clientWidth > 0) {
     return {
       width: canvas.clientWidth,
@@ -225,11 +241,72 @@ export function getLogicalDimensions(canvas: CanvasElement): {width: number, hei
   };
 }
 
-export function getPixelRatio(canvas: CanvasElement): number {
+function getPixelRatio(canvas: CanvasElement): number {
   if (canvas instanceof HTMLCanvasElement && canvas.clientWidth > 0) {
     return canvas.width / canvas.clientWidth;
   }
   return dpr;
+}
+
+/**
+ * Calculate media bounds on the canvas with given transformations
+ * The result contains both physical pixel dimensions and CSS dimensions
+ * This is useful for rendering on high-DPI displays
+ *
+ * @param sourceWidth
+ * @param sourceHeight
+ * @param canvas
+ * @param frameTransform
+ */
+export function calculateMediaBounds(
+  sourceWidth: number,
+  sourceHeight: number,
+  canvas: CanvasElement,
+  frameTransform: FrameTransformInput = { x: 0, y: 0, scale: 1 }
+): MediaBounds {
+  const bounding = getBoundingBox(sourceWidth, sourceHeight, canvas);
+  const logicalDimensions = getLogicalDimensions(canvas);
+  const pixelRatio = getPixelRatio(canvas);
+  const scaleFactor = bounding.scaleFactor;
+
+  let baseWidth = bounding.width * scaleFactor;
+  let baseHeight = bounding.height * scaleFactor;
+
+  if (sourceWidth < logicalDimensions.width || sourceHeight < logicalDimensions.height) {
+    baseWidth = sourceWidth * scaleFactor * pixelRatio;
+    baseHeight = sourceHeight * scaleFactor * pixelRatio;
+  }
+
+  const transformedCenterX = bounding.centerX + frameTransform.x * bounding.ratio * scaleFactor;
+  const transformedCenterY = bounding.centerY + frameTransform.y * bounding.ratio * scaleFactor;
+
+  const scaledWidth = baseWidth * frameTransform.scale;
+  const scaledHeight = baseHeight * frameTransform.scale;
+
+  const physicalX = transformedCenterX - scaledWidth / 2;
+  const physicalY = transformedCenterY - scaledHeight / 2;
+
+  return {
+    physical: {
+      x: physicalX,
+      y: physicalY,
+      width: scaledWidth,
+      height: scaledHeight,
+      centerX: transformedCenterX,
+      centerY: transformedCenterY
+    },
+    css: {
+      x: physicalX / pixelRatio,
+      y: physicalY / pixelRatio,
+      width: scaledWidth / pixelRatio,
+      height: scaledHeight / pixelRatio,
+      centerX: transformedCenterX / pixelRatio,
+      centerY: transformedCenterY / pixelRatio
+    },
+    ratio: bounding.ratio,
+    pixelRatio,
+    scaleFactor
+  };
 }
 
 function getCoordinates(width: number, height: number, canvas: CanvasElement) {

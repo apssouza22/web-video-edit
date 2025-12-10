@@ -1,5 +1,4 @@
 import {
-  Bounds,
   CanvasContext2D,
   CanvasElement,
   CanvasPosition,
@@ -11,7 +10,7 @@ import {
 } from './types';
 import type {FrameTransform} from '@/mediaclip/frame';
 import {AbstractMedia} from "@/mediaclip";
-import {getBoundingBox, getLogicalDimensions, getPixelRatio} from "@/common/render-2d";
+import {calculateMediaBounds, MediaBounds, Rect} from "@/common/render-2d";
 
 export class CanvasLayer {
   private readonly _media: AbstractMedia;
@@ -165,8 +164,8 @@ export class CanvasLayer {
   async #performMove(dx: number, dy: number): Promise<void> {
     const frame = await this._media.getFrame(this.#currentTime);
     if (frame && this.#initialTransform) {
-      const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
-      const transformScale = bounding.ratio * bounding.scaleFactor;
+      const bounds = calculateMediaBounds(this._media.width, this._media.height, this.#canvas);
+      const transformScale = bounds.ratio * bounds.scaleFactor;
       
       const frameDx = dx / transformScale;
       const frameDy = dy / transformScale;
@@ -182,8 +181,8 @@ export class CanvasLayer {
    * Perform resize transformation
    */
   async #performResize(dx: number, dy: number, handleType: HandleType): Promise<void> {
-    const bounds = await this.#getLayerBounds();
-    if (!bounds || !this.#initialTransform) return;
+    const mediaBounds = await this.#getMediaBounds();
+    if (!mediaBounds || !this.#initialTransform) return;
     const dragDistance = Math.sqrt(dx * dx + dy * dy);
     
     // Determine scale direction based on handle type and drag direction
@@ -234,8 +233,8 @@ export class CanvasLayer {
     const scaleFactor = 1 + (scaleDirection * dragDistance * 0.00005);
     const maxScale = scaleFactor > 1 ? Math.min(1.1, scaleFactor) : Math.max(0.9, scaleFactor);
 
-    const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
-    const transformScale = bounding.ratio * bounding.scaleFactor;
+    const bounds = calculateMediaBounds(this._media.width, this._media.height, this.#canvas);
+    const transformScale = bounds.ratio * bounds.scaleFactor;
     
     const frameOffsetX = offsetX / transformScale;
     const frameOffsetY = offsetY / transformScale;
@@ -251,11 +250,11 @@ export class CanvasLayer {
    * Perform rotation transformation
    */
   async #performRotation(currentX: number, currentY: number): Promise<void> {
-    const bounds = await this.#getLayerBounds();
-    if (!bounds || !this.#initialTransform) return;
+    const mediaBounds = await this.#getMediaBounds();
+    if (!mediaBounds || !this.#initialTransform) return;
 
-    const centerX = bounds.x + bounds.width / 2;
-    const centerY = bounds.y + bounds.height / 2;
+    const centerX = mediaBounds.css.centerX;
+    const centerY = mediaBounds.css.centerY;
 
     const startAngle = Math.atan2(this.#dragStart.y - centerY, this.#dragStart.x - centerX);
     const currentAngle = Math.atan2(currentY - centerY, currentX - centerX);
@@ -275,14 +274,15 @@ export class CanvasLayer {
   async #hitTest(x: number, y: number): Promise<HitTestResult | null> {
     if (!this.#selected) return null;
 
-    const bounds = await this.#getLayerBounds();
-    if (!bounds) return null;
+    const mediaBounds = await this.#getMediaBounds();
+    if (!mediaBounds) return null;
 
     const frame = await this._media.getFrame(this.#currentTime);
     if (!frame) return null;
 
-    const centerX = bounds.x + bounds.width / 2;
-    const centerY = bounds.y + bounds.height / 2;
+    const bounds = mediaBounds.css;
+    const centerX = bounds.centerX;
+    const centerY = bounds.centerY;
     const rotation = (frame.rotation || 0) * (Math.PI / 180);
 
     const rotatedPoint = this.#rotatePoint(x, y, centerX, centerY, -rotation);
@@ -336,7 +336,7 @@ export class CanvasLayer {
   /**
    * Get handle positions for current media bounds
    */
-  #getHandlePositions(bounds: Bounds, handleSize: number): Point2D[] {
+  #getHandlePositions(bounds: Rect, handleSize: number): Point2D[] {
     const half = handleSize / 2;
     return [
       { x: bounds.x - half, y: bounds.y - half }, // NW
@@ -372,40 +372,18 @@ export class CanvasLayer {
   }
 
   /**
-   * Get media bounds in client coordinates (CSS pixels)
+   * Get media bounds (returns both CSS and physical coordinates)
    */
-  async #getLayerBounds(): Promise<Bounds | null> {
+  async #getMediaBounds(): Promise<MediaBounds | null> {
     const frame = await this._media.getFrame(this.#currentTime);
     if (!frame) return null;
     
-    const bounding = getBoundingBox(this._media.width, this._media.height, this.#canvas);
-    const logicalDimensions = getLogicalDimensions(this.#canvas);
-    const pixelRatio = getPixelRatio(this.#canvas);
-    
-    let baseWidth = bounding.width * bounding.scaleFactor;
-    let baseHeight = bounding.height * bounding.scaleFactor;
-
-    if (this._media.width < logicalDimensions.width || this._media.height < logicalDimensions.height) {
-      baseWidth = this._media.width * bounding.scaleFactor * pixelRatio;
-      baseHeight = this._media.height * bounding.scaleFactor * pixelRatio;
-    }
-    
-    const transformedCenterX = bounding.centerX + frame.x * bounding.ratio * bounding.scaleFactor;
-    const transformedCenterY = bounding.centerY + frame.y * bounding.ratio * bounding.scaleFactor;
-    
-    const scaledWidth = baseWidth * frame.scale;
-    const scaledHeight = baseHeight * frame.scale;
-    
-    const x = transformedCenterX - scaledWidth / 2;
-    const y = transformedCenterY - scaledHeight / 2;
-
-    // Convert to CSS coordinates for hit testing (pointer events use CSS pixels)
-    return { 
-      x: x / pixelRatio, 
-      y: y / pixelRatio, 
-      width: scaledWidth / pixelRatio, 
-      height: scaledHeight / pixelRatio 
-    };
+    return calculateMediaBounds(
+      this._media.width, 
+      this._media.height, 
+      this.#canvas,
+      { x: frame.x, y: frame.y, scale: frame.scale }
+    );
   }
 
   /**
@@ -413,25 +391,19 @@ export class CanvasLayer {
    */
   async #markLayerArea(ctx: CanvasContext2D): Promise<void> {
     if (!this.#selected) return;
-    const bounds = await this.#getLayerBounds();
-    if (!bounds) return;
+    const mediaBounds = await this.#getMediaBounds();
+    if (!mediaBounds) return;
 
     const frame = await this._media.getFrame(this.#currentTime);
     if (!frame) return;
 
     ctx.save();
 
-    // Scale bounds from CSS pixels to physical pixels for drawing
-    const pixelRatio = getPixelRatio(this.#canvas);
-    const physicalBounds = {
-      x: bounds.x * pixelRatio,
-      y: bounds.y * pixelRatio,
-      width: bounds.width * pixelRatio,
-      height: bounds.height * pixelRatio
-    };
+    const physical = mediaBounds.physical;
+    const pixelRatio = mediaBounds.pixelRatio;
 
-    const centerX = physicalBounds.x + physicalBounds.width / 2;
-    const centerY = physicalBounds.y + physicalBounds.height / 2;
+    const centerX = physical.centerX;
+    const centerY = physical.centerY;
     const rotation = (frame.rotation || 0) * (Math.PI / 180);
 
     ctx.translate(centerX, centerY);
@@ -442,7 +414,7 @@ export class CanvasLayer {
     ctx.strokeStyle = '#00aaff';
     ctx.lineWidth = 2 * pixelRatio;
     ctx.setLineDash([5 * pixelRatio, 5 * pixelRatio]);
-    ctx.strokeRect(physicalBounds.x, physicalBounds.y, physicalBounds.width, physicalBounds.height);
+    ctx.strokeRect(physical.x, physical.y, physical.width, physical.height);
 
     // Draw resize handles
     ctx.fillStyle = '#00aaff';
@@ -451,7 +423,7 @@ export class CanvasLayer {
     ctx.setLineDash([]);
 
     const handleSize = 8 * pixelRatio;
-    const handlePositions = this.#getHandlePositions(physicalBounds, handleSize);
+    const handlePositions = this.#getHandlePositions(physical, handleSize);
 
     handlePositions.forEach(pos => {
       ctx.fillRect(pos.x, pos.y, handleSize, handleSize);
@@ -460,8 +432,8 @@ export class CanvasLayer {
 
     // Draw rotation handle
     const rotationHandleOffset = 20 * pixelRatio;
-    const rotationX = physicalBounds.x + physicalBounds.width / 2 - handleSize / 2;
-    const rotationY = physicalBounds.y - rotationHandleOffset - handleSize / 2;
+    const rotationX = physical.x + physical.width / 2 - handleSize / 2;
+    const rotationY = physical.y - rotationHandleOffset - handleSize / 2;
     
     ctx.beginPath();
     ctx.arc(rotationX + handleSize/2, rotationY + handleSize/2, handleSize/2, 0, 2 * Math.PI);
@@ -470,7 +442,7 @@ export class CanvasLayer {
 
     // Draw line connecting rotation handle to media
     ctx.beginPath();
-    ctx.moveTo(physicalBounds.x + physicalBounds.width / 2, physicalBounds.y);
+    ctx.moveTo(physical.x + physical.width / 2, physical.y);
     ctx.lineTo(rotationX + handleSize/2, rotationY + handleSize);
     ctx.stroke();
 
