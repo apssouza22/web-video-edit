@@ -68,11 +68,21 @@ export class RecordingControls {
     try {
       await this.#userMediaRecorder.stopRecording();
       this.#toggleRecordingButtons(false);
+      this.#showSuccessMessage();
     } catch (error: any) {
       console.error('Failed to stop recording:', error);
       this.#toggleRecordingButtons(false);
       this.#displayUserError(error as RecordingError);
     }
+  }
+
+  #showSuccessMessage(): void {
+    const successDiv = document.createElement('div');
+    successDiv.innerHTML = `
+      <h3>Recording Complete</h3>
+      <p>Your recording has been added to the library.</p>
+    `;
+    popup(successDiv);
   }
 
   #toggleRecordingButtons(isRecording: boolean): void {

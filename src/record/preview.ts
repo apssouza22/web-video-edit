@@ -256,4 +256,77 @@ export class RecordingPreview {
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
+
+  /**
+   * Show countdown overlay before recording starts
+   * Displays 3, 2, 1 with animation, then resolves
+   */
+  showCountdown(): Promise<void> {
+    return new Promise((resolve) => {
+      const countdownOverlay = document.createElement('div');
+      countdownOverlay.id = 'recording-countdown-overlay';
+      countdownOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: 'JupiterSans', Arial, sans-serif;
+      `;
+
+      const countdownNumber = document.createElement('div');
+      countdownNumber.id = 'countdown-number';
+      countdownNumber.style.cssText = `
+        font-size: 180px;
+        font-weight: bold;
+        color: #69d2ff;
+        text-shadow: 0 0 40px rgba(105, 210, 255, 0.6);
+        animation: countdown-pulse 0.8s ease-out;
+      `;
+
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes countdown-pulse {
+          0% {
+            transform: scale(1.5);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(0.8);
+            opacity: 0.6;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      countdownOverlay.appendChild(countdownNumber);
+      document.body.appendChild(countdownOverlay);
+
+      let count = 3;
+      countdownNumber.textContent = count.toString();
+
+      const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNumber.textContent = count.toString();
+          countdownNumber.style.animation = 'none';
+          void countdownNumber.offsetWidth;
+          countdownNumber.style.animation = 'countdown-pulse 0.8s ease-out';
+        } else {
+          clearInterval(countdownInterval);
+          document.body.removeChild(countdownOverlay);
+          document.head.removeChild(style);
+          resolve();
+        }
+      }, 700);
+    });
+  }
 }

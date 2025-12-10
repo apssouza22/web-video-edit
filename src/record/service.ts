@@ -236,6 +236,9 @@ export class UserMediaRecordingService {
       this.#addEventListeners();
 
       this.#preview.setupPreview(this.#mediaStream);
+      
+      await this.#preview.showCountdown();
+      
       this.#preview.startUpdates(() => this.#getRecordingData());
       this.#resetMetadata();
       this.#recordingStartTime = Date.now();
