@@ -186,21 +186,17 @@ export class Canvas2DRender {
         0, 0,
         width, height,
         -scaledWidth / 2, -scaledHeight / 2,
-        scaledWidth, scaledHeight
+        scaledWidth / bounding.scaleFactor, scaledHeight / bounding.scaleFactor
     );
     
     ctxOutTo.restore();
   }
 }
 
-/**
- * Get bounding box to fit input dimensions into output canvas while maintaining aspect ratio
- * @param width
- * @param height
- * @param canvas
- */
 export function getBoundingBox(width: number, height: number, canvas: CanvasElement) {
   const {ratio, offset_width, offset_height} = getCoordinates(width, height, canvas);
+  const canvasScaled = canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
+  const scaleFactor = canvasScaled ? dpr : 1;
   const baseWidth = ratio * width;
   const baseHeight = ratio * height;
   
@@ -210,15 +206,12 @@ export function getBoundingBox(width: number, height: number, canvas: CanvasElem
     width: baseWidth,
     height: baseHeight,
     ratio: ratio,
-    scaleFactor: 1,
-    centerX: (offset_width + baseWidth / 2),
-    centerY: (offset_height + baseHeight / 2)
+    scaleFactor: scaleFactor,
+    centerX: (offset_width + baseWidth / 2) * scaleFactor,
+    centerY: (offset_height + baseHeight / 2) * scaleFactor
   };
 }
 
-/**
- * Calculate scaling ratio and offsets to fit input dimensions into output canvas while maintaining aspect ratio
- */
 function getCoordinates(width: number, height: number, canvas: CanvasElement) {
   const in_ratio = width / height;
   // Check if the output canvas context has been scaled by device pixel ratio

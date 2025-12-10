@@ -416,6 +416,8 @@ export class UserMediaRecordingService {
    */
   #createVideoFile(videoBlob: Blob): File {
     try {
+      const videoUrl = URL.createObjectURL(videoBlob);
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `screen-recording-${timestamp}.webm`;
 
