@@ -11,14 +11,13 @@ env.allowLocalModels = false;
 const modelParams: ModelParams = {
   chunk_length_s: 30,
   stride_length_s: 5,
-  // language: "english",
-  // task: "transcribe",
   return_timestamps: "word",
+  language: "en",
 };
 
 export class PipelineFactory {
   static readonly task: string = "automatic-speech-recognition";
-  static readonly model: string = "Xenova/whisper-small.en";
+  static readonly model: string = "onnx-community/whisper-base_timestamped";
   static instance: Promise<Pipeline> | null = null;
 
   /**
@@ -30,10 +29,11 @@ export class PipelineFactory {
     if (this.instance === null) {
       const options: PretrainedModelOptions = {
         progress_callback: progress_callback || undefined,
-        dtype: getExecDevice() === "wasm" ? "q8" : "fp32",
+        dtype: getExecDevice() === "wasm" ? "q8" : {
+          encoder_model: "fp32",
+          decoder_model_merged: "q4"
+        },
         device: getExecDevice(),
-        // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
-        revision: this.model.includes("/whisper-medium") ? "no_attentions" : "output_attentions",
       };
       // @ts-ignore
       this.instance = await pipeline(

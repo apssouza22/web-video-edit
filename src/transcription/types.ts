@@ -18,6 +18,7 @@ export interface ModelParams {
   chunk_length_s: number;
   stride_length_s: number;
   return_timestamps: string;
+  language?: string;
 }
 
 export interface ProgressCallbackData {
