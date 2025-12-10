@@ -258,9 +258,6 @@ export class VideoStudio {
   resize(newRatio?: string): void {
     this.player.resize(newRatio);
     this.timeline.resize();
-    this.getMedias().forEach(media => {
-      media.resize(this.player.width, this.player.height);
-    })
   }
 
   async #loop(realtime: number): Promise<void> {

@@ -124,10 +124,6 @@ export class VideoCanvas {
   mount(holder: HTMLElement): void {
     this.playerHolder = holder;
     holder.appendChild(this.canvas);
-    this.canvas.width = holder.clientWidth;
-    this.canvas.height = holder.clientHeight;
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
     this.ctx.scale(1, 1); // Reset scale to 1
     this.resize();
   }
@@ -140,7 +136,7 @@ export class VideoCanvas {
     this.canvas.height = this.canvas.clientHeight * dpr;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
-    this.ctx.scale(dpr, dpr);
+    // this.ctx.scale(dpr, dpr);
   }
 
   refreshAudio(): void {
