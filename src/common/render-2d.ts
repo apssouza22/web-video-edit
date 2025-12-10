@@ -160,9 +160,9 @@ export class Canvas2DRender {
       ctxOutTo: ESRenderingContext2D,
       frame: Frame
   ): void {
-    const width = ctxFrom.canvas.width ?? 0;
-    const height = ctxFrom.canvas.height ?? 0;
-    const bounding = getBoundingBox(width, height, ctxOutTo.canvas);
+    const fromWidth = ctxFrom.canvas.width ?? 0;
+    const fromHeight = ctxFrom.canvas.height ?? 0;
+    const bounding = getBoundingBox(fromWidth, fromHeight, ctxOutTo.canvas);
 
     ctxOutTo.save();
     ctxOutTo.translate(
@@ -176,17 +176,19 @@ export class Canvas2DRender {
     let scaledWidth = bounding.width * frame.scale * bounding.scaleFactor;
     let scaledHeight = bounding.height * frame.scale * bounding.scaleFactor;
 
-    if (width < ctxOutTo.canvas.width || height < ctxOutTo.canvas.height) {
-      scaledWidth = width * frame.scale * bounding.scaleFactor;
-      scaledHeight = height * frame.scale * bounding.scaleFactor;
+    const logicalDimensions = getLogicalDimensions(ctxOutTo.canvas);
+    if (fromWidth < logicalDimensions.width || fromHeight < logicalDimensions.height) {
+      const pixelRatio = getPixelRatio(ctxOutTo.canvas);
+      scaledWidth = fromWidth * frame.scale * bounding.scaleFactor * pixelRatio;
+      scaledHeight = fromHeight * frame.scale * bounding.scaleFactor * pixelRatio;
     }
 
     ctxOutTo.drawImage(
         ctxFrom.canvas as CanvasImageSource,
         0, 0,
-        width, height,
+        fromWidth, fromHeight,
         -scaledWidth / 2, -scaledHeight / 2,
-        scaledWidth / bounding.scaleFactor, scaledHeight / bounding.scaleFactor
+        scaledWidth, scaledHeight
     );
     
     ctxOutTo.restore();
@@ -195,11 +197,9 @@ export class Canvas2DRender {
 
 export function getBoundingBox(width: number, height: number, canvas: CanvasElement) {
   const {ratio, offset_width, offset_height} = getCoordinates(width, height, canvas);
-  const canvasScaled = canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
-  const scaleFactor = canvasScaled ? dpr : 1;
+  const scaleFactor = 1;
   const baseWidth = ratio * width;
   const baseHeight = ratio * height;
-  
   return {
     x: offset_width,
     y: offset_height,
@@ -212,12 +212,30 @@ export function getBoundingBox(width: number, height: number, canvas: CanvasElem
   };
 }
 
+export function getLogicalDimensions(canvas: CanvasElement): {width: number, height: number} {
+  if (canvas instanceof HTMLCanvasElement && canvas.clientWidth > 0) {
+    return {
+      width: canvas.clientWidth,
+      height: canvas.clientHeight
+    };
+  }
+  return {
+    width: canvas.width / dpr,
+    height: canvas.height / dpr
+  };
+}
+
+export function getPixelRatio(canvas: CanvasElement): number {
+  if (canvas instanceof HTMLCanvasElement && canvas.clientWidth > 0) {
+    return canvas.width / canvas.clientWidth;
+  }
+  return dpr;
+}
+
 function getCoordinates(width: number, height: number, canvas: CanvasElement) {
   const in_ratio = width / height;
-  // Check if the output canvas context has been scaled by device pixel ratio
-  const canvasScaled = canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
-  const outLogicalWidth = canvasScaled ? canvas.width / dpr : canvas.width;
-  const outLogicalHeight = canvasScaled ? canvas.height / dpr : canvas.height;
+  const outLogicalWidth = canvas.width;
+  const outLogicalHeight = canvas.height;
   const out_ratio = outLogicalWidth / outLogicalHeight;
 
   let ratio = 1;
@@ -231,4 +249,12 @@ function getCoordinates(width: number, height: number, canvas: CanvasElement) {
     offset_width = (outLogicalWidth - (ratio * width)) / 2;
   }
   return {ratio, offset_width, offset_height};
+}
+
+export function isCanvasScaled(canvas: CanvasElement): boolean {
+    // Check if the output canvas context has been scaled by device pixel ratio
+  if (canvas instanceof HTMLCanvasElement) {
+    return canvas.width !== (canvas as HTMLCanvasElement).clientWidth;
+  }
+  return false;
 }

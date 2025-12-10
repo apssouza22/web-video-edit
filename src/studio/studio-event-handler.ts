@@ -9,7 +9,8 @@ import {
   TranscriptionRemoveIntervalEvent,
   TranscriptionSeekEvent,
   UiSpeedChangeEvent,
-  CaptionCreateEvent, SpeechGeneratedEvent
+  CaptionCreateEvent,
+  SpeechGeneratedEvent
 } from '@/common/event-bus';
 import {VideoStudio} from "@/studio/studio";
 import {MediaOps} from "@/studio/media-ops";
@@ -97,14 +98,14 @@ export class StudioEventHandler {
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(RecordVideoFileCreatedEvent, (event) => {
-        this.#studio.mediaLibrary.addFile(event.videoFile);
+      this.#eventBus.subscribe(RecordVideoFileCreatedEvent, async (event) => {
+        await this.#studio.mediaLibrary.addFile(event.videoFile);
       })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(MediaLibraryDropEvent, (event) => {
-        this.#studio.createMediaFromLibrary(event.fileId);
+      this.#eventBus.subscribe(MediaLibraryDropEvent, async (event) => {
+        await this.#studio.createMediaFromLibrary(event.fileId);
       })
     );
 

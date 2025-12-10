@@ -284,8 +284,7 @@ export class VideoStudio {
       return [];
     }
     this.loadingPopup.startLoading(file.name, file.name);
-    const layers = await this.mediaLoader.addMediaFromFile(file);
-    return layers;
+    return await this.mediaLoader.addMediaFromFile(file);
   }
 
   onLayerLoadUpdate(
