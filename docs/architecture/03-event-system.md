@@ -217,7 +217,7 @@ The application uses a centralized EventBus for decoupled communication between 
 ---
 
 ### 10. RecordVideoFileCreatedEvent
-**Event Name**: `record:videoFileCreated`  
+**Event Name**: `recording:videoFileCreated`  
 **Published By**: `RecordService`  
 **Subscribers**: `Studio`
 

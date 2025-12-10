@@ -1,6 +1,6 @@
 import {popup} from "@/common/utils";
 import {createUserMediaRecordingService} from "./index";
-import {UserMediaRecordingService} from "@/record/service";
+import {UserMediaRecordingService} from "./service";
 
 interface RecordingError extends Error {
   userMessage?: string;

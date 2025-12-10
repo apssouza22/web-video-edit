@@ -1,6 +1,6 @@
 import {VideoStudio} from "@/studio/studio";
 import {StudioEventHandler} from "@/studio/studio-event-handler";
-import {initScreenRecording} from "@/record/controls";
+import {initScreenRecording} from "@/recording/controls";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
 import {createMediaService} from "@/mediaclip";

@@ -90,7 +90,7 @@ flowchart TB
         AudioSplit["AudioSplitHandler.ts"]
         PitchProcessor["pitch-preservation-processor.ts"]
     end
-    subgraph s12["record/"]
+    subgraph s12["recording/"]
         RecordService["service.ts<br>UserMediaRecordingService"]
         RecordControls["controls.ts"]
 

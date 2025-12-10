@@ -33,7 +33,7 @@ Detailed package/domain organization:
 - `src/studio/` - Main studio orchestration
 - `src/mediaclip/` - Media layer abstractions
 - `src/canvas/` - Canvas rendering and player
-- `src/record/` - Screen recording functionality
+- `src/recording/` - Screen recording functionality
 - `src/transcription/` - AI-powered transcription
 - `src/common/` - Shared utilities and event bus
 

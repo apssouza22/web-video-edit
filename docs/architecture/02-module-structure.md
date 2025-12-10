@@ -21,7 +21,7 @@ The application is organized into domain-driven modules under `src/`. Each modul
 - `SpeedControlInput` - Speed adjustment UI
 - `LoadingPopup` - Loading state UI
 
-**Dependencies**: canvas, timeline, mediaclip, video, audio, record, transcription, common
+**Dependencies**: canvas, timeline, mediaclip, video, audio, recording, transcription, common
 
 ---
 
@@ -142,7 +142,7 @@ The application is organized into domain-driven modules under `src/`. Each modul
 
 ---
 
-### 📹 record/
+### 📹 recording/
 **Responsibility**: Screen and camera recording
 
 **Key Classes**:

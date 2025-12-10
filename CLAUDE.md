@@ -51,7 +51,7 @@ The codebase is organized into domain-driven packages under `src/`:
 - **`mediaclip/`**: Media layer abstractions (`AbstractMedia`, `VideoMedia`, `AudioMedia`, `ImageMedia`, `TextMedia`)
 - **`video/`**: Video demuxing (MP4Box, MediaBunny, HTML5) and muxing (MediaRecorder, WebCodecs)
 - **`audio/`**: Audio processing, pitch preservation, and Web Audio API integration
-- **`record/`**: Screen/camera recording using MediaRecorder API
+- **`recording/`**: Screen/camera recording using MediaRecorder API
 - **`transcription/`**: AI-powered speech-to-text using Transformers.js
 - **`frame/`**: Frame extraction, storage, and management
 - **`common/`**: Shared utilities, EventBus, StudioState, browser detection
@@ -76,7 +76,7 @@ Components communicate through typed events via the centralized EventBus. Key ev
 - `ui:speedChange` - Playback speed changed (SpeedControl → Media layers)
 - `ui:aspectRatioChange` - Canvas aspect ratio changed (AspectRatioSelector → Canvas)
 - `mediaclip:loadUpdate` - Media loading progress (MediaLoader → Studio, LoadingPopup)
-- `record:videoFileCreated` - Recording complete (RecordService → Studio)
+- `recording:videoFileCreated` - Recording complete (RecordService → Studio)
 
 See `docs/architecture/03-event-system.md` for detailed event flow diagrams.
 
