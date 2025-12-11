@@ -269,11 +269,11 @@ export class Timeline {
 
   getLayerHeight(media: AbstractMedia): number {
     if (media.isVideo()) {
-      return this.layerHeight * 2;
+      return this.layerHeight * 1.5;
     }
 
     if(media.isAudio()){
-      return this.layerHeight * 1.5;
+      return this.layerHeight * 1.2;
     }
     return this.layerHeight
   }

@@ -33,10 +33,10 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
     
     const videoMedia = new VideoMedia(file.name, frameSource);
     const audioMedia = new AudioMedia(file.name, audioFrameSource);
-    layers.push(audioMedia);
     layers.push(videoMedia);
-    onLoadUpdateListener(audioMedia, 100, audioFrameSource.audioBuffer);
+    layers.push(audioMedia);
     onLoadUpdateListener(videoMedia, 100);
+    onLoadUpdateListener(audioMedia, 100, audioFrameSource.audioBuffer);
   }
   
   if (file.type.indexOf('image') >= 0) {

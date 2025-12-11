@@ -5,6 +5,23 @@ Smart WebVideoEdit combines AI and modern web technologies to create a browser-b
 
 <img src="assets/image.png" alt="Web Video Edit demo" width="500">
 
+Features include:
+- Upload video files directly from your device
+- Trim and cut video clips
+- Add text overlays and captions
+- Use AI-powered tools for object detection and scene recognition
+- Export edited videos in various formats
+- All processing is done locally in the browser, ensuring user privacy and data security
+- Utilizes WebAssembly and WebCodecs for high-performance video processing
+- Leverages Webgpu for accelerated AI tasks
+- No server-side processing, making it fast and efficient
+- AI libraries for advanced video analysis and editing features
+- Transcribe audio to text using Whisper model
+- Text-to-speech using Kokoro model
+- Video description using FastVLM model
+- Apply filters and effects
+- Background removal using segmentation models
+- Search within videos using AI-generated metadata
 
 ## Demo
 
