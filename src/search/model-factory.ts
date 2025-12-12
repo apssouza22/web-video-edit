@@ -70,6 +70,7 @@ export class SearchModelFactory {
         progress: 0,
       });
 
+      // @ts-ignore
       this.#featureExtractor = await pipeline(
         "feature-extraction",
         EMBEDDING_MODEL_ID,

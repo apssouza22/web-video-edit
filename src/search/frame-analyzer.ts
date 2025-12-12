@@ -34,6 +34,7 @@ export class FrameAnalyzer {
       max_new_tokens: MAX_NEW_TOKENS,
     });
 
+    // @ts-ignore
     const generatedText = this.#tokenizer.batch_decode(generatedIds, {
       skip_special_tokens: false,
     })[0];

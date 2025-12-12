@@ -7,10 +7,10 @@ import type {
   LoadModelMessage,
   AnalyzedFrameData,
 } from './types.js';
-import { SearchModelFactory, type SearchModels } from './model-factory.js';
-import { EmbeddingCalculator } from './embedding-calculator.js';
-import { FrameAnalyzer } from './frame-analyzer.js';
-import { FrameExtractor } from './frame-extractor.js';
+import {SearchModelFactory, type SearchModels} from './model-factory.js';
+import {EmbeddingCalculator} from './embedding-calculator.js';
+import {FrameAnalyzer} from './frame-analyzer.js';
+import {FrameExtractor} from './frame-extractor.js';
 
 const DEFAULT_MIN_COSINE_SIMILARITY = 0.35;
 let models: SearchModels | null = null;
@@ -102,7 +102,7 @@ async function handleSearchMessage(message: SearchInVideoMessage): Promise<void>
 
     const analyzedFrames: AnalyzedFrameData[] = [];
     const frameCount = frames.length;
-
+    const startAnalysisTime = performance.now();
     for (let i = 0; i < frameCount; i++) {
       const frame = frames[i];
       const progressPercent = 30 + ((i / frameCount) * 60);
@@ -118,9 +118,10 @@ async function handleSearchMessage(message: SearchInVideoMessage): Promise<void>
         imageDataUrl: frame.imageDataUrl,
       });
     }
-
+    const analysisDuration = performance.now() - startAnalysisTime;
+    console.log(`Analyzed ${frameCount} frames in ${analysisDuration.toFixed(2)} ms`);
     postProgress('Finding matches...', 95);
-    const matches = findMatches(analyzedFrames, queryEmbedding, minSimilarity);
+    const matches = findMatches(analyzedFrames, queryEmbedding, minSimilarity, message.query);
 
     const result: SearchResult = {
       query: message.query,
@@ -156,9 +157,10 @@ function postProgress(message: string, progress: number): void {
 }
 
 function findMatches(
-  analyzedFrames: AnalyzedFrameData[],
-  queryEmbedding: Float32Array,
-  minSimilarity: number
+    analyzedFrames: AnalyzedFrameData[],
+    queryEmbedding: Float32Array,
+    minSimilarity: number,
+    query: string
 ): SearchMatch[] {
   const matches: SearchMatch[] = [];
 
@@ -171,8 +173,22 @@ function findMatches(
         confidence: Math.round(similarity * 100) / 100,
         matchedText: frame.caption,
         context: `Frame at ${frame.timestamp.toFixed(2)}s: "${frame.caption}"`,
-          imageDataUrl: frame.imageDataUrl,
+        imageDataUrl: frame.imageDataUrl,
       });
+      continue;
+    }
+
+    for (const word of query.split(' ')) {
+      if (frame.caption.toLowerCase().includes(word.toLowerCase())) {
+        matches.push({
+          timestamp: Math.round(frame.timestamp * 1000) / 1000,
+          confidence: 100,
+          matchedText: frame.caption,
+          context: `Frame at ${frame.timestamp.toFixed(2)}s: "${frame.caption}"`,
+          imageDataUrl: frame.imageDataUrl,
+        });
+        break;
+      }
     }
   }
 
