@@ -75,12 +75,12 @@ export class VisionService {
 
   async analyzeVideo(media: AbstractMedia): Promise<void> {
     const instruction = "Describe the image in detail. Include all people, objects, and actions. Respond in 50 words or less.";
-    if (window.location.hostname === "localhost") {
-      console.warn("Using mocked vision data for local development.");
-      const data = this.#getMockedData(instruction);
-      this.#onAnalysisComplete(data);
-      return;
-    }
+    // if (window.location.hostname === "localhost") {
+    //   console.warn("Using mocked vision data for local development.");
+    //   const data = this.#getMockedData(instruction);
+    //   this.#onAnalysisComplete(data);
+    //   return;
+    // }
 
     try {
       console.log("Extracting smart samples from video...");

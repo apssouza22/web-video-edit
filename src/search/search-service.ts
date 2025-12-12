@@ -9,6 +9,8 @@ export class SearchService {
   #eventBus = getEventBus();
   #fileStorage = getFileStorage();
   #selectedVideoId: string | null = null;
+  #modelsLoaded: boolean = false;
+  #modelsLoading: boolean = false;
 
   constructor() {
     this.#worker = new Worker(new URL('./worker.js', import.meta.url), {
@@ -25,7 +27,15 @@ export class SearchService {
       const message = event.data;
       switch (message.status) {
         case 'progress':
-          console.log('Search progress:', message.progress);
+          console.log('Search progress:', message.progress, message.message);
+          break;
+
+        case 'ready':
+          if (message.task === 'load-model') {
+            this.#modelsLoaded = true;
+            this.#modelsLoading = false;
+            console.log('Search models loaded successfully');
+          }
           break;
 
         case 'complete':
@@ -35,16 +45,28 @@ export class SearchService {
           break;
 
         case 'error':
-          const errorMessage = message.data && message.data instanceof Error
-            ? message.data.message
-            : 'Unknown search error occurred';
+          const errorMessage = message.message || 
+            (
+                message.data && message.data instanceof Error ?
+                message.data.message :
+                'Unknown search error occurred'
+            );
           console.error('Search error:', errorMessage);
+          this.#modelsLoading = false;
           break;
 
         default:
           break;
       }
     }).bind(this));
+  }
+
+  async loadModels(): Promise<void> {
+    if (this.#modelsLoaded || this.#modelsLoading) {
+      return;
+    }
+    this.#modelsLoading = true;
+    this.#worker.postMessage({ task: 'load-model' });
   }
 
   #setupViewCallbacks(): void {

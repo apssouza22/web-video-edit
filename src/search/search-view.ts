@@ -240,7 +240,8 @@ export class SearchView {
     matchDiv.dataset.timestamp = String(match.timestamp);
     const timestampFormatted = this.#formatTimestamp(match.timestamp);
     const confidencePercent = Math.round(match.confidence * 100);
-    matchDiv.innerHTML = `
+
+    const headerHtml = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span style="font-size: 14px; font-weight: 600; color: #4a9eff;">
           #${index + 1} at ${timestampFormatted}
@@ -249,10 +250,26 @@ export class SearchView {
           ${confidencePercent}% confidence
         </span>
       </div>
+    `;
+
+    const imageHtml = match.imageDataUrl ? `
+      <div style="margin-bottom: 8px;">
+        <img 
+          src="${match.imageDataUrl}" 
+          alt="Frame at ${timestampFormatted}"
+          style="width: 100%; max-width: 240px; height: auto; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1);"
+        />
+      </div>
+    ` : '';
+
+    const contextHtml = `
       <div style="font-size: 13px; color: #ccc; line-height: 1.4;">
-        ${match.context}
+        ${match.matchedText}
       </div>
     `;
+
+    matchDiv.innerHTML = headerHtml + imageHtml + contextHtml;
+
     matchDiv.addEventListener('mouseenter', () => {
       matchDiv.style.background = 'rgba(255, 255, 255, 0.1)';
     });

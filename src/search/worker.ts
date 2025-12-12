@@ -3,77 +3,179 @@ import type {
   SearchResult,
   SearchMatch,
   WorkerMessage,
-  WorkerResponseMessage
+  WorkerResponseMessage,
+  LoadModelMessage,
+  AnalyzedFrameData,
 } from './types.js';
+import { SearchModelFactory, type SearchModels } from './model-factory.js';
+import { EmbeddingCalculator } from './embedding-calculator.js';
+import { FrameAnalyzer } from './frame-analyzer.js';
+import { FrameExtractor } from './frame-extractor.js';
+
+const DEFAULT_MIN_COSINE_SIMILARITY = 0.35;
+let models: SearchModels | null = null;
+let embeddingCalculator: EmbeddingCalculator | null = null;
+let frameAnalyzer: FrameAnalyzer | null = null;
+let frameExtractor: FrameExtractor | null = null;
 
 self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
   const message = event.data;
   if (!message) {
     return;
   }
+
+  if (isLoadModelMessage(message)) {
+    await handleLoadModelMessage();
+    return;
+  }
+
   if (isSearchMessage(message)) {
     await handleSearchMessage(message);
     return;
   }
+
   console.warn('Unknown message received in search worker:', message);
 });
+
+function isLoadModelMessage(message: WorkerMessage): message is LoadModelMessage {
+  return message.task === 'load-model';
+}
 
 function isSearchMessage(message: WorkerMessage): message is SearchInVideoMessage {
   return message.task === 'search' && message.query !== undefined && message.videoData !== undefined;
 }
 
+async function handleLoadModelMessage(): Promise<void> {
+  try {
+    models = await SearchModelFactory.getInstance((data) => {
+      const response: WorkerResponseMessage = {
+        status: 'progress',
+        task: 'load-model',
+        message: data.message,
+        progress: data.progress,
+      };
+      self.postMessage(response);
+    });
+
+    embeddingCalculator = new EmbeddingCalculator(models.featureExtractor);
+    frameAnalyzer = new FrameAnalyzer(models.model, models.processor, models.tokenizer);
+    frameExtractor = new FrameExtractor();
+
+    const readyResponse: WorkerResponseMessage = {
+      status: 'ready',
+      task: 'load-model',
+      message: 'Search models loaded successfully!',
+    };
+    self.postMessage(readyResponse);
+  } catch (error) {
+    const errorResponse: WorkerResponseMessage = {
+      status: 'error',
+      task: 'load-model',
+      message: (error as Error).message,
+    };
+    self.postMessage(errorResponse);
+  }
+}
+
 async function handleSearchMessage(message: SearchInVideoMessage): Promise<void> {
-  const progressResponse: WorkerResponseMessage = {
+  const startTime = performance.now();
+  const minSimilarity = message.minCosineSimilarity ?? DEFAULT_MIN_COSINE_SIMILARITY;
+
+  try {
+    if (!models || !embeddingCalculator || !frameAnalyzer || !frameExtractor) {
+      postProgress('Loading models...', 0);
+      models = await SearchModelFactory.getInstance((data) => {
+        postProgress(data.message || 'Loading...', data.progress || 0);
+      });
+      embeddingCalculator = new EmbeddingCalculator(models.featureExtractor);
+      frameAnalyzer = new FrameAnalyzer(models.model, models.processor, models.tokenizer);
+      frameExtractor = new FrameExtractor();
+    }
+
+    postProgress('Extracting frames from video...', 5);
+    const frames = await frameExtractor.extractFrames(message.videoData, (progress) => {
+      postProgress('Extracting frames...', 5 + (progress * 0.2));
+    });
+
+    postProgress('Calculating query embedding...', 25);
+    const queryEmbedding = await embeddingCalculator.calculateEmbedding(message.query);
+
+    const analyzedFrames: AnalyzedFrameData[] = [];
+    const frameCount = frames.length;
+
+    for (let i = 0; i < frameCount; i++) {
+      const frame = frames[i];
+      const progressPercent = 30 + ((i / frameCount) * 60);
+      postProgress(`Analyzing frame ${i + 1}/${frameCount}...`, progressPercent);
+
+      const caption = await frameAnalyzer.generateCaption(frame.imageDataUrl);
+      const embedding = await embeddingCalculator.calculateEmbedding(caption);
+
+      analyzedFrames.push({
+        timestamp: frame.timestamp,
+        caption,
+        embedding,
+        imageDataUrl: frame.imageDataUrl,
+      });
+    }
+
+    postProgress('Finding matches...', 95);
+    const matches = findMatches(analyzedFrames, queryEmbedding, minSimilarity);
+
+    const result: SearchResult = {
+      query: message.query,
+      matches,
+      totalMatches: matches.length,
+      searchDurationMs: performance.now() - startTime,
+    };
+
+    const completeResponse: WorkerResponseMessage = {
+      status: 'complete',
+      task: 'search',
+      data: result,
+    };
+    self.postMessage(completeResponse);
+  } catch (error) {
+    const errorResponse: WorkerResponseMessage = {
+      status: 'error',
+      task: 'search',
+      message: (error as Error).message,
+    };
+    self.postMessage(errorResponse);
+  }
+}
+
+function postProgress(message: string, progress: number): void {
+  const response: WorkerResponseMessage = {
     status: 'progress',
     task: 'search',
-    progress: 0,
+    message,
+    progress: Math.round(progress),
   };
-  self.postMessage(progressResponse);
-  const startTime = performance.now();
-  await simulateSearchDelay();
-  const result = generateMockedSearchResult(message.query, message.videoData.byteLength);
-  result.searchDurationMs = performance.now() - startTime;
-  const completeResponse: WorkerResponseMessage = {
-    status: 'complete',
-    task: 'search',
-    data: result,
-  };
-  self.postMessage(completeResponse);
+  self.postMessage(response);
 }
 
-function simulateSearchDelay(): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, 500));
-}
-
-function generateMockedSearchResult(query: string, videoSize: number): SearchResult {
-  const estimatedDurationSeconds = Math.max(30, videoSize / 100000);
-  const matchCount = Math.floor(Math.random() * 5) + 1;
+function findMatches(
+  analyzedFrames: AnalyzedFrameData[],
+  queryEmbedding: Float32Array,
+  minSimilarity: number
+): SearchMatch[] {
   const matches: SearchMatch[] = [];
-  for (let i = 0; i < matchCount; i++) {
-    const timestamp = Math.random() * estimatedDurationSeconds;
-    matches.push({
-      timestamp: Math.round(timestamp * 1000) / 1000,
-      confidence: Math.round((0.7 + Math.random() * 0.3) * 100) / 100,
-      matchedText: query,
-      context: generateMockedContext(query, i),
-    });
-  }
-  matches.sort((a, b) => a.timestamp - b.timestamp);
-  return {
-    query,
-    matches,
-    totalMatches: matchCount,
-    searchDurationMs: 0,
-  };
-}
 
-function generateMockedContext(query: string, index: number): string {
-  const contexts = [
-    `Scene showing "${query}" prominently in frame`,
-    `Text overlay containing "${query}" visible`,
-    `Audio transcript mentions "${query}"`,
-    `Object detected matching "${query}"`,
-    `Visual content related to "${query}"`,
-  ];
-  return contexts[index % contexts.length];
+  for (const frame of analyzedFrames) {
+    const similarity = embeddingCalculator!.calculateCosineSimilarity(frame.embedding, queryEmbedding);
+
+    if (similarity >= minSimilarity) {
+      matches.push({
+        timestamp: Math.round(frame.timestamp * 1000) / 1000,
+        confidence: Math.round(similarity * 100) / 100,
+        matchedText: frame.caption,
+        context: `Frame at ${frame.timestamp.toFixed(2)}s: "${frame.caption}"`,
+          imageDataUrl: frame.imageDataUrl,
+      });
+    }
+  }
+
+  matches.sort((a, b) => b.confidence - a.confidence);
+  return matches;
 }

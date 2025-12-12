@@ -10,6 +10,7 @@ export interface SearchMatch {
   confidence: number;
   matchedText: string;
   context: string;
+  imageDataUrl?: string;
 }
 
 export interface ProgressCallbackData {
@@ -26,20 +27,26 @@ export interface WorkerMessageBase {
   status?: string;
 }
 
+export interface LoadModelMessage extends WorkerMessageBase {
+  task: 'load-model';
+}
+
 export interface SearchInVideoMessage extends WorkerMessageBase {
   task: 'search';
   query: string;
   videoData: ArrayBuffer;
+  minCosineSimilarity?: number;
 }
 
 export interface WorkerResponseMessage extends WorkerMessageBase {
-  status: 'progress' | 'complete' | 'error';
+  status: 'progress' | 'complete' | 'error' | 'ready';
   task?: string;
   data?: SearchResult | ProgressCallbackData | Error;
   progress?: number;
+  message?: string;
 }
 
-export type WorkerMessage = SearchInVideoMessage;
+export type WorkerMessage = LoadModelMessage | SearchInVideoMessage;
 
 export interface SearchError extends Error {
   status?: string;
@@ -48,4 +55,14 @@ export interface SearchError extends Error {
 
 export interface SearchServiceConfig {
   mockDataForLocalhost?: boolean;
+  minCosineSimilarity?: number;
+  frameIntervalMs?: number;
+  maxFrames?: number;
+}
+
+export interface AnalyzedFrameData {
+  timestamp: number;
+  caption: string;
+  embedding: Float32Array;
+  imageDataUrl: string;
 }
