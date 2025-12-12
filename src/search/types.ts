@@ -66,3 +66,21 @@ export interface AnalyzedFrameData {
   embedding: Float32Array;
   imageDataUrl: string;
 }
+
+export enum FilteringStrategy {
+  SCENE_CHANGE = 'scene_change',
+  ADAPTIVE = 'adaptive',
+}
+
+export enum ComparisonMethod {
+  HISTOGRAM = 'histogram',
+  PIXEL_DIFFERENCE = 'pixel_difference',
+}
+
+export interface SampleFilterConfig {
+  strategy?: FilteringStrategy;
+  maxSamples?: number;
+  minSamples?: number;
+  similarityThreshold?: number;
+  comparisonMethod?: ComparisonMethod;
+}

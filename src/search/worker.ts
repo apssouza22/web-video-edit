@@ -11,12 +11,14 @@ import {SearchModelFactory, type SearchModels} from './model-factory.js';
 import {EmbeddingCalculator} from './embedding-calculator.js';
 import {FrameAnalyzer} from './frame-analyzer.js';
 import {FrameExtractor} from './frame-extractor.js';
+import {SampleFilter} from './sample-filter.js';
 
 const DEFAULT_MIN_COSINE_SIMILARITY = 0.35;
 let models: SearchModels | null = null;
 let embeddingCalculator: EmbeddingCalculator | null = null;
 let frameAnalyzer: FrameAnalyzer | null = null;
 let frameExtractor: FrameExtractor | null = null;
+let sampleFilter: SampleFilter | null = null;
 
 self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
   const message = event.data;
@@ -60,6 +62,7 @@ async function handleLoadModelMessage(): Promise<void> {
     embeddingCalculator = new EmbeddingCalculator(models.featureExtractor);
     frameAnalyzer = new FrameAnalyzer(models.model, models.processor, models.tokenizer);
     frameExtractor = new FrameExtractor();
+    sampleFilter = new SampleFilter();
 
     const readyResponse: WorkerResponseMessage = {
       status: 'ready',
@@ -77,28 +80,39 @@ async function handleLoadModelMessage(): Promise<void> {
   }
 }
 
+async function init() {
+  if (!models || !embeddingCalculator || !frameAnalyzer || !frameExtractor || !sampleFilter) {
+    postProgress('Loading models...', 0);
+    models = await SearchModelFactory.getInstance((data) => {
+      postProgress(data.message || 'Loading...', data.progress || 0);
+    });
+    embeddingCalculator = new EmbeddingCalculator(models.featureExtractor);
+    frameAnalyzer = new FrameAnalyzer(models.model, models.processor, models.tokenizer);
+    frameExtractor = new FrameExtractor();
+    sampleFilter = new SampleFilter();
+  }
+}
+
 async function handleSearchMessage(message: SearchInVideoMessage): Promise<void> {
   const startTime = performance.now();
   const minSimilarity = message.minCosineSimilarity ?? DEFAULT_MIN_COSINE_SIMILARITY;
 
   try {
-    if (!models || !embeddingCalculator || !frameAnalyzer || !frameExtractor) {
-      postProgress('Loading models...', 0);
-      models = await SearchModelFactory.getInstance((data) => {
-        postProgress(data.message || 'Loading...', data.progress || 0);
-      });
-      embeddingCalculator = new EmbeddingCalculator(models.featureExtractor);
-      frameAnalyzer = new FrameAnalyzer(models.model, models.processor, models.tokenizer);
-      frameExtractor = new FrameExtractor();
-    }
+    await init();
 
     postProgress('Extracting frames from video...', 5);
-    const frames = await frameExtractor.extractFrames(message.videoData, (progress) => {
-      postProgress('Extracting frames...', 5 + (progress * 0.2));
+    const extractedFrames = await frameExtractor!.extractFrames(message.videoData, (progress) => {
+      postProgress('Extracting frames...', 5 + (progress * 0.1));
     });
 
+    postProgress('Filtering similar frames...', 15);
+    const frames = await sampleFilter!.filterFrames(extractedFrames, (progress) => {
+      postProgress('Filtering frames...', 15 + (progress * 0.1));
+    });
+    console.log(`Filtered ${extractedFrames.length} frames down to ${frames.length} unique frames`);
+
     postProgress('Calculating query embedding...', 25);
-    const queryEmbedding = await embeddingCalculator.calculateEmbedding(message.query);
+    const queryEmbedding = await embeddingCalculator!.calculateEmbedding(message.query);
 
     const analyzedFrames: AnalyzedFrameData[] = [];
     const frameCount = frames.length;
@@ -108,8 +122,8 @@ async function handleSearchMessage(message: SearchInVideoMessage): Promise<void>
       const progressPercent = 30 + ((i / frameCount) * 60);
       postProgress(`Analyzing frame ${i + 1}/${frameCount}...`, progressPercent);
 
-      const caption = await frameAnalyzer.generateCaption(frame.imageDataUrl);
-      const embedding = await embeddingCalculator.calculateEmbedding(caption);
+      const caption = await frameAnalyzer!.generateCaption(frame.imageDataUrl);
+      const embedding = await embeddingCalculator!.calculateEmbedding(caption);
 
       analyzedFrames.push({
         timestamp: frame.timestamp,
@@ -182,7 +196,7 @@ function findMatches(
       if (frame.caption.toLowerCase().includes(word.toLowerCase())) {
         matches.push({
           timestamp: Math.round(frame.timestamp * 1000) / 1000,
-          confidence: 100,
+          confidence: 1,
           matchedText: frame.caption,
           context: `Frame at ${frame.timestamp.toFixed(2)}s: "${frame.caption}"`,
           imageDataUrl: frame.imageDataUrl,
