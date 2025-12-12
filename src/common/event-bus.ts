@@ -128,6 +128,13 @@ export class SpeechGeneratedEvent extends BaseEvent {
   }
 }
 
+export class SearchCompleteEvent extends BaseEvent {
+  readonly name = 'search:complete';
+  constructor(public result: any) {
+    super();
+  }
+}
+
 type EventHandler<T extends BaseEvent> = (event: T) => void;
 type EventClass<T extends BaseEvent> = new (...args: any[]) => T;
 

@@ -4,10 +4,12 @@ import {createMediaText, createMediaShape, ShapeType} from "@/mediaclip";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
 import {SpeechService} from "@/speech";
 import {ShapeView} from "@/shape";
+import {createSearchService} from "@/search";
 
 const studio = initStudio();
 new TabController('leftNav');
 const speechService = new SpeechService();
+const searchService = createSearchService();
 
 // @ts-ignore
 window.studio = studio;
@@ -17,6 +19,8 @@ window.studioState = StudioState.getInstance();
 window.popup = popup;
 // @ts-ignore
 window.speechService = speechService;
+// @ts-ignore
+window.searchService = searchService;
 
 window.addEventListener('load', function () {
   initLeftNavControls();
