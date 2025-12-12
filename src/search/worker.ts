@@ -82,7 +82,7 @@ async function handleLoadModelMessage(): Promise<void> {
 
 async function init() {
   if (!models || !embeddingCalculator || !frameAnalyzer || !frameExtractor || !sampleFilter) {
-    postProgress('Loading models...', 0);
+    postProgress('Loading search models...', 0);
     models = await SearchModelFactory.getInstance((data) => {
       postProgress(data.message || 'Loading...', data.progress || 0);
     });

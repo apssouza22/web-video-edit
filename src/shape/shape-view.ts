@@ -14,6 +14,9 @@ export class ShapeView {
     }
     this.#container = container;
     this.#onShapeCreated = onShapeCreated;
+  }
+
+  init(): void {
     this.#render();
   }
 

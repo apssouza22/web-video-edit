@@ -1,7 +1,7 @@
-import { SearchView } from './search-view.js';
-import type { SearchResult, WorkerResponseMessage } from './types.js';
-import { getEventBus, SearchCompleteEvent } from '@/common/event-bus';
-import { getFileStorage } from '@/medialibrary/file-storage';
+import {SearchView} from './search-view.js';
+import type {SearchResult, WorkerResponseMessage} from './types.js';
+import {getEventBus, SearchCompleteEvent} from '@/common/event-bus';
+import {getFileStorage} from '@/medialibrary/file-storage';
 
 export class SearchService {
   #worker: Worker;
@@ -12,14 +12,18 @@ export class SearchService {
   #modelsLoaded: boolean = false;
   #modelsLoading: boolean = false;
 
-  constructor() {
+  constructor(searchView: SearchView) {
     this.#worker = new Worker(new URL('./worker.js', import.meta.url), {
       type: 'module',
     });
-    this.#searchView = new SearchView();
+    this.#searchView = searchView;
+  }
+
+  async init(): Promise<void> {
     this.#addEventListener();
     this.#setupViewCallbacks();
     this.#loadVideoList();
+    await this.#loadModels();
   }
 
   #addEventListener(): void {
@@ -27,7 +31,10 @@ export class SearchService {
       const message = event.data;
       switch (message.status) {
         case 'progress':
-          console.log('Search progress:', message.progress, message.message);
+          this.#searchView.updateProgress(
+            message.progress ?? 0,
+            message.message ?? 'Processing...'
+          );
           break;
 
         case 'ready':
@@ -39,12 +46,14 @@ export class SearchService {
           break;
 
         case 'complete':
+          this.#searchView.hideProgress();
           if (message.data && this.#isSearchResult(message.data)) {
             this.#onSearchComplete(message.data);
           }
           break;
 
         case 'error':
+          this.#searchView.hideProgress();
           const errorMessage = message.message || 
             (
                 message.data && message.data instanceof Error ?
@@ -61,7 +70,7 @@ export class SearchService {
     }).bind(this));
   }
 
-  async loadModels(): Promise<void> {
+  async #loadModels(): Promise<void> {
     if (this.#modelsLoaded || this.#modelsLoading) {
       return;
     }
@@ -115,7 +124,4 @@ export class SearchService {
     this.#eventBus.emit(new SearchCompleteEvent(result));
   }
 
-  async refreshVideoList(): Promise<void> {
-    await this.#loadVideoList();
-  }
 }

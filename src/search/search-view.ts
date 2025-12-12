@@ -7,6 +7,7 @@ export type SearchQueryCallback = (query: string) => void;
 export class SearchView {
   #searchElement: HTMLElement | null = null;
   #resultContainer: HTMLElement | null = null;
+  #progressContainer: HTMLElement | null = null;
   #videoSelector: HTMLSelectElement | null = null;
   #searchInput: HTMLInputElement | null = null;
   #searchButton: HTMLButtonElement | null = null;
@@ -29,6 +30,8 @@ export class SearchView {
     this.#searchElement.appendChild(titleDiv);
     const controlsContainer = this.#createControlsContainer();
     this.#searchElement.appendChild(controlsContainer);
+    this.#progressContainer = this.#createProgressContainer();
+    this.#searchElement.appendChild(this.#progressContainer);
     const resultsTitleDiv = document.createElement('div');
     resultsTitleDiv.className = 'tab-section-title';
     resultsTitleDiv.textContent = 'Results';
@@ -127,6 +130,69 @@ export class SearchView {
     this.#searchButton.addEventListener('click', () => this.#handleSearch());
     container.appendChild(this.#searchButton);
     return container;
+  }
+
+  #createProgressContainer(): HTMLDivElement {
+    const container = document.createElement('div');
+    container.className = 'search-progress';
+    container.style.cssText = `
+      display: none;
+      padding: 12px;
+      margin: 10px;
+      background: rgba(74, 158, 255, 0.1);
+      border: 1px solid rgba(74, 158, 255, 0.3);
+      border-radius: 6px;
+    `;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'progress-message';
+    messageDiv.style.cssText = 'font-size: 13px; color: #4a9eff; margin-bottom: 8px;';
+    container.appendChild(messageDiv);
+    
+    const progressBarContainer = document.createElement('div');
+    progressBarContainer.style.cssText = `
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    `;
+    
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-bar';
+    progressBar.style.cssText = `
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #4a9eff, #2d7dd2);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    `;
+    progressBarContainer.appendChild(progressBar);
+    container.appendChild(progressBarContainer);
+    
+    return container;
+  }
+
+  updateProgress(progress: number, message: string): void {
+    if (!this.#progressContainer) return;
+    
+    this.#progressContainer.style.display = 'block';
+    
+    const messageDiv = this.#progressContainer.querySelector('.progress-message') as HTMLElement;
+    if (messageDiv) {
+      messageDiv.textContent = message;
+    }
+    
+    const progressBar = this.#progressContainer.querySelector('.progress-bar') as HTMLElement;
+    if (progressBar) {
+      const percentage = Math.min(Math.max(progress * 100, 0), 100);
+      progressBar.style.width = `${percentage}%`;
+    }
+  }
+
+  hideProgress(): void {
+    if (!this.#progressContainer) return;
+    this.#progressContainer.style.display = 'none';
   }
 
   #handleSearch(): void {

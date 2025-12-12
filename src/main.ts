@@ -3,13 +3,17 @@ import {initStudio} from "@/studio/initilizer.js";
 import {createMediaText, createMediaShape, ShapeType} from "@/mediaclip";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
 import {SpeechService} from "@/speech";
-import {ShapeView} from "@/shape";
+import {createShapeView, ShapeView} from "@/shape";
 import {createSearchService} from "@/search";
 
 const studio = initStudio();
 new TabController('leftNav');
 const speechService = new SpeechService();
 const searchService = createSearchService();
+const shapeVidew = createShapeView('shapes', (shapeType: ShapeType) => {
+  studio.addLayer(createMediaShape(shapeType));
+});
+
 
 // @ts-ignore
 window.studio = studio;
@@ -28,8 +32,9 @@ window.addEventListener('load', function () {
 
 function initLeftNavControls(): void {
   initTextControls();
-  initShapeControls();
   initSettingsControls();
+  searchService.init();
+  shapeVidew.init();
 }
 
 function initTextControls(): void {
@@ -47,11 +52,6 @@ function initTextControls(): void {
   });
 }
 
-function initShapeControls(): void {
-  new ShapeView('shapes', (shapeType: ShapeType) => {
-    studio.addLayer(createMediaShape(shapeType));
-  });
-}
 
 function initSettingsControls(): void {
   const fpsInput = document.getElementById('fps-input') as HTMLInputElement;
