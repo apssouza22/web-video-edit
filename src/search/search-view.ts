@@ -48,7 +48,7 @@ export class SearchView {
     container.style.cssText = 'padding: 10px; display: flex; flex-direction: column; gap: 12px;';
     const selectorLabel = document.createElement('label');
     selectorLabel.textContent = 'Select Video';
-    selectorLabel.style.cssText = 'font-size: 12px; color: #888; margin-bottom: 4px;';
+    selectorLabel.style.cssText = 'font-size: 12px; color: #888; margin-bottom: 4px; display: block;';
     this.#videoSelector = document.createElement('select');
     this.#videoSelector.className = 'search-video-selector';
     this.#videoSelector.style.cssText = `
@@ -76,7 +76,7 @@ export class SearchView {
     container.appendChild(selectorGroup);
     const inputLabel = document.createElement('label');
     inputLabel.textContent = 'Search Query';
-    inputLabel.style.cssText = 'font-size: 12px; color: #888; margin-bottom: 4px;';
+    inputLabel.style.cssText = 'font-size: 12px; color: #888; margin-bottom: 4px; display: block;';
     this.#searchInput = document.createElement('input');
     this.#searchInput.type = 'text';
     this.#searchInput.placeholder = 'Enter text to search...';

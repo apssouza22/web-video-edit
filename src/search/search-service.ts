@@ -105,7 +105,7 @@ export class SearchService {
     }
     const buffer = await storedFile.blob.arrayBuffer();
     this.#worker.postMessage(
-      { task: 'search', query: query.trim(), videoData: buffer },
+      { task: 'search', query: query.trim(), videoId: this.#selectedVideoId, videoData: buffer },
       [buffer]
     );
   }

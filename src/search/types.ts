@@ -34,6 +34,7 @@ export interface LoadModelMessage extends WorkerMessageBase {
 export interface SearchInVideoMessage extends WorkerMessageBase {
   task: 'search';
   query: string;
+  videoId: string;
   videoData: ArrayBuffer;
   minCosineSimilarity?: number;
 }
