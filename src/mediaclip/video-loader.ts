@@ -24,7 +24,7 @@ export class VideoLoader {
     });
 
     this.videoDemuxer.setOnCompleteCallback((frames: VideoStreamingInterface) => {
-      this.metadata!.frames = frames;
+      this.metadata!.videoSink = frames;
       this.callback(100, this.metadata);
     });
 

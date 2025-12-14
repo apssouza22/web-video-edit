@@ -81,6 +81,6 @@ export interface VideoMetadata {
   totalTimeInMilSeconds: number;
   width: number;
   height: number;
-  frames?: VideoStreamingInterface;
+  videoSink?: VideoStreamingInterface;
 }
 

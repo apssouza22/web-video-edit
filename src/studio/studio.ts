@@ -1,6 +1,6 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, isMediaVideo, MediaService} from '@/mediaclip';
+import {AbstractMedia, MediaService} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {MediaLoader} from './media-loader';
 import {createVideoMuxer} from '@/video/muxer';
@@ -12,7 +12,6 @@ import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
 import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
-import {createVisionService, VisionService} from "@/vision";
 import {MediaLibrary} from "@/medialibrary";
 import {createSpeechService, SpeechService} from "@/speech";
 
@@ -43,7 +42,6 @@ export class VideoStudio {
   pinchHandler?: PinchHandler;
   studioState: StudioState;
   mediaLibrary: MediaLibrary;
-  private visionService: VisionService;
   private speachService: SpeechService;
 
   constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
@@ -59,7 +57,6 @@ export class VideoStudio {
     this.mediaLoader = new MediaLoader(this);
     this.videoExporter = createVideoMuxer();
     this.transcriptionManager = createTranscriptionService();
-    this.visionService = createVisionService();
     this.speachService = createSpeechService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
@@ -76,7 +73,6 @@ export class VideoStudio {
     this.setUpVideoExport();
     this.setUpJsonExport();
     this.transcriptionManager.loadModel();
-    this.visionService.loadModel();
     this.speachService.loadModel();
     this.speedControlManager.init();
   }
@@ -298,9 +294,6 @@ export class VideoStudio {
     }
     this.loadingPopup.updateProgress(layer.name, progress);
     if (progress === 100) {
-      if (isMediaVideo(layer)) {
-        this.visionService.analyzeVideo(layer);
-      }
       this.addLayer(layer);
     }
     if (audioBuffer) {

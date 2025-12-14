@@ -26,7 +26,7 @@ export class MediaLoader {
           return;
         }
 
-        if (!metadata?.frames) {
+        if (!metadata?.videoSink) {
           // reject(new Error('Failed to load video: no frames available'));
           return;
         }
@@ -37,7 +37,7 @@ export class MediaLoader {
           totalTimeInMilSeconds: metadata.totalTimeInMilSeconds
         };
 
-        resolve(new VideoFrameSource(metadata.frames, frameSourceMetadata));
+        resolve(new VideoFrameSource(metadata.videoSink, frameSourceMetadata));
       });
     });
   }

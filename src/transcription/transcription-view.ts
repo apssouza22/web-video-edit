@@ -223,9 +223,9 @@ export class TranscriptionView {
   }
 
   #showTabContent(): void {
-    const visionTab = document.querySelector('.tab-button[data-tab="transcription"]');
-    if (visionTab) {
-      (visionTab as HTMLElement).click();
+    const transcriptionTab = document.querySelector('.tab-button[data-tab="transcription"]');
+    if (transcriptionTab) {
+      (transcriptionTab as HTMLElement).click();
     }
   }
 }

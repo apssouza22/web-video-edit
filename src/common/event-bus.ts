@@ -68,13 +68,6 @@ export class TranscriptionCompletedEvent extends BaseEvent {
   }
 }
 
-export class VisionAnalysisCompleteEvent extends BaseEvent {
-  readonly name = 'vision:analysisComplete';
-  constructor(public result: any) {
-    super();
-  }
-}
-
 export class UiSpeedChangeEvent extends BaseEvent {
   readonly name = 'ui:speedChange';
   constructor(public speed: number) {
