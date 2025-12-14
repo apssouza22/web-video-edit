@@ -74,7 +74,7 @@ export class SearchModelFactory {
       this.#featureExtractor = await pipeline(
         "feature-extraction",
         EMBEDDING_MODEL_ID,
-        { device: getExecDevice() }
+        { device: getExecDevice(), dtype: getExecDevice() === "webgpu" ? "fp32" : "q8" }
       ) as FeatureExtractionPipeline;
 
       progressCallback?.({

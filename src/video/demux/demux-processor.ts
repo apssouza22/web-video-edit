@@ -11,8 +11,10 @@ export class DemuxProcessor {
   #timestamps: number[] = [];
   #isProcessing = false;
   #postMessage: PostMessageFn;
+  #videoId: string;
 
-  constructor(postMessage: PostMessageFn) {
+  constructor(videoId: string, postMessage: PostMessageFn) {
+    this.#videoId = videoId;
     this.#postMessage = postMessage;
   }
 
@@ -53,6 +55,7 @@ export class DemuxProcessor {
 
       this.#postMessage({
         type: 'metadata',
+        videoId: this.#videoId,
         width,
         height,
         totalTimeInMilSeconds,
@@ -99,7 +102,7 @@ export class DemuxProcessor {
             ? Math.min(100, (currentFrameIndex / totalFramesTarget) * 100)
             : 0;
 
-          this.#postMessage({ type: 'progress', progress });
+          this.#postMessage({ type: 'progress', videoId: this.#videoId, progress });
         }
 
         if (currentFrameIndex >= totalFramesTarget) {
@@ -109,8 +112,8 @@ export class DemuxProcessor {
 
       console.log(`[DemuxProcessor] Extracted ${this.#timestamps.length} timestamps at ${targetFps} fps`);
 
-      this.#postMessage({ type: 'progress', progress: 100 });
-      this.#postMessage({ type: 'complete', timestamps: [...this.#timestamps] });
+      this.#postMessage({ type: 'progress', videoId: this.#videoId, progress: 100 });
+      this.#postMessage({ type: 'complete', videoId: this.#videoId, timestamps: [...this.#timestamps] });
     } catch (error) {
       console.error('[DemuxProcessor] Error extracting timestamps:', error);
       this.#postError(error instanceof Error ? error.message : 'Error extracting timestamps');
@@ -119,7 +122,7 @@ export class DemuxProcessor {
 
   async getFrame(index: number): Promise<void> {
     if (!this.#videoSink || index < 0 || index >= this.#timestamps.length) {
-      this.#postMessage({ type: 'frame', index, frame: null });
+      this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
       return;
     }
 
@@ -127,7 +130,7 @@ export class DemuxProcessor {
       const timestamp = this.#timestamps[index];
       if (timestamp === undefined) {
         console.warn(`[DemuxProcessor] Not found frame at index ${index}`);
-        this.#postMessage({ type: 'frame', index, frame: null });
+        this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
         return;
       }
 
@@ -136,13 +139,13 @@ export class DemuxProcessor {
       if (sample) {
         const videoFrame = sample.toCanvasImageSource();
         // @ts-ignore - targetOrigin is only used for window.postMessage
-        this.#postMessage({ type: 'frame', index, frame: videoFrame }, [videoFrame]);
+        this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: videoFrame }, [videoFrame]);
       } else {
-        this.#postMessage({ type: 'frame', index, frame: null });
+        this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
       }
     } catch (error) {
       console.error(`[DemuxProcessor] Error loading frame at index ${index}:`, error);
-      this.#postMessage({ type: 'frame', index, frame: null });
+      this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
     }
   }
 
@@ -159,6 +162,6 @@ export class DemuxProcessor {
 
   #postError(message: string): void {
     this.#isProcessing = false;
-    this.#postMessage({ type: 'error', message });
+    this.#postMessage({ type: 'error', videoId: this.#videoId, message });
   }
 }

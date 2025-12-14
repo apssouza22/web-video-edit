@@ -11,8 +11,8 @@ export class MediaBunnyDemuxer {
   private onMetadataCallback: MetadataCallback = () => {};
 
   private worker: Worker | null = null;
-  private isProcessing = false;
   private targetFps: number = fps;
+  private videoId: string = '';
 
   setOnProgressCallback(callback: ProgressCallback): void {
     this.onProgressCallback = callback;
@@ -33,7 +33,7 @@ export class MediaBunnyDemuxer {
   async initialize(file: File, renderer: Canvas2DRender): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        this.isProcessing = true;
+        this.videoId = file.name;
 
         this.worker = new Worker(new URL('./demux-worker.ts', import.meta.url), {
           type: 'module',
@@ -43,6 +43,7 @@ export class MediaBunnyDemuxer {
 
         this.worker.postMessage({
           type: 'initialize',
+          videoId: this.videoId,
           file,
           targetFps: this.targetFps,
         } as DemuxWorkerMessage);
@@ -62,6 +63,10 @@ export class MediaBunnyDemuxer {
 
     this.worker.addEventListener('message', (event: MessageEvent<DemuxWorkerResponse>) => {
       const message = event.data;
+
+      if (message.videoId !== this.videoId) {
+        return;
+      }
 
       switch (message.type) {
         case 'metadata':
@@ -83,7 +88,6 @@ export class MediaBunnyDemuxer {
           break;
 
         case 'error':
-          this.isProcessing = false;
           reject(new Error(message.message));
           break;
       }
@@ -100,6 +104,7 @@ export class MediaBunnyDemuxer {
     if (!this.worker) return;
 
     const workerVideoStreaming = new WorkerVideoStreaming(
+      this.videoId,
       this.worker,
       timestamps
     );
@@ -109,10 +114,8 @@ export class MediaBunnyDemuxer {
 
   cleanup(): void {
     try {
-      this.isProcessing = false;
-
       if (this.worker) {
-        this.worker.postMessage({ type: 'cleanup' } as DemuxWorkerMessage);
+        this.worker.postMessage({ type: 'cleanup', videoId: this.videoId } as DemuxWorkerMessage);
         this.worker.terminate();
         this.worker = null;
       }

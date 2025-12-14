@@ -3,6 +3,7 @@ import type { DemuxWorkerMessage, DemuxWorkerResponse, FrameResponse } from './d
 import type { VideoStreamingInterface } from './types';
 
 export class WorkerVideoStreaming implements VideoStreamingInterface {
+  #videoId: string;
   #worker: Worker;
   #timestamps: number[];
   #frameCache: FrameCache;
@@ -15,11 +16,13 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
   }>;
 
   constructor(
+    videoId: string,
     worker: Worker,
     timestamps: number[],
     cacheSize: number = 10000,
     bufferSize: number = 50
   ) {
+    this.#videoId = videoId;
     this.#worker = worker;
     this.#timestamps = timestamps;
     this.#frameCache = new FrameCache(cacheSize);
@@ -32,7 +35,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     this.#worker.addEventListener('message', (event: MessageEvent<DemuxWorkerResponse>) => {
       const message = event.data;
 
-      if (message.type === 'frame') {
+      if (message.type === 'frame' && message.videoId === this.#videoId) {
         this.#handleFrameResponse(message);
       }
     });
@@ -75,6 +78,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
       this.#pendingFrameRequests.set(index, { resolve, reject });
       this.#worker.postMessage({
         type: 'get-frame',
+        videoId: this.#videoId,
         index,
       } as DemuxWorkerMessage);
       this.#updateCurrentIndex(index);
@@ -105,6 +109,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
           });
           this.#worker.postMessage({
             type: 'get-frame',
+            videoId: this.#videoId,
             index: i,
           } as DemuxWorkerMessage);
         }
@@ -118,7 +123,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     this.#frameCache.clear();
     this.#pendingFrameRequests.clear();
     this.#currentIndex = -1;
-    this.#worker.postMessage({ type: 'cleanup' } as DemuxWorkerMessage);
+    this.#worker.postMessage({ type: 'cleanup', videoId: this.#videoId } as DemuxWorkerMessage);
   }
 }
 
