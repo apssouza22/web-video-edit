@@ -49,18 +49,6 @@ export interface WorkerResponseMessage extends WorkerMessageBase {
 
 export type WorkerMessage = LoadModelMessage | SearchInVideoMessage;
 
-export interface SearchError extends Error {
-  status?: string;
-  task?: string;
-}
-
-export interface SearchServiceConfig {
-  mockDataForLocalhost?: boolean;
-  minCosineSimilarity?: number;
-  frameIntervalMs?: number;
-  maxFrames?: number;
-}
-
 export interface AnalyzedFrameData {
   timestamp: number;
   caption: string;

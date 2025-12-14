@@ -1,33 +1,59 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import type { DemuxWorkerResponse } from '@/video/demux/demux-worker-types';
 
-// Create mock functions that we can access and modify in tests
-const mockComputeDuration = jest.fn();
-const mockGetPrimaryVideoTrack = jest.fn();
-const mockCanDecode = jest.fn();
-const mockSamples = jest.fn();
+class MockWorker {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: ErrorEvent) => void) | null = null;
+  private listeners: Map<string, Function[]> = new Map();
+  postMessageMock = jest.fn();
+  terminateMock = jest.fn();
 
-const createMockVideoTrack = () => ({
-  codec: 'avc1.42E01E',
-  displayWidth: 1920,
-  displayHeight: 1080,
-  canDecode: mockCanDecode,
-});
+  constructor(url: URL, options?: WorkerOptions) {}
 
-const createMockInputInstance = () => ({
-  computeDuration: mockComputeDuration,
-  getPrimaryVideoTrack: mockGetPrimaryVideoTrack,
-});
+  addEventListener(type: string, listener: Function): void {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, []);
+    }
+    this.listeners.get(type)!.push(listener);
+  }
 
-const mockInput = jest.fn();
-const mockBlobSource = jest.fn();
-const mockVideoSampleSink = jest.fn();
+  removeEventListener(type: string, listener: Function): void {
+    const listeners = this.listeners.get(type);
+    if (listeners) {
+      const index = listeners.indexOf(listener);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    }
+  }
 
-// Mock render-2d using unstable_mockModule
+  postMessage(message: any, transfer?: Transferable[]): void {
+    this.postMessageMock(message, transfer);
+  }
+
+  terminate(): void {
+    this.terminateMock();
+  }
+
+  simulateMessage(data: DemuxWorkerResponse): void {
+    const messageListeners = this.listeners.get('message') || [];
+    const event = { data } as MessageEvent;
+    messageListeners.forEach(listener => listener(event));
+  }
+
+  simulateError(error: Error): void {
+    const errorListeners = this.listeners.get('error') || [];
+    const event = { message: error.message, error } as ErrorEvent;
+    errorListeners.forEach(listener => listener(event));
+  }
+}
+
+let mockWorkerInstance: MockWorker;
+
 jest.unstable_mockModule('@/common/render-2d', () => ({
   Canvas2DRender: jest.fn(),
 }));
 
-// Mock studio-state using unstable_mockModule
 jest.unstable_mockModule('@/common/studio-state', () => ({
   StudioState: {
     getInstance: jest.fn(() => ({
@@ -36,59 +62,23 @@ jest.unstable_mockModule('@/common/studio-state', () => ({
   },
 }));
 
-// Mock mediabunny using unstable_mockModule
-jest.unstable_mockModule('mediabunny', () => ({
-  Input: mockInput,
-  BlobSource: mockBlobSource,
-  ALL_FORMATS: [],
-  VideoSampleSink: mockVideoSampleSink,
-}));
-
-// Import modules AFTER mocking
+const originalWorker = global.Worker;
 const { MediaBunnyDemuxer } = await import('@/video/demux/mediabunny-demuxer');
 const { Canvas2DRender } = await import('@/common/render-2d');
-const {VideoStreaming} = await import ("@/video");
+const { WorkerVideoStreaming } = await import('@/video/demux/worker-video-streaming');
 
 describe('MediaBunnyDemuxer', () => {
-  // @ts-ignore
   let demuxer: MediaBunnyDemuxer;
-  // @ts-ignore
-  let mockRenderer: jest.Mocked<Canvas2DRender>;
+  let mockRenderer: jest.Mocked<typeof Canvas2DRender>;
 
   beforeEach(() => {
-    // Reset all mocks
     jest.clearAllMocks();
-    
-    // Reset to default implementations
+
+    mockWorkerInstance = new MockWorker(new URL(''));
+
     // @ts-ignore
-    mockComputeDuration.mockResolvedValue(10);
-    // @ts-ignore
-    mockCanDecode.mockResolvedValue(true);
-    // @ts-ignore
-    mockGetPrimaryVideoTrack.mockResolvedValue(createMockVideoTrack());
-    
-    mockSamples.mockReturnValue({
-      [Symbol.asyncIterator]: async function* () {
-        for (let i = 0; i < 5; i++) {
-          yield {
-            timestamp: i * 0.033,
-            toVideoFrame: jest.fn().mockReturnValue({
-              codedWidth: 1920,
-              codedHeight: 1080,
-              timestamp: i * 0.033,
-              close: jest.fn(),
-            }),
-          };
-        }
-      },
-    });
-    
-    mockInput.mockImplementation(() => createMockInputInstance());
-    mockBlobSource.mockImplementation(() => ({}));
-    mockVideoSampleSink.mockImplementation(() => ({
-      samples: mockSamples,
-    }));
-    
+    global.Worker = jest.fn().mockImplementation(() => mockWorkerInstance);
+
     demuxer = new MediaBunnyDemuxer();
 
     mockRenderer = {
@@ -110,6 +100,7 @@ describe('MediaBunnyDemuxer', () => {
 
   afterEach(() => {
     demuxer.cleanup();
+    global.Worker = originalWorker;
     jest.restoreAllMocks();
   });
 
@@ -140,114 +131,222 @@ describe('MediaBunnyDemuxer', () => {
     test('should handle multiple callback updates', () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();
-      
+
       demuxer.setOnProgressCallback(callback1);
       demuxer.setOnProgressCallback(callback2);
-      
+
       expect(demuxer['onProgressCallback']).toBe(callback2);
     });
 
     test('should allow setting different target FPS values', () => {
       demuxer.setTargetFps(24);
       expect(demuxer['targetFps']).toBe(24);
-      
+
       demuxer.setTargetFps(30);
       expect(demuxer['targetFps']).toBe(30);
-      
+
       demuxer.setTargetFps(60);
       expect(demuxer['targetFps']).toBe(60);
     });
   });
 
   describe('initialization', () => {
-    test('should successfully initialize with valid video file', async () => {
+    test('should create worker and send initialize message', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      await expect(demuxer.initialize(mockFile, mockRenderer)).resolves.not.toThrow();
-      expect(demuxer['onMetadataCallback']).toBeDefined();
+
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockWorkerInstance.postMessageMock).toHaveBeenCalledWith({
+        type: 'initialize',
+        file: mockFile,
+        targetFps: 24,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'metadata',
+        width: 1920,
+        height: 1080,
+        totalTimeInMilSeconds: 10000,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'progress',
+        progress: 50,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'complete',
+        timestamps: [0, 0.033, 0.066],
+      });
+
+      await initPromise;
     });
 
-
-    test('should throw error when no video track is found', async () => {
+    test('should throw error when worker sends error message', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      // @ts-ignore
-      mockGetPrimaryVideoTrack.mockResolvedValueOnce(null);
-      await expect(demuxer.initialize(mockFile, mockRenderer)).rejects.toThrow('No video track found in the file');
+
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      mockWorkerInstance.simulateMessage({
+        type: 'error',
+        message: 'No video track found in the file',
+      });
+
+      await expect(initPromise).rejects.toThrow('No video track found in the file');
     });
 
-    test('should handle initialization errors gracefully', async () => {
+    test('should handle worker errors gracefully', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      // @ts-ignore
-      mockComputeDuration.mockRejectedValueOnce(new Error('Input has an unsupported or unrecognizable format'));
-      await expect(demuxer.initialize(mockFile, mockRenderer)).rejects.toThrow();
+
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      mockWorkerInstance.simulateError(new Error('Worker crashed'));
+
+      await expect(initPromise).rejects.toThrow('Worker crashed');
       expect(demuxer['isProcessing']).toBe(false);
     });
   });
 
   describe('cleanup', () => {
-    test('should cleanup resources', () => {
-      demuxer['timestamps'] = [0.033, 0.066, 0.099];
-      demuxer['isProcessing'] = true;
+    test('should cleanup resources and terminate worker', async () => {
+      const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
+
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      mockWorkerInstance.simulateMessage({
+        type: 'metadata',
+        width: 1920,
+        height: 1080,
+        totalTimeInMilSeconds: 10000,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'complete',
+        timestamps: [0, 0.033, 0.066],
+      });
+
+      await initPromise;
+
       demuxer.cleanup();
 
+      expect(mockWorkerInstance.postMessageMock).toHaveBeenCalledWith({ type: 'cleanup' });
+      expect(mockWorkerInstance.terminateMock).toHaveBeenCalled();
       expect(demuxer['isProcessing']).toBe(false);
-      expect(demuxer['input']).toBeNull();
-    });
-
-    test('should reset all state on cleanup', () => {
-      demuxer['frames'] = [{ width: 1920, height: 1080 }] as any;
-      demuxer['timestamps'] = [0.033, 0.066, 0.099];
-      demuxer['isProcessing'] = true;
-      demuxer['totalDuration'] = 10;
-
-      demuxer.cleanup();
-
-      expect(demuxer['isProcessing']).toBe(false);
-      expect(demuxer['input']).toBeNull();
+      expect(demuxer['worker']).toBeNull();
     });
   });
 
-  describe('timestamp extraction', () => {
-    test('should extract timestamps and call progress callback', async () => {
+  describe('message handling', () => {
+    test('should call metadata callback when metadata message received', async () => {
+      const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
+      const metadataCallback = jest.fn();
+      demuxer.setOnMetadataCallback(metadataCallback);
+
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      mockWorkerInstance.simulateMessage({
+        type: 'metadata',
+        width: 1920,
+        height: 1080,
+        totalTimeInMilSeconds: 10000,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'complete',
+        timestamps: [0],
+      });
+
+      await initPromise;
+
+      expect(metadataCallback).toHaveBeenCalledWith({
+        width: 1920,
+        height: 1080,
+        totalTimeInMilSeconds: 10000,
+      });
+    });
+
+    test('should call progress callback when progress message received', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
       const progressCallback = jest.fn();
-      const completeCallback = jest.fn();
       demuxer.setOnProgressCallback(progressCallback);
+
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      mockWorkerInstance.simulateMessage({
+        type: 'progress',
+        progress: 50,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'progress',
+        progress: 100,
+      });
+
+      mockWorkerInstance.simulateMessage({
+        type: 'complete',
+        timestamps: [0, 0.033],
+      });
+
+      await initPromise;
+
+      expect(progressCallback).toHaveBeenCalledWith(50);
+      expect(progressCallback).toHaveBeenCalledWith(100);
+    });
+
+    test('should call complete callback with WorkerVideoStreaming when complete message received', async () => {
+      const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
+      const completeCallback = jest.fn();
       demuxer.setOnCompleteCallback(completeCallback);
 
-      await demuxer.initialize(mockFile, mockRenderer);
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
 
-      expect(progressCallback).toHaveBeenCalled();
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      mockWorkerInstance.simulateMessage({
+        type: 'complete',
+        timestamps: [0, 0.033, 0.066, 0.099, 0.132],
+      });
+
+      await initPromise;
+
       expect(completeCallback).toHaveBeenCalled();
-      expect(completeCallback).toHaveBeenCalledWith(expect.any(VideoStreaming));
+      expect(completeCallback).toHaveBeenCalledWith(expect.any(WorkerVideoStreaming));
     });
+  });
 
-    test('should extract timestamps based on target FPS', async () => {
+  describe('target FPS handling', () => {
+    test('should pass target FPS to worker', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      const metadataCallback = jest.fn();
-      demuxer.setTargetFps(30);
-      demuxer.setOnMetadataCallback(metadataCallback);
+      demuxer.setTargetFps(60);
 
-      await demuxer.initialize(mockFile, mockRenderer);
+      const initPromise = demuxer.initialize(mockFile, mockRenderer);
 
-      // Should have extracted timestamps
-      expect(metadataCallback).toHaveBeenCalledWith(
-          expect.any(Object)
-      );
-    });
+      await new Promise(resolve => setTimeout(resolve, 10));
 
-    test('should call metadata callback with video dimensions, timestamps and videoSink', async () => {
-      const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      const metadataCallback = jest.fn();
-      demuxer.setOnMetadataCallback(metadataCallback);
-      await demuxer.initialize(mockFile, mockRenderer);
+      expect(mockWorkerInstance.postMessageMock).toHaveBeenCalledWith({
+        type: 'initialize',
+        file: mockFile,
+        targetFps: 60,
+      });
 
-      expect(metadataCallback).toHaveBeenCalledWith(
-        expect.objectContaining({
-          width: 1920,
-          height: 1080,
-          totalTimeInMilSeconds: 10000
-        })
-      );
+      mockWorkerInstance.simulateMessage({
+        type: 'complete',
+        timestamps: [],
+      });
+
+      await initPromise;
     });
   });
 });

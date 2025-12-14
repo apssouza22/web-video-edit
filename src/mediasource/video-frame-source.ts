@@ -1,12 +1,12 @@
-import {VideoData} from "@/mediaclip/frame";
-import {VideoStreaming} from "@/video";
-import {FrameSource, FrameSourceMetadata} from "./types";
+import { VideoData } from '@/mediaclip/frame';
+import { VideoStreamingInterface } from '@/video/demux';
+import { FrameSource, FrameSourceMetadata } from './types';
 
 export class VideoFrameSource implements FrameSource {
-  private videoStreaming: VideoStreaming;
+  private videoStreaming: VideoStreamingInterface;
   readonly metadata: FrameSourceMetadata;
 
-  constructor(videoStreaming: VideoStreaming, metadata: FrameSourceMetadata) {
+  constructor(videoStreaming: VideoStreamingInterface, metadata: FrameSourceMetadata) {
     this.videoStreaming = videoStreaming;
     this.metadata = metadata;
   }

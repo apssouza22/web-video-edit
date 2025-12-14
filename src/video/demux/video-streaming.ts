@@ -1,7 +1,8 @@
-import {FrameCache} from './frame-cache';
-import type {VideoSampleSink} from 'mediabunny';
+import { FrameCache } from './frame-cache';
+import type { VideoSampleSink } from 'mediabunny';
+import type { VideoStreamingInterface } from './types';
 
-export class VideoStreaming {
+export class VideoStreaming implements VideoStreamingInterface {
   #timestamps: number[];
   #videoSink: VideoSampleSink;
   #frameCache: FrameCache;

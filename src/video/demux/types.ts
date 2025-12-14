@@ -1,7 +1,10 @@
-import {VideoMetadata} from "@/mediaclip/types";
-import {VideoStreaming} from "@/video";
+import { VideoMetadata } from '@/mediaclip/types';
 
+export interface VideoStreamingInterface {
+  getFrameAtIndex(index: number): Promise<VideoFrame | null>;
+  cleanup(): void;
+}
 
 export type ProgressCallback = (progress: number) => void;
-export type CompleteCallback = (frames: VideoStreaming) => void;
+export type CompleteCallback = (frames: VideoStreamingInterface) => void;
 export type MetadataCallback = (metadata: VideoMetadata) => void;

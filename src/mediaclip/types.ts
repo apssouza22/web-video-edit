@@ -1,6 +1,6 @@
-import {Frame} from '@/mediaclip/frame';
-import {ESRenderingContext2D} from "@/common/render-2d";
-import {VideoStreaming} from "@/video";
+import { Frame } from '@/mediaclip/frame';
+import { ESRenderingContext2D } from '@/common/render-2d';
+import { VideoStreamingInterface } from '@/video/demux';
 
 export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 export type ESAudioContext = AudioContext | OfflineAudioContext;
@@ -81,6 +81,6 @@ export interface VideoMetadata {
   totalTimeInMilSeconds: number;
   width: number;
   height: number;
-  frames?: VideoStreaming
+  frames?: VideoStreamingInterface;
 }
 
