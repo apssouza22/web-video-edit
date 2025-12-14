@@ -42,12 +42,9 @@ self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
 
     if (isTranscribeMessage(message)) {
         const transcript = await transcribe(message.audio);
-        
         if (transcript === null) {
             return;
         }
-
-        // Send the result back to the main thread
         const responseMessage: WorkerResponseMessage = {
             status: "complete",
             task: "automatic-speech-recognition",
