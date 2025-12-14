@@ -30,8 +30,8 @@ export class VideoThumbnailGenerator {
     }
     this.#generationQueue.add(frameIndex);
     try {
-      const videoFrame = await this.#videoMedia.getFrameAtIndex(frameIndex);
-      if (!videoFrame) {
+      const imageBitmap = await this.#videoMedia.getFrameAtIndex(frameIndex);
+      if (!imageBitmap) {
         this.#generationQueue.delete(frameIndex);
         return null;
       }
@@ -47,8 +47,8 @@ export class VideoThumbnailGenerator {
       }
 
       ctx.drawImage(
-        videoFrame,
-        0, 0, videoFrame.displayWidth, videoFrame.displayHeight,
+        imageBitmap,
+        0, 0, imageBitmap.width, imageBitmap.height,
         0, 0, this.#thumbnailWidth, this.#thumbnailHeight
       );
 

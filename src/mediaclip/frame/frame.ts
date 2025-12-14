@@ -1,5 +1,5 @@
 import { VideoData, FrameTransform } from './types';
-import {videoFrameToImageData} from "@/common/video-to-image";
+import { imageBitmapToImageData } from "@/common/video-to-image";
 
 /**
  * Represents a single frame with transformation properties
@@ -67,8 +67,8 @@ export class Frame implements FrameTransform {
         if (this.videoData instanceof ImageData) {
             return this.videoData;
         }
-        if (this.videoData instanceof VideoFrame) {
-            return videoFrameToImageData(this.videoData);
+        if (this.videoData instanceof ImageBitmap) {
+            return imageBitmapToImageData(this.videoData);
         }
         return null;
     }

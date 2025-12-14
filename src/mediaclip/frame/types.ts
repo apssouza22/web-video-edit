@@ -1,8 +1,8 @@
 /**
  * Represents frame reference data - can be any type of frame data
- * including ImageData, HTMLVideoElement, canvas context, etc.
+ * including ImageBitmap, ImageData, HTMLImageElement, etc.
  */
-export type VideoData = VideoFrame | ImageData | HTMLImageElement | null;
+export type VideoData = ImageBitmap | ImageData | HTMLImageElement | null;
 
 /**
  * Frame transformation properties

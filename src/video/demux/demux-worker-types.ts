@@ -45,7 +45,7 @@ export interface FrameResponse {
   type: 'frame';
   videoId: string;
   index: number;
-  frame: VideoFrame | null;
+  frame: ImageBitmap | null;
 }
 
 export interface ErrorResponse {

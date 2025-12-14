@@ -137,9 +137,11 @@ export class DemuxProcessor {
       const sample = await this.#videoSink.getSample(timestamp);
 
       if (sample) {
-        const videoFrame = sample.toCanvasImageSource();
-        // @ts-ignore - targetOrigin is only used for window.postMessage
-        this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: videoFrame }, [videoFrame]);
+        const videoFrame = sample.toVideoFrame();
+        const imageBitmap = await createImageBitmap(videoFrame);
+        videoFrame.close();
+        // @ts-ignore - Transfer ImageBitmap to main thread for efficient memory handling
+        this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: imageBitmap }, [imageBitmap]);
       } else {
         this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
       }

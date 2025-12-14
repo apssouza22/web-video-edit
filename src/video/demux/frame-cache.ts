@@ -1,5 +1,5 @@
 export class FrameCache {
-  #cache: Map<number, VideoFrame>;
+  #cache: Map<number, ImageBitmap>;
   #maxSize: number;
   #accessOrder: number[];
 
@@ -9,7 +9,7 @@ export class FrameCache {
     this.#accessOrder = [];
   }
 
-  get(index: number): VideoFrame | null {
+  get(index: number): ImageBitmap | null {
     const frame = this.#cache.get(index);
     
     if (frame) {
@@ -20,12 +20,10 @@ export class FrameCache {
     return null;
   }
 
-  set(index: number, frame: VideoFrame): void {
+  set(index: number, frame: ImageBitmap): void {
     if (this.#cache.has(index)) {
       const oldFrame = this.#cache.get(index);
-      if (oldFrame) {
-        oldFrame.close();
-      }
+      oldFrame?.close();
     }
 
     if (this.#cache.size >= this.#maxSize && !this.#cache.has(index)) {
@@ -68,11 +66,8 @@ export class FrameCache {
     const lruIndex = this.#accessOrder.shift();
     if (lruIndex !== undefined) {
       const frame = this.#cache.get(lruIndex);
-      if (frame) {
-        frame.close();
-      }
+      frame?.close();
       this.#cache.delete(lruIndex);
     }
   }
 }
-

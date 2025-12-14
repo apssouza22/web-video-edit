@@ -11,7 +11,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
   #currentIndex: number = -1;
   #isBuffering: boolean = false;
   #pendingFrameRequests: Map<number, {
-    resolve: (frame: VideoFrame | null) => void;
+    resolve: (frame: ImageBitmap | null) => void;
     reject: (error: Error) => void;
   }>;
 
@@ -52,7 +52,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     }
   }
 
-  async getFrameAtIndex(index: number): Promise<VideoFrame | null> {
+  async getFrameAtIndex(index: number): Promise<ImageBitmap | null> {
     if (index < 0 || index >= this.#timestamps.length) {
       return null;
     }
@@ -126,4 +126,3 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     this.#worker.postMessage({ type: 'cleanup', videoId: this.#videoId } as DemuxWorkerMessage);
   }
 }
-

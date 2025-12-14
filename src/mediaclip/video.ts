@@ -62,13 +62,13 @@ export class VideoMedia extends AbstractMedia {
     this.updateRenderCache(currentTime);
   }
 
-  async getFrameAtIndex(index: number): Promise<VideoFrame | null> {
+  async getFrameAtIndex(index: number): Promise<ImageBitmap | null> {
     const frame = this._frameService.frames[index];
     if (!frame) {
       return null;
     }
-    const videoFrame = await this.frameSource?.getFrameAtIndex(frame.index!);
-    return videoFrame as VideoFrame | null;
+    const imageBitmap = await this.frameSource?.getFrameAtIndex(frame.index!);
+    return imageBitmap as ImageBitmap | null;
   }
 
   async getFrame(currentTime: number): Promise<Frame | null> {
@@ -76,11 +76,11 @@ export class VideoMedia extends AbstractMedia {
     if (!frame || frame.index === undefined) {
       return null;
     }
-    const videoFrame = await this.frameSource?.getFrameAtIndex(frame.index);
-    if (!videoFrame) {
+    const imageBitmap = await this.frameSource?.getFrameAtIndex(frame.index);
+    if (!imageBitmap) {
       return null;
     }
-    frame.videoData = videoFrame;
+    frame.videoData = imageBitmap;
     return frame;
   }
 

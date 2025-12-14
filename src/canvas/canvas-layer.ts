@@ -362,13 +362,16 @@ export class CanvasLayer {
    */
   async #getCurrentTransform(): Promise<FrameTransform> {
     const frame = await this._media.getFrame(this.#currentTime);
-    return frame ? {
+    if (!frame) {
+      return { x: 0, y: 0, scale: 1, rotation: 0, anchor: false };
+    }
+    return {
       x: frame.x || 0,
       y: frame.y || 0,
       scale: frame.scale || 1,
       rotation: frame.rotation || 0,
       anchor: frame.anchor || false
-    } : { x: 0, y: 0, scale: 1, rotation: 0, anchor: false };
+    };
   }
 
   /**
