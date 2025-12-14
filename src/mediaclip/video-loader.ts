@@ -1,17 +1,12 @@
-import { createDemuxer, VideoDemuxService } from '@/video/demux';
-import { LayerFile, VideoMetadata } from '@/mediaclip/types';
-import { Canvas2DRender } from '@/common/render-2d';
-import { VideoStreamingInterface } from '@/video/demux';
+import {createDemuxer} from '@/video/demux';
+import {LayerFile, VideoMetadata} from '@/mediaclip/types';
+import {MediaBunnyDemuxer} from "@/video/demux/mediabunny-demuxer";
 
 type Callback = (progress: number, metadata: VideoMetadata | null) => void;
 
 export class VideoLoader {
-  private videoDemuxer: VideoDemuxService;
-  private reader?: FileReader;
-  private callback: Callback = (progress: number, metadata: VideoMetadata | null) => {
-  };
-  private metadata: VideoMetadata | null = null;
-  private renderer = new Canvas2DRender();
+  private videoDemuxer: MediaBunnyDemuxer;
+  private callback: Callback = () => {};
 
   constructor() {
     this.videoDemuxer = createDemuxer();
@@ -20,35 +15,25 @@ export class VideoLoader {
 
   #setupDemuxerCallbacks(): void {
     this.videoDemuxer.setOnProgressCallback((progress: number) => {
-      this.callback(progress, this.metadata);
+      this.callback(progress, null);
     });
 
-    this.videoDemuxer.setOnCompleteCallback((frames: VideoStreamingInterface) => {
-      this.metadata!.videoSink = frames;
-      this.callback(100, this.metadata);
-    });
-
-    this.videoDemuxer.setOnMetadataCallback((metadata: VideoMetadata) => {
-      this.metadata = metadata;
+    this.videoDemuxer.setOnCompleteCallback((metadata: VideoMetadata) => {
+      this.callback(100, metadata);
     });
   }
 
   async loadVideo(file: LayerFile, callback: Callback): Promise<void> {
     this.callback = callback;
-    if (file.uri !== null && file.uri !== undefined) {
-      await this.videoDemuxer.initDemux(file, this.renderer);
-      return;
-    }
-
-    this.reader = new FileReader();
-    this.reader.addEventListener("load", ((): void => {
-      if (this.reader && typeof this.reader.result === 'string') {
-        file.uri = this.reader.result;
-        this.videoDemuxer.initDemux(file, this.renderer);
+    const reader = new FileReader();
+    reader.addEventListener("load", ((): void => {
+      if (reader && typeof reader.result === 'string') {
+        file.uri = reader.result;
+        this.videoDemuxer.initialize(file);
       }
     }).bind(this), false);
 
-    this.reader.readAsDataURL(file as File);
+    reader.readAsDataURL(file as File);
   }
 
 }

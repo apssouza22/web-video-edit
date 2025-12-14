@@ -117,12 +117,6 @@ describe('MediaBunnyDemuxer', () => {
       expect(demuxer['onCompleteCallback']).toBe(callback);
     });
 
-    test('should set metadata callback', () => {
-      const callback = jest.fn();
-      demuxer.setOnMetadataCallback(callback);
-      expect(demuxer['onMetadataCallback']).toBe(callback);
-    });
-
     test('should set target FPS', () => {
       demuxer.setTargetFps(60);
       expect(demuxer['targetFps']).toBe(60);
@@ -245,10 +239,8 @@ describe('MediaBunnyDemuxer', () => {
   });
 
   describe('message handling', () => {
-    test('should call metadata callback when metadata message received', async () => {
+    test('should store metadata when metadata message received', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
-      const metadataCallback = jest.fn();
-      demuxer.setOnMetadataCallback(metadataCallback);
 
       const initPromise = demuxer.initialize(mockFile, mockRenderer);
 
@@ -261,18 +253,18 @@ describe('MediaBunnyDemuxer', () => {
         totalTimeInMilSeconds: 10000,
       });
 
+      expect(demuxer['metadata']).toEqual({
+        width: 1920,
+        height: 1080,
+        totalTimeInMilSeconds: 10000,
+      });
+
       mockWorkerInstance.simulateMessage({
         type: 'complete',
         timestamps: [0],
       });
 
       await initPromise;
-
-      expect(metadataCallback).toHaveBeenCalledWith({
-        width: 1920,
-        height: 1080,
-        totalTimeInMilSeconds: 10000,
-      });
     });
 
     test('should call progress callback when progress message received', async () => {
@@ -305,7 +297,7 @@ describe('MediaBunnyDemuxer', () => {
       expect(progressCallback).toHaveBeenCalledWith(100);
     });
 
-    test('should call complete callback with WorkerVideoStreaming when complete message received', async () => {
+    test('should call complete callback with WorkerVideoStreaming and metadata when complete message received', async () => {
       const mockFile = new File(['video data'], 'test.mp4', { type: 'video/mp4' });
       const completeCallback = jest.fn();
       demuxer.setOnCompleteCallback(completeCallback);
@@ -315,6 +307,13 @@ describe('MediaBunnyDemuxer', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       mockWorkerInstance.simulateMessage({
+        type: 'metadata',
+        width: 1920,
+        height: 1080,
+        totalTimeInMilSeconds: 10000,
+      });
+
+      mockWorkerInstance.simulateMessage({
         type: 'complete',
         timestamps: [0, 0.033, 0.066, 0.099, 0.132],
       });
@@ -322,7 +321,10 @@ describe('MediaBunnyDemuxer', () => {
       await initPromise;
 
       expect(completeCallback).toHaveBeenCalled();
-      expect(completeCallback).toHaveBeenCalledWith(expect.any(WorkerVideoStreaming));
+      expect(completeCallback).toHaveBeenCalledWith(
+        expect.any(WorkerVideoStreaming),
+        { width: 1920, height: 1080, totalTimeInMilSeconds: 10000 }
+      );
     });
   });
 

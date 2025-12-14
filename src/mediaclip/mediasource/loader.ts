@@ -26,8 +26,7 @@ export class MediaLoader {
           return;
         }
 
-        if (!metadata?.videoSink) {
-          // reject(new Error('Failed to load video: no frames available'));
+        if (!metadata) {
           return;
         }
 

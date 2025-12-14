@@ -39,6 +39,9 @@ export interface CompleteResponse {
   type: 'complete';
   videoId: string;
   timestamps: number[];
+  width: number;
+  height: number;
+  totalTimeInMilSeconds: number;
 }
 
 export interface FrameResponse {

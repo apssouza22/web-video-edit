@@ -5,7 +5,6 @@ jest.unstable_mockModule('@/video/demux/mediabunny-demuxer', () => ({
   MediaBunnyDemuxer: jest.fn().mockImplementation(() => ({
     setOnProgressCallback: jest.fn(),
     setOnCompleteCallback: jest.fn(),
-    setOnMetadataCallback: jest.fn(),
     initialize: jest.fn(),
     cleanup: jest.fn(),
   })),
@@ -15,7 +14,6 @@ jest.unstable_mockModule('@/video/demux/mp4boxdemuxer/codec-demuxer', () => ({
   CodecDemuxer: jest.fn().mockImplementation(() => ({
     setOnProgressCallback: jest.fn(),
     setOnCompleteCallback: jest.fn(),
-    setOnMetadataCallback: jest.fn(),
     initialize: jest.fn(),
     cleanup: jest.fn(),
   })),
@@ -25,7 +23,6 @@ jest.unstable_mockModule('@/video/demux/htmldemuxer/html-video-demuxer', () => (
   HTMLVideoDemuxer: jest.fn().mockImplementation(() => ({
     setOnProgressCallback: jest.fn(),
     setOnCompleteCallback: jest.fn(),
-    setOnMetadataCallback: jest.fn(),
     initialize: jest.fn(),
     cleanup: jest.fn(),
   })),
@@ -61,13 +58,6 @@ describe('createDemuxer', () => {
 
     expect(demuxer.setOnCompleteCallback).toBeDefined();
     expect(typeof demuxer.setOnCompleteCallback).toBe('function');
-  });
-
-  test('should return instance with setOnMetadataCallback method', () => {
-    const demuxer = createDemuxer();
-
-    expect(demuxer.setOnMetadataCallback).toBeDefined();
-    expect(typeof demuxer.setOnMetadataCallback).toBe('function');
   });
 
   test('should return instance with initDemux method', () => {
@@ -112,7 +102,6 @@ describe('createDemuxer', () => {
     expect(() => {
       demuxer.setOnProgressCallback(mockCallback);
       demuxer.setOnCompleteCallback(mockCallback);
-      demuxer.setOnMetadataCallback(mockCallback);
     }).not.toThrow();
   });
 

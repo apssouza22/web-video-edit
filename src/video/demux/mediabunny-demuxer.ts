@@ -1,14 +1,16 @@
-import { Canvas2DRender } from '@/common/render-2d';
-import { fps } from '@/constants';
-import { StudioState } from '@/common';
-import { CompleteCallback, MetadataCallback, ProgressCallback } from './types';
-import { WorkerVideoStreaming } from './worker-video-streaming';
-import type { DemuxWorkerMessage, DemuxWorkerResponse } from './demux-worker-types';
+import {Canvas2DRender} from '@/common/render-2d';
+import {fps} from '@/constants';
+import {StudioState} from '@/common';
+import {CompleteCallback, ProgressCallback} from './types';
+import {WorkerVideoStreaming} from './worker-video-streaming';
+import {CompleteResponse, DemuxWorkerMessage, DemuxWorkerResponse} from './demux-worker-types';
+import {VideoMetadata} from '@/mediaclip/types';
 
 export class MediaBunnyDemuxer {
-  private onProgressCallback: ProgressCallback = () => {};
-  private onCompleteCallback: CompleteCallback = () => {};
-  private onMetadataCallback: MetadataCallback = () => {};
+  private onProgressCallback: ProgressCallback = () => {
+  };
+  private onCompleteCallback: CompleteCallback = () => {
+  };
 
   private worker: Worker | null = null;
   private targetFps: number = fps;
@@ -22,15 +24,11 @@ export class MediaBunnyDemuxer {
     this.onCompleteCallback = callback;
   }
 
-  setOnMetadataCallback(callback: MetadataCallback): void {
-    this.onMetadataCallback = callback;
-  }
-
   setTargetFps(targetFps: number): void {
     this.targetFps = targetFps;
   }
 
-  async initialize(file: File, renderer: Canvas2DRender): Promise<void> {
+  async initialize(file: File): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         this.videoId = file.name;
@@ -56,8 +54,8 @@ export class MediaBunnyDemuxer {
   }
 
   #setupWorkerMessageHandler(
-    resolve: () => void,
-    reject: (error: Error) => void
+      resolve: () => void,
+      reject: (error: Error) => void
   ): void {
     if (!this.worker) return;
 
@@ -69,21 +67,13 @@ export class MediaBunnyDemuxer {
       }
 
       switch (message.type) {
-        case 'metadata':
-          StudioState.getInstance().setMinVideoSizes(message.width, message.height);
-          this.onMetadataCallback({
-            width: message.width,
-            height: message.height,
-            totalTimeInMilSeconds: message.totalTimeInMilSeconds,
-          });
-          break;
-
         case 'progress':
           this.onProgressCallback(message.progress);
           break;
 
         case 'complete':
-          this.#handleComplete(message.timestamps);
+          StudioState.getInstance().setMinVideoSizes(message.width, message.height);
+          this.#handleComplete(message);
           resolve();
           break;
 
@@ -100,22 +90,27 @@ export class MediaBunnyDemuxer {
     });
   }
 
-  #handleComplete(timestamps: number[]): void {
+  #handleComplete(response: CompleteResponse): void {
     if (!this.worker) return;
+    const metadata = {
+      width: response.width,
+      height: response.height,
+      timestamps: response.timestamps,
+      totalTimeInMilSeconds: response.totalTimeInMilSeconds,
+      videoSink: new WorkerVideoStreaming(
+          this.videoId,
+          this.worker,
+          response.timestamps
+      )
+    } as VideoMetadata;
 
-    const workerVideoStreaming = new WorkerVideoStreaming(
-      this.videoId,
-      this.worker,
-      timestamps
-    );
-
-    this.onCompleteCallback(workerVideoStreaming);
+    this.onCompleteCallback(metadata);
   }
 
   cleanup(): void {
     try {
       if (this.worker) {
-        this.worker.postMessage({ type: 'cleanup', videoId: this.videoId } as DemuxWorkerMessage);
+        this.worker.postMessage({type: 'cleanup', videoId: this.videoId} as DemuxWorkerMessage);
         this.worker.terminate();
         this.worker = null;
       }

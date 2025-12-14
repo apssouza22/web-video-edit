@@ -1,4 +1,6 @@
 import { ALL_FORMATS, BlobSource, Input, VideoSampleSink } from 'mediabunny';
+import {VideoMetadata} from "@/mediaclip/types";
+import * as timers from "node:timers";
 
 type PostMessageFn = {
   (message: any, targetOrigin: string, transfer?: Transferable[]): void;
@@ -47,21 +49,20 @@ export class DemuxProcessor {
         return;
       }
 
+      this.#videoSink = new VideoSampleSink(videoTrack);
+      const timestamps = await this.#extractTimestamps(totalDuration, targetFps);
+
       const width = videoTrack.displayWidth;
       const height = videoTrack.displayHeight;
       const totalTimeInMilSeconds = totalDuration * 1000;
-
-      this.#videoSink = new VideoSampleSink(videoTrack);
-
       this.#postMessage({
-        type: 'metadata',
+        type: 'complete',
         videoId: this.#videoId,
+        timestamps: [...timestamps],
         width,
         height,
-        totalTimeInMilSeconds,
+        totalTimeInMilSeconds
       });
-
-      await this.#extractTimestamps(totalDuration, targetFps);
     } catch (error) {
       console.error('DemuxProcessor initialization error:', error);
       this.cleanup();
@@ -69,9 +70,9 @@ export class DemuxProcessor {
     }
   }
 
-  async #extractTimestamps(totalDuration: number, targetFps: number): Promise<void> {
+  async #extractTimestamps(totalDuration: number, targetFps: number): Promise<number[]> {
     if (!this.#videoSink) {
-      return;
+      return [];
     }
 
     try {
@@ -91,17 +92,13 @@ export class DemuxProcessor {
         }
 
         const timestamp = videoSample.timestamp;
-
         if (timestamp >= nextTargetTime && currentFrameIndex < totalFramesTarget) {
           this.#timestamps.push(timestamp);
-
           currentFrameIndex++;
           nextTargetTime = currentFrameIndex * frameInterval;
-
           const progress = totalFramesTarget > 0
             ? Math.min(100, (currentFrameIndex / totalFramesTarget) * 100)
             : 0;
-
           this.#postMessage({ type: 'progress', videoId: this.#videoId, progress });
         }
 
@@ -112,12 +109,11 @@ export class DemuxProcessor {
 
       console.log(`[DemuxProcessor] Extracted ${this.#timestamps.length} timestamps at ${targetFps} fps`);
 
-      this.#postMessage({ type: 'progress', videoId: this.#videoId, progress: 100 });
-      this.#postMessage({ type: 'complete', videoId: this.#videoId, timestamps: [...this.#timestamps] });
     } catch (error) {
       console.error('[DemuxProcessor] Error extracting timestamps:', error);
       this.#postError(error instanceof Error ? error.message : 'Error extracting timestamps');
     }
+    return this.#timestamps
   }
 
   async getFrame(index: number): Promise<void> {

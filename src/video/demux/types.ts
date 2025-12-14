@@ -7,5 +7,4 @@ export interface VideoStreamingInterface {
 }
 
 export type ProgressCallback = (progress: number) => void;
-export type CompleteCallback = (frames: VideoStreamingInterface) => void;
-export type MetadataCallback = (metadata: VideoMetadata) => void;
+export type CompleteCallback = (metadata: VideoMetadata) => void;

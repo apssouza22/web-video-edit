@@ -1,10 +1,9 @@
 import { MediaBunnyDemuxer } from './mediabunny-demuxer';
-import { VideoDemuxService } from './video-demux.js';
 
-export { VideoDemuxService } from './video-demux';
 export type {VideoStreamingInterface} from "./types";
+export type {MediaBunnyDemuxer} from './mediabunny-demuxer';
 
-export function createDemuxer(): VideoDemuxService {
-  return new VideoDemuxService(new MediaBunnyDemuxer());
+export function createDemuxer(): MediaBunnyDemuxer {
+  return new MediaBunnyDemuxer();
 }
 

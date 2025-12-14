@@ -2,13 +2,12 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 
 // Since this test uses dependency injection (passing mock instances to constructor),
 // we don't need to mock the module imports. We just import types.
-const { VideoDemuxService } = await import('@/video/demux/video-demux');
+const { MediaBunnyDemuxer } = await import('@/video/demux/mediabunny-demuxer');
 
 // Type imports for test setup
 type MediaBunnyDemuxer = {
   setOnProgressCallback: jest.Mock;
   setOnCompleteCallback: jest.Mock;
-  setOnMetadataCallback: jest.Mock;
   initialize: jest.Mock;
   cleanup: jest.Mock;
 };
@@ -16,7 +15,6 @@ type MediaBunnyDemuxer = {
 type CodecDemuxer = {
   setOnProgressCallback: jest.Mock;
   setOnCompleteCallback: jest.Mock;
-  setOnMetadataCallback: jest.Mock;
   initialize: jest.Mock;
   cleanup: jest.Mock;
 };
@@ -24,7 +22,6 @@ type CodecDemuxer = {
 type HTMLVideoDemuxer = {
   setOnProgressCallback: jest.Mock;
   setOnCompleteCallback: jest.Mock;
-  setOnMetadataCallback: jest.Mock;
   initialize: jest.Mock;
   cleanup: jest.Mock;
 };
@@ -34,7 +31,7 @@ type Canvas2DRender = {
 };
 
 describe('VideoDemuxService', () => {
-  let videoDemuxService: InstanceType<typeof VideoDemuxService>;
+  let videoDemuxService: InstanceType<typeof MediaBunnyDemuxer>;
   let mockMediaBunnyDemuxer: MediaBunnyDemuxer;
   let mockCodecDemuxer: CodecDemuxer;
   let mockHTMLVideoDemuxer: HTMLVideoDemuxer;
@@ -44,7 +41,6 @@ describe('VideoDemuxService', () => {
     mockMediaBunnyDemuxer = {
       setOnProgressCallback: jest.fn(),
       setOnCompleteCallback: jest.fn(),
-      setOnMetadataCallback: jest.fn(),
       initialize: jest.fn(),
       cleanup: jest.fn(),
     } as any;
@@ -52,7 +48,6 @@ describe('VideoDemuxService', () => {
     mockCodecDemuxer = {
       setOnProgressCallback: jest.fn(),
       setOnCompleteCallback: jest.fn(),
-      setOnMetadataCallback: jest.fn(),
       initialize: jest.fn(),
       cleanup: jest.fn(),
     } as any;
@@ -60,7 +55,6 @@ describe('VideoDemuxService', () => {
     mockHTMLVideoDemuxer = {
       setOnProgressCallback: jest.fn(),
       setOnCompleteCallback: jest.fn(),
-      setOnMetadataCallback: jest.fn(),
       initialize: jest.fn(),
       cleanup: jest.fn(),
     } as any;
@@ -69,11 +63,7 @@ describe('VideoDemuxService', () => {
       context: {},
     } as any;
 
-    videoDemuxService = new VideoDemuxService(
-      mockMediaBunnyDemuxer,
-      mockCodecDemuxer,
-      mockHTMLVideoDemuxer
-    );
+    videoDemuxService = new MediaBunnyDemuxer();
   });
 
   afterEach(() => {
@@ -128,30 +118,6 @@ describe('VideoDemuxService', () => {
     });
   });
 
-  describe('setOnMetadataCallback', () => {
-    test('should set metadata callback on all demuxers', () => {
-      const mockCallback = jest.fn();
-
-      videoDemuxService.setOnMetadataCallback(mockCallback);
-
-      expect(mockMediaBunnyDemuxer.setOnMetadataCallback).toHaveBeenCalledWith(mockCallback);
-      expect(mockCodecDemuxer.setOnMetadataCallback).toHaveBeenCalledWith(mockCallback);
-      expect(mockHTMLVideoDemuxer.setOnMetadataCallback).toHaveBeenCalledWith(mockCallback);
-    });
-
-    test('should set metadata callback on all demuxers multiple times', () => {
-      const mockCallback1 = jest.fn();
-      const mockCallback2 = jest.fn();
-
-      videoDemuxService.setOnMetadataCallback(mockCallback1);
-      videoDemuxService.setOnMetadataCallback(mockCallback2);
-
-      expect(mockMediaBunnyDemuxer.setOnMetadataCallback).toHaveBeenCalledTimes(2);
-      expect(mockCodecDemuxer.setOnMetadataCallback).toHaveBeenCalledTimes(2);
-      expect(mockHTMLVideoDemuxer.setOnMetadataCallback).toHaveBeenCalledTimes(2);
-    });
-  });
-
   describe('initDemux', () => {
     test('should use HTMLVideoDemuxer when WebCodecs is not supported', async () => {
       const mockFile = new File(['test'], 'test.mp4', { type: 'video/mp4' }) as any;
@@ -160,9 +126,9 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = undefined as any;
       global.EncodedVideoChunk = undefined as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
-      expect(mockHTMLVideoDemuxer.initialize).toHaveBeenCalledWith(mockFile, mockRenderer);
+      expect(mockHTMLVideoDemuxer.initialize).toHaveBeenCalledWith(mockFile);
       expect(mockMediaBunnyDemuxer.initialize).not.toHaveBeenCalled();
       expect(mockCodecDemuxer.initialize).not.toHaveBeenCalled();
     });
@@ -184,9 +150,9 @@ describe('VideoDemuxService', () => {
         mockMediaBunnyDemuxer.initialize.mockClear();
         mockCodecDemuxer.initialize.mockClear();
 
-        await videoDemuxService.initDemux(mockFile as any, mockRenderer);
+        await videoDemuxService.initialize(mockFile as any);
 
-        expect(mockMediaBunnyDemuxer.initialize).toHaveBeenCalledWith(mockFile, mockRenderer);
+        expect(mockMediaBunnyDemuxer.initialize).toHaveBeenCalledWith(mockFile);
         expect(mockCodecDemuxer.initialize).not.toHaveBeenCalled();
         expect(mockHTMLVideoDemuxer.initialize).not.toHaveBeenCalled();
       }
@@ -199,9 +165,9 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(unsupportedFile, mockRenderer);
+      await videoDemuxService.initialize(unsupportedFile);
 
-      expect(mockCodecDemuxer.initialize).toHaveBeenCalledWith(unsupportedFile, mockRenderer);
+      expect(mockCodecDemuxer.initialize).toHaveBeenCalledWith(unsupportedFile);
       expect(mockMediaBunnyDemuxer.initialize).not.toHaveBeenCalled();
       expect(mockHTMLVideoDemuxer.initialize).not.toHaveBeenCalled();
     });
@@ -213,9 +179,9 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
-      expect(mockMediaBunnyDemuxer.initialize).toHaveBeenCalledWith(mockFile, mockRenderer);
+      expect(mockMediaBunnyDemuxer.initialize).toHaveBeenCalledWith(mockFile);
       expect(mockCodecDemuxer.initialize).not.toHaveBeenCalled();
     });
 
@@ -226,9 +192,9 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
-      expect(mockMediaBunnyDemuxer.initialize).toHaveBeenCalledWith(mockFile, mockRenderer);
+      expect(mockMediaBunnyDemuxer.initialize).toHaveBeenCalledWith(mockFile);
     });
 
     test('should handle empty file name', async () => {
@@ -238,9 +204,9 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
-      expect(mockCodecDemuxer.initialize).toHaveBeenCalledWith(mockFile, mockRenderer);
+      expect(mockCodecDemuxer.initialize).toHaveBeenCalledWith(mockFile);
     });
   });
 
@@ -278,7 +244,7 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
       expect(mockHTMLVideoDemuxer.initialize).not.toHaveBeenCalled();
     });
@@ -290,7 +256,7 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
       expect(mockHTMLVideoDemuxer.initialize).toHaveBeenCalled();
     });
@@ -302,7 +268,7 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = undefined as any;
       global.EncodedVideoChunk = jest.fn() as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
       expect(mockHTMLVideoDemuxer.initialize).toHaveBeenCalled();
     });
@@ -314,7 +280,7 @@ describe('VideoDemuxService', () => {
       global.VideoFrame = jest.fn() as any;
       global.EncodedVideoChunk = undefined as any;
 
-      await videoDemuxService.initDemux(mockFile, mockRenderer);
+      await videoDemuxService.initialize(mockFile);
 
       expect(mockHTMLVideoDemuxer.initialize).toHaveBeenCalled();
     });
