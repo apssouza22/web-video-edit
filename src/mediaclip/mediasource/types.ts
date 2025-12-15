@@ -8,7 +8,9 @@ export interface FrameSourceMetadata {
 
 export interface FrameSource {
   readonly metadata: FrameSourceMetadata;
-  getFrameAtIndex(index: number): Promise<VideoData | null>;
+
+  getFrameAtIndex(index: number, preFetch: boolean): Promise<VideoData | null>;
+
   cleanup(): void;
 }
 
@@ -21,6 +23,7 @@ export interface AudioSourceMetadata {
 export interface AudioFrameSource {
   readonly metadata: AudioSourceMetadata;
   readonly audioBuffer: AudioBuffer;
+
   cleanup(): void;
 }
 

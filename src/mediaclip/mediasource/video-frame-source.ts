@@ -11,11 +11,11 @@ export class VideoFrameSource implements FrameSource {
     this.metadata = metadata;
   }
 
-  async getFrameAtIndex(index: number): Promise<VideoData | null> {
+  async getFrameAtIndex(index: number, preFetch: boolean): Promise<VideoData | null> {
     if (!this.videoStreaming) {
       return null;
     }
-    return await this.videoStreaming.getFrameAtIndex(index);
+    return await this.videoStreaming.getFrameAtIndex(index, preFetch);
   }
 
   cleanup(): void {

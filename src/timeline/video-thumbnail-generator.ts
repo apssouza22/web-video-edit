@@ -30,7 +30,7 @@ export class VideoThumbnailGenerator {
     }
     this.#generationQueue.add(frameIndex);
     try {
-      const imageBitmap = await this.#videoMedia.getFrameAtIndex(frameIndex);
+      const imageBitmap = await this.#videoMedia.getFrameAtIndex(frameIndex, false);
       if (!imageBitmap) {
         this.#generationQueue.delete(frameIndex);
         return null;

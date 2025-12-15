@@ -20,7 +20,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     worker: Worker,
     timestamps: number[],
     cacheSize: number = 10000,
-    bufferSize: number = 50
+    bufferSize: number = 10
   ) {
     this.#videoId = videoId;
     this.#worker = worker;
@@ -52,9 +52,19 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     }
   }
 
-  async getFrameAtIndex(index: number): Promise<ImageBitmap | null> {
+  async getFrameAtIndex(index: number, preFetch: boolean = true): Promise<ImageBitmap | null> {
     if (index < 0 || index >= this.#timestamps.length) {
       return null;
+    }
+    if(!preFetch){
+      return new Promise((resolve, reject) => {
+        this.#pendingFrameRequests.set(index, { resolve, reject });
+        this.#worker.postMessage({
+          type: 'get-frame',
+          videoId: this.#videoId,
+          index,
+        } as DemuxWorkerMessage);
+      });
     }
 
     const cachedFrame = this.#frameCache.get(index);

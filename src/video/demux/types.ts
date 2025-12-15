@@ -1,8 +1,9 @@
-import { VideoMetadata } from '@/mediaclip/types';
-import { VideoData } from '@/mediaclip/frame';
+import {VideoMetadata} from '@/mediaclip/types';
+import {VideoData} from '@/mediaclip/frame';
 
 export interface VideoStreamingInterface {
-  getFrameAtIndex(index: number): Promise<VideoData | null>;
+  getFrameAtIndex(index: number, preFetch: boolean): Promise<VideoData | null>;
+
   cleanup(): void;
 }
 
