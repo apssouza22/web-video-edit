@@ -14,6 +14,8 @@ import {getEventBus, PlayerLayerTransformedEvent, PlayerTimeUpdateEvent} from '@
 export class VideoCanvas {
   #selectedLayer: AbstractMedia | null = null;
   #eventBus = getEventBus();
+  #audioContextStartTime: number | null = null;
+  #mediaStartTime: number = 0;
 
   public playing = false;
   public onend_callback: PlayerEndCallback | null = null;
@@ -82,14 +84,14 @@ export class VideoCanvas {
     }
   }
 
-  /**
-   * Setter for time property that notifies listeners when time changes
-   */
   setTime(newTime: number): void {
     const oldTime = this.time;
     this.time = newTime;
     if (oldTime !== newTime) {
       this.#eventBus.emit(new PlayerTimeUpdateEvent(newTime, oldTime));
+      if (!this.playing) {
+        this.#mediaStartTime = newTime;
+      }
     }
   }
 
@@ -155,6 +157,12 @@ export class VideoCanvas {
       this.refreshAudio();
     }
     this.audioContext.resume();
+    this.#capturePlaybackReference();
+  }
+
+  #capturePlaybackReference(): void {
+    this.#audioContextStartTime = this.audioContext.currentTime;
+    this.#mediaStartTime = this.time;
   }
 
   pause(): void {
@@ -162,6 +170,7 @@ export class VideoCanvas {
     this.studioState.setPlaying(false);
     this.audioContext.suspend();
     this.lastPausedTime = this.time;
+    this.#audioContextStartTime = null;
   }
 
   async render(realtime: number): Promise<number> {
@@ -170,7 +179,7 @@ export class VideoCanvas {
     }
     this.#updateTotalTime();
     if (this.isPlaying()) {
-      let newTime = this.time + (realtime - this.lastTImestampFrame);
+      let newTime = this.#calculateAudioSyncedTime();
 
       if (this.onend_callback && newTime >= this.total_time) {
         this.onend_callback(this);
@@ -178,15 +187,23 @@ export class VideoCanvas {
       }
       if (newTime >= this.total_time) {
         this.refreshAudio();
+        this.#capturePlaybackReference();
+        newTime = 0;
       }
-      // This will make the playback loop
-      newTime %= this.total_time;
 
       this.setTime(newTime);
     }
     await this.renderLayers();
     this.lastTImestampFrame = realtime;
     return this.time;
+  }
+
+  #calculateAudioSyncedTime(): number {
+    if (this.#audioContextStartTime === null) {
+      return this.time;
+    }
+    const elapsedAudioTime = (this.audioContext.currentTime - this.#audioContextStartTime) * 1000;
+    return this.#mediaStartTime + elapsedAudioTime;
   }
 
   async renderLayers(): Promise<void> {
