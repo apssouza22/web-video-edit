@@ -1,8 +1,8 @@
 # Task execution plan
-Important: Always plan the task step by step before writing code. Ask for permission to proceed with the plan .
-Important: Before proceed with the plan, create a new medialibrary named `tasks/name-of-the-task.md`. Based on the approved plan, list all necessary implementation steps as GitHub-style checkboxes (`- [ ] Step Description`). Use sub-bullets for granular details within each main step.
-**CRITICAL: After you successfully complete each step, you MUST update the `tasks/name-of-the-task.md` medialibrary by changing the corresponding checkbox from `- [ ]` to `- [x]`.**
-Only proceed to the *next* unchecked item after confirming the previous one is checked off in the medialibrary. Announce which step you are starting.
+Important: Always plan the task step by step before writing code. Ask for permission to proceed with the plan.
+Important: Before proceed with the plan, create a new file named `tasks/name-of-the-task.md`. Based on the approved plan, list all necessary implementation steps as GitHub-style checkboxes (`- [ ] Step Description`). Use sub-bullets for granular details within each main step.
+**CRITICAL: After you successfully complete each step, you MUST update the `tasks/name-of-the-task.md` file by changing the corresponding checkbox from `- [ ]` to `- [x]`.**
+Only proceed to the *next* unchecked item after confirming the previous one is checked off in the file. Announce which step you are starting.
 
 ## Javascript and TypeScript Code Style Guide
 Ensure one class per medialibrary and use PascalCase for class names.
