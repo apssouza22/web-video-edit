@@ -85,9 +85,10 @@ export class UiAspectRatioChangeEvent extends BaseEvent {
 export class MediaLoadUpdateEvent extends BaseEvent {
   readonly name = 'media:loadUpdate';
   constructor(
-    public layer: AbstractMedia,
     public progress: number,
-    public audioBuffer?: AudioBuffer | null
+    public layerName: string,
+    public layer?: AbstractMedia,
+    public audioBuffer?: AudioBuffer | null,
   ) {
     super();
   }

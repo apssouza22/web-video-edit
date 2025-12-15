@@ -111,7 +111,7 @@ export class StudioEventHandler {
 
     this.#eventUnsubscribers.push(
       this.#eventBus.subscribe(MediaLoadUpdateEvent, (event) => {
-        this.#studio.onLayerLoadUpdate(event.layer, event.progress, event.audioBuffer);
+        this.#studio.onLayerLoadUpdate(event.progress, event.layerName, event.layer, event.audioBuffer);
       })
     );
 

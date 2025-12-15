@@ -284,16 +284,13 @@ export class VideoStudio {
   }
 
   onLayerLoadUpdate(
-      layer: AbstractMedia,
       progress: number,
+      layerName: string,
+      layer?: AbstractMedia,
       audioBuffer?: AudioBuffer | null
   ): void {
-    if (!layer?.id) {
-      console.error('Layer has no id');
-      return;
-    }
-    this.loadingPopup.updateProgress(layer.name, progress);
-    if (progress === 100) {
+    this.loadingPopup.updateProgress(layerName, progress);
+    if (progress === 100 && layer?.id) {
       this.addLayer(layer);
     }
     if (audioBuffer) {

@@ -35,7 +35,7 @@ export class CaptionMedia extends TextMedia {
 
     setTimeout(() => {
       this._ready = true;
-      this._loadUpdateListener(this, 100);
+      this._loadUpdateListener(100, this.name, this);
     }, 10);
   }
 

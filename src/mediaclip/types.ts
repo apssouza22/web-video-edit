@@ -1,6 +1,7 @@
 import { Frame } from '@/mediaclip/frame';
 import { ESRenderingContext2D } from '@/common/render-2d';
 import { VideoStreamingInterface } from '@/video/demux';
+import {AbstractMedia} from "@/mediaclip/media-common";
 
 export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 export type ESAudioContext = AudioContext | OfflineAudioContext;
@@ -47,8 +48,9 @@ export interface MediaLayer {
  * Layer load update listener function signature
  */
 export type LayerLoadUpdateListener = (
-  layer: any,
   progress: number,
+  layerName: string,
+  layer?: AbstractMedia,
   audioBuffer?: AudioBuffer | null
 ) => void;
 

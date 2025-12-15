@@ -33,7 +33,7 @@ export abstract class AbstractMedia implements MediaLayer {
     this._width = 0;
     this._height = 0;
     this._renderer = new Canvas2DRender();
-    this._loadUpdateListener = (layer, progress, audioBuffer) => {
+    this._loadUpdateListener = (progress, layerName, layer, audioBuffer) => {
       // Default empty listener
     };
     this._lastRenderedTime = -1;
