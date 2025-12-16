@@ -1,4 +1,4 @@
-import { TimelineLayer } from '../timeline-layer';
+import { TimelineLayer } from './timeline-layer';
 
 /**
  * Timeline media renderer for image medias

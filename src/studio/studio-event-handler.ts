@@ -23,6 +23,7 @@ export class StudioEventHandler {
   #eventUnsubscribers: (() => void)[] = [];
   private mediaControls: MediaOps;
   #studioState = StudioState.getInstance();
+
   constructor(studio: VideoStudio, mediaControls: MediaOps) {
     this.#studio = studio;
     this.mediaControls = mediaControls;
@@ -30,102 +31,101 @@ export class StudioEventHandler {
 
   init(): void {
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(PlayerTimeUpdateEvent, (event) => {
-        this.#studioState.setPlayingTime(event.newTime);
-        this.#studio.timeline.playerTime = event.newTime;
-        this.#studio.transcriptionManager.highlightChunksByTime(event.newTime / 1000);
-      })
+        this.#eventBus.subscribe(PlayerTimeUpdateEvent, (event) => {
+          this.#studioState.setPlayingTime(event.newTime);
+          this.#studio.timeline.playerTime = event.newTime;
+          this.#studio.transcriptionManager.highlightChunksByTime(event.newTime / 1000);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(TimelineTimeUpdateEvent, (event) => {
-        if (!this.#studio.player.playing) {
+        this.#eventBus.subscribe(TimelineTimeUpdateEvent, (event) => {
+          this.#studio.pause();
           this.#studioState.setPlayingTime(event.newTime);
           this.#studio.player.setTime(event.newTime);
-        }
-      })
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(TimelineLayerUpdateEvent, (event) => {
-        const media = this.#studio.getMediaById(event.layer.id);
-        if (!media) {
-          return;
-        }
-        if (event.action === 'select') {
-          this.#studio.setSelectedLayer(media);
-        } else if (event.action === 'delete') {
-          this.#studio.remove(media);
-        } else if (event.action === 'clone') {
-          this.#studio.cloneLayer(media);
-        } else if (event.action === 'split') {
-          this.mediaControls.split();
-        } else if (event.action === 'reorder') {
-          if (event.extra) {
-            this.#studio.reorderLayer(event.extra.fromIndex, event.extra.toIndex);
+        this.#eventBus.subscribe(TimelineLayerUpdateEvent, (event) => {
+          const media = this.#studio.getMediaById(event.layer.id);
+          if (!media) {
+            return;
           }
-        }
-      })
+          if (event.action === 'select') {
+            this.#studio.setSelectedLayer(media);
+          } else if (event.action === 'delete') {
+            this.#studio.remove(media);
+          } else if (event.action === 'clone') {
+            this.#studio.cloneLayer(media);
+          } else if (event.action === 'split') {
+            this.mediaControls.split();
+          } else if (event.action === 'reorder') {
+            if (event.extra) {
+              this.#studio.reorderLayer(event.extra.fromIndex, event.extra.toIndex);
+            }
+          }
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(TranscriptionRemoveIntervalEvent, (event) => {
-        console.log(`TranscriptionManager: Removing interval from ${event.startTime} to ${event.endTime}`);
-        this.mediaControls.removeInterval(event.startTime, event.endTime);
-      })
+        this.#eventBus.subscribe(TranscriptionRemoveIntervalEvent, (event) => {
+          console.log(`TranscriptionManager: Removing interval from ${event.startTime} to ${event.endTime}`);
+          this.mediaControls.removeInterval(event.startTime, event.endTime);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(TranscriptionSeekEvent, (event) => {
-        const newTime = event.timestamp * 1000;
-        this.#studioState.setPlayingTime(newTime);
-        this.#studio.player.pause();
-        this.#studio.player.setTime(newTime);
-        this.#studio.player.play();
-      })
+        this.#eventBus.subscribe(TranscriptionSeekEvent, (event) => {
+          const newTime = event.timestamp * 1000;
+          this.#studioState.setPlayingTime(newTime);
+          this.#studio.player.pause();
+          this.#studio.player.setTime(newTime);
+          this.#studio.player.play();
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(PlayerLayerTransformedEvent, (event) => {
-        console.log(`Layer "${event.layer.name}" transformed`);
-      })
+        this.#eventBus.subscribe(PlayerLayerTransformedEvent, (event) => {
+          console.log(`Layer "${event.layer.name}" transformed`);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(UiSpeedChangeEvent, (event) => {
-        console.log(`Speed changed to: ${event.speed}`);
-      })
+        this.#eventBus.subscribe(UiSpeedChangeEvent, (event) => {
+          console.log(`Speed changed to: ${event.speed}`);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(RecordVideoFileCreatedEvent, async (event) => {
-        await this.#studio.mediaLibrary.addFile(event.videoFile);
-      })
+        this.#eventBus.subscribe(RecordVideoFileCreatedEvent, async (event) => {
+          await this.#studio.mediaLibrary.addFile(event.videoFile);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(MediaLibraryDropEvent, async (event) => {
-        await this.#studio.createMediaFromLibrary(event.fileId);
-      })
+        this.#eventBus.subscribe(MediaLibraryDropEvent, async (event) => {
+          await this.#studio.createMediaFromLibrary(event.fileId);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(MediaLoadUpdateEvent, (event) => {
-        this.#studio.onLayerLoadUpdate(event.progress, event.layerName, event.layer, event.audioBuffer);
-      })
+        this.#eventBus.subscribe(MediaLoadUpdateEvent, (event) => {
+          this.#studio.onLayerLoadUpdate(event.progress, event.layerName, event.layer, event.audioBuffer);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(CaptionCreateEvent, (event) => {
-        const captionMedia = createMediaCaption(event.transcriptionData.chunks);
-        this.#studio.addLayer(captionMedia);
-      })
+        this.#eventBus.subscribe(CaptionCreateEvent, (event) => {
+          const captionMedia = createMediaCaption(event.transcriptionData.chunks);
+          this.#studio.addLayer(captionMedia);
+        })
     );
 
     this.#eventUnsubscribers.push(
-      this.#eventBus.subscribe(SpeechGeneratedEvent, async (event) => {
-        await createMediaFromFile(event.audioBlob as File);
-      })
+        this.#eventBus.subscribe(SpeechGeneratedEvent, async (event) => {
+          await createMediaFromFile(event.audioBlob as File);
+        })
     );
   }
 

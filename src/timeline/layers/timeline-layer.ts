@@ -2,7 +2,7 @@
  * Base class for timeline media rendering
  * Encapsulates all rendering logic for timeline medias
  */
-import type { MediaInterface } from './types';
+import type { MediaInterface } from '../types';
 
 export class TimelineLayer {
   /**

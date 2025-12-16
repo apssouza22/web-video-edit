@@ -1,5 +1,5 @@
-import {TimelineLayer} from '../timeline-layer';
-import {VideoThumbnailGenerator} from '../video-thumbnail-generator';
+import {TimelineLayer} from './timeline-layer';
+import {VideoThumbnailGenerator} from './video-thumbnail-generator';
 import type {VideoMedia} from '@/mediaclip/video';
 
 export class VideoTimelineLayer extends TimelineLayer {

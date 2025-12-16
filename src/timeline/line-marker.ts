@@ -31,7 +31,7 @@ export function renderLineMarker(
   const textY = timeMarkerHeight + 5;
 
   // Draw background for better readability
-  const timeText = time.toFixed(2) + 's';
+  const timeText = (time / 1000).toFixed(2) + 's';
   const textMetrics = ctx.measureText(timeText);
   const textWidth = textMetrics.width + 6;
   const textHeight = 16;

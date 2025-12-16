@@ -1,13 +1,14 @@
-import {AudioTimelineLayer} from './layers/audio-timeline-layer';
-import {VideoTimelineLayer} from './layers/video-timeline-layer';
-import {ImageTimelineLayer} from './layers/image-timeline-layer';
-import {TextTimelineLayer} from './layers/text-timeline-layer';
-import {CaptionTimelineLayer} from './layers/caption-timeline-layer';
-import {ShapeTimelineLayer} from './layers/shape-timeline-layer';
-import type {MediaInterface} from './types';
+import {AudioTimelineLayer} from './audio-timeline-layer';
+import {VideoTimelineLayer} from './video-timeline-layer';
+import {ImageTimelineLayer} from './image-timeline-layer';
+import {TextTimelineLayer} from './text-timeline-layer';
+import {CaptionTimelineLayer} from './caption-timeline-layer';
+import {ShapeTimelineLayer} from './shape-timeline-layer';
+import type {MediaInterface} from '../types';
 import type {TimelineLayer} from './timeline-layer';
 import {AbstractMedia} from "@/mediaclip";
 import type {VideoMedia} from "@/mediaclip/video";
+import {AudioMedia} from "@/mediaclip/audio";
 
 /**
  * Factory class for creating timeline media renderers
@@ -31,7 +32,7 @@ export class TimelineLayerFactory {
 
     switch (layerType) {
       case 'AudioMedia':
-        return new AudioTimelineLayer(ctx, layer, totalTime, canvasWidth);
+        return new AudioTimelineLayer(ctx, layer as AudioMedia, totalTime, canvasWidth);
       case 'VideoMedia':
         return new VideoTimelineLayer(ctx, layer as VideoMedia, totalTime, canvasWidth);
       case 'ImageMedia':

@@ -1,5 +1,5 @@
-import {TimelineLayer} from '../timeline-layer';
-import {AudioWaveformGenerator} from '../audio-waveform-generator';
+import {TimelineLayer} from './timeline-layer';
+import {AudioWaveformGenerator} from './audio-waveform-generator';
 import type {AudioMedia} from '@/mediaclip/audio';
 
 export class AudioTimelineLayer extends TimelineLayer {

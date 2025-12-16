@@ -1,12 +1,13 @@
 import {TimeMarker} from './time-marker';
 import {TimelineZoomHandler} from './zoom';
 import {DragLayerHandler} from './drag';
-import {TimelineLayerRender} from './tllayer-render';
+import {TimelineLayerRender} from './layers/tllayer-render';
 import {dpr} from '@/constants';
 import type {LayerUpdateKind, MediaInterface} from './types';
 import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 import {AbstractMedia} from "@/mediaclip";
 import {renderLineMarker} from "@/timeline/line-marker";
+import {setupTimelineHeaderButtons} from "@/timeline/header-buttons";
 
 /**
  * Class representing a timeline for a video player
@@ -67,6 +68,7 @@ export class Timeline {
 
     this.#addEventListeners();
     this.#setupPinchHandler();
+    setupTimelineHeaderButtons(this.#eventBus)
   }
 
   /**
@@ -122,44 +124,9 @@ export class Timeline {
     this.timelineCanvas.addEventListener('pointerleave', this.#onPointerLeave.bind(this));
     this.timelineCanvas.addEventListener('pointerup', this.#onPointerLeave.bind(this));
     this.timelineCanvas.addEventListener('click', this.#onClick.bind(this));
-    this.#setupTimelineHeaderButtons();
   }
 
 
-  /**
-   * Set up click event listeners for timeline header buttons
-   * @private
-   */
-  #setupTimelineHeaderButtons() {
-    // Get buttons by their specific IDs
-    const deleteButton = document.getElementById('delete-button')!;
-    const splitButton = document.getElementById('split-button')!;
-    const cloneButton = document.getElementById('clone-button')!;
-
-    deleteButton.addEventListener('click', () => {
-      if (!this.selectedLayer) {
-        console.log('No media selected. Please select a media first.');
-        return;
-      }
-      this.#eventBus.emit(new TimelineLayerUpdateEvent('delete', this.selectedLayer));
-    });
-
-    splitButton.addEventListener('click', () => {
-      if (!this.selectedLayer) {
-        console.log('No media selected. Please select a media first.');
-        return;
-      }
-      this.#eventBus.emit(new TimelineLayerUpdateEvent('split', this.selectedLayer));
-    });
-
-    cloneButton.addEventListener('click', () => {
-      if (!this.selectedLayer) {
-        console.log('No media selected. Please select a media first.');
-        return;
-      }
-      this.#eventBus.emit(new TimelineLayerUpdateEvent('clone', this.selectedLayer));
-    });
-  }
 
   /**
    * Resize the timeline canvas based on the scale factor and number of medias

@@ -1,5 +1,5 @@
 import { TimelineLayerFactory } from './timeline-layer-factory';
-import type { MediaInterface } from './types';
+import type { MediaInterface } from '../types';
 import type { TimelineLayer } from './timeline-layer';
 import {AbstractMedia} from "@/mediaclip";
 

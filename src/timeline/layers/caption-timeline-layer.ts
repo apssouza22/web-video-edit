@@ -1,4 +1,4 @@
-import { TimelineLayer } from '../timeline-layer';
+import { TimelineLayer } from './timeline-layer';
 
 export class CaptionTimelineLayer extends TimelineLayer {
   getLayerColors() {
