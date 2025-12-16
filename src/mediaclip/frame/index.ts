@@ -6,8 +6,9 @@ import { FrameService } from './frames';
 export function createFrameService(
   totalTimeInMilliseconds: number,
   startTime?: number,
+  timestamps?: number[],
 ): FrameService {
-  return new FrameService(totalTimeInMilliseconds, startTime);
+  return new FrameService(totalTimeInMilliseconds, startTime, timestamps);
 }
 
 // Re-export all types and classes for convenience

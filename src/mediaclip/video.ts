@@ -22,7 +22,14 @@ export class VideoMedia extends AbstractMedia {
     this._width = frameSource.metadata.width;
     this._height = frameSource.metadata.height;
 
-    this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
+    const timestamps = frameSource.metadata.timestamps;
+    console.log(`[VideoMedia] Initializing with ${timestamps?.length || 0} timestamps, duration: ${this.totalTimeInMilSeconds}ms`);
+
+    this._frameService = createFrameService(
+      this.totalTimeInMilSeconds,
+      this.startTime,
+      timestamps
+    );
     this._renderer.setSize(this._width, this._height);
     this._ready = true;
   }
@@ -93,7 +100,8 @@ export class VideoMedia extends AbstractMedia {
 
   protected _createCloneInstance(): AbstractMedia {
     const videoMedia = new VideoMedia(this.name);
-    videoMedia._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
+    const timestamps = this.frameSource?.metadata.timestamps || [];
+    videoMedia._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime, timestamps);
     videoMedia._frameService.initializeFrames();
     videoMedia.frameSource = this.frameSource;
     return videoMedia;

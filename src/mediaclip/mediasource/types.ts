@@ -4,6 +4,7 @@ export interface FrameSourceMetadata {
   width: number;
   height: number;
   totalTimeInMilSeconds: number;
+  timestamps: number[]; // Actual frame timestamps in seconds
 }
 
 export interface FrameSource {

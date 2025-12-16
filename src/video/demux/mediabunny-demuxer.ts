@@ -1,4 +1,3 @@
-import {Canvas2DRender} from '@/common/render-2d';
 import {fps} from '@/constants';
 import {StudioState} from '@/common';
 import {CompleteCallback, ProgressCallback} from './types';

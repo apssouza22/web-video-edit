@@ -33,7 +33,8 @@ export class MediaLoader {
         const frameSourceMetadata: FrameSourceMetadata = {
           width: metadata.width,
           height: metadata.height,
-          totalTimeInMilSeconds: metadata.totalTimeInMilSeconds
+          totalTimeInMilSeconds: metadata.totalTimeInMilSeconds,
+          timestamps: metadata.timestamps
         };
 
         resolve(new VideoFrameSource(metadata.videoSink, frameSourceMetadata));

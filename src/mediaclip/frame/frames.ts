@@ -8,11 +8,14 @@ export class FrameService {
   public startTime: number;
   public totalTimeInMilSeconds: number;
   public timeAdjustHandler: FrameAdjustHandler;
+  public timestamps: number[] = []; // Actual frame timestamps in seconds
 
-  constructor(milSeconds: number, startTime?: number) {
+  constructor(milSeconds: number, startTime?: number, timestamps?: number[]) {
     this.startTime = startTime || 0;
     this.totalTimeInMilSeconds = milSeconds;
     this.totalTimeInSeconds = milSeconds / 1000;
+    this.timestamps = timestamps || [];
+    console.log(`[FrameService] Constructor - received ${timestamps?.length || 0} timestamps (milSeconds: ${milSeconds})`);
     this.timeAdjustHandler = new FrameAdjustHandler(this);
     this.initializeFrames();
   }
@@ -26,11 +29,18 @@ export class FrameService {
   }
 
   initializeFrames(): void {
-    for (let i = 0; i < this.totalTimeInSeconds * fps; ++i) {
+    // If we have actual timestamps, create frames based on timestamp count
+    const frameCount = this.timestamps.length > 0
+        ? this.timestamps.length
+        : this.totalTimeInSeconds * fps;
+
+    for (let i = 0; i < frameCount; ++i) {
       const f = new Frame(null, 0, 0, 1, 0, false, i);
       this.frames.push(f);
     }
-    this.frames[0].anchor = true; // set first frame as anchor
+    if (this.frames.length > 0) {
+      this.frames[0].anchor = true; // set first frame as anchor
+    }
   }
 
   getLength(): number {
@@ -80,10 +90,46 @@ export class FrameService {
    */
   getIndex(currentTime: number, startTime: number): number {
     const time = currentTime - startTime;
-    return Math.floor(time / 1000 * fps);
+    if (this.timestamps.length < 1) {
+      // Fallback to FPS-based calculation if timestamps not available
+      return Math.floor(time / 1000 * fps);
+    }
+
+    // If we have actual timestamps, use binary search to find the correct frame
+    const timeInSeconds = time / 1000;
+    let left = 0;
+    let right = this.timestamps.length - 1;
+    if (timeInSeconds <= this.timestamps[0]) {
+      return 0;
+    }
+    if (timeInSeconds >= this.timestamps[right]) {
+      return right;
+    }
+
+    // Binary search
+    while (left < right) {
+      const mid = Math.floor((left + right + 1) / 2);
+      if (this.timestamps[mid] <= timeInSeconds) {
+        left = mid;
+      } else {
+        right = mid - 1;
+      }
+    }
+    return left;
   }
 
+  /**
+   * Get time in milliseconds
+   * @param index
+   * @param startTime
+   */
   getTime(index: number, startTime: number): number {
+    // If we have actual timestamps, use them
+    if (this.timestamps.length > 0 && index >= 0 && index < this.timestamps.length) {
+      return (this.timestamps[index] * 1000) + startTime;
+    }
+
+    // Fallback to FPS-based calculation
     return (index / fps * 1000) + startTime;
   }
 

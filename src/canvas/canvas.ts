@@ -1,5 +1,6 @@
 import {dpr} from '@/constants';
 import {AbstractMedia, isMediaAudio} from '@/mediaclip';
+import {AudioMedia} from '@/mediaclip/audio/audio';
 import {CanvasLayer} from './canvas-layer.js';
 import type {
   AudioContextType,
@@ -16,6 +17,8 @@ export class VideoCanvas {
   #eventBus = getEventBus();
   #audioContextStartTime: number | null = null;
   #mediaStartTime: number = 0;
+  #audioScheduleTime: number | null = null;
+  static readonly AUDIO_SCHEDULE_DELAY = 0.1; // 100ms lookahead
 
   public playing = false;
   public onend_callback: PlayerEndCallback | null = null;
@@ -158,11 +161,30 @@ export class VideoCanvas {
     }
     this.audioContext.resume();
     this.#capturePlaybackReference();
+
+    // Schedule audio to start 100ms in the future
+    this.#audioScheduleTime = this.audioContext.currentTime + VideoCanvas.AUDIO_SCHEDULE_DELAY;
+
+    // Start audio at the scheduled time
+    this.#startScheduledAudio();
   }
 
   #capturePlaybackReference(): void {
     this.#audioContextStartTime = this.audioContext.currentTime;
     this.#mediaStartTime = this.time;
+  }
+
+  #startScheduledAudio(): void {
+    for (const layer of this.layers) {
+      const media = layer.media;
+      if (isMediaAudio(media)) {
+        const audioLayer = media as AudioMedia;
+        const time = this.time - media.startTime;
+        if (time >= 0 && time <= media.totalTimeInMilSeconds) {
+          audioLayer.scheduleStart(this.#audioScheduleTime!, time / 1000);
+        }
+      }
+    }
   }
 
   pause(): void {
@@ -171,6 +193,7 @@ export class VideoCanvas {
     this.audioContext.suspend();
     this.lastPausedTime = this.time;
     this.#audioContextStartTime = null;
+    this.#audioScheduleTime = null;
   }
 
   async render(realtime: number): Promise<number> {
@@ -188,6 +211,8 @@ export class VideoCanvas {
       if (newTime >= this.total_time) {
         this.refreshAudio();
         this.#capturePlaybackReference();
+        this.#audioScheduleTime = this.audioContext.currentTime + VideoCanvas.AUDIO_SCHEDULE_DELAY;
+        this.#startScheduledAudio();
         newTime = 0;
       }
 
@@ -199,10 +224,19 @@ export class VideoCanvas {
   }
 
   #calculateAudioSyncedTime(): number {
-    if (this.#audioContextStartTime === null) {
+    if (this.#audioContextStartTime === null || this.#audioScheduleTime === null) {
       return this.time;
     }
-    const elapsedAudioTime = (this.audioContext.currentTime - this.#audioContextStartTime) * 1000;
+
+    const currentAudioTime = this.audioContext.currentTime;
+
+    // Don't advance time until audio actually starts
+    if (currentAudioTime < this.#audioScheduleTime) {
+      return this.#mediaStartTime;
+    }
+
+    // Calculate elapsed time from when audio actually started
+    const elapsedAudioTime = (currentAudioTime - this.#audioScheduleTime) * 1000;
     return this.#mediaStartTime + elapsedAudioTime;
   }
 

@@ -84,5 +84,6 @@ export interface VideoMetadata {
   width: number;
   height: number;
   videoSink: VideoStreamingInterface;
+  timestamps: number[];
 }
 

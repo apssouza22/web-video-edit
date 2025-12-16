@@ -10,7 +10,8 @@ export class ImageFrameSource implements FrameSource {
     this.metadata = {
       width: image.naturalWidth,
       height: image.naturalHeight,
-      totalTimeInMilSeconds: 2000
+      totalTimeInMilSeconds: 2000,
+      timestamps: [] // Images don't have frame timestamps
     };
   }
 

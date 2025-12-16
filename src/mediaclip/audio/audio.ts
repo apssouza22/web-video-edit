@@ -106,15 +106,22 @@ export class AudioMedia extends AbstractMedia {
     if (!this.source.isConnected){
       this.connectAudioSource(this._playerAudioContext!);
     }
-
-    if (!this.started && this.source.isConnected) {
-      this.source.start(0, time / 1000);
-      this.started = true;
-    }
   }
 
   playStart(time: number): void {
     this.source.start(time / 1000, 0);
+  }
+
+  scheduleStart(scheduleTime: number, offset: number): void {
+    if (!this.source.isConnected) {
+      this.connectAudioSource(this._playerAudioContext!);
+    }
+
+    if (!this.started) {
+      // Schedule audio to start at precise future time
+      this.source.start(scheduleTime, offset);
+      this.started = true;
+    }
   }
 
   /**
