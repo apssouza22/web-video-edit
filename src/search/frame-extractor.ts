@@ -99,10 +99,13 @@ export class FrameExtractor {
       }
 
       const videoFrame = sample.toVideoFrame();
-      const imageDataUrl = await this.#videoFrameToDataUrl(videoFrame);
-      videoFrame.close();
-
-      return imageDataUrl;
+      try {
+        const imageDataUrl = await this.#videoFrameToDataUrl(videoFrame);
+        return imageDataUrl;
+      } finally {
+        videoFrame.close();
+        sample.close();
+      }
     } catch (error) {
       console.error(`Error extracting frame at timestamp ${timestamp}:`, error);
       return null;

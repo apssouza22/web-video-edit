@@ -220,12 +220,15 @@ export class SampleFilter {
       const response = await fetch(dataUrl);
       const blob = await response.blob();
       const imageBitmap = await createImageBitmap(blob);
+      try {
+        this.#canvas.width = imageBitmap.width;
+        this.#canvas.height = imageBitmap.height;
+        this.#context.drawImage(imageBitmap, 0, 0);
 
-      this.#canvas.width = imageBitmap.width;
-      this.#canvas.height = imageBitmap.height;
-      this.#context.drawImage(imageBitmap, 0, 0);
-
-      return this.#context.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+        return this.#context.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+      } finally {
+        imageBitmap.close();
+      }
     } catch (error) {
       console.error('Error converting data URL to ImageData:', error);
       return null;

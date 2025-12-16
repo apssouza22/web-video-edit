@@ -5,6 +5,7 @@ interface LoadInfo {
 
 export class LoadingPopup {
   private popup: HTMLElement | null;
+  private backdrop: HTMLElement | null;
   private progressFill: HTMLElement | null;
   private progressText: HTMLElement | null;
   private currentFileText: HTMLElement | null;
@@ -14,11 +15,12 @@ export class LoadingPopup {
 
   constructor() {
     this.popup = document.getElementById('loading-popup');
+    this.backdrop = document.getElementById('loading-backdrop');
     this.progressFill = document.getElementById('loading-progress-fill');
     this.progressText = document.getElementById('loading-progress-text');
     this.currentFileText = document.getElementById('loading-current-file');
     this.title = document.getElementById('loading-title');
-    
+
     this.activeLoads = new Map<string, LoadInfo>();
     this.isVisible = false;
   }
@@ -112,6 +114,9 @@ export class LoadingPopup {
    */
   #show(): void {
     if (!this.isVisible && this.popup) {
+      if (this.backdrop) {
+        (this.backdrop as HTMLElement).style.display = 'block';
+      }
       (this.popup as HTMLElement).style.display = 'block';
       this.isVisible = true;
     }
@@ -123,6 +128,9 @@ export class LoadingPopup {
   #hide(): void {
     if (this.isVisible && this.popup) {
       (this.popup as HTMLElement).style.display = 'none';
+      if (this.backdrop) {
+        (this.backdrop as HTMLElement).style.display = 'none';
+      }
       this.isVisible = false;
       this.activeLoads.clear();
     }

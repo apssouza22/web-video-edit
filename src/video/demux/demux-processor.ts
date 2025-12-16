@@ -54,6 +54,7 @@ export class DemuxProcessor {
 
       const width = videoTrack.displayWidth;
       const height = videoTrack.displayHeight;
+      console.log(`[DemuxProcessor] Video dimensions: ${width}x${height}`);
       const totalTimeInMilSeconds = totalDuration * 1000;
       this.#postMessage({
         type: 'complete',
@@ -87,23 +88,27 @@ export class DemuxProcessor {
       const frameIterator = this.#videoSink.samples(0);
 
       for await (const videoSample of frameIterator) {
-        if (!this.#isProcessing) {
-          break;
-        }
+        try {
+          if (!this.#isProcessing) {
+            break;
+          }
 
-        const timestamp = videoSample.timestamp;
-        if (timestamp >= nextTargetTime && currentFrameIndex < totalFramesTarget) {
-          this.#timestamps.push(timestamp);
-          currentFrameIndex++;
-          nextTargetTime = currentFrameIndex * frameInterval;
-          const progress = totalFramesTarget > 0
-            ? Math.min(100, (currentFrameIndex / totalFramesTarget) * 100)
-            : 0;
-          this.#postMessage({ type: 'progress', videoId: this.#videoId, progress });
-        }
+          const timestamp = videoSample.timestamp;
+          if (timestamp >= nextTargetTime && currentFrameIndex < totalFramesTarget) {
+            this.#timestamps.push(timestamp);
+            currentFrameIndex++;
+            nextTargetTime = currentFrameIndex * frameInterval;
+            const progress = totalFramesTarget > 0
+              ? Math.min(100, (currentFrameIndex / totalFramesTarget) * 100)
+              : 0;
+            this.#postMessage({ type: 'progress', videoId: this.#videoId, progress });
+          }
 
-        if (currentFrameIndex >= totalFramesTarget) {
-          break;
+          if (currentFrameIndex >= totalFramesTarget) {
+            break;
+          }
+        } finally {
+          videoSample.close();
         }
       }
 
@@ -134,10 +139,14 @@ export class DemuxProcessor {
 
       if (sample) {
         const videoFrame = sample.toVideoFrame();
-        const imageBitmap = await createImageBitmap(videoFrame);
-        videoFrame.close();
-        // @ts-ignore - Transfer ImageBitmap to main thread for efficient memory handling
-        this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: imageBitmap }, [imageBitmap]);
+        try {
+          const imageBitmap = await createImageBitmap(videoFrame);
+          // @ts-ignore - Transfer ImageBitmap to main thread for efficient memory handling
+          this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: imageBitmap }, [imageBitmap]);
+        } finally {
+          videoFrame.close();
+          sample.close();
+        }
       } else {
         this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
       }
