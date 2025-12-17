@@ -26,6 +26,22 @@ self.addEventListener('message', async (event: MessageEvent<DemuxWorkerMessage>)
       break;
     }
 
+    case 'batch-get-frames': {
+      const processor = processors.get(message.videoId);
+      if (processor) {
+        await processor.getBatchFrames(message.startIndex, message.endIndex, message.requestId);
+      }
+      break;
+    }
+
+    case 'cancel-batch': {
+      const processor = processors.get(message.videoId);
+      if (processor) {
+        processor.cancelBatch(message.requestId);
+      }
+      break;
+    }
+
     case 'cleanup': {
       const processor = processors.get(message.videoId);
       if (processor) {

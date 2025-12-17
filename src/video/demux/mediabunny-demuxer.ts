@@ -99,7 +99,9 @@ export class MediaBunnyDemuxer {
       videoSink: new WorkerVideoStreaming(
           this.videoId,
           this.worker,
-          response.timestamps
+          response.timestamps,
+          10000,
+          this.targetFps
       )
     } as VideoMetadata;
 

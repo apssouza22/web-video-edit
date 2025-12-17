@@ -14,6 +14,7 @@ export class DemuxProcessor {
   #isProcessing = false;
   #postMessage: PostMessageFn;
   #videoId: string;
+  #activeBatchRequest: string | null = null;
 
   constructor(videoId: string, postMessage: PostMessageFn) {
     this.#videoId = videoId;
@@ -153,6 +154,118 @@ export class DemuxProcessor {
     } catch (error) {
       console.error(`[DemuxProcessor] Error loading frame at index ${index}:`, error);
       this.#postMessage({ type: 'frame', videoId: this.#videoId, index, frame: null });
+    }
+  }
+
+  async getBatchFrames(startIndex: number, endIndex: number, requestId: string): Promise<void> {
+    if (!this.#videoSink || startIndex < 0 || endIndex > this.#timestamps.length) {
+      this.#postError('Invalid batch range');
+      return;
+    }
+
+    this.#activeBatchRequest = requestId;
+    const totalFrames = endIndex - startIndex;
+    let processedFrames = 0;
+
+    const startTimestamp = this.#timestamps[startIndex];
+    const endTimestamp = endIndex < this.#timestamps.length
+      ? this.#timestamps[endIndex - 1] + 0.001
+      : Infinity;
+
+    console.log(`[DemuxProcessor] Starting batch ${requestId}: frames [${startIndex}, ${endIndex}), timestamps [${startTimestamp}, ${endTimestamp})`);
+
+    try {
+      const frameIterator = this.#videoSink.samples(startTimestamp, endTimestamp);
+      let currentIndex = startIndex;
+
+      for await (const videoSample of frameIterator) {
+        if (this.#activeBatchRequest !== requestId) {
+          console.log(`[DemuxProcessor] Batch ${requestId} cancelled at frame ${currentIndex}`);
+          return;
+        }
+
+        if (currentIndex >= endIndex) {
+          break;
+        }
+
+        const expectedTimestamp = this.#timestamps[currentIndex];
+        const sampleTimestamp = videoSample.timestamp;
+
+        if (Math.abs(sampleTimestamp - expectedTimestamp) > 0.001) {
+          console.warn(`[DemuxProcessor] Timestamp mismatch at index ${currentIndex}: expected ${expectedTimestamp}, got ${sampleTimestamp}`);
+        }
+
+        let imageBitmap: ImageBitmap | null = null;
+
+        try {
+          const videoFrame = videoSample.toVideoFrame();
+          imageBitmap = await createImageBitmap(videoFrame);
+          videoFrame.close();
+        } catch (error) {
+          console.error(`[DemuxProcessor] Error creating bitmap at index ${currentIndex}:`, error);
+        }
+
+        processedFrames++;
+        const isComplete = processedFrames === totalFrames;
+
+        if (imageBitmap) {
+          // @ts-ignore - Transfer ImageBitmap to main thread
+          this.#postMessage({
+            type: 'batch-frame',
+            videoId: this.#videoId,
+            requestId,
+            index: currentIndex,
+            frame: imageBitmap,
+            progress: processedFrames / totalFrames,
+            isComplete,
+          }, [imageBitmap]);
+        } else {
+          this.#postMessage({
+            type: 'batch-frame',
+            videoId: this.#videoId,
+            requestId,
+            index: currentIndex,
+            frame: null,
+            progress: processedFrames / totalFrames,
+            isComplete,
+          });
+        }
+
+        currentIndex++;
+      }
+
+      if (processedFrames < totalFrames) {
+        console.warn(`[DemuxProcessor] Batch ${requestId} incomplete: got ${processedFrames} frames, expected ${totalFrames}`);
+        for (let i = currentIndex; i < endIndex; i++) {
+          processedFrames++;
+          const isComplete = processedFrames === totalFrames;
+          this.#postMessage({
+            type: 'batch-frame',
+            videoId: this.#videoId,
+            requestId,
+            index: i,
+            frame: null,
+            progress: processedFrames / totalFrames,
+            isComplete,
+          });
+        }
+      }
+
+      if (this.#activeBatchRequest === requestId) {
+        this.#activeBatchRequest = null;
+        console.log(`[DemuxProcessor] Batch ${requestId} complete: ${processedFrames} frames`);
+      }
+    } catch (error) {
+      console.error(`[DemuxProcessor] Error in batch decode:`, error);
+      this.#activeBatchRequest = null;
+      this.#postError(`Batch decode failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  cancelBatch(requestId: string): void {
+    if (this.#activeBatchRequest === requestId) {
+      console.log(`[DemuxProcessor] Cancelling batch ${requestId}`);
+      this.#activeBatchRequest = null;
     }
   }
 

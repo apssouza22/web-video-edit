@@ -16,10 +16,26 @@ export interface CleanupMessage {
   videoId: string;
 }
 
+export interface BatchGetFramesMessage {
+  type: 'batch-get-frames';
+  videoId: string;
+  startIndex: number;
+  endIndex: number;
+  requestId: string;
+}
+
+export interface CancelBatchMessage {
+  type: 'cancel-batch';
+  videoId: string;
+  requestId: string;
+}
+
 export type DemuxWorkerMessage =
   | InitializeMessage
   | GetFrameMessage
-  | CleanupMessage;
+  | CleanupMessage
+  | BatchGetFramesMessage
+  | CancelBatchMessage;
 
 export interface MetadataResponse {
   type: 'metadata';
@@ -57,9 +73,20 @@ export interface ErrorResponse {
   message: string;
 }
 
+export interface BatchFrameResponse {
+  type: 'batch-frame';
+  videoId: string;
+  requestId: string;
+  index: number;
+  frame: ImageBitmap | null;
+  progress: number;
+  isComplete: boolean;
+}
+
 export type DemuxWorkerResponse =
   | MetadataResponse
   | ProgressResponse
   | CompleteResponse
   | FrameResponse
-  | ErrorResponse;
+  | ErrorResponse
+  | BatchFrameResponse;
