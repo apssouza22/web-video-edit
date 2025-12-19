@@ -1,6 +1,6 @@
 # Web Video Edit
 
-Smart WebVideoEdit combines AI and modern web technologies to create a browser-based video editor that enables users to edit videos without downloading or installing any software - no downloads or installations required.
+Smart WebVideoFlow combines AI and modern web technologies to create a browser-based video editor that enables users to edit videos without downloading or installing any software - no downloads or installations required.
 
 
 <img src="assets/image.png" alt="Web Video Edit demo" width="500">
