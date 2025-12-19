@@ -169,7 +169,7 @@ export abstract class AbstractMedia implements MediaLayer {
     this._lastRenderedTime = -1;
   }
 
-  init(canvasWidth: number = 500, canvasHeight: number = 500, audioContext?: AudioContext): void {
+  init(canvasWidth: number = 500, canvasHeight: number = 500, audioContext?: ESAudioContext): void {
     this._renderer.setSize(canvasWidth, canvasHeight);
   }
 

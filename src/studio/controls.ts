@@ -1,6 +1,7 @@
 import { exportToJson } from '@/common/utils';
 import {VideoStudio} from "@/studio/studio";
 import {ESRenderingContext2D} from "@/common/render-2d";
+import {StudioState} from "@/common";
 
 export class StudioControls {
   private studio: VideoStudio;
@@ -36,7 +37,7 @@ export class StudioControls {
 
   #onKeydown(ev: KeyboardEvent): void {
     if (ev.code === "Space") {
-      if (this.studio.player.playing) {
+      if (StudioState.getInstance().isPlaying()) {
         this.studio.pause();
       } else {
         this.studio.play();

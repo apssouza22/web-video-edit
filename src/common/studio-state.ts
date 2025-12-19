@@ -5,7 +5,7 @@ class StudioState {
 
   private medias: AbstractMedia[] = [];
   private selectedMedia: AbstractMedia | null = null;
-  private isPlaying: boolean = false;
+  private _isPlaying: boolean = false;
   private playingTime: number = 0;
   private minWidth: number = Number.POSITIVE_INFINITY;
   private minHeight: number = Number.POSITIVE_INFINITY;
@@ -17,12 +17,12 @@ class StudioState {
     return StudioState.instance;
   }
 
-  getIsPlaying(): boolean {
-    return this.isPlaying;
+  isPlaying(): boolean {
+    return this._isPlaying;
   }
 
   setPlaying(isPlaying: boolean): void {
-    this.isPlaying = isPlaying;
+    this._isPlaying = isPlaying;
   }
 
   getPlayingTime(): number {

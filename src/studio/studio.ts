@@ -210,15 +210,6 @@ export class VideoStudio {
     if (media instanceof AudioMedia) {
       media.disconnect();
     }
-    this.player.total_time = 0;
-    for (const layer of this.getMedias()) {
-      if (layer.startTime + layer.totalTimeInMilSeconds > this.player.total_time) {
-        this.player.total_time = layer.startTime + layer.totalTimeInMilSeconds;
-      }
-    }
-    if (this.player.time > this.player.total_time) {
-      this.player.time = this.player.total_time;
-    }
     this.timeline.addLayers(this.getMedias());
     this.player.addLayers(this.getMedias());
   }
@@ -233,8 +224,8 @@ export class VideoStudio {
 
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
     if (!skipInit) {
-      layer.startTime = this.player.time;
-      layer.init(layer.width, layer.height, this.player.audioContext);
+      layer.startTime = this.studioState.getPlayingTime();
+      layer.init(layer.width, layer.height, this.player.getCanvasAudioContext());
     }
     this.medias.push(layer);
     this.studioState.addMedia(layer);
@@ -260,10 +251,10 @@ export class VideoStudio {
     // Process updates for selected media
     const selectedLayer = this.getSelectedLayer();
     if (selectedLayer && this.update) {
-      selectedLayer.update(this.update, this.player.time);
+      selectedLayer.update(this.update, this.studioState.getPlayingTime());
       this.update = null;
     }
-    if (this.medias.length !== this.player.layers.length) {
+    if (this.medias.length !== this.player.getLayersLength()) {
       this.player.addLayers(this.getMedias());
       this.timeline.addLayers(this.getMedias());
     }

@@ -1,5 +1,5 @@
 import {dpr} from '@/constants';
-import {AbstractMedia, isMediaAudio} from '@/mediaclip';
+import {AbstractMedia, ESAudioContext, isMediaAudio} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {CanvasLayer} from './canvas-layer.js';
 import type {
@@ -19,20 +19,17 @@ export class VideoCanvas {
   #mediaStartTime: number = 0;
   #audioScheduleTime: number | null = null;
   static readonly AUDIO_SCHEDULE_DELAY = 0.1; // 100ms lookahead
-
-  public playing = false;
-  public onend_callback: PlayerEndCallback | null = null;
-  public total_time = 0;
-  public lastTImestampFrame: number | null = null;
-  public time = 0;
-  public lastPausedTime = Number.MAX_SAFE_INTEGER;
-  public playerHolder: HTMLElement | null;
-  public canvas: CanvasElement;
-  public ctx: CanvasContext2D;
-  public audioContext: AudioContextType;
-  public width = 0;
-  public height = 0;
-  public layers: CanvasLayer[] = [];
+  
+  private onend_callback: PlayerEndCallback | null = null;
+  private total_time = 0;
+  private lastTimestampFrame: number | null = null;
+  private time = 0;
+  private lastPausedTime = Number.MAX_SAFE_INTEGER;
+  private playerHolder: HTMLElement | null;
+  private readonly canvas: CanvasElement;
+  private readonly ctx: CanvasContext2D;
+  private readonly audioContext: AudioContext;
+  private layers: CanvasLayer[] = [];
   private studioState: StudioState;
 
   constructor(studioState: StudioState) {
@@ -87,12 +84,20 @@ export class VideoCanvas {
     }
   }
 
+  getLayersLength(): number {
+    return this.layers.length;
+  }
+
+  getCanvasAudioContext(): ESAudioContext {
+    return this.audioContext;
+  }
+
   setTime(newTime: number): void {
     const oldTime = this.time;
     this.time = newTime;
     if (oldTime !== newTime) {
       this.#eventBus.emit(new PlayerTimeUpdateEvent(newTime, oldTime));
-      if (!this.playing) {
+      if (!this.studioState.isPlaying()) {
         this.#mediaStartTime = newTime;
       }
     }
@@ -109,6 +114,15 @@ export class VideoCanvas {
       });
       return canvasLayer;
     });
+    this.total_time = 0;
+    for (const layer of layers) {
+      if (layer.startTime + layer.totalTimeInMilSeconds > this.total_time) {
+        this.total_time = layer.startTime + layer.totalTimeInMilSeconds;
+      }
+    }
+    if (this.time > this.total_time) {
+      this.time = this.total_time;
+    }
   }
 
   /**
@@ -139,9 +153,6 @@ export class VideoCanvas {
     }
     this.canvas.width = this.canvas.clientWidth * dpr;
     this.canvas.height = this.canvas.clientHeight * dpr;
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
-    // this.ctx.scale(dpr, dpr);
   }
 
   refreshAudio(): void {
@@ -154,22 +165,19 @@ export class VideoCanvas {
   }
 
   play(): void {
-    this.playing = true;
     this.studioState.setPlaying(true);
     if (this.lastPausedTime !== this.time) {
       this.refreshAudio();
     }
     this.audioContext.resume();
-    this.#capturePlaybackReference();
+    this.#updatePlaybackTime();
 
     // Schedule audio to start 100ms in the future
     this.#audioScheduleTime = this.audioContext.currentTime + VideoCanvas.AUDIO_SCHEDULE_DELAY;
-
-    // Start audio at the scheduled time
     this.#startScheduledAudio();
   }
 
-  #capturePlaybackReference(): void {
+  #updatePlaybackTime(): void {
     this.#audioContextStartTime = this.audioContext.currentTime;
     this.#mediaStartTime = this.time;
   }
@@ -179,16 +187,20 @@ export class VideoCanvas {
       const media = layer.media;
       if (isMediaAudio(media)) {
         const audioLayer = media as AudioMedia;
-        const time = this.time - media.startTime;
-        if (time >= 0 && time <= media.totalTimeInMilSeconds) {
-          audioLayer.scheduleStart(this.#audioScheduleTime!, time / 1000);
+        // Calculate how far in the future this layer should start
+        const timeUntilLayerStart = (media.startTime - this.time) / 1000; // Convert to seconds
+        const scheduleTime = this.#audioScheduleTime! + Math.max(0, timeUntilLayerStart);
+
+        // Only schedule if layer is within playback range (hasn't ended yet)
+        if (this.time <= media.startTime + media.totalTimeInMilSeconds) {
+          const offset = Math.max(0, this.time - media.startTime) / 1000; // Seconds
+          audioLayer.scheduleStart(scheduleTime, offset);
         }
       }
     }
   }
 
   pause(): void {
-    this.playing = false;
     this.studioState.setPlaying(false);
     this.audioContext.suspend();
     this.lastPausedTime = this.time;
@@ -197,8 +209,8 @@ export class VideoCanvas {
   }
 
   async render(realtime: number): Promise<number> {
-    if (this.lastTImestampFrame === null) {
-      this.lastTImestampFrame = realtime;
+    if (this.lastTimestampFrame === null) {
+      this.lastTimestampFrame = realtime;
     }
     this.#updateTotalTime();
     if (this.isPlaying()) {
@@ -209,27 +221,27 @@ export class VideoCanvas {
         this.onend_callback = null;
       }
       if (newTime >= this.total_time) {
-        this.refreshAudio();
-        this.#capturePlaybackReference();
-        this.#audioScheduleTime = this.audioContext.currentTime + VideoCanvas.AUDIO_SCHEDULE_DELAY;
-        this.#startScheduledAudio();
-        newTime = 0;
+        this.studioState.setPlaying(false);
+        newTime = this.total_time;
       }
-
       this.setTime(newTime);
     }
     await this.renderLayers();
-    this.lastTImestampFrame = realtime;
+    this.lastTimestampFrame = realtime;
     return this.time;
   }
 
+  /**
+   * Calculate the current time synchronized with audio playback
+   * This ensures that visual playback stays in sync with audio playback
+   * Considers audio context start time and scheduled audio start time delays
+   */
   #calculateAudioSyncedTime(): number {
     if (this.#audioContextStartTime === null || this.#audioScheduleTime === null) {
       return this.time;
     }
 
     const currentAudioTime = this.audioContext.currentTime;
-
     // Don't advance time until audio actually starts
     if (currentAudioTime < this.#audioScheduleTime) {
       return this.#mediaStartTime;
@@ -244,7 +256,7 @@ export class VideoCanvas {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
     for (const layer of this.layers) {
-      await layer.render(this.ctx, this.time, this.playing);
+      await layer.render(this.ctx, this.time, this.studioState.isPlaying());
     }
   }
 
@@ -258,6 +270,6 @@ export class VideoCanvas {
   }
 
   isPlaying(): boolean {
-    return this.playing && this.total_time > 0;
+    return this.studioState.isPlaying() && this.total_time > 0;
   }
 }
