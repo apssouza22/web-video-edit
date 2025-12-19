@@ -1,0 +1,289 @@
+<html>
+
+<head>
+  <meta content="text/html;charset=utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <link rel="stylesheet" href="assets/css/reset.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <title>Web video editing</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P55M8X1FVH"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-P55M8X1FVH');
+  </script>
+</head>
+
+<body>
+
+  <!-- Loading Popup -->
+  <div id="loading-backdrop" class="popup-backdrop" style="display: none;"></div>
+  <div id="loading-popup" class="popup" style="display: none;">
+    <div>
+      <h3 id="loading-title">Loading Media...</h3>
+      <div id="loading-progress-container">
+        <div id="loading-progress-bar">
+          <div id="loading-progress-fill" style="width: 0%;"></div>
+        </div>
+        <div id="loading-progress-text">0%</div>
+        <div id="loading-current-file">Initializing...</div>
+      </div>
+    </div>
+  </div>
+
+<div id="background" class="full">
+  An error has occured! Please reload this page and make sure JavaScript is enabled. If you still see this error
+  message, then JavaScript has not loaded.
+  <input type="file" id="filepicker" multiple accept="video/mp4,video/x-m4v,video/*,image/*,audio/*"/>
+</div>
+
+
+<div id="foreground" class="full">
+  <div id="center-panel">
+    <div id="leftNav">
+      <div class="tab-header">
+        <!-- Media Tab -->
+        <div class="tab-button active" data-tab="media" title="Media">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <!-- Text Tab -->
+        <div class="tab-button" data-tab="text" title="Text">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 7 4 4 20 4 20 7"/>
+            <line x1="9" y1="20" x2="15" y2="20"/>
+            <line x1="12" y1="4" x2="12" y2="20"/>
+          </svg>
+        </div>
+        <!-- Shapes Tab -->
+        <div class="tab-button" data-tab="shapes" title="Shapes">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <circle cx="17.5" cy="6.5" r="4.5"/>
+            <polygon points="12 14 7 22 17 22"/>
+          </svg>
+        </div>
+        <!-- Record Tab -->
+        <div class="tab-button" data-tab="record" title="Record">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          </svg>
+        </div>
+        <!-- Transcription Tab -->
+        <div class="tab-button" data-tab="transcription" title="Transcription">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <!-- Speech Synthesis Tab -->
+        <div class="tab-button" data-tab="speech" title="Speech synthesis">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+            <path d="M9 9h.01"/>
+            <path d="M15 9h.01"/>
+            <circle cx="19" cy="6" r="3" fill="currentColor" stroke="none"/>
+            <path d="M19 4v4M17 6h4" stroke="white" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <!-- Search Tab -->
+        <div class="tab-button" data-tab="search" title="Search in Video">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <!-- Settings Tab -->
+        <div class="tab-button" data-tab="settings" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <!-- Export Tab -->
+        <div class="tab-button" data-tab="export" title="Export">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="tab-content-wrapper">
+        <!-- Media Tab Content -->
+        <div id="media" class="tab-content active">
+          <div class="tab-section-title">Add Media</div>
+          <div class="media-upload-area" id="media-upload-area">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Click or drag files here</span>
+            <span class="media-formats">MP4, GIF, JPG, PNG, MP3, WAV</span>
+          </div>
+          <div class="tab-section-title">Media Library</div>
+          <div id="media-library" class="media-library">
+            <!-- Media items will be populated here -->
+          </div>
+        </div>
+
+        <!-- Text Tab Content -->
+        <div id="text" class="tab-content">
+          <div class="tab-section-title">Add Text Layer</div>
+          <div class="text-input-area">
+            <textarea id="text-input" placeholder="Enter your text here..." rows="3"></textarea>
+            <button id="add-text-btn" class="action-button primary">Add Text</button>
+          </div>
+          <div class="tab-section-title">Text Layers</div>
+          <div id="text-layers" class="text-layers-list">
+            <!-- Text layers will be populated here -->
+          </div>
+        </div>
+
+        <!-- Shapes Tab Content -->
+        <div id="shapes" class="tab-content">
+          <!-- ShapeView will populate this -->
+        </div>
+
+        <!-- Record Tab Content -->
+        <div id="record" class="tab-content">
+          <div class="tab-section-title">Recording Options</div>
+          <div class="record-options">
+            <button id="record-screen-btn" class="action-button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              Record Screen
+            </button>
+            <button id="record-video-btn" class="action-button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 7l-7 5 7 5V7z"/>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+              Record Camera
+            </button>
+          </div>
+          <button id="stop-recording-btn" class="action-button danger" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="6" width="12" height="12" fill="currentColor"/>
+            </svg>
+            Stop Recording
+          </button>
+        </div>
+
+        <!-- Transcription Tab Content -->
+        <div id="transcription" class="tab-content">
+          <div class="text-chunks">
+            <!-- <div class="text-chunk"></div> -->
+          </div>
+        </div>
+
+        <!-- Speech Synthesis Tab Content -->
+        <div id="speech" class="tab-content">
+          <!-- Speech UI will be populated by SpeechView -->
+        </div>
+
+        <!-- Search Tab Content -->
+        <div id="search" class="tab-content">
+          <!-- SearchView will populate this -->
+        </div>
+
+        <!-- Settings Tab Content -->
+        <div id="settings" class="tab-content">
+          <div class="tab-section-title">Video Settings</div>
+          <div class="settings-form">
+            <div class="settings-row">
+              <label for="fps-input">FPS (Frames Per Second)</label>
+              <input type="number" id="fps-input" class="settings-input" min="1" max="120" step="1" value="30">
+            </div>
+            <div class="settings-row">
+              <label for="ram-input">Max RAM (MB)</label>
+              <input type="number" id="ram-input" class="settings-input" min="100" max="8000" step="100" value="500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Tab Content -->
+        <div id="export" class="tab-content">
+          <div class="tab-section-title">Export Video</div>
+          <div class="export-options">
+            <button id="export-video-btn" class="action-button primary large">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              Export Video
+            </button>
+            <button id="export-json-btn" class="action-button secondary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              Export JSON
+            </button>
+          </div>
+          <div id="export-progress" class="export-progress" style="display: none;">
+            <div class="progress-bar">
+              <div class="progress-fill" id="export-progress-fill"></div>
+            </div>
+            <span class="progress-text" id="export-progress-text">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="video-canvas-panel">
+      <div id="video-canvas">
+      </div>
+    </div>
+
+  </div>
+
+  <div id="timeline">
+    <div id="timeline_header">
+      <div id="controls_left">
+        <div id="delete-button" class="timeline_header_item">Delete</div>
+        <div id="split-button" class="timeline_header_item">Split</div>
+        <div id="clone-button" class="timeline_header_item">Clone</div>
+      </div>
+      <div id="controls_right">
+        <div class="timeline_header_item">
+          <span>Zoom</span>
+          <input type="range" id="timeline_zoom_slider" min="1" max="5" step="0.1" value="2">
+        </div>
+        <div id="speed-control-item" class="timeline_header_item speed-control-item">
+          <!-- Speed control component will be mounted here -->
+        </div>
+      </div>
+    </div>
+    <div id="timeline_content"></div>
+  </div>
+
+</div>
+<script type="module" src="src/main.ts"></script>
+</body>
+
+</html>

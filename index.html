@@ -1,289 +1,531 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <meta content="text/html;charset=utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>Smart WebVideoFlow - AI-Powered Browser Video Editor</title>
+  <meta name="title" content="Smart WebVideoFlow - AI-Powered Browser Video Editor">
+  <meta name="description" content="Edit videos in your browser with AI transcription, text-based editing, and complete privacy. No downloads, no uploads, 100% local processing.">
+  <meta name="keywords" content="video editor, browser video editor, AI video editing, Whisper transcription, text-based editing, WebAssembly video, privacy video editor">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://apssouza22.github.io/web-video-edit/">
+  <meta property="og:title" content="Smart WebVideoFlow - AI-Powered Browser Video Editor">
+  <meta property="og:description" content="Edit videos in your browser with AI transcription, text-based editing, and complete privacy.">
+  <meta property="og:image" content="https://apssouza22.github.io/web-video-edit/assets/landing/og-image.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://apssouza22.github.io/web-video-edit/">
+  <meta property="twitter:title" content="Smart WebVideoFlow - AI-Powered Browser Video Editor">
+  <meta property="twitter:description" content="Edit videos in your browser with AI transcription, text-based editing, and complete privacy.">
+  <meta property="twitter:image" content="https://apssouza22.github.io/web-video-edit/assets/landing/og-image.png">
 
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
+  <link rel="canonical" href="https://apssouza22.github.io/web-video-edit/">
 
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/reset.css">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/landing.css">
 
-  <title>Web video editing</title>
-  <!-- Google tag (gtag.js) -->
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-P55M8X1FVH"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-P55M8X1FVH');
   </script>
 </head>
 
-<body>
+<body class="landing-body">
 
-  <!-- Loading Popup -->
-  <div id="loading-backdrop" class="popup-backdrop" style="display: none;"></div>
-  <div id="loading-popup" class="popup" style="display: none;">
-    <div>
-      <h3 id="loading-title">Loading Media...</h3>
-      <div id="loading-progress-container">
-        <div id="loading-progress-bar">
-          <div id="loading-progress-fill" style="width: 0%;"></div>
-        </div>
-        <div id="loading-progress-text">0%</div>
-        <div id="loading-current-file">Initializing...</div>
+  <!-- NAVIGATION -->
+  <nav class="landing-nav">
+    <div class="nav-container">
+      <div class="nav-logo">Smart WebVideoFlow</div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="app.html" class="nav-cta">Launch Editor</a>
       </div>
     </div>
-  </div>
+  </nav>
 
-<div id="background" class="full">
-  An error has occured! Please reload this page and make sure JavaScript is enabled. If you still see this error
-  message, then JavaScript has not loaded.
-  <input type="file" id="filepicker" multiple accept="video/mp4,video/x-m4v,video/*,image/*,audio/*"/>
-</div>
-
-
-<div id="foreground" class="full">
-  <div id="center-panel">
-    <div id="leftNav">
-      <div class="tab-header">
-        <!-- Media Tab -->
-        <div class="tab-button active" data-tab="media" title="Media">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </div>
-        <!-- Text Tab -->
-        <div class="tab-button" data-tab="text" title="Text">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="4 7 4 4 20 4 20 7"/>
-            <line x1="9" y1="20" x2="15" y2="20"/>
-            <line x1="12" y1="4" x2="12" y2="20"/>
-          </svg>
-        </div>
-        <!-- Shapes Tab -->
-        <div class="tab-button" data-tab="shapes" title="Shapes">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7"/>
-            <circle cx="17.5" cy="6.5" r="4.5"/>
-            <polygon points="12 14 7 22 17 22"/>
-          </svg>
-        </div>
-        <!-- Record Tab -->
-        <div class="tab-button" data-tab="record" title="Record">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <circle cx="12" cy="12" r="4" fill="currentColor"/>
-          </svg>
-        </div>
-        <!-- Transcription Tab -->
-        <div class="tab-button" data-tab="transcription" title="Transcription">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-        </div>
-        <!-- Speech Synthesis Tab -->
-        <div class="tab-button" data-tab="speech" title="Speech synthesis">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-            <path d="M9 9h.01"/>
-            <path d="M15 9h.01"/>
-            <circle cx="19" cy="6" r="3" fill="currentColor" stroke="none"/>
-            <path d="M19 4v4M17 6h4" stroke="white" stroke-width="1.5"/>
-          </svg>
-        </div>
-        <!-- Search Tab -->
-        <div class="tab-button" data-tab="search" title="Search in Video">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </div>
-        <!-- Settings Tab -->
-        <div class="tab-button" data-tab="settings" title="Settings">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-        </div>
-        <!-- Export Tab -->
-        <div class="tab-button" data-tab="export" title="Export">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="tab-content-wrapper">
-        <!-- Media Tab Content -->
-        <div id="media" class="tab-content active">
-          <div class="tab-section-title">Add Media</div>
-          <div class="media-upload-area" id="media-upload-area">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          <span class="hero-title-line">Edit Videos Like</span>
+          <span class="hero-title-line hero-title-accent">You Edit Text</span>
+        </h1>
+        <p class="hero-subtitle">
+          AI-powered video editing in your browser. No downloads, no uploads,
+          complete privacy. Edit by transcript, add AI voices, apply effects - all locally.
+        </p>
+        <div class="hero-cta-group">
+          <a href="app.html" class="btn-primary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
-            <span>Click or drag files here</span>
-            <span class="media-formats">MP4, GIF, JPG, PNG, MP3, WAV</span>
+            Start Editing Now
+          </a>
+          <a href="#how-it-works" class="btn-secondary btn-large">
+            See How It Works
+          </a>
+        </div>
+        <div class="hero-features-quick">
+          <span class="feature-badge">No Installation</span>
+          <span class="feature-badge">100% Private</span>
+          <span class="feature-badge">AI-Powered</span>
+        </div>
+      </div>
+
+      <!-- Demo showcase area -->
+      <div class="hero-demo">
+        <div class="demo-window">
+          <div class="demo-window-header">
+            <span class="demo-dot"></span>
+            <span class="demo-dot"></span>
+            <span class="demo-dot"></span>
+            <span class="demo-title">smart-web-video-edit.app</span>
           </div>
-          <div class="tab-section-title">Media Library</div>
-          <div id="media-library" class="media-library">
-            <!-- Media items will be populated here -->
+          <div class="demo-content">
+
           </div>
         </div>
-
-        <!-- Text Tab Content -->
-        <div id="text" class="tab-content">
-          <div class="tab-section-title">Add Text Layer</div>
-          <div class="text-input-area">
-            <textarea id="text-input" placeholder="Enter your text here..." rows="3"></textarea>
-            <button id="add-text-btn" class="action-button primary">Add Text</button>
-          </div>
-          <div class="tab-section-title">Text Layers</div>
-          <div id="text-layers" class="text-layers-list">
-            <!-- Text layers will be populated here -->
-          </div>
+        <!-- Floating feature cards -->
+        <div class="floating-card floating-card-1">
+          <span class="floating-icon">🎤</span>
+          <span>AI Transcription</span>
         </div>
-
-        <!-- Shapes Tab Content -->
-        <div id="shapes" class="tab-content">
-          <!-- ShapeView will populate this -->
+        <div class="floating-card floating-card-2">
+          <span class="floating-icon">✂️</span>
+          <span>Text-Based Editing</span>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <!-- Record Tab Content -->
-        <div id="record" class="tab-content">
-          <div class="tab-section-title">Recording Options</div>
-          <div class="record-options">
-            <button id="record-screen-btn" class="action-button">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                <line x1="8" y1="21" x2="16" y2="21"/>
-                <line x1="12" y1="17" x2="12" y2="21"/>
-              </svg>
-              Record Screen
-            </button>
-            <button id="record-video-btn" class="action-button">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 7l-7 5 7 5V7z"/>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-              </svg>
-              Record Camera
-            </button>
-          </div>
-          <button id="stop-recording-btn" class="action-button danger" style="display: none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="6" y="6" width="12" height="12" fill="currentColor"/>
+  <!-- FEATURES GRID SECTION -->
+  <section class="features-section" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">Powerful Features, Zero Compromise</h2>
+        <p class="section-subtitle">
+          Professional video editing tools powered by cutting-edge AI,
+          running entirely in your browser
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature Card 1: Text-Based Editing -->
+        <div class="feature-card feature-card-highlight">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            Stop Recording
-          </button>
-        </div>
-
-        <!-- Transcription Tab Content -->
-        <div id="transcription" class="tab-content">
-          <div class="text-chunks">
-            <!-- <div class="text-chunk"></div> -->
+          </div>
+          <h3 class="feature-title">Edit Video by Editing Text</h3>
+          <p class="feature-description">
+            Transcribe your video with Whisper AI, then edit by deleting
+            words from the transcript. Like Descript, but in your browser.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">Whisper AI</span>
+            <span class="tag">WebGPU</span>
           </div>
         </div>
 
-        <!-- Speech Synthesis Tab Content -->
-        <div id="speech" class="tab-content">
-          <!-- Speech UI will be populated by SpeechView -->
+        <!-- Feature Card 2: AI Tools -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 8V4H8"></path>
+              <rect x="8" y="8" width="8" height="8" rx="1"></rect>
+              <path d="M16 8h4v4"></path>
+              <path d="M8 8H4v4"></path>
+              <path d="M8 16H4v4h4"></path>
+              <path d="M16 16h4v4h-4"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">AI-Powered Tools</h3>
+          <p class="feature-description">
+            Voice synthesis with Kokoro TTS, video analysis with FastVLM,
+            intelligent search, and background removal.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">Kokoro TTS</span>
+            <span class="tag">FastVLM</span>
+          </div>
         </div>
 
-        <!-- Search Tab Content -->
-        <div id="search" class="tab-content">
-          <!-- SearchView will populate this -->
+        <!-- Feature Card 3: Local Processing -->
+        <div class="feature-card feature-card-highlight">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">100% Local Processing</h3>
+          <p class="feature-description">
+            Your videos never leave your device. All processing happens
+            locally using WebAssembly, WebCodecs, and WebGPU.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">WebAssembly</span>
+            <span class="tag">WebGPU</span>
+          </div>
         </div>
 
-        <!-- Settings Tab Content -->
-        <div id="settings" class="tab-content">
-          <div class="tab-section-title">Video Settings</div>
-          <div class="settings-form">
-            <div class="settings-row">
-              <label for="fps-input">FPS (Frames Per Second)</label>
-              <input type="number" id="fps-input" class="settings-input" min="1" max="120" step="1" value="30">
+        <!-- Feature Card 4: Timeline Editing -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Professional Timeline</h3>
+          <p class="feature-description">
+            Multi-track timeline with trim, cut, split, speed control,
+            and layer management. Everything you need for pro editing.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">Multi-track</span>
+            <span class="tag">Precision</span>
+          </div>
+        </div>
+
+        <!-- Feature Card 5: Text & Effects -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Text, Shapes & Effects</h3>
+          <p class="feature-description">
+            Add text overlays, shapes, filters, and effects. Customize
+            every element with real-time preview.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">Real-time</span>
+            <span class="tag">Customizable</span>
+          </div>
+        </div>
+
+        <!-- Feature Card 6: Screen Recording -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </div>
+          <h3 class="feature-title">Built-in Recording</h3>
+          <p class="feature-description">
+            Record screen, camera, or both. Start editing immediately
+            without leaving the browser.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">Screen</span>
+            <span class="tag">Camera</span>
+          </div>
+        </div>
+
+        <!-- Feature Card 7: Search in Video -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">AI Video Search</h3>
+          <p class="feature-description">
+            Search within your videos using natural language. Find scenes
+            by description, not just keywords.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">FastVLM</span>
+            <span class="tag">Embeddings</span>
+          </div>
+        </div>
+
+        <!-- Feature Card 8: Export Options -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Flexible Export</h3>
+          <p class="feature-description">
+            Export to MP4 or save projects as JSON. High-quality output
+            with customizable settings.
+          </p>
+          <div class="feature-tags">
+            <span class="tag">MP4</span>
+            <span class="tag">Project Files</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS SECTION -->
+  <section class="how-it-works-section" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">
+          From upload to export in four simple steps
+        </p>
+      </div>
+
+      <div class="steps-container">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-visual">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <h3 class="step-title">Upload Your Media</h3>
+          <p class="step-description">
+            Drag and drop videos, images, or audio files. Everything
+            stays on your device - no server uploads.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-visual">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </div>
+          <h3 class="step-title">Edit Like Magic</h3>
+          <p class="step-description">
+            Transcribe audio and edit by text, or use the timeline for
+            precise control. Add AI voices, effects, and overlays.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-visual">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 8V4H8"></path>
+              <rect x="8" y="8" width="8" height="8" rx="1"></rect>
+              <path d="M16 8h4v4"></path>
+              <path d="M8 8H4v4"></path>
+              <path d="M8 16H4v4h4"></path>
+              <path d="M16 16h4v4h-4"></path>
+            </svg>
+          </div>
+          <h3 class="step-title">Enhance with AI</h3>
+          <p class="step-description">
+            Apply AI-powered features: background removal, video analysis,
+            text-to-speech, and intelligent search.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card">
+          <div class="step-number">04</div>
+          <div class="step-visual">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <h3 class="step-title">Export & Share</h3>
+          <p class="step-description">
+            Export your finished video in high quality. Fast processing
+            with WebCodecs technology.
+          </p>
+        </div>
+
+        <!-- Connecting line -->
+        <div class="steps-connector"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY & SECURITY SECTION -->
+  <section class="privacy-section" id="privacy">
+    <div class="section-container">
+      <div class="privacy-content">
+        <div class="privacy-text">
+          <h2 class="section-title">Your Privacy, Guaranteed</h2>
+          <p class="privacy-intro">
+            Unlike cloud-based editors, your files never leave your device.
+            Zero tracking, zero uploads, zero compromise.
+          </p>
+
+          <div class="privacy-features">
+            <div class="privacy-item">
+              <div class="privacy-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <div>
+                <h4>Local-First Architecture</h4>
+                <p>All processing happens in your browser using WebAssembly and WebGPU</p>
+              </div>
             </div>
-            <div class="settings-row">
-              <label for="ram-input">Max RAM (MB)</label>
-              <input type="number" id="ram-input" class="settings-input" min="100" max="8000" step="100" value="500">
+
+            <div class="privacy-item">
+              <div class="privacy-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                  <line x1="1" y1="1" x2="23" y2="23" stroke-width="2"></line>
+                </svg>
+              </div>
+              <div>
+                <h4>No Server Processing</h4>
+                <p>Videos never touch our servers. No accounts, no uploads, no data collection</p>
+              </div>
+            </div>
+
+            <div class="privacy-item">
+              <div class="privacy-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </div>
+              <div>
+                <h4>Open Source</h4>
+                <p>Fully transparent code on GitHub. Verify our privacy claims yourself</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Export Tab Content -->
-        <div id="export" class="tab-content">
-          <div class="tab-section-title">Export Video</div>
-          <div class="export-options">
-            <button id="export-video-btn" class="action-button primary large">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"/>
+        <div class="privacy-visual">
+          <div class="privacy-diagram">
+            <div class="diagram-browser">
+              <div class="diagram-label">Your Browser</div>
+              <div class="diagram-flow">
+                <span>Video In</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span>AI Processing</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span>Video Out</span>
+              </div>
+            </div>
+            <div class="diagram-no-cloud">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
               </svg>
-              Export Video
-            </button>
-            <button id="export-json-btn" class="action-button secondary">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-              </svg>
-              Export JSON
-            </button>
-          </div>
-          <div id="export-progress" class="export-progress" style="display: none;">
-            <div class="progress-bar">
-              <div class="progress-fill" id="export-progress-fill"></div>
+              <span>No Cloud Processing</span>
             </div>
-            <span class="progress-text" id="export-progress-text">0%</span>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <div id="video-canvas-panel">
-      <div id="video-canvas">
+  <!-- TECHNOLOGY SHOWCASE -->
+  <section class="tech-section">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">Powered by Modern Web Technologies</h2>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-badge">WebAssembly</div>
+        <div class="tech-badge">WebCodecs</div>
+        <div class="tech-badge">WebGPU</div>
+        <div class="tech-badge">Whisper AI</div>
+        <div class="tech-badge">Kokoro TTS</div>
+        <div class="tech-badge">FastVLM</div>
+        <div class="tech-badge">TypeScript</div>
+        <div class="tech-badge">Vite</div>
       </div>
     </div>
+  </section>
 
-  </div>
+  <!-- FINAL CTA SECTION -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <h2 class="cta-title">Ready to Edit?</h2>
+      <p class="cta-subtitle">
+        Start editing videos in your browser right now. No sign-up required.
+      </p>
+      <a href="app.html" class="btn-primary btn-large btn-cta-main">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2 L6 8 L12 5 Z M12 5 L18 2 L18 8 L12 5 Z M6 8 L6 14 L12 11 Z M12 11 L18 8 L18 14 L12 11 Z"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+        Launch Editor
+      </a>
+    </div>
+  </section>
 
-  <div id="timeline">
-    <div id="timeline_header">
-      <div id="controls_left">
-        <div id="delete-button" class="timeline_header_item">Delete</div>
-        <div id="split-button" class="timeline_header_item">Split</div>
-        <div id="clone-button" class="timeline_header_item">Clone</div>
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-col">
+          <h4>Smart WebVideoFlow</h4>
+          <p>AI-powered video editing in your browser</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="https://github.com/apssouza22/web-video-edit" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.youtube.com/watch?v=NcByGHQk-zM" target="_blank" rel="noopener">Demo Video</a>
+        </div>
+        <div class="footer-col">
+          <h4>Technologies</h4>
+          <a href="https://webassembly.org/" target="_blank" rel="noopener">WebAssembly</a>
+          <a href="https://www.w3.org/TR/webcodecs/" target="_blank" rel="noopener">WebCodecs</a>
+          <a href="https://www.w3.org/TR/webgpu/" target="_blank" rel="noopener">WebGPU</a>
+        </div>
       </div>
-      <div id="controls_right">
-        <div class="timeline_header_item">
-          <span>Zoom</span>
-          <input type="range" id="timeline_zoom_slider" min="1" max="5" step="0.1" value="2">
-        </div>
-        <div id="speed-control-item" class="timeline_header_item speed-control-item">
-          <!-- Speed control component will be mounted here -->
-        </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 Smart WebVideoFlow. Open Source Project.</p>
       </div>
     </div>
-    <div id="timeline_content"></div>
-  </div>
+  </footer>
 
-</div>
-<script type="module" src="src/main.ts"></script>
+  <!-- Landing page interactivity script -->
+  <script type="module" src="src/landing/landing.ts"></script>
 </body>
 
 </html>
