@@ -85,7 +85,14 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     if (index < 0 || index >= this.#timestamps.length) {
       return null;
     }
+    const cachedFrame = this.#frameCache.get(index);
+
+
+    // Direct fetch without adding it to the queue and updating existing index. Used for thumbnails etc.
     if(!preFetch){
+      if (cachedFrame) {
+        return cachedFrame;
+      }
       return new Promise((resolve, reject) => {
         this.#pendingFrameRequests.set(index, { resolve, reject });
         this.#worker.postMessage({
@@ -96,7 +103,6 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
       });
     }
 
-    const cachedFrame = this.#frameCache.get(index);
     if (cachedFrame) {
       this.#updateCurrentIndex(index);
       return cachedFrame;
@@ -199,8 +205,6 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
       endIndex: batchRange.endIndex,
       requestId,
     } as BatchGetFramesMessage);
-
-    console.log(`[WorkerVideoStreaming] Batch prefetch: ${framesToFetch.length} frames [${batchRange.startIndex}, ${batchRange.endIndex})`);
   }
 
   cleanup(): void {

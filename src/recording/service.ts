@@ -75,7 +75,9 @@ export class UserMediaRecordingService {
   #totalFileSize: number = 0;
   #originalStreams: StreamCombination | null = null;
   #eventBus = getEventBus();
-  
+  #audioContext: AudioContext | null = null;
+  #audioDestination: MediaStreamAudioDestinationNode | null = null;
+
   public isRecording: boolean = false;
 
   constructor() {
@@ -97,11 +99,21 @@ export class UserMediaRecordingService {
    */
   async startScreenCapture(): Promise<void> {
     this.#checkBrowserSupport();
-    
+
     try {
-      const screenConstraints = this.#getDefaultUserMediaConstraints();
-      screenConstraints.video.mediaSource = 'screen';
+      const screenConstraints: DisplayMediaStreamOptions = {
+        video: {
+          width: 1280,
+          height: 720,
+          frameRate: 30
+        },
+        audio: true  // Request system audio from the display/tab/window
+      };
       const screenStream = await navigator.mediaDevices.getDisplayMedia(screenConstraints);
+      const hasSystemAudio = screenStream.getAudioTracks().length > 0;
+      console.log('System audio captured:', hasSystemAudio);
+
+      // Separately request microphone audio with appropriate constraints
       let microphoneStream: MediaStream | null = null;
       try {
         const micConstraints: MediaStreamConstraints = {
@@ -114,7 +126,7 @@ export class UserMediaRecordingService {
         microphoneStream = await navigator.mediaDevices.getUserMedia(micConstraints);
         console.log('Microphone access granted for screen recording');
       } catch (micError: any) {
-        console.warn('Microphone access denied or unavailable, continuing with screen-only recording:', micError.message);
+        console.warn('Microphone access denied or unavailable, continuing without microphone:', micError.message);
       }
 
       this.#mediaStream = this.#combineStreams(screenStream, microphoneStream);
@@ -236,9 +248,9 @@ export class UserMediaRecordingService {
       this.#addEventListeners();
 
       this.#preview.setupPreview(this.#mediaStream);
-      
+
       await this.#preview.showCountdown();
-      
+
       this.#preview.startUpdates(() => this.#getRecordingData());
       this.#resetMetadata();
       this.#recordingStartTime = Date.now();
@@ -419,8 +431,6 @@ export class UserMediaRecordingService {
    */
   #createVideoFile(videoBlob: Blob): File {
     try {
-      const videoUrl = URL.createObjectURL(videoBlob);
-
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `screen-recording-${timestamp}.webm`;
 
@@ -457,6 +467,15 @@ export class UserMediaRecordingService {
         });
       }
     }
+
+    // Clean up Web Audio API resources
+    if (this.#audioContext) {
+      this.#audioContext.close().catch(err => {
+        console.warn('Error closing audio context:', err);
+      });
+      this.#audioContext = null;
+    }
+    this.#audioDestination = null;
 
     this.#mediaRecorder = null;
     this.#mediaStream = null;
@@ -510,37 +529,66 @@ export class UserMediaRecordingService {
   }
 
   /**
-   * Combine screen video stream with microphone audio stream
+   * Combine screen video stream with microphone audio stream using Web Audio API
+   * This properly mixes system audio and microphone audio into a single audio track
    */
   #combineStreams(screenStream: MediaStream, microphoneStream: MediaStream | null): MediaStream {
     const combinedStream = new MediaStream();
-    
+
     // Add video tracks from screen stream
     screenStream.getVideoTracks().forEach(track => {
       combinedStream.addTrack(track);
     });
-    
-    // Add audio tracks from screen stream (system audio if available)
-    screenStream.getAudioTracks().forEach(track => {
-      combinedStream.addTrack(track);
-      console.log('Added system audio track to recording');
-    });
-    
-    // Add microphone audio tracks if available
-    if (microphoneStream) {
-      microphoneStream.getAudioTracks().forEach(track => {
+
+    const systemAudioTracks = screenStream.getAudioTracks();
+    const hasSystemAudio = systemAudioTracks.length > 0;
+    const hasMicrophoneAudio = microphoneStream && microphoneStream.getAudioTracks().length > 0;
+
+    // If we have both system audio and microphone audio, mix them using Web Audio API
+    if (hasSystemAudio && hasMicrophoneAudio) {
+      console.log('Mixing system audio and microphone audio');
+      const mixedAudioTrack = this.#mixAudioStreams(screenStream, microphoneStream!);
+      combinedStream.addTrack(mixedAudioTrack);
+    }
+    // If we only have system audio
+    else if (hasSystemAudio) {
+      systemAudioTracks.forEach(track => {
+        combinedStream.addTrack(track);
+        console.log('Added system audio track to recording');
+      });
+    }
+    // If we only have microphone audio
+    else if (hasMicrophoneAudio) {
+      microphoneStream!.getAudioTracks().forEach(track => {
         combinedStream.addTrack(track);
         console.log('Added microphone audio track to recording');
       });
+    } else {
+      console.warn('No audio tracks available for recording');
     }
-    
+
     // Store reference to original streams for cleanup
     this.#originalStreams = {
       screen: screenStream,
       microphone: microphoneStream
     };
-    
+
     return combinedStream;
+  }
+
+  /**
+   * Mix multiple audio streams into a single track using Web Audio API
+   */
+  #mixAudioStreams(systemAudioStream: MediaStream, microphoneStream: MediaStream): MediaStreamTrack {
+    this.#audioContext = new AudioContext();
+    const systemAudioSource = this.#audioContext.createMediaStreamSource(systemAudioStream);
+    const microphoneSource = this.#audioContext.createMediaStreamSource(microphoneStream);
+    this.#audioDestination = this.#audioContext.createMediaStreamDestination();
+
+    // Connect both sources to the destination (this mixes them)
+    systemAudioSource.connect(this.#audioDestination);
+    microphoneSource.connect(this.#audioDestination);
+    return this.#audioDestination.stream.getAudioTracks()[0];
   }
 
   #checkBrowserSupport(): void {

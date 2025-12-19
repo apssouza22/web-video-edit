@@ -100,7 +100,7 @@ export class MediaBunnyDemuxer {
           this.videoId,
           this.worker,
           response.timestamps,
-          10000,
+          1000,
           this.targetFps
       )
     } as VideoMetadata;

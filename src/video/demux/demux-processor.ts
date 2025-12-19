@@ -172,8 +172,6 @@ export class DemuxProcessor {
       ? this.#timestamps[endIndex - 1] + 0.001
       : Infinity;
 
-    console.log(`[DemuxProcessor] Starting batch ${requestId}: frames [${startIndex}, ${endIndex}), timestamps [${startTimestamp}, ${endTimestamp})`);
-
     try {
       const frameIterator = this.#videoSink.samples(startTimestamp, endTimestamp);
       let currentIndex = startIndex;
@@ -188,28 +186,19 @@ export class DemuxProcessor {
           break;
         }
 
-        const expectedTimestamp = this.#timestamps[currentIndex];
-        const sampleTimestamp = videoSample.timestamp;
-
-        if (Math.abs(sampleTimestamp - expectedTimestamp) > 0.001) {
-          console.warn(`[DemuxProcessor] Timestamp mismatch at index ${currentIndex}: expected ${expectedTimestamp}, got ${sampleTimestamp}`);
-        }
-
         let imageBitmap: ImageBitmap | null = null;
-
         try {
           const videoFrame = videoSample.toVideoFrame();
           imageBitmap = await createImageBitmap(videoFrame);
           videoFrame.close();
+          videoSample.close();
         } catch (error) {
           console.error(`[DemuxProcessor] Error creating bitmap at index ${currentIndex}:`, error);
         }
 
         processedFrames++;
         const isComplete = processedFrames === totalFrames;
-
         if (imageBitmap) {
-          // @ts-ignore - Transfer ImageBitmap to main thread
           this.#postMessage({
             type: 'batch-frame',
             videoId: this.#videoId,
@@ -218,42 +207,14 @@ export class DemuxProcessor {
             frame: imageBitmap,
             progress: processedFrames / totalFrames,
             isComplete,
+            // @ts-ignore - Transfer ImageBitmap to main thread for efficient memory handling
           }, [imageBitmap]);
-        } else {
-          this.#postMessage({
-            type: 'batch-frame',
-            videoId: this.#videoId,
-            requestId,
-            index: currentIndex,
-            frame: null,
-            progress: processedFrames / totalFrames,
-            isComplete,
-          });
         }
-
         currentIndex++;
-      }
-
-      if (processedFrames < totalFrames) {
-        console.warn(`[DemuxProcessor] Batch ${requestId} incomplete: got ${processedFrames} frames, expected ${totalFrames}`);
-        for (let i = currentIndex; i < endIndex; i++) {
-          processedFrames++;
-          const isComplete = processedFrames === totalFrames;
-          this.#postMessage({
-            type: 'batch-frame',
-            videoId: this.#videoId,
-            requestId,
-            index: i,
-            frame: null,
-            progress: processedFrames / totalFrames,
-            isComplete,
-          });
-        }
       }
 
       if (this.#activeBatchRequest === requestId) {
         this.#activeBatchRequest = null;
-        console.log(`[DemuxProcessor] Batch ${requestId} complete: ${processedFrames} frames`);
       }
     } catch (error) {
       console.error(`[DemuxProcessor] Error in batch decode:`, error);
