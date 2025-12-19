@@ -134,8 +134,15 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
     const isSeek = this.#lastRequestedIndex !== -1 &&
                    Math.abs(index - this.#lastRequestedIndex) > 1;
 
-    if (isSeek) {
-      this.#cancelActiveBatch();
+    // Only cancel if seeking outside the current batch range
+    if (isSeek && this.#activeBatchRequest) {
+      console.log("[WorkerVideoStreaming] Seeking outside current batch, cancelling active batch request diff: ", Math.abs(index - this.#lastRequestedIndex) );
+      const batchRange = this.#calculateBatchRange(this.#currentIndex + 1);
+      const isOutsideBatchRange = index < batchRange.startIndex || index >= batchRange.endIndex;
+
+      if (isOutsideBatchRange) {
+        this.#cancelActiveBatch();
+      }
     }
 
     this.#currentIndex = index;

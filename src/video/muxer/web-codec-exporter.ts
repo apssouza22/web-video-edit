@@ -298,7 +298,7 @@ export class WebCodecExporter {
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
         const medias = this.studioState.getMedias();
         for (const media of medias) {
-            await media.render(this.recordingCtx, currentTime, true);
+            await media.render(this.recordingCtx, currentTime, false);
         }
     }
 

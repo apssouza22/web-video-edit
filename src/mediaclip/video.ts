@@ -5,6 +5,7 @@ import {FrameSource} from '@/mediaclip/mediasource';
 
 export class VideoMedia extends AbstractMedia {
   private frameSource: FrameSource | undefined;
+  private lastRenderedFrame: Frame | null = null;
 
   constructor(name: string, frameSource?: FrameSource) {
     super(name);
@@ -54,16 +55,16 @@ export class VideoMedia extends AbstractMedia {
       return;
     }
 
-    const frame = await this.getFrame(currentTime);
-    if (!frame) {
+    if (!this.shouldReRender(currentTime) && this.lastRenderedFrame) {
+      Canvas2DRender.drawTransformed(this.ctx, ctxOut, this.lastRenderedFrame);
       return;
     }
 
-    if (!this.shouldReRender(currentTime)) {
-      Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
+    const frame = await this.getFrame(currentTime, playing);
+    if (!frame) {
       return;
     }
-    
+    this.lastRenderedFrame = frame;
     this._renderer.drawFrame(frame);
     Canvas2DRender.drawTransformed(this._renderer.context, ctxOut, frame);
     this.updateRenderCache(currentTime);
@@ -78,12 +79,12 @@ export class VideoMedia extends AbstractMedia {
     return imageBitmap as ImageBitmap | null;
   }
 
-  async getFrame(currentTime: number): Promise<Frame | null> {
+  async getFrame(currentTime: number, playing: boolean = false): Promise<Frame | null> {
     const frame = this._frameService.getFrame(currentTime, this.startTime);
     if (!frame || frame.index === undefined) {
       return null;
     }
-    const imageBitmap = await this.frameSource?.getFrameAtIndex(frame.index, true);
+    const imageBitmap = await this.frameSource?.getFrameAtIndex(frame.index, playing);
     if (!imageBitmap) {
       return null;
     }
