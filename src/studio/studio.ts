@@ -26,9 +26,7 @@ interface LayerUpdate {
 
 
 export class VideoStudio {
-  update: LayerUpdate | null;
   aspectRatioSelector: AspectRatioSelector;
-  medias: AbstractMedia[];
   player: VideoCanvas;
   timeline: Timeline;
   mediaLoader: MediaLoader;
@@ -43,9 +41,7 @@ export class VideoStudio {
 
   constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
     this.mediaService = mediaService;
-    this.update = null;
     this.aspectRatioSelector = new AspectRatioSelector();
-    this.medias = [];
     this.studioState = StudioState.getInstance();
     this.player = createVideoCanvas(this.studioState);
     this.player.mount(document.getElementById('video-canvas')!);
@@ -211,7 +207,6 @@ export class VideoStudio {
       layer.startTime = this.studioState.getPlayingTime();
       layer.init(layer.width, layer.height, this.player.getCanvasAudioContext());
     }
-    this.medias.push(layer);
     this.studioState.addMedia(layer);
     this.setSelectedLayer(layer);
     console.log(`Added media: ${this.getMedias().length} layers now in studio.`);
@@ -232,13 +227,7 @@ export class VideoStudio {
   }
 
   async #loop(realtime: number): Promise<void> {
-    // Process updates for selected media
-    const selectedLayer = this.getSelectedLayer();
-    if (selectedLayer && this.update) {
-      selectedLayer.update(this.update, this.studioState.getPlayingTime());
-      this.update = null;
-    }
-    if (this.medias.length !== this.player.getLayersLength()) {
+    if (this.getMedias().length !== this.player.getLayersLength()) {
       this.player.addLayers(this.getMedias());
       this.timeline.addLayers(this.getMedias());
     }

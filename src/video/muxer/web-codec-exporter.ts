@@ -6,7 +6,7 @@ import {
     getFirstEncodableVideoCodec,
     Mp4OutputFormat,
     Output,
-    QUALITY_HIGH,
+    QUALITY_VERY_HIGH,
 } from "mediabunny";
 import {AbstractMedia, isMediaAudio} from "@/mediaclip";
 import {StudioState} from "@/common";
@@ -123,7 +123,7 @@ export class WebCodecExporter {
         const options = {
             width: exportWidth,
             height: exportHeight,
-            bitrate: QUALITY_HIGH
+            bitrate: QUALITY_VERY_HIGH
         };
         const videoCodec = await getFirstEncodableVideoCodec(
             this.output.format.getSupportedVideoCodecs(),
@@ -139,7 +139,7 @@ export class WebCodecExporter {
 
         this.canvasSource = new CanvasSource(this.recordingCanvas, {
             codec: videoCodec,
-            bitrate: QUALITY_HIGH,
+            bitrate: QUALITY_VERY_HIGH,
         });
 
         this.output.addVideoTrack(this.canvasSource, { frameRate: this.frameRate });
@@ -158,7 +158,7 @@ export class WebCodecExporter {
                 console.log('🎵 Using audio codec:', audioCodec);
                 this.audioBufferSource = new AudioBufferSource({
                     codec: audioCodec,
-                    bitrate: QUALITY_HIGH,
+                    bitrate: QUALITY_VERY_HIGH,
                 });
                 this.output.addAudioTrack(this.audioBufferSource);
             } else {

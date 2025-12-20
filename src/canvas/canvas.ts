@@ -50,7 +50,6 @@ export class VideoCanvas {
   }
 
   #onWheel(scale: number, rotation: number): void {
-    console.log(`Wheel event - Scale: ${scale}, Rotation: ${rotation}`);
     const selectedLayer = this.layers.find(layer => layer.selected);
     if (selectedLayer) {
       selectedLayer.onWheel(scale, rotation);

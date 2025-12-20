@@ -459,7 +459,6 @@ export class CanvasLayer {
   }
 
   onWheel(scale: number, rotation: number) {
-    console.log(`Wheel event on layer: scale=${scale}, rotation=${rotation}`);
     this.isUpdated = true;
     this._media.update({
       scale: scale,
