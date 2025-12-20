@@ -5,12 +5,13 @@ import {fps, max_size, setFps, setMaxSize} from './constants.js';
 import {SpeechService} from "@/speech";
 import {createShapeView, ShapeView} from "@/shape";
 import {createSearchService} from "@/search";
+import {initScreenRecording} from "@/recording/controls";
 
 const studio = initStudio();
 new TabController('leftNav');
 const speechService = new SpeechService();
 const searchService = createSearchService();
-const shapeVidew = createShapeView('shapes', (shapeType: ShapeType) => {
+const shapeView = createShapeView('shapes', (shapeType: ShapeType) => {
   studio.addLayer(createMediaShape(shapeType));
 });
 
@@ -29,13 +30,14 @@ window.searchService = searchService;
 window.addEventListener('load', function () {
   initLeftNavControls();
   initPlayPauseButton();
+  initScreenRecording();
 });
 
 function initLeftNavControls(): void {
   initTextControls();
   initSettingsControls();
   searchService.init();
-  shapeVidew.init();
+  shapeView.init();
 }
 
 function initPlayPauseButton(): void {
