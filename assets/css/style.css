@@ -957,14 +957,61 @@ a:visited {
   left: 0;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   background: rgb(37, 37, 40);
   padding: 8px 12px;
   border-bottom: 1px solid rgba(60, 60, 65, 0.8);
 }
 
-#controls_left, #controls_right {
+#controls_left, #controls_center, #controls_right {
   display: flex;
   align-items: center;
+}
+
+#controls_left {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+#controls_center {
+  flex: 0;
+  justify-content: center;
+}
+
+#controls_right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Play/Pause Button */
+.play-pause-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, rgb(69, 155, 255), rgb(100, 180, 255));
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(69, 155, 255, 0.3);
+  margin: 0 16px;
+}
+
+.play-pause-button:hover {
+  background: linear-gradient(135deg, rgb(89, 175, 255), rgb(120, 200, 255));
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(69, 155, 255, 0.4);
+}
+
+.play-pause-button:active {
+  transform: scale(0.95);
+}
+
+.play-pause-button svg {
+  flex-shrink: 0;
 }
 
 .timeline_header_item {

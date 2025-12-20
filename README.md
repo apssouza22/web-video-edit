@@ -3,7 +3,7 @@
 Smart WebVideoFlow combines AI and modern web technologies to create a browser-based video editor that enables users to edit videos without downloading or installing any software - no downloads or installations required.
 
 
-<img src="assets/image.png" alt="Web Video Edit demo" width="500">
+<img src="assets/landing/screenshots/demo-screenshot.png" alt="Web Video Edit demo" width="500">
 
 Features include:
 - Upload video files directly from your device

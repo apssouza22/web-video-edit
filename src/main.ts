@@ -28,6 +28,7 @@ window.searchService = searchService;
 
 window.addEventListener('load', function () {
   initLeftNavControls();
+  initPlayPauseButton();
 });
 
 function initLeftNavControls(): void {
@@ -35,6 +36,39 @@ function initLeftNavControls(): void {
   initSettingsControls();
   searchService.init();
   shapeVidew.init();
+}
+
+function initPlayPauseButton(): void {
+  const playPauseButton = document.getElementById('play-pause-button');
+  const playIcon = playPauseButton?.querySelector('.play-icon') as SVGElement;
+  const pauseIcon = playPauseButton?.querySelector('.pause-icon') as SVGElement;
+
+  if (!playPauseButton || !playIcon || !pauseIcon) return;
+
+  const updateButtonState = () => {
+    const isPlaying = StudioState.getInstance().isPlaying();
+    if (isPlaying) {
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    } else {
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+  };
+
+  playPauseButton.addEventListener('click', () => {
+    const isPlaying = StudioState.getInstance().isPlaying();
+    if (isPlaying) {
+      studio.pause();
+    } else {
+      studio.play();
+    }
+    updateButtonState();
+  });
+
+  // Update button state periodically to sync with keyboard shortcuts
+  setInterval(updateButtonState, 100);
+  updateButtonState();
 }
 
 function initTextControls(): void {

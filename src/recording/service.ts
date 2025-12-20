@@ -230,8 +230,8 @@ export class UserMediaRecordingService {
   #getDefaultUserMediaConstraints(): UserMediaConstraints {
     return {
       video: {
-        width: 1280,
-        height: 720,
+        width: 1920,
+        height: 1080,
         frameRate: 30,
       },
       audio: {

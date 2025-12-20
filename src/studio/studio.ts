@@ -73,7 +73,6 @@ export class VideoStudio {
     this.setUpVideoExport();
     this.setUpJsonExport();
     this.transcriptionManager.loadModel();
-    this.speachService.loadModel();
     this.speedControlManager.init();
   }
 
