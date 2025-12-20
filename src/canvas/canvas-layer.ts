@@ -21,10 +21,10 @@ export class CanvasLayer {
   #dragStart: Point2D = { x: 0, y: 0 };
   #initialTransform: FrameTransform | null = null;
   #handles: TransformHandle[] = [];
-  #rotationHandle: TransformHandle | null = null;
   #onTransformCallback: LayerTransformedListener = (media: AbstractMedia) => {};
   #currentTime = 0;
-  #ctx: CanvasRenderingContext2D;
+  public isUpdated: boolean = false;
+
 
   /**
    * Class to handle transformations of a media in the player.
@@ -32,7 +32,6 @@ export class CanvasLayer {
   constructor(media: AbstractMedia, canvas: CanvasElement) {
     this._media = media;
     this.#canvas = canvas;
-    this.#ctx = canvas.getContext('2d')!;
     this.#initializeHandles();
   }
 
@@ -73,10 +72,6 @@ export class CanvasLayer {
       { type: HandleType.RESIZE_W, cursor: 'w-resize' }
     ];
 
-    this.#rotationHandle = {
-      type: HandleType.ROTATE,
-      cursor: 'grab'
-    };
   }
 
   /**
@@ -169,7 +164,7 @@ export class CanvasLayer {
       
       const frameDx = dx / transformScale;
       const frameDy = dy / transformScale;
-
+      this.isUpdated = true;
       await this._media.update({
         x: this.#initialTransform.x + frameDx,
         y: this.#initialTransform.y + frameDy
@@ -238,7 +233,7 @@ export class CanvasLayer {
     
     const frameOffsetX = offsetX / transformScale;
     const frameOffsetY = offsetY / transformScale;
-
+    this.isUpdated = true;
     await this._media.update({
       scale: maxScale,
       x: this.#initialTransform.x + frameOffsetX,
@@ -262,7 +257,7 @@ export class CanvasLayer {
 
     const rotation = deltaAngle * (180 / Math.PI);
     this.#initialTransform.rotation += deltaAngle * (180 / Math.PI)
-
+    this.isUpdated = true;
     await this._media.update({
       rotation: rotation // Convert to degrees
     }, this.#currentTime);
@@ -458,7 +453,17 @@ export class CanvasLayer {
    */
   async render(ctx: CanvasContext2D, time: number, playing: boolean): Promise<void> {
     this.#currentTime = time;
+    this.isUpdated = false;
     await this._media.render(ctx, time, playing);
     await this.#markLayerArea(ctx);
+  }
+
+  onWheel(scale: number, rotation: number) {
+    console.log(`Wheel event on layer: scale=${scale}, rotation=${rotation}`);
+    this.isUpdated = true;
+    this._media.update({
+      scale: scale,
+      rotation: rotation
+    }, this.#currentTime);
   }
 }

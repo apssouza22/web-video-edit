@@ -103,8 +103,8 @@ export class UserMediaRecordingService {
     try {
       const screenConstraints: DisplayMediaStreamOptions = {
         video: {
-          width: 1280,
-          height: 720,
+          width: 1920,
+          height: 1080,
           frameRate: 30
         },
         audio: true  // Request system audio from the display/tab/window

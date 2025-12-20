@@ -294,7 +294,6 @@ export class WebCodecExporter {
      */
     async #renderFrameAtTime(currentTime: number): Promise<void> {
         if (!this.recordingCtx || !this.recordingCanvas) return;
-
         this.recordingCtx.clearRect(0, 0, this.recordingCanvas.width, this.recordingCanvas.height);
         const medias = this.studioState.getMedias();
         for (const media of medias) {

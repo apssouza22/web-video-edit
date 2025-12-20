@@ -2,15 +2,10 @@ import {dpr} from '@/constants';
 import {AbstractMedia, ESAudioContext, isMediaAudio} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {CanvasLayer} from './canvas-layer.js';
-import type {
-  AudioContextType,
-  CanvasContext2D,
-  CanvasElement,
-  LayerTransformedListener,
-  PlayerEndCallback
-} from './types.js';
+import type {CanvasContext2D, CanvasElement, PlayerEndCallback} from './types.js';
 import {StudioState} from "@/common/studio-state";
 import {getEventBus, PlayerLayerTransformedEvent, PlayerTimeUpdateEvent} from '@/common/event-bus';
+import {PinchHandler} from "@/common";
 
 export class VideoCanvas {
   #selectedLayer: AbstractMedia | null = null;
@@ -22,19 +17,19 @@ export class VideoCanvas {
   
   private onend_callback: PlayerEndCallback | null = null;
   private total_time = 0;
-  private lastTimestampFrame: number | null = null;
+  private lastPlayedTime: number | null = null;
   private time = 0;
   private lastPausedTime = Number.MAX_SAFE_INTEGER;
-  private playerHolder: HTMLElement | null;
+  private playerHolder: HTMLElement | null = null;
   private readonly canvas: CanvasElement;
   private readonly ctx: CanvasContext2D;
   private readonly audioContext: AudioContext;
   private layers: CanvasLayer[] = [];
   private studioState: StudioState;
+  private pinchHandler: PinchHandler | null = null;
 
   constructor(studioState: StudioState) {
     this.studioState = studioState;
-    this.playerHolder = document.getElementById("video-canvas");
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d')!;
     if (!this.ctx) {
@@ -52,6 +47,14 @@ export class VideoCanvas {
     this.canvas.addEventListener('pointermove', this.#onPointerMove.bind(this));
     this.canvas.addEventListener('pointerup', this.#onPointerUp.bind(this));
     this.canvas.addEventListener('pointerleave', this.#onPointerUp.bind(this));
+  }
+
+  #onWheel(scale: number, rotation: number): void {
+    console.log(`Wheel event - Scale: ${scale}, Rotation: ${rotation}`);
+    const selectedLayer = this.layers.find(layer => layer.selected);
+    if (selectedLayer) {
+      selectedLayer.onWheel(scale, rotation);
+    }
   }
 
   /**
@@ -114,15 +117,6 @@ export class VideoCanvas {
       });
       return canvasLayer;
     });
-    this.total_time = 0;
-    for (const layer of layers) {
-      if (layer.startTime + layer.totalTimeInMilSeconds > this.total_time) {
-        this.total_time = layer.startTime + layer.totalTimeInMilSeconds;
-      }
-    }
-    if (this.time > this.total_time) {
-      this.time = this.total_time;
-    }
   }
 
   /**
@@ -142,6 +136,8 @@ export class VideoCanvas {
 
   mount(holder: HTMLElement): void {
     this.playerHolder = holder;
+    this.pinchHandler = new PinchHandler(this.playerHolder, this.#onWheel.bind(this));
+    this.pinchHandler.setupEventListeners()
     holder.appendChild(this.canvas);
     this.ctx.scale(1, 1); // Reset scale to 1
     this.resize();
@@ -209,8 +205,8 @@ export class VideoCanvas {
   }
 
   async render(realtime: number): Promise<number> {
-    if (this.lastTimestampFrame === null) {
-      this.lastTimestampFrame = realtime;
+    if( this.layers.length === 0) {
+      return this.time;
     }
     this.#updateTotalTime();
     if (this.isPlaying()) {
@@ -226,8 +222,13 @@ export class VideoCanvas {
       }
       this.setTime(newTime);
     }
-    await this.renderLayers();
-    this.lastTimestampFrame = realtime;
+
+    if (this.lastPlayedTime !== this.time || this.isPlaying() || this.layers.some(layer => layer.isUpdated)) {
+      await this.renderLayers();
+      console.log(`Rendered at time: ${this.time}ms (realtime: ${this.lastPlayedTime}ms)`);
+      const find = this.layers.find(layer => !isMediaAudio(layer.media) && !layer.media.shouldReRender(this.time));
+      this.lastPlayedTime = find ? this.time : null;
+    }
     return this.time;
   }
 

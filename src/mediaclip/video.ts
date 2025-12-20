@@ -59,8 +59,7 @@ export class VideoMedia extends AbstractMedia {
       Canvas2DRender.drawTransformed(this.ctx, ctxOut, this.lastRenderedFrame);
       return;
     }
-
-    const frame = await this.getFrame(currentTime, playing);
+    const frame = await this.getFrame(currentTime, true);
     if (!frame) {
       return;
     }
