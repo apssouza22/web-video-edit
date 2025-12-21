@@ -13,6 +13,7 @@ import {StudioState} from "@/common/studio-state";
 import {VideoExportService} from "@/video/muxer/video-export-service";
 import {MediaLibrary} from "@/medialibrary";
 import {createSpeechService, SpeechService} from "@/speech";
+import {ExportOptionsManager} from "./export-options-manager";
 
 /**
  * Update data structure for media transformations
@@ -38,6 +39,7 @@ export class VideoStudio {
   studioState: StudioState;
   mediaLibrary: MediaLibrary;
   private speachService: SpeechService;
+  private exportOptionsManager: ExportOptionsManager;
 
   constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
     this.mediaService = mediaService;
@@ -54,6 +56,7 @@ export class VideoStudio {
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
     this.mediaLibrary = mediaLibrary;
+    this.exportOptionsManager = new ExportOptionsManager();
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
@@ -116,7 +119,12 @@ export class VideoStudio {
       };
 
       this.player.pause();
-      this.videoExporter.export(progressCallback, completionCallback);
+
+      // Get export options from the UI
+      const exportOptions = this.exportOptionsManager.getExportOptions();
+      console.log('🎬 Exporting with options:', exportOptions);
+
+      this.videoExporter.export(progressCallback, completionCallback, exportOptions);
     });
   }
 

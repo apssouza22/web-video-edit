@@ -227,6 +227,38 @@
 
         <!-- Export Tab Content -->
         <div id="export" class="tab-content">
+          <div class="tab-section-title">Export Settings</div>
+          <div class="settings-form">
+            <div class="settings-row">
+              <label for="quality-preset-select">Quality Preset</label>
+              <select id="quality-preset-select" class="settings-select">
+                <option value="low">Low (Fast) - Smaller file, faster export</option>
+                <option value="medium">Medium - Balanced quality and speed</option>
+                <option value="high">High - High quality export</option>
+                <option value="very-high">Very High - Very high quality</option>
+                <option value="archive" selected>Archive Quality (Default) - Maximum quality for archival</option>
+                <option value="maximum">Maximum Quality - Highest possible quality</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <label for="codec-preference-select">Codec Preference</label>
+              <select id="codec-preference-select" class="settings-select">
+                <option value="hevc,avc" selected>Auto (HEVC/H.264) - Best compatibility</option>
+                <option value="hevc">HEVC Only (H.265) - High quality, newer devices</option>
+                <option value="avc">H.264 Only - Universal compatibility</option>
+                <option value="av1,hevc,avc">Highest Quality (AV1) - May not work in QuickTime</option>
+              </select>
+            </div>
+            <div class="settings-info">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <span id="export-settings-info">Archive quality with HEVC/H.264 codec provides excellent quality and QuickTime compatibility.</span>
+            </div>
+          </div>
+
           <div class="tab-section-title">Export Video</div>
           <div class="export-options">
             <button id="export-video-btn" class="action-button primary large">

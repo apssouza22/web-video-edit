@@ -3,18 +3,27 @@ import {
     BufferTarget,
     CanvasSource,
     getFirstEncodableAudioCodec,
-    getFirstEncodableVideoCodec,
     Mp4OutputFormat,
     Output,
     QUALITY_VERY_HIGH,
+    VideoCodec,
 } from "mediabunny";
 import {AbstractMedia, isMediaAudio} from "@/mediaclip";
 import {StudioState} from "@/common";
 import {fps} from "@/constants";
 import {getExportDimensions} from "./dimensions";
+import {calculateBitrate, QUALITY_PRESETS, QualityPreset, QualityPresetName} from "./quality-presets";
+import {selectBestVideoCodec} from "./codec-selector";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
+
+export interface ExportOptions {
+  qualityPreset?: QualityPresetName;
+  preferredCodecs?: VideoCodec[];
+  customBitrate?: number;
+  hardwareAcceleration?: 'no-preference' | 'prefer-hardware' | 'prefer-software';
+}
 
 /**
  * Class for exporting video using MediaBunny library with Web Codecs API
@@ -36,13 +45,22 @@ export class WebCodecExporter {
     private audioContext: OfflineAudioContext | null = null;
     private readonly numberOfChannels: number = 2;
     private readonly sampleRate: number = 48000;
-    private readonly studioState = StudioState.getInstance()
+    private readonly studioState = StudioState.getInstance();
+    private readonly exportOptions: ExportOptions;
+    private readonly qualityPreset: QualityPreset;
 
-    constructor() {
+    constructor(exportOptions: ExportOptions = {}) {
+        this.exportOptions = exportOptions;
+        this.qualityPreset = QUALITY_PRESETS[exportOptions.qualityPreset || 'archive'];
         this.output = new Output({
             target: new BufferTarget(),
             format: new Mp4OutputFormat(),
         });
+
+        console.log(`🎯 Quality preset: ${this.qualityPreset.displayName}`);
+        console.log(`   Bitrate mode: ${this.qualityPreset.bitrateMode}`);
+        console.log(`   Latency mode: ${this.qualityPreset.latencyMode}`);
+        console.log(`   Key frame interval: ${this.qualityPreset.keyFrameInterval}s`);
     }
 
     /**
@@ -128,14 +146,15 @@ export class WebCodecExporter {
         const exportWidth = this.recordingCanvas.width;
         const exportHeight = this.recordingCanvas.height;
 
-        const options = {
-            width: exportWidth,
-            height: exportHeight,
-            bitrate: QUALITY_VERY_HIGH
-        };
-        const videoCodec = await getFirstEncodableVideoCodec(
+        // Use smart codec selection that prioritizes quality
+        const videoCodec = await selectBestVideoCodec(
             this.output.format.getSupportedVideoCodecs(),
-            options
+            {
+                width: exportWidth,
+                height: exportHeight,
+                preferredCodecs: this.exportOptions.preferredCodecs,
+                fallbackToFirst: true
+            }
         );
 
         if (!videoCodec) {
@@ -145,9 +164,24 @@ export class WebCodecExporter {
         console.log('🎥 Using video codec:', videoCodec);
         console.log(`🎥 Export resolution: ${exportWidth}x${exportHeight}`);
 
+        // Calculate bitrate based on resolution and quality preset
+        const bitrate = this.exportOptions.customBitrate ||
+                       (typeof this.qualityPreset.bitrate === 'number'
+                         ? calculateBitrate(exportWidth, exportHeight, this.qualityPreset)
+                         : this.qualityPreset.bitrate);
+
+        console.log(`🎥 Bitrate: ${typeof bitrate === 'number' ? (bitrate / 1_000_000).toFixed(1) + ' Mbps' : 'Quality preset ' + this.qualityPreset.name}`);
+
         this.canvasSource = new CanvasSource(this.recordingCanvas, {
             codec: videoCodec,
-            bitrate: QUALITY_VERY_HIGH,
+            bitrate: bitrate,
+            bitrateMode: this.qualityPreset.bitrateMode,
+            latencyMode: this.qualityPreset.latencyMode,
+            keyFrameInterval: this.qualityPreset.keyFrameInterval,
+            hardwareAcceleration: this.exportOptions.hardwareAcceleration || 'no-preference',
+            onEncoderConfig: (config) => {
+                console.log('Video encoder config:', config);
+            }
         });
 
         this.output.addVideoTrack(this.canvasSource, { frameRate: this.frameRate });

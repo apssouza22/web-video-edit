@@ -4,7 +4,9 @@ import {StudioState} from "@/common";
  * Calculate export dimensions based on aspect ratio and source media dimensions
  */
 export function getExportDimensions(): { width: number; height: number } {
-  const {maxWidth, maxHeight} = StudioState.getInstance().getMaxVideoSizes();
+  const sizes = StudioState.getInstance().getMaxVideoSizes();
+  const maxWidth = sizes.width;
+  const maxHeight = sizes.height;
   const aspectRatio = StudioState.getInstance().getCurrentAspectRatio();
 
   // Parse aspect ratio (e.g., "16:9" → 16/9)
