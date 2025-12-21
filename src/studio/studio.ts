@@ -3,17 +3,15 @@ import {createTimeline, Timeline} from '@/timeline';
 import {AbstractMedia, MediaService} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {MediaLoader} from './media-loader';
-import {createVideoMuxer} from '@/video/muxer';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {exportToJson} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
 import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
 import {StudioState} from "@/common/studio-state";
-import {VideoExportService} from "@/video/muxer/video-export-service";
 import {MediaLibrary} from "@/medialibrary";
 import {createSpeechService, SpeechService} from "@/speech";
-import {ExportOptionsManager} from "./export-options-manager";
+import {VideoExportHandler} from '@/video/muxer/video-export-handler';
 
 /**
  * Update data structure for media transformations
@@ -31,15 +29,14 @@ export class VideoStudio {
   player: VideoCanvas;
   timeline: Timeline;
   mediaLoader: MediaLoader;
-  videoExporter: VideoExportService;
   transcriptionManager: TranscriptionService;
   mediaService: MediaService;
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   studioState: StudioState;
   mediaLibrary: MediaLibrary;
-  private speachService: SpeechService;
-  private exportOptionsManager: ExportOptionsManager;
+  private speechService: SpeechService;
+  private videoExportHandler: VideoExportHandler;
 
   constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
     this.mediaService = mediaService;
@@ -50,13 +47,14 @@ export class VideoStudio {
     this.player.mount(document.getElementById('video-canvas')!);
     this.timeline = createTimeline();
     this.mediaLoader = new MediaLoader(this);
-    this.videoExporter = createVideoMuxer();
+
     this.transcriptionManager = createTranscriptionService();
-    this.speachService = createSpeechService();
+    this.speechService = createSpeechService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
     this.mediaLibrary = mediaLibrary;
-    this.exportOptionsManager = new ExportOptionsManager();
+
+    this.videoExportHandler = new VideoExportHandler(() =>{this.player.pause()});
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
@@ -65,68 +63,12 @@ export class VideoStudio {
   }
 
   init(): void {
-    this.setUpVideoExport();
+    this.videoExportHandler.init();
     this.setUpJsonExport();
     this.transcriptionManager.loadModel();
     this.speedControlManager.init();
   }
 
-  private setUpVideoExport(): void {
-    const exportVideoBtn = document.getElementById('export-video-btn');
-    if (!exportVideoBtn) {
-      return;
-    }
-    const exportId = 'video-export';
-
-    exportVideoBtn.addEventListener('click', () => {
-      if (this.getMedias().length === 0) {
-        alert("Nothing to export.");
-        return;
-      }
-
-      const progressContainer = document.getElementById('export-progress');
-      const progressFill = document.getElementById('export-progress-fill');
-      const progressText = document.getElementById('export-progress-text');
-
-      if (progressContainer) {
-        progressContainer.style.display = 'block';
-      }
-
-      exportVideoBtn.setAttribute('disabled', 'true');
-      exportVideoBtn.classList.add('exporting');
-
-      const progressCallback = (progress: number): void => {
-        this.loadingPopup.updateProgress(exportId, progress);
-        if (progressFill) {
-          progressFill.style.width = `${progress}%`;
-        }
-        if (progressText) {
-          progressText.textContent = `${Math.round(progress)}%`;
-        }
-      };
-
-      const completionCallback = (): void => {
-        exportVideoBtn.removeAttribute('disabled');
-        exportVideoBtn.classList.remove('exporting');
-
-        if (progressContainer) {
-          setTimeout(() => {
-            progressContainer.style.display = 'none';
-            if (progressFill) progressFill.style.width = '0%';
-            if (progressText) progressText.textContent = '0%';
-          }, 2000);
-        }
-      };
-
-      this.player.pause();
-
-      // Get export options from the UI
-      const exportOptions = this.exportOptionsManager.getExportOptions();
-      console.log('🎬 Exporting with options:', exportOptions);
-
-      this.videoExporter.export(progressCallback, completionCallback, exportOptions);
-    });
-  }
 
   private setUpJsonExport(): void {
     const exportJsonBtn = document.getElementById('export-json-btn');
