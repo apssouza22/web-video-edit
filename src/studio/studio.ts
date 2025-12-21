@@ -11,7 +11,7 @@ import {SpeedControlInput} from "./speed-control-input";
 import {StudioState} from "@/common/studio-state";
 import {MediaLibrary} from "@/medialibrary";
 import {createSpeechService, SpeechService} from "@/speech";
-import {VideoExportHandler} from '@/video/muxer/video-export-handler';
+import {VideoExportHandler} from '@/video/mux/video-export-handler';
 
 /**
  * Update data structure for media transformations

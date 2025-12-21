@@ -105,7 +105,7 @@ The application is organized into domain-driven modules under `src/`. Each modul
 - Metadata extraction
 - Progress tracking
 
-#### video/muxer/
+#### video/mux/
 **Key Classes**:
 - `VideoExportService` - Export orchestrator
 - `MediaRecorderExporter` - MediaRecorder API export

@@ -1,5 +1,5 @@
-import { ExportOptions } from '@/video/muxer/web-codec-exporter';
-import { QualityPresetName, QUALITY_PRESETS } from '@/video/muxer/quality-presets';
+import { ExportOptions } from '@/video/mux/web-codec-exporter';
+import { QualityPresetName, QUALITY_PRESETS } from './quality-presets';
 import { VideoCodec } from 'mediabunny';
 
 /**

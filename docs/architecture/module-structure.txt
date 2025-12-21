@@ -75,7 +75,7 @@ flowchart TB
         s6
         s7
     end
-    subgraph s9["video/muxer/"]
+    subgraph s9["video/mux/"]
         VideoExport["video-export-service.ts"]
         MediaRecorderExp["mediaclip-recorder-exporter.ts"]
         WebCodecExp["web-codec-exporter.ts"]

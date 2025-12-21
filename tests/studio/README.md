@@ -13,7 +13,7 @@ The `setup-mocks.ts` medialibrary serves as a **reference** for mock implementat
 - **@/canvas** - Video canvas rendering
 - **@/timeline** - Timeline UI and layer management
 - **@/mediaclip** - Media loading, processing, and services
-- **@/video/muxer** - Video export functionality
+- **@/video/mux** - Video export functionality
 - **@/transcription** - Speech-to-text transcription
 - **@/frame** - Frame manipulation and transformations
 - **@/common/render-2d** - 2D rendering context

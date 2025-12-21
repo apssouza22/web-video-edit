@@ -4,7 +4,7 @@ import {MediaLayer} from "@/mediaclip";
 export type ESAudioContext = AudioContext | OfflineAudioContext;
 
 /**
- * Local interface for media layers in the video/muxer package.
+ * Local interface for media layers in the video/mux package.
  * Decouples video export from the concrete AbstractMedia class.
  */
 export interface ExportMediaLayer extends MediaLayer {
