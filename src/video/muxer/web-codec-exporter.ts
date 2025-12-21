@@ -73,6 +73,15 @@ export class WebCodecExporter {
             await this.#setupMediaBunnyOutput();
             await this.#setupAudioContext();
             await this.#renderFramesSynchronously();
+            await this.#createAndDownloadFile();
+            this.isEncoding = false;
+
+            if (this.progressCallback) {
+                this.progressCallback(100);
+            }
+            if (this.completionCallback) {
+                this.completionCallback();
+            }
             console.log('✅ Export completed successfully');
         } catch (error) {
             console.error('❌ Error during export:', error);
@@ -224,16 +233,6 @@ export class WebCodecExporter {
 
         console.log('🔄 Finalizing output...');
         await this.output!.finalize();
-        await this.#createAndDownloadFile();
-
-        if (this.progressCallback) {
-            this.progressCallback(100);
-        }
-
-        this.isEncoding = false;
-        if (this.completionCallback) {
-            this.completionCallback();
-        }
     }
 
     /**

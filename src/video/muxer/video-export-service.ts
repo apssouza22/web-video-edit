@@ -1,11 +1,12 @@
-import {MediaRecorderExporter} from './media-recorder-exporter.js';
 import {WebCodecExporter} from './web-codec-exporter.js';
 
 export class VideoExportService {
   private readonly codecSupported: boolean;
+  private webCodecExporter: WebCodecExporter;
 
   constructor() {
     this.codecSupported = this.#checkCodecSupport();
+    this.webCodecExporter = new WebCodecExporter();
   }
 
   #checkCodecSupport(): boolean {
@@ -14,11 +15,10 @@ export class VideoExportService {
 
   export(progressCallback: any, completionCallback: any): void {
     if (!this.codecSupported) {
-      const mediaRecorderExporter = new MediaRecorderExporter();
-      mediaRecorderExporter.export(progressCallback, completionCallback);
+      alert("WebCodecs API is not supported in this browser. Please use a different browser.");
+      if (completionCallback) completionCallback();
       return;
     }
-    const webCodecExporter = new WebCodecExporter();
-    webCodecExporter.export(progressCallback, completionCallback);
+    this.webCodecExporter.export(progressCallback, completionCallback);
   }
 }
