@@ -71,7 +71,7 @@ export class MediaBunnyDemuxer {
           break;
 
         case 'complete':
-          StudioState.getInstance().setMinVideoSizes(message.width, message.height);
+          StudioState.getInstance().setMaxVideoSizes(message.width, message.height);
           this.#handleComplete(message);
           resolve();
           break;

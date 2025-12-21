@@ -7,8 +7,9 @@ class StudioState {
   private selectedMedia: AbstractMedia | null = null;
   private _isPlaying: boolean = false;
   private playingTime: number = 0;
-  private minWidth: number = Number.POSITIVE_INFINITY;
-  private minHeight: number = Number.POSITIVE_INFINITY;
+  private maxWidth: number = 0;
+  private maxHeight: number = 0;
+  private currentAspectRatio: string = '16:9';
 
   static getInstance(): StudioState {
     if (!StudioState.instance) {
@@ -62,13 +63,17 @@ class StudioState {
     return media ? media : null;
   }
 
-  setMinVideoSizes(width: number, height: number) {
-    this.minWidth = width > this.minWidth ? this.minWidth : width;
-    this.minHeight = height > this.minHeight ? this.minHeight : height;
+  setAspectRatio(ratio: string): void {
+    this.currentAspectRatio = ratio;
   }
 
-  getMinVideoSizes(): { width: number, height: number } {
-    return {width: this.minWidth, height: this.minHeight};
+  setMaxVideoSizes(width: number, height: number): void {
+    this.maxWidth = Math.max(width, this.maxWidth);
+    this.maxHeight = Math.max(height, this.maxHeight);
+  }
+
+  getMaxVideoSizes(): { width: number; height: number } {
+    return { width: this.maxWidth, height: this.maxHeight };
   }
 
   reorderLayer(fromIndex: number, toIndex: number) {
@@ -83,6 +88,10 @@ class StudioState {
     if (idx > -1) {
       this.medias.splice(idx, 1);
     }
+  }
+
+  getCurrentAspectRatio(): string {
+    return this.currentAspectRatio;
   }
 }
 

@@ -43,6 +43,7 @@ export class VideoStudio {
     this.mediaService = mediaService;
     this.aspectRatioSelector = new AspectRatioSelector();
     this.studioState = StudioState.getInstance();
+    this.studioState.setAspectRatio('16:9');
     this.player = createVideoCanvas(this.studioState);
     this.player.mount(document.getElementById('video-canvas')!);
     this.timeline = createTimeline();
@@ -159,18 +160,9 @@ export class VideoStudio {
     }
 
     this.aspectRatioSelector.onRatioChange((newRatio: string) => {
+      this.studioState.setAspectRatio(newRatio);
       this.resize(newRatio);
     });
-  }
-
-  /**
-   * Gets the currently selected media
-   */
-  getSelectedLayer(): AbstractMedia | null {
-    if (!this.timeline.selectedLayer) {
-      return null;
-    }
-    return this.getMediaById(this.timeline.selectedLayer.id);
   }
 
   /**

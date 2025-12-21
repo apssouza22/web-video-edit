@@ -17,7 +17,7 @@ export class ImageMedia extends FlexibleMedia {
     this._width = frameSource.metadata.width;
     this._height = frameSource.metadata.height;
     this._renderer.setSize(this._width, this._height);
-    StudioState.getInstance().setMinVideoSizes(this._width, this._height);
+    StudioState.getInstance().setMaxVideoSizes(this._width, this._height);
     this._ready = true;
   }
 

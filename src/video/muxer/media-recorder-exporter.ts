@@ -1,5 +1,6 @@
 import {AbstractMedia, addElementToBackground, isMediaAudio} from '@/mediaclip';
 import {StudioState,getSupportedMimeTypes, fixWebmDuration} from '@/common';
+import {getExportDimensions} from "./dimensions";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
@@ -73,7 +74,7 @@ export class MediaRecorderExporter {
      * Create a separate canvas for recording that matches the player canvas
      */
     #createRecordingCanvas(): void {
-        const {width, height} = this.studioState.getMinVideoSizes()
+        const {width, height} = getExportDimensions();
         this.recordingCanvas = document.createElement('canvas');
         this.recordingCanvas.width = width;
         this.recordingCanvas.height = height;

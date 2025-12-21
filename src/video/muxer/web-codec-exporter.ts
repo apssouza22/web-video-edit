@@ -11,6 +11,7 @@ import {
 import {AbstractMedia, isMediaAudio} from "@/mediaclip";
 import {StudioState} from "@/common";
 import {fps} from "@/constants";
+import {getExportDimensions} from "./dimensions";
 
 type ProgressCallback = (progress: number) => void;
 type CompletionCallback = () => void;
@@ -87,7 +88,7 @@ export class WebCodecExporter {
      * Create a separate OffscreenCanvas for recording
      */
     #createRecordingCanvas(): void {
-        const dimensions = this.studioState.getMinVideoSizes()
+        const dimensions = getExportDimensions();
         this.recordingCanvas = new OffscreenCanvas(dimensions.width, dimensions.height);
         this.recordingCtx = this.recordingCanvas.getContext('2d', {
             alpha: false,
@@ -95,13 +96,11 @@ export class WebCodecExporter {
             colorSpace: 'srgb', // Better color space
             willReadFrequently: false
         });
-        
+
         if (this.recordingCtx) {
             this.recordingCtx.imageSmoothingEnabled = true;
             this.recordingCtx.imageSmoothingQuality = 'high';
         }
-        
-        console.log(`📹 Created high-quality OffscreenCanvas: ${this.recordingCanvas.width}x${this.recordingCanvas.height}`);
     }
 
     /**
