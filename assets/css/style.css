@@ -732,6 +732,66 @@ text-align: center;
   border-color: rgb(169, 225, 250);
 }
 
+.settings-select {
+  width: 100%;
+  padding: 10px 12px;
+  padding-right: 36px;
+  background: rgb(53, 53, 58);
+  border: 1px solid rgba(60, 60, 65, 0.8);
+  border-radius: 6px;
+  color: rgb(220, 225, 235);
+  font-size: 13px;
+  font-family: 'JupiterSans', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23969eab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.settings-select:hover {
+  background: rgb(63, 63, 68);
+  border-color: rgba(80, 80, 85, 0.8);
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: rgb(169, 225, 250);
+  background: rgb(58, 58, 63);
+}
+
+.settings-select option {
+  background: rgb(43, 47, 51);
+  color: rgb(220, 225, 235);
+  padding: 8px;
+}
+
+.settings-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(69, 155, 255, 0.08);
+  border: 1px solid rgba(69, 155, 255, 0.2);
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.settings-info svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: rgb(169, 225, 250);
+}
+
+.settings-info span {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(192, 200, 213);
+}
+
 /* Export Tab Styles */
 .export-options {
   display: flex;

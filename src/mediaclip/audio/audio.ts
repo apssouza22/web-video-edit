@@ -180,7 +180,7 @@ export class AudioMedia extends AbstractMedia {
     }
 
     // Update clone (first part)
-    (mediaClone as AudioMedia)._name = this._name + " [Split]";
+    (mediaClone as AudioMedia)._name = this._name + "-split";
 
     (mediaClone as AudioMedia)._audioBuffer = firstBuffer;
     mediaClone.totalTimeInMilSeconds = firstBuffer.duration * 1000;

@@ -146,7 +146,7 @@ export class VideoStudio {
 
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
     if (!skipInit) {
-      layer.startTime = this.studioState.getPlayingTime();
+      layer.startTime = this.studioState.getPlayingTime() -1;
       layer.init(layer.width, layer.height, this.player.getCanvasAudioContext());
     }
     this.studioState.addMedia(layer);
@@ -199,8 +199,8 @@ export class VideoStudio {
     if (progress === 100 && layer?.id) {
       this.addLayer(layer);
     }
-    if (audioBuffer) {
-      this.transcriptionManager.startTranscription(audioBuffer);
+    if (audioBuffer && layer?.id) {
+      this.transcriptionManager.startTranscription(audioBuffer, layer?.id);
     }
   }
 

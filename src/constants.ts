@@ -2,7 +2,7 @@ export const dpr = window.devicePixelRatio || 1;
 
 // Read FPS from localStorage, default to 24 if not found
 const storedFps = localStorage.getItem('video-editor-fps');
-export let fps = storedFps ? parseFloat(storedFps) : 30;
+export let fps = storedFps ? parseFloat(storedFps) : 24;
 
 export let max_size = 4000 * 1e6 / 4; // 4GB max
 

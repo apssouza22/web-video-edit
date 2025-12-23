@@ -56,7 +56,7 @@ export class TranscriptionView {
     this.#clearChunks();
 
     transcriptionData.chunks.forEach((chunk, index) => {
-      this.#addTextChunk(chunk, index);
+      this.#addTextChunk(chunk, index, transcriptionData.audioId!);
     });
 
     if (this.addCaptionButton) {
@@ -90,8 +90,9 @@ export class TranscriptionView {
    * Adds a single text chunk to the view
    * @param chunk - The chunk data with text and timestamp
    * @param index - The index of the chunk
+   * @param audioId - Optional audio identifier
    */
-  #addTextChunk(chunk: TranscriptionChunk, index: number): void {
+  #addTextChunk(chunk: TranscriptionChunk, index: number, audioId: string): void {
     if (!this.textChunksContainer) return;
 
     // Escape HTML characters in the text to prevent XSS
@@ -102,7 +103,8 @@ export class TranscriptionView {
       <span class="text-chunk" 
             data-index="${index}" 
             data-start-time="${chunk.timestamp[0]}" 
-            data-end-time="${chunk.timestamp[1]}">
+            data-end-time="${chunk.timestamp[1]}"
+            data-audio-id="${audioId || ''}">
         <span class="chunk-text">${escapedText}</span>
         <span class="close" 
               style="font-size: 0.8em; cursor: pointer; margin-left: 5px; opacity: 0.7;">X</span>
@@ -125,7 +127,7 @@ export class TranscriptionView {
     });
 
     chunkElement.addEventListener('click', () => {
-      this.#onChunkClick(chunk, index);
+      this.#onChunkClick(chunk, audioId);
     });
   }
 
@@ -138,11 +140,12 @@ export class TranscriptionView {
     if (chunkElement && chunkElement.parentNode) {
       const startTime = parseFloat(chunkElement.getAttribute('data-start-time') || '0');
       const endTime = parseFloat(chunkElement.getAttribute('data-end-time') || '0');
+      const audioId = chunkElement.getAttribute('data-audio-id') || '';
       const removedDuration = endTime - startTime;
       
       console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s, duration=${removedDuration}s`);
 
-      this.transcriptionManager.removeInterval(startTime, endTime);
+      this.transcriptionManager.removeInterval(startTime, endTime, audioId);
       this.#updateSubsequentTimestamps(startTime, removedDuration);
       
       chunkElement.remove();
@@ -179,14 +182,14 @@ export class TranscriptionView {
   /**
    * Handles chunk click events (can be overridden for seek functionality)
    * @param chunk - The chunk data
-   * @param index - The chunk index
+   * @param audioId - The audio identifier
    */
-  #onChunkClick(chunk: TranscriptionChunk, index: number): void {
+  #onChunkClick(chunk: TranscriptionChunk, audioId: string): void {
     console.log(`Chunk clicked: "${chunk.text}" at time ${chunk.timestamp[0]}s`);
     
     if (chunk.timestamp && chunk.timestamp.length > 0) {
       const seekTime = chunk.timestamp[0];
-      this.transcriptionManager.seekToTimestamp(seekTime);
+      this.transcriptionManager.seekToTimestamp(seekTime, audioId);
     }
   }
 

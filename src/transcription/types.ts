@@ -11,6 +11,7 @@ export interface TranscriptionChunk {
 export interface TranscriptionResult {
   text: string;
   chunks: TranscriptionChunk[];
+  audioId?: string;
 }
 
 // Hugging Face Transformers types
@@ -55,6 +56,7 @@ export interface LoadModelMessage extends WorkerMessageBase {
 
 export interface TranscribeMessage extends WorkerMessageBase {
   audio: Float32Array;
+  audioId: string;
 }
 
 export interface WorkerResponseMessage extends WorkerMessageBase {

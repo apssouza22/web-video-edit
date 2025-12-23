@@ -285,7 +285,7 @@ export abstract class AbstractMedia implements MediaLayer {
     const newMedia = this._createCloneInstance();
     const cloneStartTime = this.startTime // 10ms offset
     newMedia._id =  crypto.randomUUID();
-    newMedia._name = this._name + ' [Clone]';
+    newMedia._name = this._name + '-clone';
     newMedia.startTime = cloneStartTime;
     newMedia.totalTimeInMilSeconds = this.totalTimeInMilSeconds;
     newMedia._width = this._width;
@@ -317,7 +317,7 @@ export abstract class AbstractMedia implements MediaLayer {
     const pct = (splitTime - this.startTime) / this.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * this._frameService.getLength());
 
-    mediaClone._name = this._name + " [Split]";
+    mediaClone._name = this._name + "-split";
     mediaClone._frameService.frames = this._frameService.frames.slice(0, split_idx);
     mediaClone.totalTimeInMilSeconds = pct * this.totalTimeInMilSeconds;
 

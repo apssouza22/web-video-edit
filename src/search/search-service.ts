@@ -23,7 +23,6 @@ export class SearchService {
     this.#addEventListener();
     this.#setupViewCallbacks();
     this.#loadVideoList();
-    await this.#loadModels();
   }
 
   #addEventListener(): void {

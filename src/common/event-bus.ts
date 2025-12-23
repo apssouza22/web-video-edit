@@ -49,14 +49,16 @@ export class TimelineLayerUpdateEvent extends BaseEvent {
 
 export class TranscriptionRemoveIntervalEvent extends BaseEvent {
   readonly name = 'transcription:removeInterval';
-  constructor(public startTime: number, public endTime: number) {
+
+  constructor(public startTime: number, public endTime: number, audioId: string) {
     super();
   }
 }
 
 export class TranscriptionSeekEvent extends BaseEvent {
   readonly name = 'transcription:seek';
-  constructor(public timestamp: number) {
+
+  constructor(public timestamp: number, audioId: string) {
     super();
   }
 }

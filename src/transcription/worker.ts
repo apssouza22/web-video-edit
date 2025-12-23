@@ -41,7 +41,7 @@ self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
     }
 
     if (isTranscribeMessage(message)) {
-        const transcript = await transcribe(message.audio);
+        const transcript = await transcribe(message.audio, message.audioId);
         if (transcript === null) {
             return;
         }
@@ -50,7 +50,7 @@ self.addEventListener("message", async (event: MessageEvent<WorkerMessage>) => {
             task: "automatic-speech-recognition",
             data: transcript,
         };
-        
+
         self.postMessage(responseMessage);
         return;
     }

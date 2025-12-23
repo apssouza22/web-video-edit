@@ -47,7 +47,7 @@ export class PipelineFactory {
   }
 }
 
-export async function transcribe(audio: Float32Array): Promise<TranscriptionResult | null> {
+export async function transcribe(audio: Float32Array, audioId: string): Promise<TranscriptionResult | null> {
   // Load transcriber model
   const modelInference = await PipelineFactory.getInstance((data) => {
     if (typeof self !== 'undefined') {
@@ -62,7 +62,7 @@ export async function transcribe(audio: Float32Array): Promise<TranscriptionResu
     const end = performance.now();
 
     console.log(`Time taken to transcribe: ${(end - start) / 1000} seconds`);
-    console.log(output);
+    output.audioId = audioId;
 
     return output;
   } catch (error) {

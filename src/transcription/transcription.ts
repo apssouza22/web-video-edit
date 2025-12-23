@@ -64,17 +64,19 @@ export class TranscriptionService {
    * Removes an interval from the transcription
    * @param startTime - Start time in seconds
    * @param endTime - End time in seconds
+   * @param audioId
    */
-  removeInterval(startTime: number, endTime: number): void {
-    this.#eventBus.emit(new TranscriptionRemoveIntervalEvent(startTime, endTime));
+  removeInterval(startTime: number, endTime: number, audioId: string): void {
+    this.#eventBus.emit(new TranscriptionRemoveIntervalEvent(startTime, endTime, audioId));
   }
 
   /**
    * Seeks to a specific timestamp in the video player
    * @param timestamp - The timestamp to seek to in seconds
+   * @param audioId
    */
-  seekToTimestamp(timestamp: number): void {
-    this.#eventBus.emit(new TranscriptionSeekEvent(timestamp));
+  seekToTimestamp(timestamp: number, audioId: string): void {
+    this.#eventBus.emit(new TranscriptionSeekEvent(timestamp, audioId));
   }
 
   #onTranscriptionComplete(data: TranscriptionResult): void {
@@ -87,18 +89,18 @@ export class TranscriptionService {
     this.worker.postMessage({task: "load-model"});
   }
 
-  startTranscription(audioBuffer: AudioBuffer): void {
-    // if(window.location.hostname === "localhost") {
-    //   console.warn("Using mocked transcription data for local development.");
-    //   const data = getMockedData();
-    //   this.#onTranscriptionComplete(data);
-    //   return;
-    // }
+  startTranscription(audioBuffer: AudioBuffer, audioId: string): void {
+    if(window.location.hostname === "localhost") {
+      console.warn("Using mocked transcription data for local development.");
+      const data = getMockedData(audioId);
+      this.#onTranscriptionComplete(data);
+      return;
+    }
     this.transcriptionView.showLoading();
 
     const audio = transformAudioBuffer(audioBuffer);
     console.log("Starting transcription with audio data.");
-    this.worker.postMessage({audio: audio});
+    this.worker.postMessage({audio: audio, audioId: audioId});
   }
 
   highlightChunksByTime(number: number) {
@@ -126,8 +128,9 @@ function transformAudioBuffer(audioData: AudioBuffer): Float32Array {
   return audio;
 }
 
-function getMockedData(): TranscriptionResult {
+function getMockedData(audioId: string): TranscriptionResult {
   return {
+    "audioId": audioId,
     "text": " Hello, welcome to my course on security architecture. I'm excited to guide you through the world of digital security. In this course, you'll join me on a hands-on journey to master the art of building security systems. I will show you how to leverage powerful open source tools like keyclock, Nginx, Open, and Wasp project, and much more. Together, we will deploy web application firewalls, configure reverse products, implement identity-driven authentication, and enforce robust security policies. Plus, you will implement secure protocols with digital certificates to ensure that integrity and privacy. All that with practical real-world scenarios. Whether you are a software developer, a career professional, or a system architect, this course is for you.",
     "chunks": [
       {
