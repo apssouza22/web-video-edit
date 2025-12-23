@@ -298,8 +298,7 @@ export abstract class AbstractMedia implements MediaLayer {
    */
   split(splitTime: number): AbstractMedia {
     const mediaClone = this.clone();
-    this._performSplit(mediaClone, splitTime);
-    return mediaClone;
+    return this._performSplit(mediaClone, splitTime);
   }
 
   /**
@@ -308,7 +307,7 @@ export abstract class AbstractMedia implements MediaLayer {
    * @param mediaClone - The cloned media that will become the first part
    * @param splitTime - The time at which to split (in milliseconds)
    */
-  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia | null {
+  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia {
     const pct = (splitTime - this.startTime) / this.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * this._frameService.getLength());
 

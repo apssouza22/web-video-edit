@@ -5,8 +5,8 @@ import {AudioMedia} from "@/mediaclip/audio";
 import {ESAudioContext, LayerChange} from "@/mediaclip/types";
 
 export class ComposedMedia extends AbstractMedia {
-  private videoMedia: VideoMedia;
-  private audioMedia: AudioMedia;
+  private readonly videoMedia: VideoMedia;
+  private readonly audioMedia: AudioMedia;
 
   constructor(videoMedia: VideoMedia, audioMedia: AudioMedia) {
     super(videoMedia.name);
@@ -26,10 +26,19 @@ export class ComposedMedia extends AbstractMedia {
   }
 
   protected _performSplit(_: AbstractMedia, splitTime: number): AbstractMedia {
-    return new ComposedMedia(
-        this.videoMedia.split(splitTime) as VideoMedia,
-        this.audioMedia.split(splitTime) as AudioMedia
+    const video = this.videoMedia.split(splitTime);
+    const audio = this.audioMedia.split(splitTime);
+
+    this.totalTimeInMilSeconds = this.videoMedia.totalTimeInMilSeconds;
+    this.startTime = this.videoMedia.startTime;
+
+    const composedMedia = new ComposedMedia(
+        video as VideoMedia,
+        audio as AudioMedia
     );
+    composedMedia.startTime = video.startTime;
+    composedMedia.totalTimeInMilSeconds = video.totalTimeInMilSeconds
+    return composedMedia;
   }
 
   init(canvasWidth: number, canvasHeight: number, playerAudioContext?: AudioContext): void {
@@ -95,6 +104,14 @@ export class ComposedMedia extends AbstractMedia {
 
   async getFrameAtIndex(index: number, preFetch: boolean = true): Promise<ImageBitmap | null> {
     return this.videoMedia.getFrameAtIndex(index, preFetch);
+  }
+
+  getTotalFrames(): number {
+    return this.videoMedia.getTotalFrames();
+  }
+
+  getSpeed(): number {
+    return this.videoMedia.getSpeed();
   }
 
   async getFrame(currentTime: number, playing: boolean = false): Promise<Frame | null> {

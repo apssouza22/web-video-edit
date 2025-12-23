@@ -1,16 +1,15 @@
+import {MediaLayer} from "@/mediaclip";
+
 /**
  * Local package representation of the media AbstractMedia
  * @see AbstractMedia
  * */
-export interface MediaInterface {
+export interface MediaInterface extends MediaLayer{
   id: string;
-  name?: string;
   startTime: number; // ms
   totalTimeInMilSeconds: number; // ms
-  // Adjust end time by diff milliseconds
   adjustTotalTime: (diff: number) => void;
-  // Render preview at given time; third arg optional flag for playing
-  render: (ctx: CanvasRenderingContext2D, time: number, playing?: boolean) => void;
+  render: (ctx: CanvasRenderingContext2D, time: number, playing?: boolean) => Promise<void>;
 }
 
 export type LayerUpdateKind = 'select' | 'delete' | 'split' | 'clone' | 'reorder';

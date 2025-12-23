@@ -154,25 +154,22 @@ export class AudioMedia extends AbstractMedia {
   /**
    * Override split to handle audio-specific splitting
    */
-  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia | null {
+  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia {
     if (!this._audioBuffer || !this._playerAudioContext) {
-      console.error('AudioMedia missing audioBuffer or playerAudioContext');
-      return null;
+      throw new Error('AudioMedia missing audioBuffer or playerAudioContext');
     }
 
     const layerRelativeTime = (splitTime - this.startTime) / 1000;
 
     if (layerRelativeTime <= 0 || layerRelativeTime >= this._audioBuffer.duration) {
-      console.error('Split time is outside audio bounds');
-      return null;
+      throw new Error('Split time is out of bounds for AudioMedia');
     }
 
     const firstBuffer = this.audioSplitHandler.createAudioBufferSegment(this._audioBuffer, 0, layerRelativeTime, this._playerAudioContext);
     const secondBuffer = this.audioSplitHandler.createAudioBufferSegment(this._audioBuffer, layerRelativeTime, this._audioBuffer.duration, this._playerAudioContext);
 
     if (!firstBuffer || !secondBuffer) {
-      console.error('Failed to create audio buffer segments');
-      return null;
+      throw new Error('Failed to create audio buffer segments during split');
     }
 
     // Update clone (first part)

@@ -19,7 +19,6 @@ export class VideoCanvas {
   private total_time = 0;
   private lastPlayedTime: number | null = null;
   private time = 0;
-  private lastPausedTime = Number.MAX_SAFE_INTEGER;
   private playerHolder: HTMLElement | null = null;
   private readonly canvas: CanvasElement;
   private readonly ctx: CanvasContext2D;
@@ -161,9 +160,8 @@ export class VideoCanvas {
 
   play(): void {
     this.studioState.setPlaying(true);
-    if (this.lastPausedTime !== this.time) {
-      this.refreshAudio();
-    }
+    this.studioState.setPlayingTime(this.time);
+    this.refreshAudio();
     this.audioContext.resume();
     this.#updatePlaybackTime();
 
@@ -198,7 +196,6 @@ export class VideoCanvas {
   pause(): void {
     this.studioState.setPlaying(false);
     this.audioContext.suspend();
-    this.lastPausedTime = this.time;
     this.#audioContextStartTime = null;
     this.#audioScheduleTime = null;
   }

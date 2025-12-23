@@ -102,7 +102,7 @@ export class TimelineLayer {
    * @param {boolean} selected - Whether media is selected
    */
   #drawTrack(start: number, length: number, trackY: number, height: number, colors: { fillColor: string; gradientColor: string; strokeColor: string; shadowColor: string }, selected: boolean) {
-    const radius = height * 0.25;
+    const radius = height * 0.1;
     const gradientStartY = trackY;
     const gradientEndY = trackY + height;
     const gradient = this.ctx.createLinearGradient(start, gradientStartY, start, gradientEndY);

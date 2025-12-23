@@ -29,11 +29,15 @@ Avoid comments describing functionality ensure self describing code
 - Filenames/dirs: kebab-case (e.g., `mediaclip-image.js`, `video-export.js`).
 - Symbols: `camelCase` for functions/vars, `PascalCase` for classes, `UPPER_SNAKE_CASE` for constants.
 - Module imports: relative from the package. In tests, `@/` maps to `src/` via Jest.
+- Avoid unused code; remove dead code promptly.
+- Avoid importing from direct files; import from package entry points. Use Package root `index.ts` for exports.
 
 ## Testing Guidelines
 - Framework: Jest with `jsdom` environment.
 - Location: Place new tests under `tests/` (or create a subfolder mirroring `src` domain).
 - Naming: `*.test.js` or `*.spec.js` (matched by Jest config).
+- Mock external packages to isolate unit tests.
+- Only test public APIs; avoid testing private/internal methods.
 
 ## Commit & Pull Request Guidelines
 - Commits: Imperative, concise subject (≤ 50 chars). Example: `Add video speed control`. Use additional body lines for rationale and tradeoffs.
@@ -41,5 +45,5 @@ Avoid comments describing functionality ensure self describing code
 - PRs: Provide clear description, reproduction steps, and screenshots/GIFs for UI changes. Link related issues. Note any known limitations and follow-up tasks.
 
 ## Security & Configuration Tips
-- Do not commit large mediaclip assets; prefer small samples in `assets/` for demos/tests.
+- Do not commit large files assets; prefer small samples in `assets/` for demos/tests.
 - Keep browser compatibility in mind (see `src/common/browser-support.js`). Gate experimental APIs behind checks and fallbacks.
