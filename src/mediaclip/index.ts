@@ -16,7 +16,7 @@ export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
 export {ShapeMedia, ShapeType} from './shape';
 export type {ShapeStyle, ShapeConfig} from './shape';
-export type {MediaLayer, ESAudioContext} from './types';
+export type {IClip, ESAudioContext} from './types';
 export {VideoMedia} from './video';
 export {ImageMedia} from './image';
 export {AudioMedia} from './audio/audio';

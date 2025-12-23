@@ -1,9 +1,9 @@
 import {fps} from '@/constants';
 import {Frame} from '@/mediaclip/frame';
-import type {MediaLayer} from "@/mediaclip/types";
+import type {IClip} from "@/mediaclip/types";
 import {FrameService} from "@/mediaclip/frame";
 
-interface SpeedControllable extends MediaLayer {
+interface SpeedControllable extends IClip {
   readonly frameService: FrameService;
 }
 

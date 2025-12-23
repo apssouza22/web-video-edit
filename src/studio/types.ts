@@ -1,6 +1,6 @@
 import type {ESRenderingContext2D} from '@/common/render-2d';
 import type {Frame} from '@/mediaclip/frame';
-import {MediaLayer} from "@/mediaclip";
+import {IClip} from "@/mediaclip";
 
 /**
  * Layer change interface for transformations
@@ -30,7 +30,7 @@ export interface StudioLayerDumpData {
  * Local interface for media layers in the studio package.
  * Decouples studio from the concrete AbstractMedia class.
  */
-export interface StudioMediaLayer extends MediaLayer{
+export interface StudioClip extends IClip{
   readonly id: string;
   readonly name: string;
   readonly width: number;
@@ -45,8 +45,8 @@ export interface StudioMediaLayer extends MediaLayer{
   update(change: StudioLayerChange, referenceTime: number): Promise<void>;
   getFrame(time: number): Promise<Frame | null>;
   dump(): StudioLayerDumpData;
-  clone(): StudioMediaLayer;
-  split(splitTime: number): StudioMediaLayer;
+  clone(): StudioClip;
+  split(splitTime: number): StudioClip;
   setSpeed(speed: number): void;
   getSpeed(): number;
   isVideo(): boolean;
@@ -56,7 +56,7 @@ export interface StudioMediaLayer extends MediaLayer{
 /**
  * Interface for audio-capable media layers
  */
-export interface AudioCapableStudioMedia extends StudioMediaLayer {
+export interface AudioCapableStudioMedia extends StudioClip {
   disconnect(): void;
 }
 

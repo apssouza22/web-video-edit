@@ -1,10 +1,10 @@
 import {createFrameService, Frame, FrameService} from '@/mediaclip/frame';
 import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
 import {SpeedController} from './speed-controller';
-import {ESAudioContext, LayerChange, LayerDumpData, LayerLoadUpdateListener, MediaLayer,} from './types';
+import {ESAudioContext, LayerChange, LayerDumpData, LayerLoadUpdateListener, IClip,} from './types';
 import {VideoMedia} from "@/mediaclip/video";
 
-export abstract class AbstractMedia implements MediaLayer {
+export abstract class AbstractMedia implements IClip {
   audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
   protected _audioBuffer: AudioBuffer | null = null;
   protected _playerAudioContext: ESAudioContext | null = null;
@@ -73,10 +73,6 @@ export abstract class AbstractMedia implements MediaLayer {
 
   playStart(time: number): void {
     // This is a no-op for non-audio medias
-  }
-
-  protected get canvas(): HTMLCanvasElement | OffscreenCanvas {
-    return this._renderer.canvas;
   }
 
   protected get ctx(): ESRenderingContext2D {

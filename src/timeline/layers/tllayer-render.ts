@@ -1,5 +1,5 @@
 import { TimelineLayerFactory } from './timeline-layer-factory';
-import type { MediaInterface } from '../types';
+import type { IClipTl } from '../types';
 import type { TimelineLayer } from './timeline-layer';
 import {AbstractMedia} from "@/mediaclip";
 
@@ -42,7 +42,7 @@ export class TimelineLayerRender {
 
   /**
    * Get or create a timeline media renderer for the given media
-   * @param {MediaInterface} layer - The media to get renderer for
+   * @param {IClipTl} layer - The media to get renderer for
    */
   #getLayerRenderer(layer: AbstractMedia) {
     const layerId = layer.id + '-' + layer.getTotalFrames();
@@ -62,7 +62,7 @@ export class TimelineLayerRender {
 
   /**
    * Render a single media in the timeline
-   * @param {MediaInterface} layer - The media to render
+   * @param {IClipTl} layer - The media to render
    * @param {number} yPos - The y coordinate to render at
    * @param {number} height - The height of the media track
    * @param {boolean} selected - Whether the media is selected

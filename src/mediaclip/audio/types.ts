@@ -1,12 +1,12 @@
 
-import {MediaLayer} from "@/mediaclip";
+import {IClip} from "@/mediaclip";
 import {ESAudioContext} from "@/mediaclip";
 
 /**
  * Local package representation of the media AbstractMedia
  * @see AbstractMedia
  * */
-export interface Media extends MediaLayer{
+export interface Media extends IClip{
   id: string;
   name: string;
   startTime: number; // ms

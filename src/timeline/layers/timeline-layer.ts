@@ -2,21 +2,21 @@
  * Base class for timeline media rendering
  * Encapsulates all rendering logic for timeline medias
  */
-import type { MediaInterface } from '../types';
+import type { IClipTl } from '../types';
 
 export class TimelineLayer {
   /**
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
-   * @param {MediaInterface} media - The media data to render
+   * @param {IClipTl} media - The media data to render
    * @param {number} totalTime - The total time duration of the timeline
    * @param {number} canvasWidth - The width of the timeline canvas
    */
   ctx: CanvasRenderingContext2D;
-  media: MediaInterface;
+  media: IClipTl;
   totalTime: number;
   canvasWidth: number;
 
-  constructor(ctx: CanvasRenderingContext2D, media: MediaInterface, totalTime: number, canvasWidth: number) {
+  constructor(ctx: CanvasRenderingContext2D, media: IClipTl, totalTime: number, canvasWidth: number) {
     this.ctx = ctx;
     this.media = media;
     this.totalTime = totalTime;

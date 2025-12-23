@@ -1,5 +1,5 @@
 import { LayerReorderHandler } from './layer-reorder-handler';
-import type { MediaInterface } from './types';
+import type { IClipTl } from './types';
 import {Timeline} from "./timeline";
 import {AbstractMedia} from "@/mediaclip";
 
@@ -7,7 +7,7 @@ import {AbstractMedia} from "@/mediaclip";
  * Handles media dragging and scrubbing in the timeline
  */
 export class DragLayerHandler {
-  dragging: null | ((time: number, selectedLayer: MediaInterface) => void);
+  dragging: null | ((time: number, selectedLayer: IClipTl) => void);
   time: number;
   timeline: any; // Avoid circular type; must provide .intersectsTime(), .minLayerSpacing etc.
   reorderHandler: LayerReorderHandler;
@@ -32,7 +32,7 @@ export class DragLayerHandler {
     this.dragThreshold = 10; // Pixels to move before determining drag direction
   }
 
-  dragLayer(time: number, selectedLayer: MediaInterface, currentX: number, currentY: number) {
+  dragLayer(time: number, selectedLayer: IClipTl, currentX: number, currentY: number) {
     if (this.dragMode === 'horizontal' && this.dragging) {
       this.dragging(time, selectedLayer);
       return;
@@ -98,11 +98,11 @@ export class DragLayerHandler {
   /**
    * Update drag operation with current coordinates
    * @param {number} time - Current time
-   * @param {MediaInterface} selectedLayer - Selected media
+   * @param {IClipTl} selectedLayer - Selected media
    * @param {number} currentX - Current X coordinate
    * @param {number} currentY - Current Y coordinate
    */
-  updateDrag(time: number, selectedLayer: MediaInterface, currentX: number, currentY: number) {
+  updateDrag(time: number, selectedLayer: IClipTl, currentX: number, currentY: number) {
     if (this.dragMode === 'none' && this.selectedLayer) {
       this.#determineDragMode(currentX, currentY);
     }
@@ -148,9 +148,9 @@ export class DragLayerHandler {
     this.dragStartY = 0;
   }
 
-  #getMoveLayerStartFn(selectedLayer: MediaInterface) {
+  #getMoveLayerStartFn(selectedLayer: IClipTl) {
     let baseTime = selectedLayer.startTime;
-    return (time: number, selectedLayer: MediaInterface) => {
+    return (time: number, selectedLayer: IClipTl) => {
       let diff = time - baseTime;
       baseTime = time;
       selectedLayer.startTime += diff;
@@ -159,7 +159,7 @@ export class DragLayerHandler {
 
   #getMoveEntireLayerFn(time: number) {
     let baseTime = time;
-    return  (t: number, l: MediaInterface) => {
+    return  (t: number, l: IClipTl) => {
       let diff = t - baseTime;
       baseTime = t;
       l.startTime += diff;
@@ -168,13 +168,13 @@ export class DragLayerHandler {
 
   /**
    * Get the function to resize the media based on the end time
-   * @param {MediaInterface} selectedLayer
+   * @param {IClipTl} selectedLayer
    * @returns {(function(*, *): void)|*}
    */
-  #getResizeLayerEndFn(selectedLayer: MediaInterface) {
+  #getResizeLayerEndFn(selectedLayer: IClipTl) {
     console.log("Resizing media:", selectedLayer.name);
     let baseTime = selectedLayer.startTime + selectedLayer.totalTimeInMilSeconds;
-    return (time: number, selectedLayer: MediaInterface) => {
+    return (time: number, selectedLayer: IClipTl) => {
       let diff = time - baseTime;
       baseTime = time;
       selectedLayer.adjustTotalTime(diff);

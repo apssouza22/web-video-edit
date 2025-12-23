@@ -1,5 +1,5 @@
 import type {ESRenderingContext2D} from '@/common/render-2d';
-import {MediaLayer} from "@/mediaclip";
+import {IClip} from "@/mediaclip";
 
 export type ESAudioContext = AudioContext | OfflineAudioContext;
 
@@ -7,7 +7,7 @@ export type ESAudioContext = AudioContext | OfflineAudioContext;
  * Local interface for media layers in the video/mux package.
  * Decouples video export from the concrete AbstractMedia class.
  */
-export interface ExportMediaLayer extends MediaLayer {
+export interface ExportMediaLayer extends IClip {
   readonly startTime: number;
   readonly totalTimeInMilSeconds: number;
   readonly audioBuffer: AudioBuffer | null;

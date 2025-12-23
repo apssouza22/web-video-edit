@@ -1,6 +1,6 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, MediaLayer, MediaService} from '@/mediaclip';
+import {AbstractMedia, IClip, MediaService} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {MediaLoader} from './media-loader';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
@@ -214,7 +214,7 @@ export class VideoStudio {
     this.speedControlManager.setLayer(layer);
   }
 
-  #setStartTime(layer: MediaLayer): number {
+  #setStartTime(layer: IClip): number {
     if (!(layer instanceof CaptionMedia)) {
       return this.studioState.getPlayingTime();
     }

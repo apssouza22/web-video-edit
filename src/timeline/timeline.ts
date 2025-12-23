@@ -3,7 +3,7 @@ import {TimelineZoomHandler} from './zoom';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './layers/tllayer-render';
 import {dpr} from '@/constants';
-import type {LayerUpdateKind, MediaInterface} from './types';
+import type {LayerUpdateKind, IClipTl} from './types';
 import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 import {AbstractMedia, ComposedMedia} from "@/mediaclip";
 import {renderLineMarker} from "@/timeline/line-marker";
@@ -89,7 +89,7 @@ export class Timeline {
 
   /**
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
-   * @param {MediaInterface|null} newSelectedLayer - The new selected media
+   * @param {IClipTl|null} newSelectedLayer - The new selected media
    */
   setSelectedLayer(newSelectedLayer: AbstractMedia) {
     const oldSelectedLayer = this.selectedLayer;
@@ -329,10 +329,10 @@ export class Timeline {
   /**
    * Ensures that only medias overlapping or near the current time (with a small margin of 1%)
    * are considered for further processing. Layers outside this range are ignored.
-   * @param {MediaInterface} layer - The media to check
+   * @param {IClipTl} layer - The media to check
    * @returns {boolean} - Whether the media can be selected
    */
-  #canSelectLayer(layer: MediaInterface): boolean {
+  #canSelectLayer(layer: IClipTl): boolean {
     if (layer.startTime > (1.01 * this.time)) {
       return false;
     }

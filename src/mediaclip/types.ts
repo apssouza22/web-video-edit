@@ -7,10 +7,10 @@ export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 export type ESAudioContext = AudioContext | OfflineAudioContext;
 
 /**
- * Public interface for media layers exposed outside the medialayer package.
+ * Public interface for media layers exposed outside the mediaclip package.
  * All properties and methods in this interface are part of the public API.
  */
-export interface MediaLayer {
+export interface IClip {
   readonly id: string;
   readonly name: string;
   readonly uri?: string;
@@ -27,8 +27,8 @@ export interface MediaLayer {
   update(change: LayerChange, referenceTime: number): Promise<void>;
   getFrame(time: number): Promise<Frame | null>;
   dump(): LayerDumpData;
-  clone(): MediaLayer;
-  split(splitTime: number): MediaLayer;
+  clone(): IClip;
+  split(splitTime: number): IClip;
   addLoadUpdateListener(listener: LayerLoadUpdateListener): void;
   setSpeed(speed: number): void;
   getSpeed(): number;

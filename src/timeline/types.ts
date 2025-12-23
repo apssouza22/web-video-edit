@@ -1,10 +1,10 @@
-import {MediaLayer} from "@/mediaclip";
+import {IClip} from "@/mediaclip";
 
 /**
  * Local package representation of the media AbstractMedia
  * @see AbstractMedia
  * */
-export interface MediaInterface extends MediaLayer{
+export interface IClipTl extends IClip{
   id: string;
   startTime: number; // ms
   totalTimeInMilSeconds: number; // ms

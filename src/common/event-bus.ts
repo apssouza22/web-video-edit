@@ -1,5 +1,5 @@
 import type { AbstractMedia } from '@/mediaclip';
-import type { MediaInterface, LayerUpdateKind } from '@/timeline/types';
+import type { IClipTl, LayerUpdateKind } from '@/timeline/types';
 import type {TranscriptionResult} from "@/transcription/types";
 
 /**
@@ -40,8 +40,8 @@ export class TimelineLayerUpdateEvent extends BaseEvent {
   readonly name = 'timeline:layerUpdate';
   constructor(
     public action: LayerUpdateKind,
-    public layer: MediaInterface,
-    public oldLayer?: MediaInterface,
+    public layer: IClipTl,
+    public oldLayer?: IClipTl,
     public extra?: LayerReorderData
   ) {
     super();
