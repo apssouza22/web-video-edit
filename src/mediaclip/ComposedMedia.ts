@@ -104,4 +104,12 @@ export class ComposedMedia extends AbstractMedia {
   cleanup(): void {
     this.videoMedia.cleanup();
   }
+
+  get video(): VideoMedia {
+    return this.videoMedia;
+  }
+
+  get audio(): AudioMedia {
+    return this.audioMedia;
+  }
 }

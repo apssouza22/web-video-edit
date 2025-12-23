@@ -5,11 +5,12 @@ import {TextTimelineLayer} from './text-timeline-layer';
 import {CaptionTimelineLayer} from './caption-timeline-layer';
 import {ShapeTimelineLayer} from './shape-timeline-layer';
 import type {TimelineLayer} from './timeline-layer';
-import {AbstractMedia, ShapeMedia} from "@/mediaclip";
+import {AbstractMedia, ComposedMedia, ShapeMedia} from "@/mediaclip";
 import {VideoMedia} from "@/mediaclip/video";
 import {AudioMedia} from "@/mediaclip/audio";
 import {ImageMedia} from "@/mediaclip/image";
 import {CaptionMedia} from "@/mediaclip/caption";
+import {ComposedTimelineLayer} from "@/timeline/layers/composed-timeline-layer";
 
 /**
  * Factory class for creating timeline media renderers
@@ -43,6 +44,9 @@ export class TimelineLayerFactory {
     }
     if (layer instanceof ShapeMedia) {
       return new ShapeTimelineLayer(ctx, layer, totalTime, canvasWidth);
+    }
+    if (layer instanceof ComposedMedia) {
+      return new ComposedTimelineLayer(ctx, layer, totalTime, canvasWidth);
     }
     return new TextTimelineLayer(ctx, layer, totalTime, canvasWidth);
   }

@@ -263,7 +263,7 @@ export abstract class AbstractMedia implements MediaLayer {
   }
 
   isAudio(): boolean {
-    return this.constructor.name === 'AudioMedia' //To avoid circular dependency
+    return this.audioBuffer !== null;
   }
 
   /**

@@ -5,7 +5,7 @@ import {TimelineLayerRender} from './layers/tllayer-render';
 import {dpr} from '@/constants';
 import type {LayerUpdateKind, MediaInterface} from './types';
 import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
-import {AbstractMedia} from "@/mediaclip";
+import {AbstractMedia, ComposedMedia} from "@/mediaclip";
 import {renderLineMarker} from "@/timeline/line-marker";
 import {setupTimelineHeaderButtons} from "@/timeline/header-buttons";
 
@@ -235,6 +235,10 @@ export class Timeline {
   }
 
   getLayerHeight(media: AbstractMedia): number {
+    if (media instanceof ComposedMedia) {
+      return this.layerHeight * 2;
+    }
+
     if (media.isVideo()) {
       return this.layerHeight * 1.5;
     }
