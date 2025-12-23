@@ -54,13 +54,6 @@ export class TextMedia extends FlexibleMedia {
     }
   }
 
-  updateName(name: string): void {
-    if (this._name !== name) {
-      super.updateName(name);
-      this.#drawText();
-    }
-  }
-
   #drawText(): void {
     this.calculateDimensions();
     this.#renderText();

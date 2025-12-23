@@ -30,7 +30,6 @@ export interface MediaLayer {
   clone(): MediaLayer;
   split(splitTime: number): MediaLayer;
   addLoadUpdateListener(listener: LayerLoadUpdateListener): void;
-  updateName(name: string): void;
   setSpeed(speed: number): void;
   getSpeed(): number;
   getTotalFrames(): number;

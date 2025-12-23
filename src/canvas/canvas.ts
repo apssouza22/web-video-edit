@@ -1,5 +1,5 @@
 import {dpr} from '@/constants';
-import {AbstractMedia, ESAudioContext, isMediaAudio} from '@/mediaclip';
+import {AbstractMedia, ESAudioContext} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {CanvasLayer} from './canvas-layer.js';
 import type {CanvasContext2D, CanvasElement, PlayerEndCallback} from './types.js';
@@ -153,7 +153,7 @@ export class VideoCanvas {
   refreshAudio(): void {
     for (const l of this.layers) {
       const layer = l.media;
-      if (isMediaAudio(layer)) {
+      if (layer.isAudio()) {
         layer.connectAudioSource(this.audioContext);
       }
     }
@@ -180,7 +180,7 @@ export class VideoCanvas {
   #startScheduledAudio(): void {
     for (const layer of this.layers) {
       const media = layer.media;
-      if (isMediaAudio(media)) {
+      if (media.isAudio()) {
         const audioLayer = media as AudioMedia;
         // Calculate how far in the future this layer should start
         const timeUntilLayerStart = (media.startTime - this.time) / 1000; // Convert to seconds
@@ -224,7 +224,7 @@ export class VideoCanvas {
 
     if (this.lastPlayedTime !== this.time || this.isPlaying() || this.layers.some(layer => layer.isUpdated)) {
       await this.renderLayers();
-      const find = this.layers.find(layer => !isMediaAudio(layer.media) && !layer.media.shouldReRender(this.time));
+      const find = this.layers.find(layer => !layer.media.isAudio() && !layer.media.shouldReRender(this.time));
       this.lastPlayedTime = find ? this.time : null;
     }
     return this.time;

@@ -40,10 +40,6 @@ export class AudioMedia extends AbstractMedia {
     this._ready = true;
   }
 
-  updateName(name: string): void {
-    this._name = name + " [Audio] ";
-  }
-
   disconnect(): void {
       this.source.disconnect();
       this.started = false;
@@ -158,17 +154,17 @@ export class AudioMedia extends AbstractMedia {
   /**
    * Override split to handle audio-specific splitting
    */
-  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): void {
+  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia | null {
     if (!this._audioBuffer || !this._playerAudioContext) {
       console.error('AudioMedia missing audioBuffer or playerAudioContext');
-      return;
+      return null;
     }
 
     const layerRelativeTime = (splitTime - this.startTime) / 1000;
 
     if (layerRelativeTime <= 0 || layerRelativeTime >= this._audioBuffer.duration) {
       console.error('Split time is outside audio bounds');
-      return;
+      return null;
     }
 
     const firstBuffer = this.audioSplitHandler.createAudioBufferSegment(this._audioBuffer, 0, layerRelativeTime, this._playerAudioContext);
@@ -176,7 +172,7 @@ export class AudioMedia extends AbstractMedia {
 
     if (!firstBuffer || !secondBuffer) {
       console.error('Failed to create audio buffer segments');
-      return;
+      return null;
     }
 
     // Update clone (first part)
@@ -191,6 +187,7 @@ export class AudioMedia extends AbstractMedia {
     this.startTime = this.startTime + mediaClone.totalTimeInMilSeconds;
 
     console.log(`Successfully split AudioMedia: "${this._name}" at ${layerRelativeTime}s`);
+    return mediaClone;
   }
 
   removeInterval(startTime: number, endTime: number): boolean {

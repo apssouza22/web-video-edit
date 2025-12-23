@@ -41,7 +41,6 @@ export abstract class AbstractMedia implements MediaLayer {
     this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
     this._speedController = new SpeedController(this);
     addElementToBackground(this._renderer.canvas as HTMLElement);
-    this.updateName(this._name);
   }
 
   get id(): string {
@@ -117,10 +116,6 @@ export abstract class AbstractMedia implements MediaLayer {
    */
   addLoadUpdateListener(listener: LayerLoadUpdateListener): void {
     this._loadUpdateListener = listener;
-  }
-
-  updateName(name: string): void {
-    this._name = name;
   }
 
   removeInterval(startTime: number, endTime: number): boolean {
@@ -313,7 +308,7 @@ export abstract class AbstractMedia implements MediaLayer {
    * @param mediaClone - The cloned media that will become the first part
    * @param splitTime - The time at which to split (in milliseconds)
    */
-  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): void {
+  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia | null {
     const pct = (splitTime - this.startTime) / this.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * this._frameService.getLength());
 
@@ -324,6 +319,7 @@ export abstract class AbstractMedia implements MediaLayer {
     this._frameService.frames = this._frameService.frames.slice(split_idx);
     this.startTime = this.startTime + mediaClone.totalTimeInMilSeconds;
     this.totalTimeInMilSeconds = this.totalTimeInMilSeconds - mediaClone.totalTimeInMilSeconds;
+    return mediaClone;
   }
 
 }
