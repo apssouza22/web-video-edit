@@ -160,16 +160,10 @@ export abstract class AbstractMedia implements IClip {
     this._lastRenderedTime = -1;
   }
 
-  init(canvasWidth: number = 500, canvasHeight: number = 500, audioContext?: ESAudioContext): void {
-    this._renderer.setSize(canvasWidth, canvasHeight);
-  }
-
-  resize(width: number, height: number): void {
-    console.log("Resizing media to width:", width, "height:", height);
-    this._width = width;
-    this._height = height;
-    this._renderer.setSize(this._width, this._height);
-    this.#resetRenderCache();
+  init(audioContext?: ESAudioContext): void {
+    if (audioContext) {
+      this._playerAudioContext = audioContext;
+    }
   }
 
   /**

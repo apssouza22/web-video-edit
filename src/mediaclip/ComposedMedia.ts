@@ -12,7 +12,7 @@ export class ComposedMedia extends AbstractMedia {
     super(videoMedia.name);
     this.videoMedia = videoMedia;
     this.audioMedia = audioMedia;
-    this._width = videoMedia.width;;
+    this._width = videoMedia.width;
     this._height = videoMedia.height;
     this.totalTimeInMilSeconds = Math.max(videoMedia.totalTimeInMilSeconds, audioMedia.totalTimeInMilSeconds);
     this._ready = true;
@@ -41,14 +41,9 @@ export class ComposedMedia extends AbstractMedia {
     return composedMedia;
   }
 
-  init(canvasWidth: number, canvasHeight: number, playerAudioContext?: AudioContext): void {
-    super.init(canvasWidth, canvasHeight);
-    this.videoMedia.init(canvasWidth, canvasHeight, playerAudioContext);
-    this.audioMedia.init(canvasWidth, canvasHeight, playerAudioContext);
-  }
-
-  resize(width: number, height: number): void{
-    this.videoMedia.resize(width, height);
+  init( playerAudioContext?: AudioContext): void {
+    this.videoMedia.init(playerAudioContext);
+    this.audioMedia.init(playerAudioContext);
   }
 
   async update(change: LayerChange, referenceTime: number): Promise<void> {

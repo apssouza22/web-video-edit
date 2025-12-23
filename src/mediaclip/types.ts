@@ -22,8 +22,7 @@ export interface IClip {
   totalTimeInMilSeconds: number;
 
   render(ctxOut: ESRenderingContext2D, currentTime: number, playing?: boolean): Promise<void>;
-  init(canvasWidth?: number, canvasHeight?: number, audioContext?: AudioContext): void;
-  resize(width: number, height: number): void;
+  init(audioContext?: AudioContext): void;
   update(change: LayerChange, referenceTime: number): Promise<void>;
   getFrame(time: number): Promise<Frame | null>;
   dump(): LayerDumpData;

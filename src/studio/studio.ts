@@ -150,7 +150,7 @@ export class VideoStudio {
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
     if (!skipInit) {
       layer.startTime = this.#setStartTime(layer)
-      layer.init(layer.width, layer.height, this.player.getCanvasAudioContext());
+      layer.init(this.player.getCanvasAudioContext());
     }
     this.studioState.addMedia(layer);
     this.setSelectedLayer(layer);

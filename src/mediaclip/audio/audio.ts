@@ -52,13 +52,6 @@ export class AudioMedia extends AbstractMedia {
     }
   }
 
-  init(canvasWidth: number, canvasHeight: number, playerAudioContext?: AudioContext): void {
-    super.init(canvasWidth, canvasHeight);
-    if (playerAudioContext) {
-      this._playerAudioContext = playerAudioContext;
-    }
-  }
-
   setSpeed(speed: number): void {
     super.setSpeed(speed);
     this.updateTotalTimeForSpeed();
