@@ -1,6 +1,6 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, MediaService} from '@/mediaclip';
+import {AbstractMedia, MediaLayer, MediaService} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {MediaLoader} from './media-loader';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
@@ -12,6 +12,7 @@ import {StudioState} from "@/common/studio-state";
 import {MediaLibrary} from "@/medialibrary";
 import {createSpeechService, SpeechService} from "@/speech";
 import {VideoExportHandler} from '@/video/mux/video-export-handler';
+import {CaptionMedia} from "@/mediaclip/caption";
 
 /**
  * Update data structure for media transformations
@@ -54,7 +55,9 @@ export class VideoStudio {
     this.speedControlManager = new SpeedControlInput();
     this.mediaLibrary = mediaLibrary;
 
-    this.videoExportHandler = new VideoExportHandler(() =>{this.player.pause()});
+    this.videoExportHandler = new VideoExportHandler(() => {
+      this.player.pause()
+    });
 
     window.requestAnimationFrame(this.#loop.bind(this));
 
@@ -146,7 +149,7 @@ export class VideoStudio {
 
   addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
     if (!skipInit) {
-      layer.startTime = this.studioState.getPlayingTime() -1;
+      layer.startTime = this.#setStartTime(layer)
       layer.init(layer.width, layer.height, this.player.getCanvasAudioContext());
     }
     this.studioState.addMedia(layer);
@@ -209,5 +212,22 @@ export class VideoStudio {
     this.player.setSelectedLayer(layer);
     this.studioState.setSelectedMedia(layer);
     this.speedControlManager.setLayer(layer);
+  }
+
+  #setStartTime(layer: MediaLayer): number {
+    if (!(layer instanceof CaptionMedia)) {
+      return this.studioState.getPlayingTime();
+    }
+    const clips = this.studioState.findClipByName(layer.name.split('-')[0]);
+    console.log(`Found ${clips.length} clips for caption layer ${layer.name}`);
+    if (!clips) {
+      return this.studioState.getPlayingTime();
+    }
+    for (const c of clips) {
+      if (c instanceof AudioMedia) {
+        return c.startTime
+      }
+    }
+    return this.studioState.getPlayingTime();
   }
 }

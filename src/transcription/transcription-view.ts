@@ -1,12 +1,12 @@
-import type { TranscriptionService } from './transcription.js';
-import type { TranscriptionResult, TranscriptionChunk } from './types.js';
-import { getEventBus, CaptionCreateEvent } from '@/common/event-bus';
+import type {TranscriptionService} from './transcription.js';
+import type {TranscriptionResult, TranscriptionChunk} from './types.js';
+import {getEventBus, CaptionCreateEvent} from '@/common/event-bus';
+import * as querystring from "node:querystring";
 
 export class TranscriptionView {
   private transcriptionManager: TranscriptionService;
   private transcriptionElement: HTMLElement | null;
   private textChunksContainer: HTMLElement | null;
-  private currentTranscription: TranscriptionResult | null = null;
   private addCaptionButton: HTMLButtonElement | null = null;
   #eventBus = getEventBus();
 
@@ -14,12 +14,12 @@ export class TranscriptionView {
     this.transcriptionManager = manager;
     this.transcriptionElement = document.getElementById('transcription');
     this.textChunksContainer = this.transcriptionElement?.querySelector('.text-chunks') || null;
-    
+
     if (!this.transcriptionElement) {
       console.error('Transcription element not found');
       return;
     }
-    
+
     if (!this.textChunksContainer) {
       console.error('Text chunks container not found');
       return;
@@ -36,14 +36,36 @@ export class TranscriptionView {
     this.addCaptionButton.textContent = 'Add Caption Layer';
     this.addCaptionButton.style.display = 'none';
     this.addCaptionButton.style.marginBottom = '10px';
-    
+
     this.addCaptionButton.addEventListener('click', () => {
-      if (this.currentTranscription) {
-        this.#eventBus.emit(new CaptionCreateEvent(this.currentTranscription));
-      }
+      const currentTranscription = this.#buildCurrentTranscription();
+
+      this.#eventBus.emit(new CaptionCreateEvent(currentTranscription));
     });
 
     this.transcriptionElement.insertBefore(this.addCaptionButton, this.textChunksContainer);
+  }
+
+  #buildCurrentTranscription(): Map<string, TranscriptionResult> {
+    const chunksElements = document.querySelectorAll('.text-chunk');
+    const transcriptionData: Map<string, TranscriptionResult> = new Map();
+
+    chunksElements.forEach(chunkEl => {
+      const audioId = chunkEl.getAttribute('data-audio-id') || '';
+      const startTime = parseFloat(chunkEl.getAttribute('data-start-time') || '0');
+      const endTime = parseFloat(chunkEl.getAttribute('data-end-time') || '0');
+      const text = chunkEl.querySelector('.chunk-text')?.textContent || '';
+      transcriptionData.set(audioId,{
+        audioId: audioId,
+        text: '',
+        chunks: [{
+          text: text,
+          timestamp: [startTime, endTime]
+        }]
+      });
+    });
+
+    return transcriptionData;
   }
 
   updateTranscription(transcriptionData: TranscriptionResult): void {
@@ -51,9 +73,6 @@ export class TranscriptionView {
       console.error('Invalid transcription data provided');
       return;
     }
-
-    this.currentTranscription = transcriptionData;
-    this.#clearChunks();
 
     transcriptionData.chunks.forEach((chunk, index) => {
       this.#addTextChunk(chunk, index, transcriptionData.audioId!);
@@ -94,11 +113,7 @@ export class TranscriptionView {
    */
   #addTextChunk(chunk: TranscriptionChunk, index: number, audioId: string): void {
     if (!this.textChunksContainer) return;
-
-    // Escape HTML characters in the text to prevent XSS
     const escapedText = this.#escapeHtml(chunk.text);
-    
-    // Create the HTML structure as a string
     const chunkHTML = `
       <span class="text-chunk" 
             data-index="${index}" 
@@ -142,12 +157,12 @@ export class TranscriptionView {
       const endTime = parseFloat(chunkElement.getAttribute('data-end-time') || '0');
       const audioId = chunkElement.getAttribute('data-audio-id') || '';
       const removedDuration = endTime - startTime;
-      
+
       console.log(`Removing chunk at index ${index}: start=${startTime}s, end=${endTime}s, duration=${removedDuration}s`);
 
       this.transcriptionManager.removeInterval(startTime, endTime, audioId);
       this.#updateSubsequentTimestamps(startTime, removedDuration);
-      
+
       chunkElement.remove();
     }
   }
@@ -160,22 +175,22 @@ export class TranscriptionView {
   #updateSubsequentTimestamps(removedStartTime: number, removedDuration: number): void {
     const allChunks = this.#getCurrentChunks();
     let updatedCount = 0;
-    
+
     allChunks.forEach(chunk => {
       const chunkStartTime = parseFloat(chunk.getAttribute('data-start-time') || '0');
       const chunkEndTime = parseFloat(chunk.getAttribute('data-end-time') || '0');
-      
+
       // Update timestamps for chunks that start after the removed interval
       if (chunkStartTime > removedStartTime) {
         const newStartTime = chunkStartTime - removedDuration;
         const newEndTime = chunkEndTime - removedDuration;
-        
+
         chunk.setAttribute('data-start-time', newStartTime.toString());
         chunk.setAttribute('data-end-time', newEndTime.toString());
         updatedCount++;
       }
     });
-    
+
     console.log(`Updated timestamps for ${updatedCount} subsequent chunks`);
   }
 
@@ -186,7 +201,7 @@ export class TranscriptionView {
    */
   #onChunkClick(chunk: TranscriptionChunk, audioId: string): void {
     console.log(`Chunk clicked: "${chunk.text}" at time ${chunk.timestamp[0]}s`);
-    
+
     if (chunk.timestamp && chunk.timestamp.length > 0) {
       const seekTime = chunk.timestamp[0];
       this.transcriptionManager.seekToTimestamp(seekTime, audioId);
@@ -210,7 +225,7 @@ export class TranscriptionView {
     this.#getCurrentChunks().forEach(chunk => {
       const startTime = parseFloat(chunk.getAttribute('data-start-time') || '0');
       const endTime = parseFloat(chunk.getAttribute('data-end-time') || '0');
-      
+
       if (currentTime >= startTime && currentTime <= endTime) {
         chunk.classList.add('highlighted');
       } else {

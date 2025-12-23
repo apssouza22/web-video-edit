@@ -8,6 +8,7 @@ import {CaptionMedia, TranscriptionChunk} from "./caption";
 import {ShapeMedia, ShapeType} from './shape';
 import {getEventBus, MediaLoadUpdateEvent} from "@/common";
 import {MediaLoader} from "@/mediaclip/mediasource";
+import {TranscriptionResult} from "@/transcription/types";
 
 export {AbstractMedia, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
@@ -36,9 +37,9 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
     layers.push(videoMedia);
     layers.push(audioMedia);
     onLoadUpdateListener(100, file.name, videoMedia);
-    onLoadUpdateListener( 100, file.name, audioMedia, audioFrameSource.audioBuffer);
+    onLoadUpdateListener(100, file.name, audioMedia, audioFrameSource.audioBuffer);
   }
-  
+
   if (file.type.indexOf('image') >= 0) {
     const frameSource = await MediaLoader.loadImageMedia(file, (progress) => {
       onLoadUpdateListener(progress, file.name);
@@ -47,19 +48,19 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
     layers.push(imageMedia);
     onLoadUpdateListener(100, file.name, imageMedia);
   }
-  
+
   if (file.type.indexOf('audio') >= 0) {
     const audioFrameSource = await MediaLoader.loadAudioMedia(file);
     const audioMedia = new AudioMedia(file.name, audioFrameSource);
     layers.push(audioMedia);
     onLoadUpdateListener(100, file.name, audioMedia, audioFrameSource.audioBuffer);
   }
-  
+
   layers.forEach(layer => {
     if (!layer.addLoadUpdateListener) return;
     layer.addLoadUpdateListener(onLoadUpdateListener);
   });
-  
+
   return layers;
 }
 
@@ -76,18 +77,22 @@ export function createMediaText(text: string): AbstractMedia {
   return new TextMedia(text)
 }
 
-export function createMediaCaption(transcription: TranscriptionChunk[]): AbstractMedia {
-  return new CaptionMedia(transcription);
+export function createMediaCaption(transcription: Map<string, TranscriptionResult>): AbstractMedia[] {
+  const captions: AbstractMedia[] = [];
+  transcription.forEach((result, _) => {
+    captions.push(new CaptionMedia(result.audioId + "-captions", result.chunks));
+  });
+  return captions;
 }
 
 export function createMediaShape(shapeType: ShapeType): AbstractMedia {
   return new ShapeMedia(shapeType);
 }
 
-export function isMediaAudio(layer: AbstractMedia):boolean {
+export function isMediaAudio(layer: AbstractMedia): boolean {
   return layer instanceof AudioMedia;
 }
 
-export function isMediaVideo(layer: AbstractMedia):boolean {
+export function isMediaVideo(layer: AbstractMedia): boolean {
   return layer instanceof VideoMedia;
 }

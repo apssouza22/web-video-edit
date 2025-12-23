@@ -23,7 +23,7 @@ export class CanvasLayer {
   #handles: TransformHandle[] = [];
   #onTransformCallback: LayerTransformedListener = (media: AbstractMedia) => {};
   #currentTime = 0;
-  public isUpdated: boolean = false;
+  public isUpdated: boolean = true;
 
 
   /**

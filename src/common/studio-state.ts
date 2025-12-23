@@ -1,4 +1,5 @@
 import {AbstractMedia} from "@/mediaclip";
+import {AudioMedia} from "@/mediaclip/audio";
 
 class StudioState {
   private static instance: StudioState | null = null;
@@ -92,6 +93,10 @@ class StudioState {
 
   getCurrentAspectRatio(): string {
     return this.currentAspectRatio;
+  }
+
+  findClipByName(name: string): AbstractMedia[] {
+    return this.medias.filter(media => media.name.indexOf(name) >= 0);
   }
 }
 

@@ -22,8 +22,8 @@ export class CaptionMedia extends TextMedia {
   private _scenes: CaptionScene[] = [];
   private _chunkToSceneMap: Map<number, number> = new Map();
 
-  constructor(transcription: TranscriptionChunk[]) {
-    super("Captions");
+  constructor(name: string, transcription: TranscriptionChunk[]) {
+    super(name);
     this._transcriptionChunks = transcription;
 
     this.#calculateDuration();
@@ -213,7 +213,7 @@ export class CaptionMedia extends TextMedia {
   }
 
   protected _createCloneInstance(): AbstractMedia {
-    return new CaptionMedia(this._transcriptionChunks) as AbstractMedia;
+    return new CaptionMedia(this.name, this._transcriptionChunks) as AbstractMedia;
   }
 
   clone(): AbstractMedia {

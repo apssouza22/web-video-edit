@@ -117,8 +117,10 @@ export class StudioEventHandler {
 
     this.#eventUnsubscribers.push(
         this.#eventBus.subscribe(CaptionCreateEvent, (event) => {
-          const captionMedia = createMediaCaption(event.transcriptionData.chunks);
-          this.#studio.addLayer(captionMedia);
+          const captionMedias = createMediaCaption(event.transcriptionData);
+          captionMedias.forEach(captionMedia => {
+            this.#studio.addLayer(captionMedia);
+          })
         })
     );
 

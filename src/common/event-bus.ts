@@ -1,5 +1,6 @@
 import type { AbstractMedia } from '@/mediaclip';
 import type { MediaInterface, LayerUpdateKind } from '@/timeline/types';
+import type {TranscriptionResult} from "@/transcription/types";
 
 /**
  * Reorder data for media repositioning
@@ -112,7 +113,7 @@ export class MediaLibraryDropEvent extends BaseEvent {
 
 export class CaptionCreateEvent extends BaseEvent {
   readonly name = 'caption:create';
-  constructor(public transcriptionData: any) {
+  constructor(public transcriptionData: Map<string, TranscriptionResult>) {
     super();
   }
 }
