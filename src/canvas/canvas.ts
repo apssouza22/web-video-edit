@@ -224,7 +224,6 @@ export class VideoCanvas {
 
     if (this.lastPlayedTime !== this.time || this.isPlaying() || this.layers.some(layer => layer.isUpdated)) {
       await this.renderLayers();
-      console.log(`Rendered at time: ${this.time}ms (realtime: ${this.lastPlayedTime}ms)`);
       const find = this.layers.find(layer => !isMediaAudio(layer.media) && !layer.media.shouldReRender(this.time));
       this.lastPlayedTime = find ? this.time : null;
     }

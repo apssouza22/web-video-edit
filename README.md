@@ -55,13 +55,3 @@ To run tests using Jest with ECMAScript modules, follow these steps:
 ```
 node --experimental-vm-modules
 ```
-
-# TODOs
-- Save the project to local storage including files
-- Implement undo/redo functionality
-- Add more video editing features (transitions, effects, etc.)
-- Add object detection with [YOLOv9](https://huggingface.co/spaces/Xenova/video-object-detection)
-- Consider Adding background removal feature - https://huggingface.co/spaces/Xenova/webgpu-video-background-removal
-- Consider using [Granite](https://huggingface.co/spaces/ibm-granite/Granite-4.0-Nano-WebGPU) for agents
-- Consider using video tracking with [DINO]()(ttps://huggingface.co/spaces/webml-community/DINOv3-video-tracking)
-- Consider replacing transcription with [Supertonic-TTS-WebGPU](https://huggingface.co/spaces/webml-community/Supertonic-TTS-WebGPU)

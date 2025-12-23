@@ -14,7 +14,7 @@ import {getAnalyzedFrameCache} from './analyzed-frame-cache.js';
 
 type PostMessageFn = (message: WorkerResponseMessage) => void;
 
-const DEFAULT_MIN_COSINE_SIMILARITY = 0.35;
+const DEFAULT_MIN_COSINE_SIMILARITY = 0.25;
 
 export class SearchProcessor {
   #models: SearchModels | null = null;
