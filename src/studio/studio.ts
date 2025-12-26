@@ -14,17 +14,6 @@ import {createSpeechService, SpeechService} from "@/speech";
 import {VideoExportHandler} from '@/video/mux/video-export-handler';
 import {CaptionMedia} from "@/mediaclip/caption";
 
-/**
- * Update data structure for media transformations
- */
-interface LayerUpdate {
-  scale?: number;
-  rotation?: number;
-  x?: number;
-  y?: number;
-}
-
-
 export class VideoStudio {
   aspectRatioSelector: AspectRatioSelector;
   player: VideoCanvas;

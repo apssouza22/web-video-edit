@@ -1,9 +1,10 @@
 import {ESAudioContext} from "@/mediaclip";
-import {Media} from "@/mediaclip/audio/types";
+import {IAudioClip} from "@/mediaclip/types";
+
 
 export class AudioSplitHandler {
 
-  split(mediaOriginal: Media, mediaClone: Media, time: number): void {
+  split(mediaOriginal: IAudioClip, mediaClone: IAudioClip, time: number): void {
     if (!mediaOriginal.audioBuffer || !mediaOriginal.playerAudioContext) {
       console.error('AudioMedia missing audioBuffer or playerAudioContext');
       return;

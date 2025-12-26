@@ -2,11 +2,14 @@ import {AbstractMedia} from "@/mediaclip/media-common";
 import {Frame} from "@/mediaclip/frame";
 import {VideoMedia} from "@/mediaclip/video";
 import {AudioMedia} from "@/mediaclip/audio";
-import {ESAudioContext, LayerChange} from "@/mediaclip/types";
+import {ESAudioContext, IAudioClip, LayerChange} from "@/mediaclip/types";
 
-export class ComposedMedia extends AbstractMedia {
+
+export class ComposedMedia extends AbstractMedia implements IAudioClip{
   private readonly videoMedia: VideoMedia;
   private readonly audioMedia: AudioMedia;
+  private readonly processedOperations: Set<string> = new Set();
+
 
   constructor(videoMedia: VideoMedia, audioMedia: AudioMedia) {
     super(videoMedia.name);
@@ -77,16 +80,16 @@ export class ComposedMedia extends AbstractMedia {
     this.audioMedia.scheduleStart(scheduleTime, offset);
   }
 
-  updateBuffer(newBuffer: AudioBuffer): void {
-    this.audioMedia.updateBuffer(newBuffer);
-  }
-
   connectAudioSource(playerAudioContext: ESAudioContext): void {
     this.audioMedia.connectAudioSource(playerAudioContext);
   }
 
-
   removeInterval(startTime: number, endTime: number): boolean {
+    if(this.processedOperations.has(`remove-${startTime}-${endTime}`)) {
+      console.log(`Operation already processed: remove-${startTime}-${endTime}`);
+      return true;
+    }
+    this.processedOperations.add(`remove-${startTime}-${endTime}`);
     const videoSuccess = this.videoMedia.removeInterval(startTime, endTime);
     const audioSuccess = this.audioMedia.removeInterval(startTime, endTime);
     return videoSuccess && audioSuccess;

@@ -1,11 +1,11 @@
 import {AbstractMedia} from '@/mediaclip/media-common';
 import {AudioSource} from '@/mediaclip/audio/audio-source';
-import type {ESAudioContext} from "../types";
+import type {ESAudioContext, IAudioClip} from "../types";
 import {AudioSplitHandler} from "@/mediaclip/audio/AudioSplitHandler";
 import {AudioCutter} from "@/mediaclip/audio/audio-cutter";
 import {AudioFrameSource} from "@/mediaclip/mediasource";
 
-export class AudioMedia extends AbstractMedia {
+export class AudioMedia extends AbstractMedia implements IAudioClip {
   private audioFrameSource: AudioFrameSource | undefined;
   private source: AudioSource;
   private currentSpeed: number = 1.0;

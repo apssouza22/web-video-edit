@@ -21,7 +21,6 @@ export class MediaService {
       audioMedias.forEach((audioMedia, index) => {
         console.log(`Clipping audio layer ${index + 1}: "${audioMedia.name}"`);
         audioMedia.removeInterval(startTime, endTime);
-
       });
     } catch (error) {
       console.error('Error removing audio interval:', error);

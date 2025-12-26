@@ -42,7 +42,7 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
     const audioMedia = new AudioMedia(file.name, audioFrameSource);
     const composedMedia = new ComposedMedia(videoMedia, audioMedia);
     layers.push(composedMedia);
-    onLoadUpdateListener(100, file.name, composedMedia);
+    onLoadUpdateListener(100, file.name, composedMedia, composedMedia.audio.audioBuffer);
   }
 
   if (file.type.indexOf('image') >= 0) {

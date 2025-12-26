@@ -1,11 +1,11 @@
 import {dpr} from '@/constants';
 import {AbstractMedia, ESAudioContext} from '@/mediaclip';
-import {AudioMedia} from '@/mediaclip/audio/audio';
 import {CanvasLayer} from './canvas-layer.js';
 import type {CanvasContext2D, CanvasElement, PlayerEndCallback} from './types.js';
 import {StudioState} from "@/common/studio-state";
 import {getEventBus, PlayerLayerTransformedEvent, PlayerTimeUpdateEvent} from '@/common/event-bus';
 import {PinchHandler} from "@/common";
+import {IAudioClip} from "@/mediaclip/types";
 
 export class VideoCanvas {
   #selectedLayer: AbstractMedia | null = null;
@@ -179,7 +179,7 @@ export class VideoCanvas {
     for (const layer of this.layers) {
       const media = layer.media;
       if (media.isAudio()) {
-        const audioLayer = media as AudioMedia;
+        const audioLayer = media as unknown as IAudioClip;
         // Calculate how far in the future this layer should start
         const timeUntilLayerStart = (media.startTime - this.time) / 1000; // Convert to seconds
         const scheduleTime = this.#audioScheduleTime! + Math.max(0, timeUntilLayerStart);

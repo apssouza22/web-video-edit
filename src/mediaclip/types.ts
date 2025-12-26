@@ -12,12 +12,11 @@ export type ESAudioContext = AudioContext | OfflineAudioContext;
  */
 export interface IClip {
   readonly id: string;
-  readonly name: string;
-  readonly uri?: string;
   readonly ready: boolean;
   readonly width: number;
   readonly height: number;
   readonly audioBuffer: AudioBuffer | null;
+  name: string;
   startTime: number;
   totalTimeInMilSeconds: number;
 
@@ -40,6 +39,17 @@ export interface IClip {
   isLayerVisible(time: number): boolean;
   shouldReRender(currentTime: number): boolean;
   updateRenderCache(currentTime: number): void;
+}
+
+
+export interface IAudioClip extends IClip {
+  audioBuffer: AudioBuffer | null;
+  playerAudioContext?: ESAudioContext;
+
+  connectAudioSource(playerAudioContext: ESAudioContext): void;
+  scheduleStart(scheduleTime: number, offset: number): void;
+  playStart(time: number): void;
+  disconnect(): void;
 }
 
 /**
