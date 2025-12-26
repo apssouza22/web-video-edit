@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
 
 // Use dynamic imports for ESM
 const {
@@ -10,10 +10,11 @@ const {
   TimelineTimeUpdateEvent,
   UiSpeedChangeEvent,
   UiAspectRatioChangeEvent,
-  STUDIO_EVENTS
 } = await import('@/common/event-bus');
 
 describe('EventBus', () => {
+
+  // @ts-ignore
   let eventBus: EventBus;
 
   beforeEach(() => {

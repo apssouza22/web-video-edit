@@ -137,7 +137,9 @@ describe('fixWebmDuration - Error handling', () => {
   });
 
   test('should log errors but not throw', async () => {
+    // @ts-ignore
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    // @ts-ignore
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
     
     const mockBlob = new Blob([new Uint8Array(10)], { type: 'video/webm' });

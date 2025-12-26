@@ -1,8 +1,7 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, IClip, MediaService} from '@/mediaclip';
+import {AbstractMedia, createMediaFromFile, IClip, MediaService} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
-import {MediaLoader} from './media-loader';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {exportToJson} from '@/common/utils';
 import {LoadingPopup} from './loading-popup';
@@ -10,7 +9,6 @@ import {AspectRatioSelector} from './aspect-ratio-selector';
 import {SpeedControlInput} from "./speed-control-input";
 import {StudioState} from "@/common/studio-state";
 import {MediaLibrary} from "@/medialibrary";
-import {createSpeechService, SpeechService} from "@/speech";
 import {VideoExportHandler} from '@/video/mux/video-export-handler';
 import {CaptionMedia} from "@/mediaclip/caption";
 
@@ -18,14 +16,12 @@ export class VideoStudio {
   aspectRatioSelector: AspectRatioSelector;
   player: VideoCanvas;
   timeline: Timeline;
-  mediaLoader: MediaLoader;
   transcriptionManager: TranscriptionService;
   mediaService: MediaService;
   loadingPopup: LoadingPopup;
   speedControlManager: SpeedControlInput;
   studioState: StudioState;
   mediaLibrary: MediaLibrary;
-  private speechService: SpeechService;
   private videoExportHandler: VideoExportHandler;
 
   constructor(mediaService: MediaService, mediaLibrary: MediaLibrary) {
@@ -36,10 +32,8 @@ export class VideoStudio {
     this.player = createVideoCanvas(this.studioState);
     this.player.mount(document.getElementById('video-canvas')!);
     this.timeline = createTimeline();
-    this.mediaLoader = new MediaLoader(this);
 
     this.transcriptionManager = createTranscriptionService();
-    this.speechService = createSpeechService();
     this.loadingPopup = new LoadingPopup();
     this.speedControlManager = new SpeedControlInput();
     this.mediaLibrary = mediaLibrary;
@@ -178,7 +172,7 @@ export class VideoStudio {
       return [];
     }
     this.loadingPopup.startLoading(file.name, file.name);
-    return await this.mediaLoader.addMediaFromFile(file);
+    return await createMediaFromFile(file);
   }
 
   onLayerLoadUpdate(

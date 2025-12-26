@@ -8,6 +8,7 @@ export class TranscriptionView {
   private transcriptionElement: HTMLElement | null;
   private textChunksContainer: HTMLElement | null;
   private addCaptionButton: HTMLButtonElement | null = null;
+  private loadingIndicator: HTMLDivElement | null = null;
   #eventBus = getEventBus();
 
   constructor(manager: TranscriptionService) {
@@ -26,6 +27,7 @@ export class TranscriptionView {
     }
 
     this.#createAddCaptionButton();
+    this.#createLoadingIndicator();
   }
 
   #createAddCaptionButton(): void {
@@ -46,6 +48,24 @@ export class TranscriptionView {
     this.transcriptionElement.insertBefore(this.addCaptionButton, this.textChunksContainer);
   }
 
+  #createLoadingIndicator(): void {
+    if (!this.transcriptionElement) return;
+
+    this.loadingIndicator = document.createElement('div');
+    this.loadingIndicator.className = 'transcription-loading';
+    this.loadingIndicator.textContent = 'Transcribing... Please wait.';
+    this.loadingIndicator.style.display = 'none';
+    this.loadingIndicator.style.padding = '10px';
+    this.loadingIndicator.style.marginBottom = '10px';
+    this.loadingIndicator.style.backgroundColor = '#f0f0f0';
+    this.loadingIndicator.style.border = '1px solid #ccc';
+    this.loadingIndicator.style.borderRadius = '4px';
+    this.loadingIndicator.style.textAlign = 'center';
+    this.loadingIndicator.style.color = '#666';
+
+    this.transcriptionElement.insertBefore(this.loadingIndicator, this.textChunksContainer);
+  }
+
   #buildCurrentTranscription(): Map<string, TranscriptionResult> {
     const chunksElements = document.querySelectorAll('.text-chunk');
     const transcriptionData: Map<string, TranscriptionResult> = new Map();
@@ -55,14 +75,22 @@ export class TranscriptionView {
       const startTime = parseFloat(chunkEl.getAttribute('data-start-time') || '0');
       const endTime = parseFloat(chunkEl.getAttribute('data-end-time') || '0');
       const text = chunkEl.querySelector('.chunk-text')?.textContent || '';
-      transcriptionData.set(audioId,{
-        audioId: audioId,
-        text: '',
-        chunks: [{
+      if(!transcriptionData.has(audioId)) {
+        transcriptionData.set(audioId, {
+          audioId: audioId,
+          text: '',
+          chunks: [{
+            text: text,
+            timestamp: [startTime, endTime]
+          }]
+        });
+      } else {
+        const existingData = transcriptionData.get(audioId);
+        existingData!.chunks.push({
           text: text,
           timestamp: [startTime, endTime]
-        }]
-      });
+        });
+      }
     });
 
     return transcriptionData;
@@ -74,6 +102,11 @@ export class TranscriptionView {
       return;
     }
 
+    // Hide loading indicator when transcription completes
+    if (this.loadingIndicator) {
+      this.loadingIndicator.style.display = 'none';
+    }
+
     transcriptionData.chunks.forEach((chunk, index) => {
       this.#addTextChunk(chunk, index, transcriptionData.audioId!);
     });
@@ -83,15 +116,6 @@ export class TranscriptionView {
     }
 
     this.#showTabContent()
-  }
-
-  /**
-   * Clears all existing text chunks from the view
-   */
-  #clearChunks(): void {
-    if (this.textChunksContainer) {
-      this.textChunksContainer.innerHTML = '';
-    }
   }
 
   /**
@@ -235,8 +259,11 @@ export class TranscriptionView {
   }
 
   showLoading(): void {
-    if (this.textChunksContainer) {
-      this.textChunksContainer.innerHTML = 'Transcribing... Please wait.';
+    if (this.loadingIndicator) {
+      this.loadingIndicator.style.display = 'block';
+    }
+    if (this.addCaptionButton) {
+      this.addCaptionButton.style.display = 'none';
     }
   }
 

@@ -25,7 +25,7 @@ export class CaptionMedia extends TextMedia {
   constructor(name: string, transcription: TranscriptionChunk[]) {
     super(name);
     this._transcriptionChunks = transcription;
-
+    console.log(`CaptionMedia "${this.name}" initialized with ${this._transcriptionChunks.length} chunks.`);
     this.#calculateDuration();
     this.#buildScenes();
     this.calculateDimensions();
@@ -222,5 +222,34 @@ export class CaptionMedia extends TextMedia {
       (cloned as CaptionMedia).highlightColor = this._highlightColor;
     }
     return cloned;
+  }
+
+  updateTimestamps(removedStartTime: number, removedDuration: number): void {
+    let updated = false;
+
+    // Update all chunks that start after the removed interval
+    this._transcriptionChunks = this._transcriptionChunks.map(chunk => {
+      if (chunk.timestamp[0] > removedStartTime) {
+        updated = true;
+        return {
+          ...chunk,
+          timestamp: [
+            chunk.timestamp[0] - removedDuration,
+            chunk.timestamp[1] - removedDuration
+          ] as [number, number]
+        };
+      }
+      return chunk;
+    });
+
+    if (updated) {
+      // Recalculate duration and rebuild scenes with updated timestamps
+      this.#calculateDuration();
+      this._scenes = [];
+      this._chunkToSceneMap.clear();
+      this.#buildScenes();
+
+      console.log(`Updated CaptionMedia "${this.name}" timestamps: shifted by -${removedDuration}s`);
+    }
   }
 }

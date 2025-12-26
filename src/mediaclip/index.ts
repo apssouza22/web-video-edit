@@ -83,6 +83,7 @@ export function createMediaText(text: string): AbstractMedia {
 }
 
 export function createMediaCaption(transcription: Map<string, TranscriptionResult>): AbstractMedia[] {
+  console.log("Creating caption media from transcription results:", transcription);
   const captions: AbstractMedia[] = [];
   transcription.forEach((result, _) => {
     captions.push(new CaptionMedia(result.audioId + "-captions", result.chunks));

@@ -4,6 +4,7 @@ import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globa
 const { AspectRatioSelector } = await import('@/studio/aspect-ratio-selector');
 
 describe('AspectRatioSelector', () => {
+  // @ts-ignore
   let selector: AspectRatioSelector;
 
   beforeEach(() => {

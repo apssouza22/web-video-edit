@@ -51,7 +51,7 @@ export class TimelineLayerUpdateEvent extends BaseEvent {
 export class TranscriptionRemoveIntervalEvent extends BaseEvent {
   readonly name = 'transcription:removeInterval';
 
-  constructor(public startTime: number, public endTime: number, audioId: string) {
+  constructor(public startTime: number, public endTime: number, public audioId: string) {
     super();
   }
 }

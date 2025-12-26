@@ -19,6 +19,10 @@ export class SpeechService {
       downloadAudio: this.downloadAudio.bind(this)
     };
     this.#view = new SpeechView(eventListeners);
+  }
+
+  initialize(): void {
+    this.#view.initialize();
     this.#addEventListener();
   }
 

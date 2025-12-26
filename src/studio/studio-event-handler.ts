@@ -16,6 +16,7 @@ import {VideoStudio} from "@/studio/studio";
 import {MediaOps} from "@/studio/media-ops";
 import {StudioState} from "@/common";
 import {createMediaCaption, createMediaFromFile} from "@/mediaclip";
+import {CaptionMedia} from "@/mediaclip/caption";
 
 export class StudioEventHandler {
   #studio: VideoStudio;
@@ -72,6 +73,7 @@ export class StudioEventHandler {
         this.#eventBus.subscribe(TranscriptionRemoveIntervalEvent, (event) => {
           console.log(`TranscriptionManager: Removing interval from ${event.startTime} to ${event.endTime}`);
           this.mediaControls.removeInterval(event.startTime, event.endTime);
+          this.updateCaptions(event);
         })
     );
 
@@ -129,6 +131,24 @@ export class StudioEventHandler {
           await createMediaFromFile(event.audioBlob as File);
         })
     );
+  }
+
+  private updateCaptions(event: TranscriptionRemoveIntervalEvent) {
+    // Update caption layers with adjusted timestamps
+    const removedDuration = event.endTime - event.startTime;
+    const allLayers = this.#studio.getMedias();
+
+    for (const layer of allLayers) {
+      if (layer instanceof CaptionMedia) {
+        // Check if this caption layer belongs to the audio that was edited
+        // Caption layers are named like "audioId-Caption" or contain the audioId
+        const captionAudioId = layer.name.split('-')[0];
+        if (captionAudioId === event.audioId || layer.name.includes(event.audioId)) {
+          layer.updateTimestamps(event.startTime, removedDuration);
+          console.log(`Updated caption layer "${layer.name}" timestamps after interval removal`);
+        }
+      }
+    }
   }
 
   destroy(): void {

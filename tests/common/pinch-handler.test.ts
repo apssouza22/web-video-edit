@@ -13,6 +13,7 @@ describe('PinchHandler', () => {
   let element: HTMLElement;
   let callback: jest.Mock;
   let context: any;
+  // @ts-ignore
   let pinchHandler: PinchHandler;
 
   beforeEach(() => {

@@ -1,15 +1,15 @@
 import {popup, StudioState, TabController} from '@/common';
 import {initStudio} from "@/studio/initilizer.js";
-import {createMediaText, createMediaShape, ShapeType} from "@/mediaclip";
+import {createMediaShape, createMediaText, ShapeType} from "@/mediaclip";
 import {fps, max_size, setFps, setMaxSize} from './constants.js';
-import {SpeechService} from "@/speech";
-import {createShapeView, ShapeView} from "@/shape";
+import {createSpeechService} from "@/speech";
+import {createShapeView} from "@/shape";
 import {createSearchService} from "@/search";
 import {initScreenRecording} from "@/recording/controls";
 
 const studio = initStudio();
 new TabController('leftNav');
-const speechService = new SpeechService();
+const speechService = createSpeechService();
 const searchService = createSearchService();
 const shapeView = createShapeView('shapes', (shapeType: ShapeType) => {
   studio.addLayer(createMediaShape(shapeType));
@@ -27,16 +27,17 @@ window.speechService = speechService;
 // @ts-ignore
 window.searchService = searchService;
 
-window.addEventListener('load', function () {
-  initLeftNavControls();
+window.addEventListener('load', async function () {
+  await initLeftNavControls();
   initPlayPauseButton();
   initScreenRecording();
 });
 
-function initLeftNavControls(): void {
+async function initLeftNavControls(): Promise<void> {
   initTextControls();
   initSettingsControls();
-  searchService.init();
+  await searchService.init();
+  speechService.initialize()
   shapeView.init();
 }
 

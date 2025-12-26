@@ -4,6 +4,7 @@ import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globa
 const { LoadingPopup } = await import('@/studio/loading-popup');
 
 describe('LoadingPopup', () => {
+  // @ts-ignore
   let loadingPopup: LoadingPopup;
   let mockPopup: HTMLElement;
   let mockProgressFill: HTMLElement;

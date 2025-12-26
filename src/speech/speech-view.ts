@@ -27,7 +27,9 @@ export class SpeechView {
       console.error('Speech container element not found');
       return;
     }
+  }
 
+  initialize(): void {
     this.#buildUI();
     this.#bindEvents();
   }
