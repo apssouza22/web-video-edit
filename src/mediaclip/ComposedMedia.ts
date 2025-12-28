@@ -99,11 +99,13 @@ export class ComposedMedia extends AbstractMedia implements IAudioClip{
     if (!this.isLayerVisible(currentTime)) {
       return;
     }
+    await this.videoMedia.render(ctxOut, currentTime, playing);
+    await this.audioMedia.render(ctxOut, currentTime, playing);
+
+    // Keep the standard render cache update mechanism
     if (!this.shouldReRender(currentTime)) {
       return;
     }
-    await this.videoMedia.render(ctxOut, currentTime, playing);
-    await this.audioMedia.render(ctxOut, currentTime, playing);
     this.updateRenderCache(currentTime);
   }
 
@@ -134,4 +136,9 @@ export class ComposedMedia extends AbstractMedia implements IAudioClip{
   get audio(): AudioMedia {
     return this.audioMedia;
   }
+
+  get audioBuffer(): AudioBuffer | null {
+    return this.audioMedia.audioBuffer;
+  }
+
 }

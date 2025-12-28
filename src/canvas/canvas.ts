@@ -230,7 +230,7 @@ export class VideoCanvas {
     if(this.lastPlayedTime !== this.time || this.isPlaying()){
       return true;
     }
-    this.layers.some(layer => layer.isUpdated);
+    return this.layers.some(layer => layer.isUpdated);
   }
 
   /**
