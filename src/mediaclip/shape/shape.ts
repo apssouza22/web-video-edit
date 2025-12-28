@@ -1,9 +1,9 @@
-import {AbstractMedia, FlexibleMedia} from '../media-common';
+import {AbstractMedia, ResizableClip} from '../media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {ShapeType, ShapeStyle, ShapeConfig, DEFAULT_SHAPE_STYLE, SHAPE_PRESETS} from './types';
 import {dpr} from '@/constants';
 
-export class ShapeMedia extends FlexibleMedia {
+export class ShapeMedia extends ResizableClip {
   #shapeType: ShapeType;
   #style: ShapeStyle;
 

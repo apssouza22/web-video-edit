@@ -207,7 +207,7 @@ export class VideoStudio {
       return this.studioState.getPlayingTime();
     }
     for (const c of clips) {
-      if (c instanceof AudioMedia) {
+      if (c.isAudio()) {
         return c.startTime
       }
     }

@@ -1,9 +1,9 @@
-import {AbstractMedia, FlexibleMedia} from './media-common';
+import {AbstractMedia, ResizableClip} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {StudioState} from "@/common";
 import {FrameSource} from '@/mediaclip/mediasource';
 
-export class ImageMedia extends FlexibleMedia {
+export class ImageMedia extends ResizableClip {
   private frameSource: FrameSource;
 
   constructor(name: string, frameSource: FrameSource) {

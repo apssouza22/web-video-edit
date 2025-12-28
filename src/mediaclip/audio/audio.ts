@@ -206,4 +206,8 @@ export class AudioMedia extends AbstractMedia implements IAudioClip {
     }
     return false;
   }
+
+  isAudio(): boolean {
+    return true;
+  }
 }

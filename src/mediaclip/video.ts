@@ -106,4 +106,8 @@ export class VideoMedia extends AbstractMedia {
     videoMedia.frameSource = this.frameSource;
     return videoMedia;
   }
+
+  isVideo(): boolean {
+    return true;
+  }
 }

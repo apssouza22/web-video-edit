@@ -2,6 +2,7 @@ import { LayerReorderHandler } from './layer-reorder-handler';
 import type { IClipTl } from './types';
 import {Timeline} from "./timeline";
 import {AbstractMedia} from "@/mediaclip";
+import {ResizableClip} from "@/mediaclip/media-common";
 
 /**
  * Handles media dragging and scrubbing in the timeline
@@ -172,6 +173,10 @@ export class DragLayerHandler {
    * @returns {(function(*, *): void)|*}
    */
   #getResizeLayerEndFn(selectedLayer: IClipTl) {
+    if (!(selectedLayer instanceof ResizableClip)) {
+      console.log("Media is not resizable:", selectedLayer.name);
+      return () => {};
+    }
     console.log("Resizing media:", selectedLayer.name);
     let baseTime = selectedLayer.startTime + selectedLayer.totalTimeInMilSeconds;
     return (time: number, selectedLayer: IClipTl) => {

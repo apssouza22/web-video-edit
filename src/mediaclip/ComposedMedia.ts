@@ -10,7 +10,6 @@ export class ComposedMedia extends AbstractMedia implements IAudioClip{
   private readonly audioMedia: AudioMedia;
   private readonly processedOperations: Set<string> = new Set();
 
-
   constructor(videoMedia: VideoMedia, audioMedia: AudioMedia) {
     super(videoMedia.name);
     this.videoMedia = videoMedia;
@@ -56,6 +55,16 @@ export class ComposedMedia extends AbstractMedia implements IAudioClip{
 
   disconnect(): void {
     this.audioMedia.disconnect();
+  }
+
+  get startTime(): number {
+    return this._startTime;
+  }
+
+  set startTime(value: number) {
+    this._startTime = value;
+    this.videoMedia.startTime = value;
+    this.audioMedia.startTime = value;
   }
 
   isVideo(): boolean {

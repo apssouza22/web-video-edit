@@ -1,8 +1,7 @@
 import {createFrameService, Frame, FrameService} from '@/mediaclip/frame';
 import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
 import {SpeedController} from './speed-controller';
-import {ESAudioContext, LayerChange, LayerDumpData, LayerLoadUpdateListener, IClip,} from './types';
-import {VideoMedia} from "@/mediaclip/video";
+import {ESAudioContext, IClip, LayerChange, LayerDumpData, LayerLoadUpdateListener,} from './types';
 
 export abstract class AbstractMedia implements IClip {
   audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
@@ -19,9 +18,9 @@ export abstract class AbstractMedia implements IClip {
   protected _lastRenderedTime: number;
   protected _frameService: FrameService;
   protected _speedController: SpeedController;
+  protected _startTime: number;
 
   public totalTimeInMilSeconds: number;
-  public startTime: number;
 
   protected constructor(name: string) {
     this._name = name;
@@ -29,7 +28,7 @@ export abstract class AbstractMedia implements IClip {
     
     this._ready = false;
     this.totalTimeInMilSeconds = 1;
-    this.startTime = 0;
+    this._startTime = 0;
     this._width = 0;
     this._height = 0;
     this._renderer = new Canvas2DRender();
@@ -61,6 +60,13 @@ export abstract class AbstractMedia implements IClip {
 
   get height(): number {
     return this._height;
+  }
+
+  set startTime(value: number) {
+    this._startTime = value;
+  }
+  get startTime(): number {
+    return this._startTime;
   }
 
   get audioBuffer(): AudioBuffer | null {
@@ -249,11 +255,11 @@ export abstract class AbstractMedia implements IClip {
   }
 
   isVideo(): boolean {
-    return this instanceof VideoMedia;
+    return false;
   }
 
   isAudio(): boolean {
-    return this.audioBuffer !== null;
+    return false;
   }
 
   /**
@@ -316,20 +322,11 @@ export abstract class AbstractMedia implements IClip {
 /**
  * Non-video medias that can be resized and have their total time adjusted.
  */
-export abstract class FlexibleMedia extends AbstractMedia {
+export abstract class ResizableClip extends AbstractMedia {
   protected constructor(name: string) {
     super(name);
     this.totalTimeInMilSeconds = 2 * 1000;
     this._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime);
-  }
-
-  dump(): LayerDumpData {
-    let obj = super.dump();
-    obj.frames = [];
-    for (let f of this._frameService.frames) {
-      obj.frames.push(f.toArray());
-    }
-    return obj;
   }
 }
 

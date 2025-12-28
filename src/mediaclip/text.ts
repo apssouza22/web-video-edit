@@ -1,9 +1,9 @@
-import {AbstractMedia, FlexibleMedia} from './media-common';
+import {AbstractMedia, ResizableClip} from './media-common';
 import {LayerChange, LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 import {dpr} from '@/constants';
 
-export class TextMedia extends FlexibleMedia {
+export class TextMedia extends ResizableClip {
   private _color: string;
   private _shadow: boolean;
   private _fontSize = 30;
