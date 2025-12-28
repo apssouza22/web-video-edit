@@ -8,7 +8,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
   #timestamps: number[];
   #frameCache: FrameCache;
   #targetFps: number;
-  #bufferDurationSeconds: number = 2.0;
+  #bufferDurationSeconds: number = 20.0;
   #currentIndex: number = -1;
   #lastRequestedIndex: number = -1;
   #activeBatchRequest: string | null = null;
