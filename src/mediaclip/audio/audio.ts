@@ -4,6 +4,7 @@ import type {ESAudioContext, IAudioClip} from "../types";
 import {AudioSplitHandler} from "@/mediaclip/audio/AudioSplitHandler";
 import {AudioCutter} from "@/mediaclip/audio/audio-cutter";
 import {AudioFrameSource} from "@/mediaclip/mediasource";
+import {Canvas2DRender} from "@/common/render-2d";
 
 export class AudioMedia extends AbstractMedia implements IAudioClip {
   private audioFrameSource: AudioFrameSource | undefined;
@@ -95,6 +96,12 @@ export class AudioMedia extends AbstractMedia implements IAudioClip {
     if (!this.source.isConnected){
       this.connectAudioSource(this._playerAudioContext!);
     }
+
+    // Keeping the standard render cache mechanism for consistency, even though audio rendering is handled differently
+    if (!this.shouldReRender(currentTime)) {
+      return;
+    }
+    this.updateRenderCache(currentTime);
   }
 
   playStart(time: number): void {

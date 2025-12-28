@@ -218,13 +218,19 @@ export class VideoCanvas {
       }
       this.setTime(newTime);
     }
-
-    if (this.lastPlayedTime !== this.time || this.isPlaying() || this.layers.some(layer => layer.isUpdated)) {
+    if (this.shouldReRender()) {
       await this.renderLayers();
-      const find = this.layers.find(layer => !layer.media.isAudio() && !layer.media.shouldReRender(this.time));
-      this.lastPlayedTime = find ? this.time : null;
+      const alreadyRendered = this.layers.find(layer => !layer.media.shouldReRender(this.time));
+      this.lastPlayedTime = alreadyRendered ? this.time : null;
     }
     return this.time;
+  }
+
+  private shouldReRender() {
+    if(this.lastPlayedTime !== this.time || this.isPlaying()){
+      return true;
+    }
+    this.layers.some(layer => layer.isUpdated);
   }
 
   /**

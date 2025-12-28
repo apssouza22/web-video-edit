@@ -96,8 +96,15 @@ export class ComposedMedia extends AbstractMedia implements IAudioClip{
   }
 
   async render(ctxOut: CanvasRenderingContext2D, currentTime: number, playing: boolean = false): Promise<void> {
+    if (!this.isLayerVisible(currentTime)) {
+      return;
+    }
+    if (!this.shouldReRender(currentTime)) {
+      return;
+    }
     await this.videoMedia.render(ctxOut, currentTime, playing);
     await this.audioMedia.render(ctxOut, currentTime, playing);
+    this.updateRenderCache(currentTime);
   }
 
   async getFrameAtIndex(index: number, preFetch: boolean = true): Promise<ImageBitmap | null> {
