@@ -5,12 +5,13 @@ import {TextTimelineLayer} from './text-timeline-layer';
 import {CaptionTimelineLayer} from './caption-timeline-layer';
 import {ShapeTimelineLayer} from './shape-timeline-layer';
 import type {TimelineLayer} from './timeline-layer';
-import {AbstractMedia, ComposedMedia, ShapeMedia} from "@/mediaclip";
+import {ComposedMedia, ShapeMedia} from "@/mediaclip";
 import {VideoMedia} from "@/mediaclip/video";
 import {AudioMedia} from "@/mediaclip/audio";
 import {ImageMedia} from "@/mediaclip/image";
 import {CaptionMedia} from "@/mediaclip/caption";
 import {ComposedTimelineLayer} from "@/timeline/layers/composed-timeline-layer";
+import {IClipTl} from "@/timeline/types";
 
 /**
  * Factory class for creating timeline media renderers
@@ -19,14 +20,14 @@ export class TimelineLayerFactory {
   /**
    * Create a timeline media renderer based on the media type
    * @param {CanvasRenderingContext2D} ctx - The canvas context to render on
-   * @param {MediaInterface} layer - The media data to render
+   * @param {IClipTl} layer - The media data to render
    * @param {number} totalTime - The total time duration of the timeline
    * @param {number} canvasWidth - The width of the timeline canvas
    * @returns {TimelineLayer} - The appropriate timeline media renderer
    */
   static createTimelineLayer(
     ctx: CanvasRenderingContext2D,
-    layer: AbstractMedia,
+    layer: IClipTl,
     totalTime: number,
     canvasWidth: number
   ): TimelineLayer {

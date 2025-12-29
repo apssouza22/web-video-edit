@@ -157,9 +157,12 @@ export class TimelineCursor {
       return 'ew-resize';
     }
 
-    // Priority 2: Handle hover states (when not dragging)
-    if (this.isOverLeftHandle() || this.isOverRightHandle()) {
+    if (this.isOverRightHandle()) {
       return 'col-resize';
+    }
+
+    if (this.isOverLeftHandle()) {
+      return 'grab';
     }
 
     // Priority 3: Layer hover state

@@ -14,11 +14,11 @@ import {TimelineCursor} from './cursor';
  * Class representing a timeline for a video player
  */
 export class Timeline {
-  selectedLayer: AbstractMedia | null;
+  selectedLayer: IClipTl | null;
   isHover: boolean;
   time: number;
   playerTime: number;
-  layers: AbstractMedia[];
+  layers: IClipTl[];
   scale: number;
   totalTime: number;
   timelineCanvas: HTMLCanvasElement;
@@ -93,7 +93,7 @@ export class Timeline {
    * Setter for selectedLayer property that notifies listeners when selectedLayer changes
    * @param {IClipTl|null} newSelectedLayer - The new selected media
    */
-  setSelectedLayer(newSelectedLayer: AbstractMedia) {
+  setSelectedLayer(newSelectedLayer: IClipTl) {
     const oldSelectedLayer = this.selectedLayer;
     this.selectedLayer = newSelectedLayer;
     if (oldSelectedLayer === newSelectedLayer) {
@@ -161,8 +161,9 @@ export class Timeline {
     }
 
     // Pass coordinates for drag mode determination
-    this.dragHandler.startLayerDrag(this.selectedLayer, this.time, ev.offsetX, ev.offsetY);
     this.cursor.startDrag(ev.offsetX, ev.offsetY);
+    const cursorState = this.cursor.getCursorState();
+    this.dragHandler.startLayerDrag(this.selectedLayer, this.time, ev.offsetY, cursorState);
   }
 
   /**
@@ -177,32 +178,10 @@ export class Timeline {
     let rect = this.timelineCanvas.getBoundingClientRect();
     let time = ev.offsetX / rect.width * this.totalTime;
     this.cursor.updateData(time, this.selectedLayer!, ev.offsetX, ev.offsetY);
-    const state = this.cursor.getCursorState();
-    this.#updateCursor(state);
-    this.dragHandler.updateDrag(time, this.selectedLayer!, ev.offsetX, ev.offsetY);
+    const cursorState = this.cursor.getCursorState();
+    document.body.style.cursor = cursorState.cssCursor
+    this.dragHandler.updateDrag(time, this.selectedLayer!, ev.offsetY, cursorState);
     this.setTime(time);
-  }
-
-  /**
-   * Update cursor based on current state and hover position
-   * @param {number} time - Current time position
-   * @private
-   */
-  #updateCursor(time: CursorState) {
-    const state = this.cursor.getCursorState();
-    console.log('[Timeline] Cursor State:', state);
-    document.body.style.cursor = state.cssCursor
-    if (state.dragMode === 'vertical') {
-      this.timelineCanvas.className = "timeline-dragging-vertical";
-    } else if (state.dragMode === 'horizontal') {
-      this.timelineCanvas.className = "timeline-dragging-horizontal";
-    } else {
-      this.timelineCanvas.className = "";
-    }
-  }
-
-  intersectsTime(time: number, query: number) {
-    return Math.abs(query - time) / this.totalTime < 0.01;
   }
 
   /**
@@ -212,7 +191,8 @@ export class Timeline {
     document.body.style.cursor = "default";
     this.timelineCanvas.className = "";
     // Finish drag operation and check if reordering occurred
-    const reorderOccurred = this.dragHandler.finishDrag();
+    const cursorState = this.cursor.getCursorState();
+    const reorderOccurred = this.dragHandler.finishDrag(cursorState);
     this.cursor.finishDrag();
     // If reordering occurred, trigger a re-render
     if (reorderOccurred) {
@@ -225,7 +205,7 @@ export class Timeline {
     this.layers = layers;
   }
 
-  getLayerHeight(media: AbstractMedia): number {
+  getLayerHeight(media: IClipTl): number {
     if (media instanceof ComposedMedia) {
       return this.layerHeight * 2;
     }
@@ -267,7 +247,8 @@ export class Timeline {
     if (this.isHover) {
       renderLineMarker(this.time, this.timelineCtx, this.totalTime, this.timeMarker.height);
     }
-    this.dragHandler.renderFeedback(this.timelineCtx);
+    const cursorState = this.cursor.getCursorState();
+    this.dragHandler.renderFeedback(this.timelineCtx, cursorState);
   }
 
   private renderLayers() {
@@ -334,7 +315,7 @@ export class Timeline {
     return true;
   }
 
-  #updateTotalTime(layers: AbstractMedia[]) {
+  #updateTotalTime(layers: IClipTl[]) {
     if (layers.length === 0) {
       this.totalTime = 0;
       return;

@@ -2,12 +2,12 @@
  * Handles media reordering through vertical drag operations in the timeline
  */
 import {Timeline} from "./timeline";
-import {AbstractMedia} from "@/mediaclip";
+import {IClipTl} from "@/timeline/types";
 
 export class LayerReorderHandler {
   timeline: Timeline;
   isDragging: boolean;
-  draggedLayer: AbstractMedia | null;
+  draggedLayer: IClipTl | null;
   dragStartY: number;
   currentDropIndex: number;
   dropZones: Array<{ y: number; index: number; isTop: boolean }>;
@@ -28,10 +28,10 @@ export class LayerReorderHandler {
 
   /**
    * Start vertical media reordering drag operation
-   * @param {MediaInterface} layer - The media being dragged
+   * @param {IClipTl} layer - The media being dragged
    * @param {number} startY - Initial Y coordinate
    */
-  startReorder(layer: AbstractMedia, startY: number) {
+  startReorder(layer: IClipTl, startY: number) {
     this.isDragging = true;
     this.draggedLayer = layer;
     this.dragStartY = startY;
@@ -152,7 +152,7 @@ export class LayerReorderHandler {
    * @returns {number} - Layer index
    * @private
    */
-  #findCurrentLayerIndex(layer: AbstractMedia): number {
+  #findCurrentLayerIndex(layer: IClipTl): number {
     return this.timeline.layers.indexOf(layer);
   }
 

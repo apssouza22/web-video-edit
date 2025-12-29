@@ -44,7 +44,7 @@ export class TimelineLayerRender {
    * Get or create a timeline media renderer for the given media
    * @param {IClipTl} layer - The media to get renderer for
    */
-  #getLayerRenderer(layer: AbstractMedia) {
+  #getLayerRenderer(layer: IClipTl) {
     const layerId = layer.id + '-' + layer.getTotalFrames();
     
     if (!this.#layerRenderers.has(layerId)) {
@@ -67,7 +67,7 @@ export class TimelineLayerRender {
    * @param {number} height - The height of the media track
    * @param {boolean} selected - Whether the media is selected
    */
-  renderLayer(layer: AbstractMedia, yPos: number, height: number, selected: boolean = false) {
+  renderLayer(layer: IClipTl, yPos: number, height: number, selected: boolean = false) {
     if(layer.totalTimeInMilSeconds === 0) {
       return;
     }

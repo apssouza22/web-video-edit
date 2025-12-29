@@ -1,44 +1,31 @@
-import { LayerReorderHandler } from './layer-reorder-handler';
-import type { IClipTl } from './types';
+import {LayerReorderHandler} from './layer-reorder-handler';
+import type {CursorState, IClipTl} from './types';
 import {Timeline} from "./timeline";
-import {AbstractMedia} from "@/mediaclip";
 import {ResizableClip} from "@/mediaclip/media-common";
 
 /**
- * Handles media dragging and scrubbing in the timeline
+ * Handles media dragging and scrubbing in the timeline.
  */
 export class DragLayerHandler {
   dragging: null | ((time: number, selectedLayer: IClipTl) => void);
-  time: number;
-  timeline: any; // Avoid circular type; must provide .intersectsTime(), .minLayerSpacing etc.
   reorderHandler: LayerReorderHandler;
-  dragMode: 'horizontal' | 'vertical' | 'none';
-  dragStartX: number;
-  dragStartY: number;
-  dragThreshold: number;
-  selectedLayer?: AbstractMedia | null;
-  initialTime?: number;
+  private dragStartY: number;
 
   /**
    * @param {Timeline} timeline - The timeline instance
    */
   constructor(timeline: Timeline) {
     this.dragging = null;
-    this.time = timeline.time;
-    this.timeline = timeline;
     this.reorderHandler = new LayerReorderHandler(timeline);
-    this.dragMode = 'none'; // 'horizontal', 'vertical', 'none'
-    this.dragStartX = 0;
     this.dragStartY = 0;
-    this.dragThreshold = 10; // Pixels to move before determining drag direction
   }
 
-  dragLayer(time: number, selectedLayer: IClipTl, currentX: number, currentY: number) {
-    if (this.dragMode === 'horizontal' && this.dragging) {
+  dragLayer(time: number, selectedLayer: IClipTl, currentY: number, cursorState: CursorState) {
+    if (cursorState.dragMode === 'horizontal' && this.dragging) {
       this.dragging(time, selectedLayer);
       return;
     }
-    if (this.dragMode === 'vertical') {
+    if (cursorState.dragMode === 'vertical') {
       this.reorderHandler.updateDrag(currentY);
     }
   }
@@ -46,53 +33,23 @@ export class DragLayerHandler {
   /**
    * Handle the media drag operation based on current time position
    */
-  startLayerDrag(selectedLayer: AbstractMedia, time: number, startX: number, startY: number) {
-    this.dragStartX = startX;
+  startLayerDrag(selectedLayer: IClipTl, time: number, startY: number, cursorState: CursorState) {
     this.dragStartY = startY;
-    this.dragMode = 'none';
-    
-    const endTime = selectedLayer.startTime + selectedLayer.totalTimeInMilSeconds;
-    
-    // If the click is at the media's end time, adjust the total time. Change the width of the media
-    if (this.timeline.intersectsTime(endTime, time)) {
+    this.dragging = null;
+    if (cursorState.isOverRightHandle) {
       this.dragging = this.#getResizeLayerEndFn(selectedLayer);
-      this.dragMode = 'horizontal';
       return;
     }
 
-    // If the click is at the media's start time, adjust the total time. Change the width of the media
-    if (this.timeline.intersectsTime(selectedLayer.startTime, time)) {
+    // If clicking on left handle, move start time
+    if (cursorState.isOverLeftHandle) {
       this.dragging = this.#getMoveLayerStartFn(selectedLayer);
-      this.dragMode = 'horizontal';
       return;
     }
 
-    // If the click is within the media's time, determine drag mode based on movement
-    if (time < endTime && time > selectedLayer.startTime) {
-      this.selectedLayer = selectedLayer;
-      this.initialTime = time;
-    }
-  }
-
-  /**
-   * Determine drag mode based on initial movement
-   * @param {number} currentX - Current X coordinate
-   * @param {number} currentY - Current Y coordinate
-   */
-  #determineDragMode(currentX: number, currentY: number) {
-    const deltaX = Math.abs(currentX - this.dragStartX);
-    const deltaY = Math.abs(currentY - this.dragStartY);
-    
-    if (deltaX < this.dragThreshold && deltaY < this.dragThreshold) {
-      return;
-    }
-    
-    if (deltaX > deltaY) {
-      this.dragMode = 'horizontal';
-      this.dragging = this.#getMoveEntireLayerFn(this.initialTime!);
-    } else {
-      this.dragMode = 'vertical';
-      this.reorderHandler.startReorder(this.selectedLayer!, this.dragStartY);
+    // If clicking within the layer body, prepare to move entire layer or reorder
+    if (cursorState.isOverSelectedLayer) {
+      this.dragging = this.#getMoveEntireLayerFn(time);
     }
   }
 
@@ -100,28 +57,31 @@ export class DragLayerHandler {
    * Update drag operation with current coordinates
    * @param {number} time - Current time
    * @param {IClipTl} selectedLayer - Selected media
-   * @param {number} currentX - Current X coordinate
    * @param {number} currentY - Current Y coordinate
+   * @param {CursorState} cursorState - Current cursor state from TimelineCursor
    */
-  updateDrag(time: number, selectedLayer: IClipTl, currentX: number, currentY: number) {
-    if (this.dragMode === 'none' && this.selectedLayer) {
-      this.#determineDragMode(currentX, currentY);
+  updateDrag(time: number, selectedLayer: IClipTl, currentY: number, cursorState: CursorState) {
+    if (cursorState.dragMode === 'vertical' && cursorState.dragStatus === 'started') {
+      if (!this.reorderHandler.isDragging) {
+        this.reorderHandler.startReorder(selectedLayer, this.dragStartY);
+      }
     }
-    
-    this.dragLayer(time, selectedLayer, currentX, currentY);
+
+    this.dragLayer(time, selectedLayer, currentY, cursorState);
   }
 
   /**
    * Finish the current drag operation
+   * @param {CursorState} cursorState - Current cursor state
    * @returns {boolean} - Whether a reorder operation was completed
    */
-  finishDrag(): boolean {
+  finishDrag(cursorState: CursorState): boolean {
     let reorderOccurred = false;
-    
-    if (this.dragMode === 'vertical') {
+
+    if (cursorState.dragMode === 'vertical') {
       reorderOccurred = this.reorderHandler.finishReorder();
     }
-    
+
     this.#resetDrag();
     return reorderOccurred;
   }
@@ -129,9 +89,10 @@ export class DragLayerHandler {
   /**
    * Render drag feedback
    * @param {CanvasRenderingContext2D} ctx - Canvas context
+   * @param {CursorState} cursorState - Current cursor state
    */
-  renderFeedback(ctx: CanvasRenderingContext2D) {
-    if (this.dragMode === 'vertical') {
+  renderFeedback(ctx: CanvasRenderingContext2D, cursorState: CursorState) {
+    if (cursorState.dragMode === 'vertical') {
       this.reorderHandler.renderFeedback(ctx);
     }
   }
@@ -142,10 +103,6 @@ export class DragLayerHandler {
    */
   #resetDrag() {
     this.dragging = null;
-    this.dragMode = 'none';
-    this.selectedLayer = null;
-    this.initialTime = 0;
-    this.dragStartX = 0;
     this.dragStartY = 0;
   }
 

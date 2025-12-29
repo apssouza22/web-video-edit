@@ -1378,22 +1378,9 @@ a:visited {
   filter: blur(1px);
 }
 
-/* Cursor styles during drag operations */
-.timeline-dragging-vertical {
-  cursor: ns-resize !important;
-}
-
-.timeline-dragging-horizontal {
-  cursor: ew-resize !important;
-}
-
 /* Timeline canvas hover states */
 #timeline_content canvas {
   transition: cursor 0.1s ease;
-}
-
-#timeline_content canvas:hover {
-  cursor: grab;
 }
 
 #timeline_content canvas:active {
