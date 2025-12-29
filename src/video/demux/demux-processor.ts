@@ -1,6 +1,4 @@
-import { ALL_FORMATS, BlobSource, Input, VideoSampleSink } from 'mediabunny';
-import {VideoMetadata} from "@/mediaclip/types";
-import * as timers from "node:timers";
+import {ALL_FORMATS, BlobSource, Input, VideoSampleSink} from 'mediabunny';
 
 type PostMessageFn = {
   (message: any, targetOrigin: string, transfer?: Transferable[]): void;
@@ -177,40 +175,46 @@ export class DemuxProcessor {
       let currentIndex = startIndex;
 
       for await (const videoSample of frameIterator) {
-        if (this.#activeBatchRequest !== requestId) {
-          console.log(`[DemuxProcessor] Batch ${requestId} cancelled at frame ${currentIndex}`);
-          return;
-        }
-
-        if (currentIndex >= endIndex) {
-          break;
-        }
-
-        let imageBitmap: ImageBitmap | null = null;
         try {
-          const videoFrame = videoSample.toVideoFrame();
-          imageBitmap = await createImageBitmap(videoFrame);
-          videoFrame.close();
-          videoSample.close();
-        } catch (error) {
-          console.error(`[DemuxProcessor] Error creating bitmap at index ${currentIndex}:`, error);
-        }
+          if (this.#activeBatchRequest !== requestId) {
+            console.log(`[DemuxProcessor] Batch ${requestId} cancelled at frame ${currentIndex}`);
+            return;
+          }
 
-        processedFrames++;
-        const isComplete = processedFrames === totalFrames;
-        if (imageBitmap) {
-          this.#postMessage({
-            type: 'batch-frame',
-            videoId: this.#videoId,
-            requestId,
-            index: currentIndex,
-            frame: imageBitmap,
-            progress: processedFrames / totalFrames,
-            isComplete,
-            // @ts-ignore - Transfer ImageBitmap to main thread for efficient memory handling
-          }, [imageBitmap]);
+          if (currentIndex >= endIndex) {
+            break;
+          }
+
+          let videoFrame: VideoFrame | null = null;
+          let imageBitmap: ImageBitmap | null = null;
+
+          try {
+            videoFrame = videoSample.toVideoFrame();
+            imageBitmap = await createImageBitmap(videoFrame);
+
+            processedFrames++;
+            const isComplete = processedFrames === totalFrames;
+            this.#postMessage({
+              type: 'batch-frame',
+              videoId: this.#videoId,
+              requestId,
+              index: currentIndex,
+              frame: imageBitmap,
+              progress: processedFrames / totalFrames,
+              isComplete,
+              // @ts-ignore - Transfer ImageBitmap to main thread for efficient memory handling
+            }, [imageBitmap]);
+
+          } catch (error) {
+            console.error(`[DemuxProcessor] Error creating bitmap at index ${currentIndex}:`, error);
+            imageBitmap?.close();  // Close if created but message failed
+          } finally {
+            videoFrame?.close();
+          }
+          currentIndex++;
+        } finally {
+          videoSample.close();
         }
-        currentIndex++;
       }
 
       if (this.#activeBatchRequest === requestId) {

@@ -63,6 +63,7 @@ export class WorkerVideoStreaming implements VideoStreamingInterface {
   #handleBatchFrameResponse(response: BatchFrameResponse): void {
     if (response.requestId !== this.#activeBatchRequest) {
       console.log(`[WorkerVideoStreaming] Ignoring frame from cancelled batch ${response.requestId}`);
+      response.frame?.close();  // Close the ImageBitmap before returning
       return;
     }
 

@@ -13,7 +13,6 @@ import {setupTimelineHeaderButtons} from "@/timeline/header-buttons";
  * Class representing a timeline for a video player
  */
 export class Timeline {
-  studio: any;
   selectedLayer: AbstractMedia | null;
   isHover: boolean;
   time: number;
