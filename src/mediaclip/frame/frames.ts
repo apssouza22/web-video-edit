@@ -16,8 +16,8 @@ export class FrameService {
     this.totalTimeInSeconds = milSeconds / 1000;
     this.timestamps = timestamps || [];
     console.log(`[FrameService] Constructor - received ${timestamps?.length || 0} timestamps (milSeconds: ${milSeconds})`);
-    this.timeAdjustHandler = new FrameAdjustHandler(this);
     this.initializeFrames();
+    this.timeAdjustHandler = new FrameAdjustHandler(this);
   }
 
   adjustTotalTime(diff: number): void {

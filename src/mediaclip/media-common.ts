@@ -97,6 +97,7 @@ export abstract class AbstractMedia implements IClip {
       console.log("Audio media cannot adjust total time");
       return;
     }
+
     this._frameService.adjustTotalTime(diff);
     this.totalTimeInMilSeconds = this._frameService.getTotalTimeInMilSec();
     this.#resetRenderCache();

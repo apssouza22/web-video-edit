@@ -3,7 +3,7 @@ import { FrameService } from "./frames";
 import { Frame } from "./frame";
 
 export class FrameAdjustHandler {
-  private framesCollection: FrameService;
+  private readonly framesCollection: FrameService;
 
   constructor(framesCollection: FrameService) {
     this.framesCollection = framesCollection;
@@ -108,38 +108,8 @@ export class FrameAdjustHandler {
 
   #handleAddFrame(oldNumFrames: number, frameDiff: number, diff: number): void {
     const lastFrame = this.framesCollection.frames[oldNumFrames - 1];
-    
-    // Check if the last frameObject is ImageData for special handling
-    if (lastFrame.videoData instanceof ImageData) {
-      // Create copies of the last frameObject to extend the video
-      for (let i = 0; i < frameDiff; i++) {
-        const imageData = lastFrame.videoData as ImageData;
-        const newImageData = new ImageData(
-          new Uint8ClampedArray(imageData.data),
-          imageData.width,
-          imageData.height
-        );
-        const newFrame = new Frame(
-          newImageData,
-          lastFrame.x,
-          lastFrame.y,
-          lastFrame.scale,
-          lastFrame.rotation,
-          lastFrame.anchor
-        );
-        this.framesCollection.frames.push(newFrame);
-      }
-      console.log(
-        `Extended video layer by ${diff}ms, added ${frameDiff} frames. ` +
-        `New duration: ${this.framesCollection.totalTimeInMilSeconds / 1000}s`
-      );
-      return;
-    }
-    
-    // Default case: add empty frames
     for (let i = 0; i < frameDiff; ++i) {
-      const f = new Frame(null, 0, 0, 1, 0, false);
-      this.framesCollection.push(f);
+      this.framesCollection.push(lastFrame.clone());
     }
   }
 }

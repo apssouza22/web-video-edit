@@ -49,30 +49,6 @@ export class Frame implements FrameTransform {
         );
     }
 
-    /**
-     * Converts Frame to Float32Array (for backward compatibility)
-     */
-    toArray(): Float32Array {
-        const array = new Float32Array(5);
-        array[0] = this.x;
-        array[1] = this.y;
-        array[2] = this.scale;
-        array[3] = this.rotation;
-        array[4] = this.anchor ? 1 : 0;
-        array[5] = this.index;
-        return array;
-    }
-
-    async toImageData(): Promise<ImageData | null> {
-        if (this.videoData instanceof ImageData) {
-            return this.videoData;
-        }
-        if (this.videoData instanceof ImageBitmap) {
-            return imageBitmapToImageData(this.videoData);
-        }
-        return null;
-    }
-
 
     /**
      * Creates a copy of this frame
