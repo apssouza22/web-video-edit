@@ -3,11 +3,12 @@ import {TimelineZoomHandler} from './zoom';
 import {DragLayerHandler} from './drag';
 import {TimelineLayerRender} from './layers/tllayer-render';
 import {dpr} from '@/constants';
-import type {LayerUpdateKind, IClipTl} from './types';
-import {getEventBus, MediaLibraryDropEvent, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
+import type {CursorState, IClipTl} from './types';
+import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
 import {AbstractMedia, ComposedMedia} from "@/mediaclip";
 import {renderLineMarker} from "@/timeline/line-marker";
 import {setupTimelineHeaderButtons} from "@/timeline/header-buttons";
+import {TimelineCursor} from './cursor';
 
 /**
  * Class representing a timeline for a video player
@@ -30,6 +31,7 @@ export class Timeline {
   layerRenderer: TimelineLayerRender;
   dragHandler: DragLayerHandler;
   private zoomHandler: TimelineZoomHandler;
+  private cursor: TimelineCursor;
   #eventBus = getEventBus();
 
 
@@ -64,6 +66,7 @@ export class Timeline {
     );
     this.dragHandler = new DragLayerHandler(this);
     this.zoomHandler = new TimelineZoomHandler(this);
+    this.cursor = new TimelineCursor();
 
     this.#addEventListeners();
     this.#setupPinchHandler();
@@ -159,6 +162,7 @@ export class Timeline {
 
     // Pass coordinates for drag mode determination
     this.dragHandler.startLayerDrag(this.selectedLayer, this.time, ev.offsetX, ev.offsetY);
+    this.cursor.startDrag(ev.offsetX, ev.offsetY);
   }
 
   /**
@@ -172,7 +176,9 @@ export class Timeline {
     this.isHover = true;
     let rect = this.timelineCanvas.getBoundingClientRect();
     let time = ev.offsetX / rect.width * this.totalTime;
-    this.#updateCursor(time);
+    this.cursor.updateData(time, this.selectedLayer!, ev.offsetX, ev.offsetY);
+    const state = this.cursor.getCursorState();
+    this.#updateCursor(state);
     this.dragHandler.updateDrag(time, this.selectedLayer!, ev.offsetX, ev.offsetY);
     this.setTime(time);
   }
@@ -182,31 +188,16 @@ export class Timeline {
    * @param {number} time - Current time position
    * @private
    */
-  #updateCursor(time: number) {
-    const dragMode = this.dragHandler.dragMode;
-
-    if (dragMode === 'vertical') {
-      document.body.style.cursor = "ns-resize";
+  #updateCursor(time: CursorState) {
+    const state = this.cursor.getCursorState();
+    console.log('[Timeline] Cursor State:', state);
+    document.body.style.cursor = state.cssCursor
+    if (state.dragMode === 'vertical') {
       this.timelineCanvas.className = "timeline-dragging-vertical";
-      return;
-    }
-    if (dragMode === 'horizontal') {
-      document.body.style.cursor = "ew-resize";
+    } else if (state.dragMode === 'horizontal') {
       this.timelineCanvas.className = "timeline-dragging-horizontal";
-      return;
-    }
-    // Default hover behavior
-    document.body.style.cursor = "default";
-    this.timelineCanvas.className = "";
-
-    if (this.selectedLayer) {
-      if (this.intersectsTime(this.selectedLayer.startTime, time)) {
-        document.body.style.cursor = "col-resize";
-      }
-      const endTime = this.selectedLayer.startTime + this.selectedLayer.totalTimeInMilSeconds;
-      if (this.intersectsTime(endTime, time)) {
-        document.body.style.cursor = "col-resize";
-      }
+    } else {
+      this.timelineCanvas.className = "";
     }
   }
 
@@ -222,6 +213,7 @@ export class Timeline {
     this.timelineCanvas.className = "";
     // Finish drag operation and check if reordering occurred
     const reorderOccurred = this.dragHandler.finishDrag();
+    this.cursor.finishDrag();
     // If reordering occurred, trigger a re-render
     if (reorderOccurred) {
       this.render();

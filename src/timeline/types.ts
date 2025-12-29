@@ -14,3 +14,12 @@ export interface IClipTl extends IClip{
 
 export type LayerUpdateKind = 'select' | 'delete' | 'split' | 'clone' | 'reorder';
 
+export interface CursorState {
+  dragMode: "horizontal" | "vertical" | "none";
+  isOverLeftHandle: boolean;
+  dragStatus: "started" | "finished" | "none";
+  isOverRightHandle: boolean;
+  isOverSelectedLayer: boolean;
+  cssCursor: string
+}
+
