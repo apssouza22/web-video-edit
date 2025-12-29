@@ -1,7 +1,7 @@
 import { Frame } from '@/mediaclip/frame';
 import { ESRenderingContext2D } from '@/common/render-2d';
 import { VideoStreamingInterface } from '@/video/demux';
-import {AbstractMedia} from "@/mediaclip/media-common";
+import {AbstractClip} from "@/mediaclip/media-common";
 
 export type LayerFile  = File & { uri?: string, buffer?: AudioBuffer };
 export type ESAudioContext = AudioContext | OfflineAudioContext;
@@ -58,7 +58,7 @@ export interface IAudioClip extends IClip {
 export type LayerLoadUpdateListener = (
   progress: number,
   layerName: string,
-  layer?: AbstractMedia,
+  layer?: AbstractClip,
   audioBuffer?: AudioBuffer | null
 ) => void;
 

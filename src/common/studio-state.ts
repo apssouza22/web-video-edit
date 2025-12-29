@@ -1,11 +1,11 @@
-import {AbstractMedia} from "@/mediaclip";
+import {AbstractClip} from "@/mediaclip";
 import {AudioMedia} from "@/mediaclip/audio";
 
 class StudioState {
   private static instance: StudioState | null = null;
 
-  private medias: AbstractMedia[] = [];
-  private selectedMedia: AbstractMedia | null = null;
+  private medias: AbstractClip[] = [];
+  private selectedMedia: AbstractClip | null = null;
   private _isPlaying: boolean = false;
   private playingTime: number = 0;
   private maxWidth: number = 0;
@@ -35,31 +35,31 @@ class StudioState {
     this.playingTime = currentTime;
   }
 
-  addMedia(media: AbstractMedia): void {
+  addMedia(media: AbstractClip): void {
     this.medias.push(media);
   }
 
-  getMedias(): AbstractMedia[] {
+  getMedias(): AbstractClip[] {
     return this.medias.slice();
   }
 
-  getMediaVideo(): AbstractMedia[] {
+  getMediaVideo(): AbstractClip[] {
     return this.medias.filter(media => media.isVideo());
   }
 
-  getMediaAudio(): AbstractMedia[] {
+  getMediaAudio(): AbstractClip[] {
     return this.medias.filter(media => media.isAudio());
   }
 
-  getSelectedMedia(): AbstractMedia | null {
+  getSelectedMedia(): AbstractClip | null {
     return this.selectedMedia;
   }
 
-  setSelectedMedia(media: AbstractMedia): void {
+  setSelectedMedia(media: AbstractClip): void {
     this.selectedMedia = media;
   }
 
-  getMediaById(id: string): AbstractMedia | null {
+  getMediaById(id: string): AbstractClip | null {
     const media = this.medias.find(media => media.id === id);
     return media ? media : null;
   }
@@ -84,7 +84,7 @@ class StudioState {
     this.medias.splice(adjustedToIndex, 0, layer);
   }
 
-  removeMedia(media: AbstractMedia) {
+  removeMedia(media: AbstractClip) {
     const idx = this.medias.indexOf(media);
     if (idx > -1) {
       this.medias.splice(idx, 1);
@@ -95,7 +95,7 @@ class StudioState {
     return this.currentAspectRatio;
   }
 
-  findClipByName(name: string): AbstractMedia[] {
+  findClipByName(name: string): AbstractClip[] {
     return this.medias.filter(media => media.name.indexOf(name) >= 0);
   }
 }

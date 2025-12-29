@@ -1,4 +1,4 @@
-import {AbstractMedia} from '@/mediaclip/media-common';
+import {AbstractClip} from '@/mediaclip/media-common';
 import {AudioSource} from '@/mediaclip/audio/audio-source';
 import type {ESAudioContext, IAudioClip} from "../types";
 import {AudioSplitHandler} from "@/mediaclip/audio/AudioSplitHandler";
@@ -6,7 +6,7 @@ import {AudioCutter} from "@/mediaclip/audio/audio-cutter";
 import {AudioFrameSource} from "@/mediaclip/mediasource";
 import {Canvas2DRender} from "@/common/render-2d";
 
-export class AudioMedia extends AbstractMedia implements IAudioClip {
+export class AudioMedia extends AbstractClip implements IAudioClip {
   private audioFrameSource: AudioFrameSource | undefined;
   private source: AudioSource;
   private currentSpeed: number = 1.0;
@@ -143,18 +143,18 @@ export class AudioMedia extends AbstractMedia implements IAudioClip {
     console.log(`Updated total time for speed ${this.currentSpeed}: ${this.totalTimeInMilSeconds}ms from original ${this.originalTotalTimeInMilSeconds}ms`);
   }
 
-  protected _createCloneInstance(): AbstractMedia {
+  protected _createCloneInstance(): AbstractClip {
     const audioLayer = new AudioMedia(this.name);
     audioLayer._playerAudioContext = this._playerAudioContext;
     audioLayer._audioBuffer = this._audioBuffer;
     audioLayer.audioFrameSource = this.audioFrameSource;
-    return audioLayer as AbstractMedia;
+    return audioLayer as AbstractClip;
   }
 
   /**
    * Override split to handle audio-specific splitting
    */
-  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia {
+  protected _performSplit(mediaClone: AbstractClip, splitTime: number): AbstractClip {
     if (!this._audioBuffer || !this._playerAudioContext) {
       throw new Error('AudioMedia missing audioBuffer or playerAudioContext');
     }

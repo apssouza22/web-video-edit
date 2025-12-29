@@ -1,4 +1,4 @@
-import {AbstractMedia, ResizableClip} from '../media-common';
+import {AbstractClip, ResizableClip} from '../media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {ShapeType, ShapeStyle, ShapeConfig, DEFAULT_SHAPE_STYLE, SHAPE_PRESETS} from './types';
 import {dpr} from '@/constants';
@@ -184,16 +184,16 @@ export class ShapeMedia extends ResizableClip {
     Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
   }
 
-  protected _createCloneInstance(): AbstractMedia {
+  protected _createCloneInstance(): AbstractClip {
     const shape = new ShapeMedia(this.#shapeType, {
       style: { ...this.#style },
       width: this._width / dpr,
       height: this._height / dpr
     });
-    return shape as AbstractMedia;
+    return shape as AbstractClip;
   }
 
-  clone(): AbstractMedia {
+  clone(): AbstractClip {
     return super.clone();
   }
 

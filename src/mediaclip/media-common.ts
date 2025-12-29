@@ -3,7 +3,7 @@ import {Canvas2DRender, ESRenderingContext2D} from '@/common/render-2d';
 import {SpeedController} from './speed-controller';
 import {ESAudioContext, IClip, LayerChange, LayerDumpData, LayerLoadUpdateListener,} from './types';
 
-export abstract class AbstractMedia implements IClip {
+export abstract class AbstractClip implements IClip {
   audioStreamDestination: MediaStreamAudioDestinationNode | null = null;
   protected _audioBuffer: AudioBuffer | null = null;
   protected _playerAudioContext: ESAudioContext | null = null;
@@ -267,13 +267,13 @@ export abstract class AbstractMedia implements IClip {
    * Creates a new instance of the concrete media class for cloning
    * Each subclass must implement this to return a new instance of itself
    */
-  protected abstract _createCloneInstance(): AbstractMedia;
+  protected abstract _createCloneInstance(): AbstractClip;
 
   /**
    * Creates a clone of this media layer
    * @returns A new instance of the media with copied properties
    */
-  clone(): AbstractMedia {
+  clone(): AbstractClip {
     const newMedia = this._createCloneInstance();
     const cloneStartTime = this.startTime // 10ms offset
     newMedia._id =  crypto.randomUUID();
@@ -293,7 +293,7 @@ export abstract class AbstractMedia implements IClip {
    * @param splitTime - The time at which to split (in milliseconds)
    * @returns The first part of the split (clone), or null if split failed
    */
-  split(splitTime: number): AbstractMedia {
+  split(splitTime: number): AbstractClip {
     const mediaClone = this.clone();
     return this._performSplit(mediaClone, splitTime);
   }
@@ -304,7 +304,7 @@ export abstract class AbstractMedia implements IClip {
    * @param mediaClone - The cloned media that will become the first part
    * @param splitTime - The time at which to split (in milliseconds)
    */
-  protected _performSplit(mediaClone: AbstractMedia, splitTime: number): AbstractMedia {
+  protected _performSplit(mediaClone: AbstractClip, splitTime: number): AbstractClip {
     const pct = (splitTime - this.startTime) / this.totalTimeInMilSeconds;
     const split_idx = Math.round(pct * this._frameService.getLength());
 
@@ -323,7 +323,7 @@ export abstract class AbstractMedia implements IClip {
 /**
  * Non-video medias that can be resized and have their total time adjusted.
  */
-export abstract class ResizableClip extends AbstractMedia {
+export abstract class ResizableClip extends AbstractClip {
   protected constructor(name: string) {
     super(name);
     this.totalTimeInMilSeconds = 2 * 1000;

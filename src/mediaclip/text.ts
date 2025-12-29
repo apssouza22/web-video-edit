@@ -1,4 +1,4 @@
-import {AbstractMedia, ResizableClip} from './media-common';
+import {AbstractClip, ResizableClip} from './media-common';
 import {LayerChange, LayerFile} from './types';
 import {Canvas2DRender} from '@/common/render-2d';
 import {dpr} from '@/constants';
@@ -116,11 +116,11 @@ export class TextMedia extends ResizableClip {
     Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
   }
 
-  protected _createCloneInstance(): AbstractMedia {
-    return new TextMedia(this._name) as AbstractMedia;
+  protected _createCloneInstance(): AbstractClip {
+    return new TextMedia(this._name) as AbstractClip;
   }
 
-  clone(): AbstractMedia {
+  clone(): AbstractClip {
     const cloned = super.clone();
     if (cloned) {
       (cloned as TextMedia).color = this._color;

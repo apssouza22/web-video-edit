@@ -2,7 +2,7 @@ import {VideoMedia} from './video';
 import {ImageMedia} from './image';
 import {AudioMedia} from './audio/audio';
 import {MediaService} from './media-service';
-import {AbstractMedia} from './media-common';
+import {AbstractClip} from './media-common';
 import {TextMedia} from "./text";
 import {CaptionMedia} from "./caption";
 import {ShapeMedia, ShapeType} from './shape';
@@ -11,7 +11,7 @@ import {MediaLoader} from "@/mediaclip/mediasource";
 import {TranscriptionResult} from "@/transcription/types";
 import {ComposedMedia} from "@/mediaclip/ComposedMedia";
 
-export {AbstractMedia, addElementToBackground} from './media-common';
+export {AbstractClip, addElementToBackground} from './media-common';
 export {MediaService} from './media-service';
 export {SpeedController} from './speed-controller';
 export {ShapeMedia, ShapeType} from './shape';
@@ -27,9 +27,9 @@ export function createMediaService(): MediaService {
   return new MediaService();
 }
 
-export async function createMediaFromFile(file: File): Promise<Array<AbstractMedia>> {
+export async function createMediaFromFile(file: File): Promise<Array<AbstractClip>> {
 
-  const layers: AbstractMedia[] = [];
+  const layers: AbstractClip[] = [];
   if (file.type.indexOf('video') >= 0) {
     const [frameSource, audioFrameSource] = await Promise.all([
       MediaLoader.loadVideoMedia(file, (progress) => {
@@ -72,26 +72,26 @@ export async function createMediaFromFile(file: File): Promise<Array<AbstractMed
 function onLoadUpdateListener(
     progress: number,
     layerName: string,
-    layer?: AbstractMedia,
+    layer?: AbstractClip,
     audioBuffer?: AudioBuffer | null
 ): void {
   getEventBus().emit(new MediaLoadUpdateEvent(progress, layerName, layer, audioBuffer));
 }
 
-export function createMediaText(text: string): AbstractMedia {
+export function createMediaText(text: string): AbstractClip {
   return new TextMedia(text)
 }
 
-export function createMediaCaption(transcription: Map<string, TranscriptionResult>): AbstractMedia[] {
+export function createMediaCaption(transcription: Map<string, TranscriptionResult>): AbstractClip[] {
   console.log("Creating caption media from transcription results:", transcription);
-  const captions: AbstractMedia[] = [];
+  const captions: AbstractClip[] = [];
   transcription.forEach((result, _) => {
     captions.push(new CaptionMedia(result.audioId + "-captions", result.chunks));
   });
   return captions;
 }
 
-export function createMediaShape(shapeType: ShapeType): AbstractMedia {
+export function createMediaShape(shapeType: ShapeType): AbstractClip {
   return new ShapeMedia(shapeType);
 }
 

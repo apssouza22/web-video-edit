@@ -5,7 +5,7 @@ import {TimelineLayerRender} from './layers/tllayer-render';
 import {dpr} from '@/constants';
 import type {CursorState, IClipTl} from './types';
 import {getEventBus, PinchHandler, TimelineLayerUpdateEvent, TimelineTimeUpdateEvent} from '@/common';
-import {AbstractMedia, ComposedMedia} from "@/mediaclip";
+import {AbstractClip, ComposedMedia} from "@/mediaclip";
 import {renderLineMarker} from "@/timeline/line-marker";
 import {setupTimelineHeaderButtons} from "@/timeline/header-buttons";
 import {TimelineCursor} from './cursor';
@@ -201,7 +201,7 @@ export class Timeline {
     this.isHover = false;
   }
 
-  addLayers(layers: AbstractMedia[]) {
+  addLayers(layers: AbstractClip[]) {
     this.layers = layers;
   }
 

@@ -1,4 +1,4 @@
-import {AbstractMedia, ResizableClip} from './media-common';
+import {AbstractClip, ResizableClip} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {StudioState} from "@/common";
 import {FrameSource} from '@/mediaclip/mediasource';
@@ -49,7 +49,7 @@ export class ImageMedia extends ResizableClip {
   }
 
 
-  protected _createCloneInstance(): AbstractMedia {
+  protected _createCloneInstance(): AbstractClip {
     const imageMedia = new ImageMedia(this.name, this.frameSource);
     imageMedia.frameSource = this.frameSource;
     imageMedia._width = this._width;

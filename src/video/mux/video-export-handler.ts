@@ -1,6 +1,6 @@
 import {ExportOptionsManager} from './export-options-manager';
 import type {VideoExportService} from './video-export-service';
-import type {AbstractMedia} from '@/mediaclip';
+import type {AbstractClip} from '@/mediaclip';
 import {createVideoMuxer} from "./index";
 import {StudioState} from "@/common";
 
@@ -19,7 +19,7 @@ export class VideoExportHandler {
   private readonly exportOptionsManager: ExportOptionsManager;
   private readonly videoExporter: VideoExportService;
   private readonly onExport: () => void;
-  private readonly getMedias: () => AbstractMedia[];
+  private readonly getMedias: () => AbstractClip[];
 
   constructor(
       onExport: () => void

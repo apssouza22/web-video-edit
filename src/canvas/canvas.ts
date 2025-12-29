@@ -1,5 +1,5 @@
 import {dpr} from '@/constants';
-import {AbstractMedia, ESAudioContext} from '@/mediaclip';
+import {AbstractClip, ESAudioContext} from '@/mediaclip';
 import {CanvasLayer} from './canvas-layer.js';
 import type {CanvasContext2D, CanvasElement, PlayerEndCallback} from './types.js';
 import {StudioState} from "@/common/studio-state";
@@ -8,7 +8,7 @@ import {PinchHandler} from "@/common";
 import {IAudioClip} from "@/mediaclip/types";
 
 export class VideoCanvas {
-  #selectedLayer: AbstractMedia | null = null;
+  #selectedLayer: AbstractClip | null = null;
   #eventBus = getEventBus();
   #audioContextStartTime: number | null = null;
   #mediaStartTime: number = 0;
@@ -104,13 +104,13 @@ export class VideoCanvas {
     }
   }
 
-  addLayers(layers: AbstractMedia[]): void {
+  addLayers(layers: AbstractClip[]): void {
     this.layers = layers.map(layer => {
       const canvasLayer = new CanvasLayer(layer, this.canvas);
       if (this.#selectedLayer === layer) {
         canvasLayer.selected = true;
       }
-      canvasLayer.setTransformCallback((layer: AbstractMedia) => {
+      canvasLayer.setTransformCallback((layer: AbstractClip) => {
         this.#eventBus.emit(new PlayerLayerTransformedEvent(layer));
       });
       return canvasLayer;
@@ -120,7 +120,7 @@ export class VideoCanvas {
   /**
    * Set selected media for transformation
    */
-  setSelectedLayer(layer: AbstractMedia): void {
+  setSelectedLayer(layer: AbstractClip): void {
     this.layers.forEach(playerLayer => {
       playerLayer.selected = false;
     });

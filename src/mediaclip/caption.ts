@@ -1,4 +1,4 @@
-import {AbstractMedia} from './media-common';
+import {AbstractClip} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {TextMedia} from "@/mediaclip/text";
 import {createFrameService} from "@/mediaclip/frame";
@@ -212,11 +212,11 @@ export class CaptionMedia extends TextMedia {
     Canvas2DRender.drawTransformed(this.ctx, ctxOut, frame);
   }
 
-  protected _createCloneInstance(): AbstractMedia {
-    return new CaptionMedia(this.name, this._transcriptionChunks) as AbstractMedia;
+  protected _createCloneInstance(): AbstractClip {
+    return new CaptionMedia(this.name, this._transcriptionChunks) as AbstractClip;
   }
 
-  clone(): AbstractMedia {
+  clone(): AbstractClip {
     const cloned = super.clone();
     if (cloned) {
       (cloned as CaptionMedia).highlightColor = this._highlightColor;

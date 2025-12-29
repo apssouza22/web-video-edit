@@ -1,7 +1,7 @@
 import { TimelineLayerFactory } from './timeline-layer-factory';
 import type { IClipTl } from '../types';
 import type { TimelineLayer } from './timeline-layer';
-import {AbstractMedia} from "@/mediaclip";
+import {AbstractClip} from "@/mediaclip";
 
 /**
  * Class responsible for managing timeline media rendering using the new TimelineLayer system

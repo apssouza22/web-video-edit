@@ -1,6 +1,6 @@
 import {createVideoCanvas, VideoCanvas} from '@/canvas';
 import {createTimeline, Timeline} from '@/timeline';
-import {AbstractMedia, createMediaFromFile, IClip, MediaService} from '@/mediaclip';
+import {AbstractClip, createMediaFromFile, IClip, MediaService} from '@/mediaclip';
 import {AudioMedia} from '@/mediaclip/audio/audio';
 import {createTranscriptionService, TranscriptionService} from "@/transcription";
 import {exportToJson} from '@/common/utils';
@@ -67,7 +67,7 @@ export class VideoStudio {
     });
   }
 
-  getMediaById(id: string): AbstractMedia | null {
+  getMediaById(id: string): AbstractClip | null {
     return this.studioState.getMediaById(id);
   }
 
@@ -104,14 +104,14 @@ export class VideoStudio {
   /**
    * Get all medias in the studio
    */
-  getMedias(): AbstractMedia[] {
+  getMedias(): AbstractClip[] {
     return this.studioState.getMedias();
   }
 
   /**
    * Remove a media from the studio
    */
-  remove(media: AbstractMedia): void {
+  remove(media: AbstractClip): void {
     console.log(`Removing media: ${this.getMedias().length} layers before removal.`);
     this.studioState.removeMedia(media);
     console.log(`Removed media: ${this.getMedias().length} layers after removal.`);
@@ -125,12 +125,12 @@ export class VideoStudio {
   /**
    * Clone a media by creating a copy with slightly modified properties
    */
-  cloneLayer(layer: AbstractMedia): void {
+  cloneLayer(layer: AbstractClip): void {
     const clonedLayer = layer.clone();
     this.addLayer(clonedLayer);
   }
 
-  addLayer(layer: AbstractMedia, skipInit: boolean = false): AbstractMedia {
+  addLayer(layer: AbstractClip, skipInit: boolean = false): AbstractClip {
     if (!skipInit) {
       layer.startTime = this.#setStartTime(layer)
       layer.init(this.player.getCanvasAudioContext());
@@ -165,7 +165,7 @@ export class VideoStudio {
     window.requestAnimationFrame(this.#loop.bind(this));
   }
 
-  async createMediaFromLibrary(fileId: string): Promise<AbstractMedia[]> {
+  async createMediaFromLibrary(fileId: string): Promise<AbstractClip[]> {
     const file = await this.mediaLibrary.getFile(fileId);
     if (!file) {
       console.error(`File not found in library: ${fileId}`);
@@ -178,7 +178,7 @@ export class VideoStudio {
   onLayerLoadUpdate(
       progress: number,
       layerName: string,
-      layer?: AbstractMedia,
+      layer?: AbstractClip,
       audioBuffer?: AudioBuffer | null
   ): void {
     this.loadingPopup.updateProgress(layerName, progress);
@@ -190,7 +190,7 @@ export class VideoStudio {
     }
   }
 
-  setSelectedLayer(layer: AbstractMedia): void {
+  setSelectedLayer(layer: AbstractClip): void {
     this.timeline.setSelectedLayer(layer);
     this.player.setSelectedLayer(layer);
     this.studioState.setSelectedMedia(layer);

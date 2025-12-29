@@ -1,11 +1,11 @@
-import {AbstractMedia} from "@/mediaclip/media-common";
+import {AbstractClip} from "@/mediaclip/media-common";
 import {Frame} from "@/mediaclip/frame";
 import {VideoMedia} from "@/mediaclip/video";
 import {AudioMedia} from "@/mediaclip/audio";
 import {ESAudioContext, IAudioClip, LayerChange} from "@/mediaclip/types";
 
 
-export class ComposedMedia extends AbstractMedia implements IAudioClip{
+export class ComposedMedia extends AbstractClip implements IAudioClip{
   private readonly videoMedia: VideoMedia;
   private readonly audioMedia: AudioMedia;
   private readonly processedOperations: Set<string> = new Set();
@@ -20,14 +20,14 @@ export class ComposedMedia extends AbstractMedia implements IAudioClip{
     this._ready = true;
   }
 
-  protected _createCloneInstance(): AbstractMedia {
+  protected _createCloneInstance(): AbstractClip {
     return new ComposedMedia(
         this.videoMedia.clone() as VideoMedia,
         this.audioMedia.clone() as AudioMedia
     );
   }
 
-  protected _performSplit(_: AbstractMedia, splitTime: number): AbstractMedia {
+  protected _performSplit(_: AbstractClip, splitTime: number): AbstractClip {
     const video = this.videoMedia.split(splitTime);
     const audio = this.audioMedia.split(splitTime);
 

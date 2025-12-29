@@ -8,7 +8,7 @@ import {
     QUALITY_VERY_HIGH,
     VideoCodec,
 } from "mediabunny";
-import {AbstractMedia} from "@/mediaclip";
+import {AbstractClip} from "@/mediaclip";
 import {StudioState} from "@/common";
 import {fps} from "@/constants";
 import {getExportDimensions} from "./dimensions";
@@ -350,8 +350,8 @@ export class WebCodecExporter {
     /**
      * Get audio medias from the studio
      */
-    #getAudioLayers(): AbstractMedia[] {
-        const layers: AbstractMedia[] = [];
+    #getAudioLayers(): AbstractClip[] {
+        const layers: AbstractClip[] = [];
         for (const layer of this.studioState.getMedias()) {
             if (layer.isAudio()) {
                 layers.push(layer);

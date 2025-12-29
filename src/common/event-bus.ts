@@ -1,4 +1,4 @@
-import type { AbstractMedia } from '@/mediaclip';
+import type { AbstractClip } from '@/mediaclip';
 import type { IClipTl, LayerUpdateKind } from '@/timeline/types';
 import type {TranscriptionResult} from "@/transcription/types";
 
@@ -24,7 +24,7 @@ export class PlayerTimeUpdateEvent extends BaseEvent {
 
 export class PlayerLayerTransformedEvent extends BaseEvent {
   readonly name = 'player:layerTransformed';
-  constructor(public layer: AbstractMedia) {
+  constructor(public layer: AbstractClip) {
     super();
   }
 }
@@ -66,7 +66,7 @@ export class TranscriptionSeekEvent extends BaseEvent {
 
 export class TranscriptionCompletedEvent extends BaseEvent {
   readonly name = 'transcription:completed';
-  constructor(public transcriptionData: any, public layer?: AbstractMedia) {
+  constructor(public transcriptionData: any, public layer?: AbstractClip) {
     super();
   }
 }
@@ -90,7 +90,7 @@ export class MediaLoadUpdateEvent extends BaseEvent {
   constructor(
     public progress: number,
     public layerName: string,
-    public layer?: AbstractMedia,
+    public layer?: AbstractClip,
     public audioBuffer?: AudioBuffer | null,
   ) {
     super();

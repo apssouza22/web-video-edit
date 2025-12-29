@@ -1,9 +1,9 @@
 import {createFrameService, Frame} from '@/mediaclip/frame';
-import {AbstractMedia} from './media-common';
+import {AbstractClip} from './media-common';
 import {Canvas2DRender} from '@/common/render-2d';
 import {FrameSource} from '@/mediaclip/mediasource';
 
-export class VideoMedia extends AbstractMedia {
+export class VideoMedia extends AbstractClip {
   private frameSource: FrameSource | undefined;
   private lastRenderedFrame: Frame | null = null;
 
@@ -98,7 +98,7 @@ export class VideoMedia extends AbstractMedia {
     }
   }
 
-  protected _createCloneInstance(): AbstractMedia {
+  protected _createCloneInstance(): AbstractClip {
     const videoMedia = new VideoMedia(this.name);
     const timestamps = this.frameSource?.metadata.timestamps || [];
     videoMedia._frameService = createFrameService(this.totalTimeInMilSeconds, this.startTime, timestamps);

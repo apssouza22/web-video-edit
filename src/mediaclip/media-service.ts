@@ -1,4 +1,4 @@
-import {AbstractMedia} from "@/mediaclip/media-common";
+import {AbstractClip} from "@/mediaclip/media-common";
 
 export class MediaService {
 
@@ -12,7 +12,7 @@ export class MediaService {
    * @param endTime - End time in seconds
    * @param audioMedias - Array of AudioLayers to remove interval from
    */
-  removeAudioInterval(startTime: number, endTime: number, audioMedias: AbstractMedia[]): void {
+  removeAudioInterval(startTime: number, endTime: number, audioMedias: AbstractClip[]): void {
     try {
       if (audioMedias.length === 0) {
         console.log('No audio medias found to remove interval from');
@@ -34,7 +34,7 @@ export class MediaService {
    * @param endTime - End time in seconds
    * @param videoLayers - Array of VideoLayers to remove interval from
    */
-  removeVideoInterval(startTime: number, endTime: number, videoLayers: AbstractMedia[]): void {
+  removeVideoInterval(startTime: number, endTime: number, videoLayers: AbstractClip[]): void {
     try {
       if (videoLayers.length === 0) {
         console.log('No video medias found to remove interval from');

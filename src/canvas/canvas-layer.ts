@@ -9,11 +9,11 @@ import {
   TransformHandle
 } from './types';
 import type {FrameTransform} from '@/mediaclip/frame';
-import {AbstractMedia} from "@/mediaclip";
+import {AbstractClip} from "@/mediaclip";
 import {calculateMediaBounds, MediaBounds, Rect} from "@/common/render-2d";
 
 export class CanvasLayer {
-  private readonly _media: AbstractMedia;
+  private readonly _media: AbstractClip;
   #selected = false;
   #canvas: CanvasElement;
   #transforming = false;
@@ -21,7 +21,7 @@ export class CanvasLayer {
   #dragStart: Point2D = { x: 0, y: 0 };
   #initialTransform: FrameTransform | null = null;
   #handles: TransformHandle[] = [];
-  #onTransformCallback: LayerTransformedListener = (media: AbstractMedia) => {};
+  #onTransformCallback: LayerTransformedListener = (media: AbstractClip) => {};
   #currentTime = 0;
   public isUpdated: boolean = true;
 
@@ -29,7 +29,7 @@ export class CanvasLayer {
   /**
    * Class to handle transformations of a media in the player.
    */
-  constructor(media: AbstractMedia, canvas: CanvasElement) {
+  constructor(media: AbstractClip, canvas: CanvasElement) {
     this._media = media;
     this.#canvas = canvas;
     this.#initializeHandles();
@@ -38,7 +38,7 @@ export class CanvasLayer {
   /**
    * Returns the media associated with this PlayerLayer instance.
    */
-  get media(): AbstractMedia {
+  get media(): AbstractClip {
     return this._media;
   }
 
