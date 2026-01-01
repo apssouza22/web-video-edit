@@ -29,6 +29,9 @@ You can watch a demo of the Web Video Edit application on YouTube: [Web Video Ed
 
 You can try the demo at [smart-web-video-edit](https://apssouza22.github.io/web-video-edit/index.html).
 
+## Article
+An article detailing the architecture and implementation of the Web Video Edit application is available on [ARTICLE.md](ARTICLE.md).
+
 ## Architecture Documentation
 The architecture documentation for the Web Video Edit application is available in the [docs/architecture](docs/architecture) directory. It includes detailed diagrams and explanations of the system's components, data flow, and module structure.
 <img src="docs/architecture/package-organisation.png" alt="System Architecture Overview" width="600"/>
