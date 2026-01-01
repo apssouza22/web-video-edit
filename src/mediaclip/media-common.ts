@@ -155,6 +155,7 @@ export abstract class AbstractClip implements IClip {
    * Updates the rendering cache information
    */
   updateRenderCache(currentTime: number): void {
+    console.log(`[${this._name}] updateRenderCache: updating lastRenderedTime to ${currentTime}`, this._lastRenderedTime);
     this._lastRenderedTime = currentTime;
   }
 

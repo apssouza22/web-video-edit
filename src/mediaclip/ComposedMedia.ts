@@ -51,6 +51,7 @@ export class ComposedMedia extends AbstractClip implements IAudioClip{
   async update(change: LayerChange, referenceTime: number): Promise<void> {
     await this.videoMedia.update(change, referenceTime);
     await this.audioMedia.update(change, referenceTime);
+    this.updateRenderCache(-1);
   }
 
   disconnect(): void {

@@ -230,6 +230,10 @@ export class VideoCanvas {
     if(this.lastPlayedTime !== this.time || this.isPlaying()){
       return true;
     }
+    const pending = this.layers.find(layer => layer.media.shouldReRender(this.time));
+    if (pending) {
+      return true;
+    }
     return this.layers.some(layer => layer.isUpdated);
   }
 

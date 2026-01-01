@@ -21,7 +21,7 @@ export class AudioSource {
     return this.#source !== null;
   }
 
-  connect(audioCtx: ESAudioContext, destination: AudioNode, speed: number, buffer: AudioBuffer): void {
+  connect(audioCtx: ESAudioContext, destination: AudioNode, speed: number, buffer: AudioBuffer, volume: number = 1.0): void {
     this.#audioContext = audioCtx;
     if (speed <= 0) {
       speed = 0.1; // Prevent invalid speed values
@@ -29,8 +29,8 @@ export class AudioSource {
     this.disconnect();
     this.#source = this.#audioContext!.createBufferSource();
     this.#handlePitch(speed, buffer);
-    this.#handleVolume();
-    this.#source.connect(destination);
+    const gainNode = this.#handleVolume(volume);
+    gainNode.connect(destination);
   }
 
   start(when: number, offset: number): void {
@@ -40,11 +40,11 @@ export class AudioSource {
     this.#source.start(when, offset);
   }
 
-  #handleVolume(volume?: number): void {
-    volume = volume !== undefined ? volume : 1.0;
+  #handleVolume(volume: number = 1.0): GainNode {
     const layerGain = this.#audioContext!.createGain();
     layerGain.gain.value = volume;
     this.#source!.connect(layerGain);
+    return layerGain;
   }
 
   #handlePitch(speed: number, buffer: AudioBuffer): void {

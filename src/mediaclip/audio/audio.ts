@@ -15,6 +15,7 @@ export class AudioMedia extends AbstractClip implements IAudioClip {
   private started: boolean = false;
   private audioSplitHandler: AudioSplitHandler;
   private audioCutter: AudioCutter;
+  private _volume: number = 1.0; // 0.0 to 1.0
 
   constructor(name: string, audioFrameSource?: AudioFrameSource) {
     super(name);
@@ -33,12 +34,24 @@ export class AudioMedia extends AbstractClip implements IAudioClip {
     this._audioBuffer = audioFrameSource.audioBuffer;
     this.originalTotalTimeInMilSeconds = audioFrameSource.metadata.totalTimeInMilSeconds;
     this.totalTimeInMilSeconds = this.originalTotalTimeInMilSeconds;
-    
+
     if (this.totalTimeInMilSeconds === 0) {
       console.warn("Failed to load audio media: " + this._name + ". Audio buffer duration is 0.");
     }
-    
+
     this._ready = true;
+  }
+
+  get volume(): number {
+    return this._volume;
+  }
+
+  set volume(value: number) {
+    this._volume = Math.max(0, Math.min(1, value));
+    // If currently playing, reconnect with new volume
+    if (this.source.isConnected) {
+      this.connectAudioSource(this._playerAudioContext!);
+    }
   }
 
   disconnect(): void {
@@ -65,9 +78,9 @@ export class AudioMedia extends AbstractClip implements IAudioClip {
 
     if (this.audioStreamDestination) {
       //Used for video exporting
-      this.source.connect(playerAudioContext, this.audioStreamDestination, this.currentSpeed, this._audioBuffer!);
+      this.source.connect(playerAudioContext, this.audioStreamDestination, this.currentSpeed, this._audioBuffer!, this._volume);
     } else {
-      this.source.connect(playerAudioContext, playerAudioContext.destination, this.currentSpeed, this._audioBuffer!);
+      this.source.connect(playerAudioContext, playerAudioContext.destination, this.currentSpeed, this._audioBuffer!, this._volume);
     }
     this.started = false;
   }
