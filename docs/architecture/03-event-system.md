@@ -40,7 +40,7 @@ The application uses a centralized EventBus for decoupled communication between 
 **Payload**:
 ```typescript
 {
-  layer: AbstractMedia  // The transformed mediaclip layer
+  layer: AbstractClip  // The transformed clip layer
 }
 ```
 
@@ -201,7 +201,7 @@ The application uses a centralized EventBus for decoupled communication between 
 **Payload**:
 ```typescript
 {
-  layer: AbstractMedia,
+  layer: AbstractClip,
   progress: number,              // 0-100
   ctx?: CanvasRenderingContext2D,
   audioBuffer?: AudioBuffer
@@ -234,6 +234,94 @@ The application uses a centralized EventBus for decoupled communication between 
 - Load recorded video into studio
 - Add to timeline automatically
 - Show preview
+
+---
+
+### 11. CaptionCreateEvent
+**Event Name**: `caption:create`
+**Published By**: `TranscriptionView`
+**Subscribers**: `Studio`
+
+**Purpose**: Request creation of caption layer from transcription data
+
+**Payload**:
+```typescript
+{
+  transcriptionData: Map<string, TranscriptionResult>  // Word-level transcription with timestamps
+}
+```
+
+**Usage**:
+- User clicks "Generate Captions" in transcription UI
+- Studio creates CaptionMedia layer from transcription
+- Captions added to timeline synced with video
+- Word-level timing for accurate subtitle display
+
+---
+
+### 12. SpeechGeneratedEvent
+**Event Name**: `speech:generated`
+**Published By**: `SpeechService`
+**Subscribers**: `Studio`
+
+**Purpose**: Notify when text-to-speech audio has been generated
+
+**Payload**:
+```typescript
+{
+  audioBlob: Blob  // Generated audio file
+}
+```
+
+**Usage**:
+- TTS generation completes in worker thread
+- Studio loads audio as AudioMedia layer
+- Audio automatically positioned at current timeline time
+- User can adjust position and properties after generation
+
+---
+
+### 13. SearchCompleteEvent
+**Event Name**: `search:complete`
+**Published By**: `SearchService`
+**Subscribers**: `SearchView`
+
+**Purpose**: Notify when video search analysis is complete
+
+**Payload**:
+```typescript
+{
+  result: any  // Search results with frame matches and similarity scores
+}
+```
+
+**Usage**:
+- AI search finishes analyzing video frames
+- SearchView displays matching frames with thumbnails
+- User can click results to navigate to specific timestamps in timeline
+- Results ranked by similarity score
+
+---
+
+### 14. MediaLibraryDropEvent
+**Event Name**: `mediaLibrary:drop`
+**Published By**: `MediaLibrary`
+**Subscribers**: `Studio`
+
+**Purpose**: Notify when file is dropped from media library to timeline
+
+**Payload**:
+```typescript
+{
+  fileId: string  // File ID from IndexedDB storage
+}
+```
+
+**Usage**:
+- User drags file from persistent media library to timeline
+- Studio retrieves file from IndexedDB using fileId
+- File loaded and added to timeline at drop position
+- Supports drag and drop for quick clip reuse
 
 ---
 
@@ -392,6 +480,40 @@ sequenceDiagram
 
 **Publishes**:
 - `RecordVideoFileCreatedEvent` → Recording complete
+
+---
+
+### ClipSettingsService
+**Subscribes To**:
+- `PlayerLayerTransformedEvent` → Canvas layer transformed
+- `TimelineLayerUpdateEvent` → Timeline selection changed
+
+**Publishes**:
+- `PlayerLayerTransformedEvent` → Clip properties updated
+
+---
+
+### SpeechService
+**Subscribes To**: None directly
+
+**Publishes**:
+- `SpeechGeneratedEvent` → TTS audio generated
+
+---
+
+### SearchService
+**Subscribes To**: None directly
+
+**Publishes**:
+- `SearchCompleteEvent` → Video search complete
+
+---
+
+### MediaLibrary
+**Subscribes To**: None directly
+
+**Publishes**:
+- `MediaLibraryDropEvent` → File dropped from library to timeline
 
 ---
 

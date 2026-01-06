@@ -7,6 +7,10 @@ graph TB
         AspectCtrl[Aspect Ratio Control]
         MediaLoader[Media Loader]
         RecordSvc[Record Service]
+        SpeechSvc[Speech Service]
+        SearchSvc[Search Service]
+        MediaLib[Media Library]
+        ClipSettings[Clip Settings]
     end
 
     subgraph "EventBus<br/>(Central Hub)"
@@ -30,11 +34,17 @@ graph TB
 
     TransView -->|TranscriptionRemoveIntervalEvent| Bus
     TransView -->|TranscriptionSeekEvent| Bus
+    TransView -->|CaptionCreateEvent| Bus
 
     SpeedCtrl -->|UiSpeedChangeEvent| Bus
     AspectCtrl -->|UiAspectRatioChangeEvent| Bus
     MediaLoader -->|MediaLoadUpdateEvent| Bus
     RecordSvc -->|RecordVideoFileCreatedEvent| Bus
+
+    SpeechSvc -->|SpeechGeneratedEvent| Bus
+    SearchSvc -->|SearchCompleteEvent| Bus
+    MediaLib -->|MediaLibraryDropEvent| Bus
+    ClipSettings -->|PlayerLayerTransformedEvent| Bus
 
     Bus -->|All Events| CanvasSub
     Bus -->|All Events| TimelineSub
@@ -47,6 +57,6 @@ graph TB
     classDef bus fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
     classDef subscriber fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
 
-    class Canvas,Timeline,TransView,SpeedCtrl,AspectCtrl,MediaLoader,RecordSvc publisher
+    class Canvas,Timeline,TransView,SpeedCtrl,AspectCtrl,MediaLoader,RecordSvc,SpeechSvc,SearchSvc,MediaLib,ClipSettings publisher
     class Bus bus
     class CanvasSub,TimelineSub,MediaSvcSub,ControlsSub,StudioSub,AudioSvcSub subscriber

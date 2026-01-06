@@ -66,23 +66,30 @@ The application is organized into domain-driven modules under `src/`. Each modul
 ---
 
 ### 🎬 mediaclip/
-**Responsibility**: Media layer abstractions and operations
+**Responsibility**: Clip layer abstractions and operations
 
 **Key Classes**:
-- `AbstractMedia` - Base class for all mediaclip types
-- `VideoMedia` - Video mediaclip layer
-- `AudioMedia` - Audio mediaclip layer
-- `ImageMedia` - Image mediaclip layer
-- `TextMedia` - Text mediaclip layer
-- `MediaService` - Media operations (split, clone, remove intervals)
+- `AbstractClip` - Base class for all clip types
+- `ResizableClip` - Abstract base for non-video clips that can adjust duration
+- `VideoMedia` - Video clip layer
+- `AudioMedia` - Audio clip layer
+- `ImageMedia` - Image clip layer
+- `TextMedia` - Text clip layer
+- `CaptionMedia` - Caption/subtitle clip layer
+- `ShapeMedia` - Shape clip layer (rectangles, circles, etc.)
+- `ComposedMedia` - Composite video+audio clips
+- `MediaService` - Clip operations (split, clone, remove intervals)
 - `SpeedController` - Speed adjustment logic
+- `IClip` - Public clip interface
+- `IAudioClip` - Audio clip interface
 
 **Features**:
-- Unified mediaclip interface
+- Unified clip interface
 - Frame-based rendering
 - Time-based operations
 - Speed control
-- Transform properties
+- Transform properties (x, y, scale, rotation)
+- Clip hierarchy with composition support
 
 **Dependencies**: audio, frame, common
 
@@ -179,6 +186,107 @@ The application is organized into domain-driven modules under `src/`. Each modul
 - Remove intervals based on transcript
 
 **Dependencies**: common
+
+---
+
+### 📋 settings/
+**Responsibility**: Clip property management and real-time editing
+
+**Key Classes**:
+- `ClipSettingsService` - Manages clip property updates, event subscriptions
+- `ClipSettingsView` - Settings panel UI with property editors
+- `types.ts` - TRANSFORM_PROPERTIES, TIMING_PROPERTIES definitions
+
+**Features**:
+- Real-time clip property editing (x, y, scale, rotation)
+- Timing controls (startTime, duration, speed)
+- Volume controls for audio clips
+- Event-driven updates with throttling (16ms for 60fps)
+- Subscribes to: PlayerLayerTransformedEvent, TimelineLayerUpdateEvent
+- Updates clips via AbstractClip.update() method
+
+**Dependencies**: mediaclip, common
+
+---
+
+### 🔍 search/
+**Responsibility**: AI-powered semantic video search
+
+**Key Classes**:
+- `SearchService` - Search orchestration
+- `SearchProcessor` - Query processing and matching
+- `FrameAnalyzer` - Frame analysis using Florence-2 AI model
+- `EmbeddingCalculator` - Similarity calculations
+- `AnalyzedFrameCache` - Performance optimization
+- `SearchView` - Search UI
+
+**Features**:
+- Semantic video frame search using AI embeddings
+- Frame-by-frame analysis with AI
+- Embedding-based similarity search
+- Cached analysis results for performance
+- Web Worker isolation for AI processing
+- Navigation to matching frames in timeline
+
+**Dependencies**: mediaclip, common
+
+---
+
+### 🗣️ speech/
+**Responsibility**: Text-to-speech audio generation
+
+**Key Classes**:
+- `SpeechService` - TTS orchestration
+- `SpeechModel` - AI model management (Kokoro)
+- `TTSAudio` - Audio generation and playback
+- `SpeechView` - TTS UI
+
+**Features**:
+- Text-to-speech using Transformers.js
+- Multiple voice options
+- Audio clip generation for timeline
+- Web Worker processing for TTS
+- Integration with AudioMedia for playback
+
+**Dependencies**: mediaclip, audio, common
+
+---
+
+### 📚 medialibrary/
+**Responsibility**: Persistent media file storage and library management
+
+**Key Classes**:
+- `MediaLibrary` - Library manager
+- `FileStorage` - IndexedDB storage interface
+- `FileUpload` - File upload handling
+- `ThumbnailGenerator` - Thumbnail creation
+
+**Features**:
+- Persistent file storage using IndexedDB
+- Thumbnail generation and caching
+- Drag and drop from library to timeline
+- File organization and browsing
+- Storage quota management
+- Emits: MediaLibraryDropEvent
+
+**Dependencies**: common
+
+---
+
+### 🔷 shape/
+**Responsibility**: Shape creation and manipulation
+
+**Key Classes**:
+- `ShapeView` - Shape creation UI
+- `ShapeService` - Shape management
+
+**Features**:
+- Shape creation (rectangle, circle, triangle, etc.)
+- Shape property editing
+- Integration with ShapeMedia clips
+- Timeline representation via ShapeTimelineLayer
+
+**Dependencies**: mediaclip, common
 
 ---
 

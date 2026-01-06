@@ -673,7 +673,48 @@ sequenceDiagram
 
 ---
 
-## 8. State Management Flow
+## 8. Clip Settings Update Flow
+
+Shows how clip property changes flow through the system when a user edits clip properties.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Timeline
+    participant EventBus
+    participant ClipSettingsView
+    participant ClipSettingsService
+    participant AbstractClip
+    participant Canvas
+
+    User->>Timeline: Select clip
+    Timeline->>EventBus: emit(TimelineLayerUpdateEvent, 'select')
+    EventBus->>ClipSettingsService: Clip selected
+    ClipSettingsService->>ClipSettingsView: updateClip(selectedClip)
+    ClipSettingsView->>ClipSettingsView: Populate property fields
+
+    User->>ClipSettingsView: Change property (e.g., x: 100)
+    ClipSettingsView->>ClipSettingsService: handlePropertyChange('x', 100)
+    ClipSettingsService->>ClipSettingsService: Throttle update (16ms)
+    ClipSettingsService->>AbstractClip: update({x: 100}, currentTime)
+    AbstractClip->>AbstractClip: Update all frames
+    AbstractClip->>AbstractClip: Reset render cache
+    ClipSettingsService->>EventBus: emit(PlayerLayerTransformedEvent)
+    EventBus->>Canvas: Re-render frame
+    EventBus->>Timeline: Update layer display
+```
+
+### Key Points
+- Updates are throttled to 60fps (16ms) for smooth performance during real-time editing
+- Transform properties (x, y, scale, rotation) use the `update()` method to modify all frames
+- Timing properties (startTime, duration) use direct setters for immediate effect
+- Speed changes use the SpeedController for pitch-preserved playback
+- Render cache is invalidated to force visual refresh after property changes
+- Event-driven architecture keeps Canvas and Timeline synchronized
+
+---
+
+## 9. State Management Flow
 
 ### Global State Updates
 

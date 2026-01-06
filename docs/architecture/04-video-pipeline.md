@@ -34,8 +34,8 @@ graph TB
         FrameQuality[Quality Adjustment]
     end
     
-    subgraph "Media Layer"
-        VideoMedia[VideoMedia<br/>Media Representation]
+    subgraph "Clip Layer"
+        VideoMedia[VideoMedia/ComposedMedia<br/>Clip Representation]
         Metadata[Video Metadata<br/>FPS, Duration, Size]
     end
     

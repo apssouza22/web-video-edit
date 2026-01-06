@@ -47,11 +47,14 @@ flowchart TB
     end
     subgraph s5["mediaclip/"]
         MediaService["mediaclip-service.ts"]
-        MediaCommon["mediaclip-common.ts<br>AbstractMedia"]
+        MediaCommon["media-common.ts<br>AbstractClip"]
         MediaVideo["video.ts<br>VideoMedia"]
         MediaAudio["audio.ts<br>AudioMedia"]
         MediaImage["image.ts<br>ImageMedia"]
         MediaText["text.ts<br>TextMedia"]
+        MediaCaption["caption.ts<br>CaptionMedia"]
+        MediaShape["shape.ts<br>ShapeMedia"]
+        MediaComposed["composed.ts<br>ComposedMedia"]
         MediaTypes["types.ts"]
         SpeedController["speed-controller.ts"]
         MediaIndex["index.ts"]
@@ -112,6 +115,38 @@ flowchart TB
         FrameIndex["index.ts"]
         FrameService --> FrameAdjust
     end
+    subgraph s15["settings/"]
+        ClipSettings["clip-settings-service.ts<br>ClipSettingsService"]
+        ClipSettingsView["clip-settings-view.ts"]
+        SettingsTypes["types.ts"]
+        SettingsIndex["index.ts"]
+    end
+    subgraph s18["search/"]
+        SearchService["search-service.ts"]
+        SearchProcessor["search-processor.ts"]
+        FrameAnalyzer["frame-analyzer.ts"]
+        SearchView["search-view.ts"]
+        SearchIndex["index.ts"]
+    end
+    subgraph s19["speech/"]
+        SpeechService["speech-service.ts"]
+        SpeechModel["speech-model.ts"]
+        TTSAudio["tts-audio.ts"]
+        SpeechView["speech-view.ts"]
+        SpeechIndex["index.ts"]
+    end
+    subgraph s20["medialibrary/"]
+        MediaLibrary["media-library.ts"]
+        FileStorage["file-storage.ts"]
+        FileUpload["file-upload.ts"]
+        ThumbnailGen["thumbnail-generator.ts"]
+        MediaLibIndex["index.ts"]
+    end
+    subgraph s21["shape/"]
+        ShapeView["shape-view.ts"]
+        ShapeService["shape-service.ts"]
+        ShapeIndex["index.ts"]
+    end
     subgraph s16["common/"]
         EventBus["event-bus.ts<br>EventBus"]
         StudioState["studio-state.ts<br>StudioState"]
@@ -132,13 +167,18 @@ flowchart TB
         s12
         s13
         s14
+        s15
         s16
+        s18
+        s19
+        s20
+        s21
     end
     AudioService --> AudioCutter & AudioSplit & PitchProcessor
     MediaAudio --> AudioSource
-    MediaService --> SpeedController & MediaVideo & MediaAudio & MediaImage & MediaText & AudioService
+    MediaService --> SpeedController & MediaVideo & MediaAudio & MediaImage & MediaText & MediaCaption & MediaShape & MediaComposed & AudioService
     Main --> Studio
-    Studio --> StudioInit & Canvas & Timeline & MediaService & MediaLoader & VideoExport & Transcription & RecordService
+    Studio --> StudioInit & Canvas & Timeline & MediaService & MediaLoader & VideoExport & Transcription & RecordService & ClipSettings
     StudioInit --> Studio & StudioEvents
     Canvas --> CanvasLayer
     Timeline --> TLLayer & TLFactory
@@ -149,6 +189,11 @@ flowchart TB
     VideoExport --> MediaRecorderExp & WebCodecExp
     RecordService --> RecordPreview
     Transcription --> TranscriptionModel & TranscriptionWorker
+    ClipSettings --> MediaCommon & EventBus
+    SearchService --> FrameAnalyzer
+    SpeechService --> SpeechModel
+    MediaLibrary --> FileStorage & ThumbnailGen
+    ShapeService --> MediaShape
     Animation["animation.js"]
     AnimationIndex["index.js"]
     MediaService --> FrameService

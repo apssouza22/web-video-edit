@@ -28,14 +28,19 @@ High-level architecture showing the main components and their relationships:
 ### 2. [Module Structure](./02-module-structure.md)
 Detailed package/domain organization:
 - `src/audio/` - Audio processing and manipulation
-- `src/video/` - Video demuxing and muxing
-- `src/timeline/` - Timeline management and rendering
-- `src/studio/` - Main studio orchestration
-- `src/mediaclip/` - Media layer abstractions
 - `src/canvas/` - Canvas rendering and player
-- `src/recording/` - Screen recording functionality
-- `src/transcription/` - AI-powered transcription
 - `src/common/` - Shared utilities and event bus
+- `src/medialibrary/` - Media library and persistent storage
+- `src/mediaclip/` - Clip layer abstractions (AbstractClip hierarchy)
+- `src/recording/` - Screen recording functionality
+- `src/search/` - AI-powered semantic video search
+- `src/settings/` - Clip property management and editing UI
+- `src/shape/` - Shape creation and rendering
+- `src/speech/` - Text-to-speech generation
+- `src/studio/` - Main studio orchestration
+- `src/timeline/` - Timeline management and rendering
+- `src/transcription/` - AI-powered transcription
+- `src/video/` - Video demuxing and muxing
 
 ### 3. [Event System](./03-event-system.md)
 Event-driven architecture using a centralized EventBus:
@@ -54,9 +59,10 @@ Complete video processing flow:
 - Video export (MediaRecorder, WebCodecs)
 
 ### 5. [Timeline & Layers](./05-timeline-layers.md)
-Timeline system and mediaclip layer architecture:
+Timeline system and clip layer architecture:
 - Timeline rendering and interaction
-- Layer types (Video, Audio, Image, Text)
+- Layer types (Video, Audio, Image, Text, Caption, Shape, Composed)
+- Timeline Cursor for drag state management
 - Layer transformations and updates
 - Time synchronization
 
@@ -108,12 +114,12 @@ The codebase is migrating from JavaScript to TypeScript:
 ### VideoStudio
 The main orchestrator that:
 - Initializes all subsystems
-- Manages mediaclip layers
+- Manages clip layers
 - Coordinates player and timeline
 - Handles aspect ratio and settings
 
 ### VideoCanvas (Player)
-Renders mediaclip layers on canvas:
+Renders clip layers on canvas:
 - Manages playback state
 - Synchronizes audio and video
 - Handles layer transformations
@@ -121,10 +127,24 @@ Renders mediaclip layers on canvas:
 
 ### Timeline
 Visual timeline interface:
-- Displays mediaclip layers
-- Handles drag and drop
+- Displays clip layers
+- Handles drag and drop with TimelineCursor
 - Manages time markers
 - Supports zoom and scroll
+
+### ClipSettingsService
+Manages clip property editing:
+- Real-time property updates (x, y, scale, rotation)
+- Timing controls (startTime, duration, speed)
+- Event-driven synchronization with Canvas/Timeline
+- Throttled updates for 60fps performance
+
+### TimelineCursor
+Centralized cursor state management:
+- Tracks drag operations (horizontal/vertical)
+- Detects resize handles
+- Provides appropriate CSS cursors
+- Integrates with DragLayerHandler
 
 ### VideoDemuxService
 Video processing pipeline:

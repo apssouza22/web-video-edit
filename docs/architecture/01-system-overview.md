@@ -18,10 +18,10 @@ This diagram shows the main components of the Web Video Edit application and the
 - **EventBus**: Centralized event system for decoupled communication
 - **StudioState**: Singleton managing global application state
 
-### Media Management
-- **MediaService**: Handles mediaclip operations (split, clone, remove intervals)
-- **LayerLoader**: Manages loading of different mediaclip types
-- **Media Layers**: Abstract mediaclip representations (Video, Audio, Image, Text)
+### Clip Management
+- **MediaService**: Handles clip operations (split, clone, remove intervals)
+- **LayerLoader**: Manages loading of different clip types
+- **Clip Layers**: Abstract clip representations (Video, Audio, Image, Text, Caption, Shape, Composed)
 
 ### Playback & Rendering
 - **VideoCanvas**: Main player component with render loop
@@ -30,9 +30,25 @@ This diagram shows the main components of the Web Video Edit application and the
 
 ### Timeline System
 - **Timeline**: Timeline manager handling display and interactions
-- **Timeline Layers**: Visual representations of mediaclip on timeline
+- **Timeline Layers**: Visual representations of clips on timeline
 - **Time Marker**: Current time indicator
-- **Drag & Drop Handler**: Media manipulation on timeline
+- **Timeline Cursor**: Cursor state management for drag operations
+- **Drag & Drop Handler**: Clip manipulation on timeline
+
+### Settings System
+- **ClipSettingsService**: Manages clip property updates
+- **ClipSettingsView**: UI panel for editing clip properties
+
+**Integration**:
+- Subscribes to PlayerLayerTransformedEvent (canvas updates)
+- Subscribes to TimelineLayerUpdateEvent (selection changes)
+- Updates clips via AbstractClip.update() method
+- Throttles updates for performance (16ms/60fps)
+
+**Properties Managed**:
+- Transform: x, y, scale, rotation
+- Timing: startTime, duration, speed
+- Audio: volume (for audio clips)
 
 ### Video Processing
 - **VideoDemuxService**: Orchestrates video demuxing strategy
@@ -66,8 +82,9 @@ This diagram shows the main components of the Web Video Edit application and the
 Components communicate through the EventBus rather than direct coupling:
 - Player emits time updates → Timeline synchronizes
 - Timeline emits layer updates → Player refreshes
-- Record emits video medialibrary created → Studio loads mediaclip
-- UI emits speed changes → Media layers adjust
+- Record emits video file created → Studio loads clip
+- UI emits speed changes → Clip layers adjust
+- Settings emits property changes → Clips update
 
 ### Direct Dependencies (shown with solid lines)
 Some components have direct relationships:
@@ -102,11 +119,12 @@ sequenceDiagram
 
 ## Data Flow Summary
 
-1. **User uploads mediaclip** → LayerLoader → Demux/AudioLoader → Media Layer → EventBus (load update)
+1. **User uploads clip** → LayerLoader → Demux/AudioLoader → Clip Layer → EventBus (load update)
 2. **User interacts with timeline** → Timeline → EventBus → Player updates
-3. **Playback** → Player render loop → Canvas Layers → Media Layers render
-4. **Export** → VideoExportService → Player renders frames → MediaRecorder/WebCodec → Download
-5. **Recording** → UserMediaRecordingService → MediaStream → MediaRecorder → EventBus → Studio loads
+3. **User edits clip properties** → ClipSettingsView → ClipSettingsService → AbstractClip.update() → EventBus → Canvas/Timeline refresh
+4. **Playback** → Player render loop → Canvas Layers → Clip Layers render
+5. **Export** → VideoExportService → Player renders frames → MediaRecorder/WebCodec → Download
+6. **Recording** → UserMediaRecordingService → MediaStream → MediaRecorder → EventBus → Studio loads
 
 ## Technology Integration
 

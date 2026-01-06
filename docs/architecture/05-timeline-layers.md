@@ -1,8 +1,8 @@
-# Timeline & Media Layers Architecture
+# Timeline & Clip Layers Architecture
 
 ## Overview
 
-The Timeline system provides a visual interface for arranging and manipulating mediaclip. Media layers represent different types of content (video, audio, image, text) with unified interfaces for both timeline display and canvas rendering.
+The Timeline system provides a visual interface for arranging and manipulating clips. Clip layers represent different types of content (video, audio, image, text, captions, shapes) with unified interfaces for both timeline display and canvas rendering.
 
 ## Timeline System Architecture
 
@@ -29,14 +29,21 @@ graph TB
         AudioTL[AudioTimelineLayer]
         ImageTL[ImageTimelineLayer]
         TextTL[TextTimelineLayer]
+        CaptionTL[CaptionTimelineLayer]
+        ShapeTL[ShapeTimelineLayer]
+        ComposedTL[ComposedTimelineLayer]
     end
-    
-    subgraph "Media Layers"
-        MediaBase[AbstractMedia<br/>Base Class]
+
+    subgraph "Clip Layers"
+        ClipBase[AbstractClip<br/>Base Class]
+        ResizableClip[ResizableClip<br/>Abstract]
         VideoMedia[VideoMedia]
         AudioMedia[AudioMedia]
         ImageMedia[ImageMedia]
         TextMedia[TextMedia]
+        CaptionMedia[CaptionMedia]
+        ShapeMedia[ShapeMedia]
+        ComposedMedia[ComposedMedia]
     end
     
     subgraph "Player System"
@@ -64,19 +71,29 @@ graph TB
     TLFactory --> AudioTL
     TLFactory --> ImageTL
     TLFactory --> TextTL
-    
+    TLFactory --> CaptionTL
+    TLFactory --> ShapeTL
+    TLFactory --> ComposedTL
+
     VideoTL --> TLBase
     AudioTL --> TLBase
     ImageTL --> TLBase
     TextTL --> TLBase
-    
-    TLBase -.-> MediaBase
+    CaptionTL --> TLBase
+    ShapeTL --> TLBase
+    ComposedTL --> TLBase
+
+    TLBase -.-> ClipBase
     VideoTL -.-> VideoMedia
     AudioTL -.-> AudioMedia
     ImageTL -.-> ImageMedia
     TextTL -.-> TextMedia
-    
-    MediaBase --> Player
+    CaptionTL -.-> CaptionMedia
+    ShapeTL -.-> ShapeMedia
+    ComposedTL -.-> ComposedMedia
+
+    ClipBase --> ResizableClip
+    ClipBase --> Player
     VideoMedia --> CanvasLayers
     AudioMedia --> CanvasLayers
     ImageMedia --> CanvasLayers
@@ -94,15 +111,27 @@ graph TB
     style EventBus fill:#fff3cd
 ```
 
-## Media Layer Hierarchy
+## Clip Layer Hierarchy
 
-### AbstractMedia Base Class
+### AbstractClip Base Class
 
-All mediaclip types inherit from `AbstractMedia`, providing a unified interface.
+All clip types inherit from `AbstractClip`, providing a unified interface.
 
 ```mermaid
 classDiagram
-    class AbstractMedia {
+    class IClip {
+        <<interface>>
+        +id: string
+        +name: string
+        +startTime: number
+        +totalTimeInMilSeconds: number
+        +render()
+        +update()
+        +split()
+        +clone()
+    }
+
+    class AbstractClip {
         <<abstract>>
         +id: string
         +name: string
@@ -110,41 +139,48 @@ classDiagram
         +totalTimeInMilSeconds: number
         +width: number
         +height: number
-        +x: number
-        +y: number
-        +rotation: number
-        +canvas: HTMLCanvasElement
-        +ctx: CanvasRenderingContext2D
         +ready: boolean
-        +framesCollection: FrameService
+        +frameService: FrameService
+        +speedController: SpeedController
         +render(ctx, time, playing)
+        +update(change, time)
+        +split(splitTime)
+        +clone()
         +adjustTotalTime(diff)
-        +removeInterval(start, end)
+        +setSpeed(speed)
+        +getSpeed()
     }
-    
+
+    class ResizableClip {
+        <<abstract>>
+        +adjustTotalTime(diff)
+    }
+
     class VideoMedia {
-        +medialibrary: File
+        +media: File
         +videoMetadata: VideoMetadata
         +fps: number
         +loadVideo()
         +render(ctx, time, playing)
+        +isVideo() boolean
     }
-    
+
     class AudioMedia {
         +audioBuffer: AudioBuffer
         +audioSource: AudioBufferSourceNode
         +playerAudioContext: AudioContext
         +loadAudio()
         +connectAudioSource()
-        +render(ctx, time, playing)
+        +playStart(time)
+        +isAudio() boolean
     }
-    
+
     class ImageMedia {
         +image: HTMLImageElement
         +loadImage()
         +render(ctx, time, playing)
     }
-    
+
     class TextMedia {
         +text: string
         +fontSize: number
@@ -152,22 +188,50 @@ classDiagram
         +color: string
         +render(ctx, time, playing)
     }
-    
-    AbstractMedia <|-- VideoMedia
-    AbstractMedia <|-- AudioMedia
-    AbstractMedia <|-- ImageMedia
-    AbstractMedia <|-- TextMedia
+
+    class CaptionMedia {
+        +transcription: TranscriptionResult[]
+        +scenes: CaptionScene[]
+        +buildScenes()
+        +render(ctx, time, playing)
+    }
+
+    class ShapeMedia {
+        +shapeType: string
+        +fillColor: string
+        +strokeColor: string
+        +render(ctx, time, playing)
+    }
+
+    class ComposedMedia {
+        +videoComponent: VideoMedia
+        +audioComponent: AudioMedia
+        +render(ctx, time, playing)
+        +connectAudioSource()
+    }
+
+    IClip <|.. AbstractClip
+    AbstractClip <|-- VideoMedia
+    AbstractClip <|-- AudioMedia
+    AbstractClip <|-- ComposedMedia
+    AbstractClip <|-- ResizableClip
+    ResizableClip <|-- ImageMedia
+    ResizableClip <|-- TextMedia
+    ResizableClip <|-- CaptionMedia
+    ResizableClip <|-- ShapeMedia
 ```
 
 ### Common Properties
 
-All mediaclip layers share:
-- **Position**: `x`, `y` coordinates on canvas
+All clip layers share:
+- **Identity**: `id`, `name` for tracking
+- **Position**: Frame-based positioning via FrameService
 - **Size**: `width`, `height` dimensions
 - **Timing**: `startTime`, `totalTimeInMilSeconds`
-- **Transform**: `rotation`, scale, opacity
-- **Canvas**: Own canvas for rendering
+- **Transform**: Position, rotation, scale via Frame objects
+- **Canvas**: Internal canvas for rendering
 - **State**: `ready` flag, loading progress
+- **Speed**: Playback speed control via SpeedController
 
 ---
 
@@ -304,6 +368,109 @@ graph LR
 
 ---
 
+#### CaptionTimelineLayer
+```mermaid
+graph LR
+    A[Caption Track] --> B[Purple/Pink Gradient]
+    B --> C[CC Symbol]
+    C --> D[Layer Name]
+    D --> E[Resize Handles]
+
+    style A fill:#E91E63
+```
+
+**Visual Features**:
+- Purple/pink color scheme
+- "CC" or subtitle icon
+- Caption text preview
+- Word-level timeline visualization
+- Duration synced with source video
+
+---
+
+#### ShapeTimelineLayer
+```mermaid
+graph LR
+    A[Shape Track] --> B[Yellow/Orange Gradient]
+    B --> C[Shape Icon]
+    C --> D[Layer Name]
+    D --> E[Resize Handles]
+
+    style A fill:#FFC107
+```
+
+**Visual Features**:
+- Yellow/orange color scheme
+- Shape type icon (rectangle, circle, etc.)
+- Shape preview
+- Adjustable duration
+
+---
+
+#### ComposedTimelineLayer
+```mermaid
+graph LR
+    A[Composed Track] --> B[Blue/Green Gradient]
+    B --> C[Film Strip + Waveform]
+    C --> D[Layer Name]
+    D --> E[Resize Handles]
+
+    style A fill:#009688
+```
+
+**Visual Features**:
+- Combined blue/green gradient (merges video and audio colors)
+- Film strip + waveform icon
+- Shows both video and audio components
+- Duration matches longer of two components
+
+---
+
+## Timeline Cursor Management
+
+**Class**: `TimelineCursor` (src/timeline/cursor.ts)
+
+The TimelineCursor centralizes cursor state management for timeline interactions, working alongside DragLayerHandler to provide unified cursor behavior.
+
+### Responsibilities
+- Track drag operations (started/finished/none)
+- Determine drag mode (horizontal/vertical) based on initial movement
+- Detect cursor position over handles (left/right resize)
+- Provide appropriate CSS cursor strings
+- Integrate with DragLayerHandler for drag operations
+
+### Key Methods
+- `startDrag(x, y)` - Initialize drag operation with starting coordinates
+- `updateData(time, clip, x, y)` - Update cursor state with current position
+- `getCursorState()` - Get complete cursor state object including drag mode and CSS cursor
+- `notifyDragFinished()` - Complete drag operation and reset state
+
+### State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> None
+    None --> Started: startDrag()
+    Started --> Horizontal: drag threshold exceeded (X > Y)
+    Started --> Vertical: drag threshold exceeded (Y > X)
+    Horizontal --> Finished: notifyDragFinished()
+    Vertical --> Finished: notifyDragFinished()
+    Finished --> None: after 1ms timeout
+```
+
+### Cursor Types
+The TimelineCursor determines the appropriate cursor style based on interaction context:
+
+- **default**: No interaction
+- **grab**: Over layer body or left handle (can drag)
+- **col-resize**: Over right handle (duration adjustment)
+- **ew-resize**: Horizontal drag active (time adjustment)
+- **ns-resize**: Vertical drag active (layer reordering)
+
+### Drag Threshold
+Uses a 10-pixel threshold before determining drag direction, preventing accidental mode detection from minor mouse movements.
+
+---
+
 ## Timeline Interactions
 
 ### Drag and Drop
@@ -325,22 +492,22 @@ stateDiagram-v2
 **Drag Handler**:
 ```typescript
 class DragHandler {
-  private draggedLayer: AbstractMedia | null = null;
+  private draggedLayer: AbstractClip | null = null;
   private dragStartX: number = 0;
   private dragStartTime: number = 0;
-  
-  onMouseDown(event: MouseEvent, layer: AbstractMedia): void {
+
+  onMouseDown(event: MouseEvent, layer: AbstractClip): void {
     this.draggedLayer = layer;
     this.dragStartX = event.clientX;
     this.dragStartTime = layer.startTime;
   }
-  
+
   onMouseMove(event: MouseEvent): void {
     if (!this.draggedLayer) return;
-    
+
     const deltaX = event.clientX - this.dragStartX;
     const deltaTime = this.pixelsToTime(deltaX);
-    
+
     this.draggedLayer.startTime = this.dragStartTime + deltaTime;
     this.emit(new TimelineLayerUpdateEvent('select', this.draggedLayer));
   }
@@ -410,21 +577,21 @@ sequenceDiagram
 
 **Split Logic**:
 ```typescript
-splitMedia(layer: AbstractMedia, splitTime: number): AbstractMedia {
+splitMedia(layer: AbstractClip, splitTime: number): AbstractClip {
   const clone = this.clone(layer);
-  
+
   // Calculate percentage through layer
   const pct = (splitTime - layer.startTime) / layer.totalTimeInMilSeconds;
-  const splitIndex = Math.round(pct * layer.framesCollection.frames.length);
-  
+  const splitIndex = Math.round(pct * layer.frameService.frames.length);
+
   // Clone gets frames before split
-  clone.framesCollection.frames = layer.framesCollection.frames.splice(0, splitIndex);
+  clone.frameService.frames = layer.frameService.frames.splice(0, splitIndex);
   clone.totalTimeInMilSeconds = pct * layer.totalTimeInMilSeconds;
-  
+
   // Original gets frames after split
   layer.startTime = layer.startTime + clone.totalTimeInMilSeconds;
   layer.totalTimeInMilSeconds -= clone.totalTimeInMilSeconds;
-  
+
   return clone;
 }
 ```

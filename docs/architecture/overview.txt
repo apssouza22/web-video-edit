@@ -10,10 +10,10 @@ flowchart LR
         EventBus["EventBus<br>Central Communication"]
         State["StudioState<br>Global State"]
     end
-    subgraph subGraph2["Media Management"]
-        MediaService["MediaService<br>Media Operations"]
-        MediaLoader["MediaLoader<br>Media Loading"]
-        MediaLayers["Media Layers<br>Video/Audio/Image/Text"]
+    subgraph subGraph2["Clip Management"]
+        MediaService["MediaService<br>Clip Operations"]
+        MediaLoader["MediaLoader<br>Clip Loading"]
+        ClipLayers["Clip Layers<br>Video/Audio/Image/Text/Caption/Shape"]
         AudioLoader["Audio Loader"]
         AudioSource["Audio Source"]
     end
@@ -27,6 +27,11 @@ flowchart LR
         TLLayers["Timeline Layers<br>Visual Representation"]
         TimeMarker["Time Marker"]
         DragHandler["Drag & Drop Handler"]
+        Cursor["Timeline Cursor<br>Cursor State"]
+    end
+    subgraph subGraph10["Settings System"]
+        ClipSettings["ClipSettingsService<br>Property Management"]
+        ClipSettingsView["ClipSettingsView<br>Settings UI"]
     end
     subgraph subGraph5["Video Processing"]
         Demux["VideoDemuxService<br>Frame Extraction"]
@@ -58,18 +63,20 @@ flowchart LR
     Controls --> Studio
     Timeline --> Studio
     Canvas --> Player
-    Studio --> EventBus & State & Player & TL & MediaService & Export & Transcription & Record
-    EventBus -.-> Player & TL & MediaLayers & Record
-    MediaService --> MediaLayers & AudioService
-    MediaLoader --> MediaLayers & Demux & AudioLoader
-    MediaLayers --> AudioSource
+    Studio --> EventBus & State & Player & TL & MediaService & Export & Transcription & Record & ClipSettings
+    EventBus -.-> Player & TL & ClipLayers & Record & ClipSettings
+    MediaService --> ClipLayers & AudioService
+    MediaLoader --> ClipLayers & Demux & AudioLoader
+    ClipLayers --> AudioSource
     AudioService --> AudioCutter & PitchProcessor
     Player --> CanvasLayers & AudioContext
-    TL --> TLLayers & TimeMarker & DragHandler
+    TL --> TLLayers & TimeMarker & DragHandler & Cursor
     Demux --> MP4Box & MediaBunny & HTMLDemux & FrameService
     Export --> MediaRecorder & WebCodec
     Record --> Preview & MediaStream
     Transcription --> AIModel
+    ClipSettings --> ClipSettingsView & ClipLayers
+    ClipSettingsView --> ClipSettings
 
     style Studio fill:#e1f5ff
     style EventBus fill:#fff3cd
@@ -79,3 +86,4 @@ flowchart LR
     style Export fill:#f8d7da
     style Record fill:#d1ecf1
     style Transcription fill:#e2d5f0
+    style ClipSettings fill:#fff3cd

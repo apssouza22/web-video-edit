@@ -3,7 +3,12 @@
     "allow": [
       "mcp__ide__getDiagnostics",
       "Bash(npm run build:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git -C /Users/alexsandro.souza/projects/my/opensource/video-demux log --oneline --all -20)",
+      "Bash(git -C /Users/alexsandro.souza/projects/my/opensource/video-demux show 6f5d325 --stat)",
+      "Bash(git -C /Users/alexsandro.souza/projects/my/opensource/video-demux show c6196ff --stat)",
+      "Bash(git -C /Users/alexsandro.souza/projects/my/opensource/video-demux show 80b7595 --stat)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
