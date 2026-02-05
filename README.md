@@ -27,7 +27,7 @@ Features include:
 
 You can watch a demo of the Web Video Edit application on YouTube: [Web Video Edit Demo](https://www.youtube.com/watch?v=NcByGHQk-zM&t=45s&ab_channel=AlexsandroSouza).
 
-You can try the demo at [smart-web-video-edit](https://apssouza22.github.io/web-video-edit/index.html).
+You can try the demo at [smart-web-video-edit](https://apssouza22.github.io/smart-video-flow/).
 
 ## Article
 An article detailing the architecture and implementation of the Web Video Edit application is available on [ARTICLE.md](ARTICLE.md).
